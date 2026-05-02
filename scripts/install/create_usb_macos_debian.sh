@@ -13,32 +13,45 @@ ARG_DISK=""
 ENV_FILE=".env"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Colores
+# ─────────────────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+info()    { echo -e "${CYAN}${BOLD}  →${RESET} $*"; }
+success() { echo -e "${GREEN}${BOLD}  ✓${RESET} $*"; }
+warn()    { echo -e "${YELLOW}${BOLD}  ⚠${RESET}  $*"; }
+error()   { echo -e "${RED}${BOLD}  ✗ ERROR:${RESET} $*" >&2; }
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Uso
 # ─────────────────────────────────────────────────────────────────────────────
 usage() {
-  cat <<EOF
-Uso:
-  $0 [opciones]
-
-Opciones:
-  -f, --from <archivo.iso>    Ruta al archivo ISO fuente
-  -t, --to   <diskN>          Disco destino, ejemplo: disk4
-      --env  <archivo.env>    Archivo .env con USB_ISO y USB_DISK
-  -h, --help                  Mostrar esta ayuda
-
-Variables de entorno:
-  USB_ISO    Ruta al archivo ISO
-  USB_DISK   Disco destino (ej. disk4)
-
-Formato del .env:
-  USB_ISO=/ruta/debian.iso
-  USB_DISK=disk4
-
-Ejemplo:
-  $0 --from debian.iso --to disk4
-  $0 --env config.env
-  USB_ISO=debian.iso USB_DISK=disk4 $0
-EOF
+  echo -e "${BOLD}Uso:${RESET}"
+  echo "  $0 [opciones]"
+  echo
+  echo -e "${BOLD}Opciones:${RESET}"
+  echo -e "  ${CYAN}-f, --from${RESET} <archivo.iso>    Ruta al archivo ISO fuente"
+  echo -e "  ${CYAN}-t, --to${RESET}   <diskN>          Disco destino, ejemplo: disk4"
+  echo -e "  ${CYAN}    --env${RESET}  <archivo.env>    Archivo .env con USB_ISO y USB_DISK"
+  echo -e "  ${CYAN}-h, --help${RESET}                  Mostrar esta ayuda"
+  echo
+  echo -e "${BOLD}Variables de entorno:${RESET}"
+  echo -e "  ${CYAN}USB_ISO${RESET}    Ruta al archivo ISO"
+  echo -e "  ${CYAN}USB_DISK${RESET}   Disco destino (ej. disk4)"
+  echo
+  echo -e "${BOLD}Formato del .env:${RESET}"
+  echo "  USB_ISO=/ruta/debian.iso"
+  echo "  USB_DISK=disk4"
+  echo
+  echo -e "${BOLD}Ejemplo:${RESET}"
+  echo "  $0 --from debian.iso --to disk4"
+  echo "  $0 --env config.env"
+  echo "  USB_ISO=debian.iso USB_DISK=disk4 $0"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -48,7 +61,7 @@ load_env_file() {
   local file="$1"
   [[ ! -f "$file" ]] && return
 
-  echo "Cargando configuración desde: $file"
+  info "Cargando configuración desde: ${BOLD}$file${RESET}"
   local val
   val="$(grep -E '^USB_ISO=' "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'")" || true
   [[ -n "$val" ]] && USB_ISO="$val"
@@ -82,7 +95,8 @@ while [[ $# -gt 0 ]]; do
       if [[ -z "$ARG_ISO" ]]; then
         ARG_ISO="$1"
       else
-        echo "Error: argumento desconocido: $1"
+        error "argumento desconocido: $1"
+        echo
         usage
         exit 1
       fi
@@ -100,14 +114,14 @@ load_env_file "$ENV_FILE"
 # Validar ISO
 # ─────────────────────────────────────────────────────────────────────────────
 if [[ -z "$USB_ISO" ]]; then
-  echo "Error: no se especificó la ISO (usa --from, USB_ISO o .env)"
+  error "no se especificó la ISO (usa --from, USB_ISO o .env)"
   echo
   usage
   exit 1
 fi
 
 if [[ ! -f "$USB_ISO" ]]; then
-  echo "Error: no existe la ISO: $USB_ISO"
+  error "no existe la ISO: ${BOLD}$USB_ISO${RESET}"
   exit 1
 fi
 
@@ -115,18 +129,18 @@ fi
 # Mostrar discos disponibles y solicitar destino si no fue especificado
 # ─────────────────────────────────────────────────────────────────────────────
 echo
-echo "═══════════════════════════════════════════════════"
-echo "  Discos disponibles:"
-echo "═══════════════════════════════════════════════════"
+echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+echo -e "${BOLD}  Discos disponibles:${RESET}"
+echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
 diskutil list
 echo
 
 if [[ -z "$USB_DISK" ]]; then
-  read -rp "Indica el disco USB destino (ejemplo: disk4): " USB_DISK
+  read -rp "$(echo -e "${BOLD}Indica el disco USB destino (ejemplo: disk4):${RESET} ")" USB_DISK
 fi
 
 if [[ ! "$USB_DISK" =~ ^disk[0-9]+$ ]]; then
-  echo "Error: formato de disco inválido. Usa algo como: disk4"
+  error "formato de disco inválido. Usa algo como: ${BOLD}disk4${RESET}"
   exit 1
 fi
 
@@ -137,17 +151,17 @@ RAW_DEVICE="/dev/r$USB_DISK"
 # Protección: bloquear discos de sistema
 # ─────────────────────────────────────────────────────────────────────────────
 echo
-echo "Verificando que el disco no sea parte del sistema..."
+info "Verificando que el disco no sea parte del sistema..."
 
 # Bloquear disk0: casi siempre es el disco de arranque en macOS
 if [[ "$USB_DISK" == "disk0" ]]; then
-  echo "ERROR: disk0 es el disco principal del sistema. Operación bloqueada."
+  error "disk0 es el disco principal del sistema. Operación bloqueada."
   exit 1
 fi
 
 # Verificar que el disco existe
 if ! diskutil info "$DEVICE" &>/dev/null; then
-  echo "Error: el disco $DEVICE no existe o no está disponible."
+  error "el disco ${BOLD}$DEVICE${RESET} no existe o no está disponible."
   exit 1
 fi
 
@@ -155,29 +169,29 @@ DISK_INFO="$(diskutil info "$DEVICE")"
 
 # Bloquear si es disco interno
 if echo "$DISK_INFO" | grep -qi "Device Location.*Internal"; then
-  echo "ERROR: $DEVICE es un disco interno del sistema. Operación bloqueada."
+  error "${BOLD}$DEVICE${RESET} es un disco interno del sistema. Operación bloqueada."
   exit 1
 fi
 
 # Bloquear si coincide con el disco raíz del sistema
 BOOT_DISK="$(diskutil info / 2>/dev/null | grep 'Part of Whole' | awk '{print $NF}')" || true
 if [[ -n "$BOOT_DISK" && "$USB_DISK" == "$BOOT_DISK" ]]; then
-  echo "ERROR: $DEVICE contiene el volumen de arranque del sistema. Operación bloqueada."
+  error "${BOLD}$DEVICE${RESET} contiene el volumen de arranque del sistema. Operación bloqueada."
   exit 1
 fi
 
 # Advertir si no parece ser extraíble o externo
 if ! echo "$DISK_INFO" | grep -qiE "Removable Media.*Yes|Device Location.*External"; then
   echo
-  echo "┌─────────────────────────────────────────────────────┐"
-  echo "│  ⚠️  ADVERTENCIA: $DEVICE no parece ser externo/extraíble"
-  echo "├─────────────────────────────────────────────────────┤"
-  echo "$DISK_INFO" | grep -E "Device Location|Removable|Protocol" | sed 's/^/│  /'
-  echo "└─────────────────────────────────────────────────────┘"
+  echo -e "${YELLOW}${BOLD}┌─────────────────────────────────────────────────────┐${RESET}"
+  echo -e "${YELLOW}${BOLD}│  ⚠  ADVERTENCIA: $DEVICE no parece ser externo/extraíble${RESET}"
+  echo -e "${YELLOW}${BOLD}├─────────────────────────────────────────────────────┤${RESET}"
+  echo "$DISK_INFO" | grep -E "Device Location|Removable|Protocol" | sed "s/^/$(echo -e "${YELLOW}│${RESET}")  /"
+  echo -e "${YELLOW}${BOLD}└─────────────────────────────────────────────────────┘${RESET}"
   echo
-  read -rp "¿Continuar de todas formas? Escribe YES para aceptar el riesgo: " FORCE_CONFIRM
+  read -rp "$(echo -e "${YELLOW}${BOLD}¿Continuar de todas formas? Escribe YES para aceptar el riesgo:${RESET} ")" FORCE_CONFIRM
   if [[ "$FORCE_CONFIRM" != "YES" ]]; then
-    echo "Cancelado."
+    warn "Cancelado."
     exit 0
   fi
 fi
@@ -186,29 +200,29 @@ fi
 # Mostrar información del disco y confirmación final
 # ─────────────────────────────────────────────────────────────────────────────
 echo
-echo "═══════════════════════════════════════════════════"
-echo "  Información del disco seleccionado:"
-echo "═══════════════════════════════════════════════════"
+echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+echo -e "${BOLD}  Información del disco seleccionado:${RESET}"
+echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
 diskutil info "$DEVICE"
 
 echo
-echo "╔═══════════════════════════════════════════════════╗"
-echo "║               ¡¡ A T E N C I Ó N !!               ║"
-echo "╠═══════════════════════════════════════════════════╣"
-echo "║                                                   ║"
-printf "║  ISO origen  : %-34s ║\n" "$USB_ISO"
-printf "║  Disco destino: %-33s ║\n" "$DEVICE"
-echo "║                                                   ║"
-echo "║  TODO el contenido del disco será ELIMINADO       ║"
-echo "║  de forma IRREVERSIBLE. Respalda tus datos.       ║"
-echo "║                                                   ║"
-echo "╚═══════════════════════════════════════════════════╝"
+echo -e "${RED}${BOLD}╔═══════════════════════════════════════════════════╗${RESET}"
+echo -e "${RED}${BOLD}║               ¡¡ A T E N C I Ó N !!               ║${RESET}"
+echo -e "${RED}${BOLD}╠═══════════════════════════════════════════════════╣${RESET}"
+echo -e "${RED}${BOLD}║                                                   ║${RESET}"
+echo -e "${RED}${BOLD}║${RESET}  ISO origen  : ${CYAN}${BOLD}$(printf '%-34s' "$USB_ISO")${RESET}${RED}${BOLD} ║${RESET}"
+echo -e "${RED}${BOLD}║${RESET}  Disco destino: ${CYAN}${BOLD}$(printf '%-33s' "$DEVICE")${RESET}${RED}${BOLD} ║${RESET}"
+echo -e "${RED}${BOLD}║                                                   ║${RESET}"
+echo -e "${RED}${BOLD}║  TODO el contenido del disco será ELIMINADO       ║${RESET}"
+echo -e "${RED}${BOLD}║  de forma IRREVERSIBLE. Respalda tus datos.       ║${RESET}"
+echo -e "${RED}${BOLD}║                                                   ║${RESET}"
+echo -e "${RED}${BOLD}╚═══════════════════════════════════════════════════╝${RESET}"
 echo
 
-read -rp "Escribe YES (en mayúsculas) para continuar: " CONFIRM
+read -rp "$(echo -e "${RED}${BOLD}Escribe YES (en mayúsculas) para continuar:${RESET} ")" CONFIRM
 
 if [[ "$CONFIRM" != "YES" ]]; then
-  echo "Cancelado."
+  warn "Cancelado."
   exit 0
 fi
 
@@ -216,23 +230,23 @@ fi
 # Grabar ISO
 # ─────────────────────────────────────────────────────────────────────────────
 echo
-echo "Desmontando $DEVICE..."
+info "Desmontando ${BOLD}$DEVICE${RESET}..."
 diskutil unmountDisk "$DEVICE"
 
 echo
-echo "Copiando ISO al USB..."
-echo "Puedes ver el progreso desde otra terminal con:"
-echo "  sudo pkill -INFO dd"
+info "Copiando ISO al USB..."
+echo -e "  ${YELLOW}Puedes ver el progreso desde otra terminal con:${RESET}"
+echo -e "  ${BOLD}  sudo pkill -INFO dd${RESET}"
 echo
 
 sudo dd if="$USB_ISO" of="$RAW_DEVICE" bs=4m conv=sync
 
 echo
-echo "Sincronizando datos..."
+info "Sincronizando datos..."
 sync
 
-echo "Expulsando $DEVICE..."
+info "Expulsando ${BOLD}$DEVICE${RESET}..."
 diskutil eject "$DEVICE"
 
 echo
-echo "Listo. La USB booteable fue creada correctamente."
+success "${BOLD}Listo. La USB booteable fue creada correctamente.${RESET}"
