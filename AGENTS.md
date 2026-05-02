@@ -130,3 +130,69 @@ Usar versionado semántico **vMAJOR.MINOR.PATCH**:
 ## Referencias
 
 - Documentación de ejemplo: [docs/install/create_usb_macos_debian.md](docs/install/create_usb_macos_debian.md)
+
+---
+
+## Makefile y Justfile — Responsabilidades separadas
+
+El repositorio tiene dos archivos de automatización en la raíz con **responsabilidades únicas y no superpuestas**. Una misma acción nunca puede existir en ambos.
+
+| Archivo | Rol | Responsabilidad |
+|---|---|---|
+| `Makefile` | **Builder** | Verificación de sintaxis, linting, empaquetado y generación de artefactos |
+| `Justfile` | **Task runner** | Lanzar los scripts del repositorio desde la raíz |
+
+### Makefile (Builder)
+
+- Solo contiene tareas que **producen o verifican artefactos**: `check`, `shellcheck`, `dist`, `clean`.
+- No ejecuta scripts de usuario directamente.
+- Se modulariza con archivos `.mk` en `make/`:
+
+```
+make/
+  check.mk   ← verificación de sintaxis y linting
+  dist.mk    ← empaquetado y limpieza
+```
+
+**Añadir un módulo:**
+
+```makefile
+# En Makefile
+include make/<nuevo>.mk
+```
+
+### Justfile (Task runner)
+
+- Solo contiene tareas que **invocan scripts** del repositorio.
+- No construye ni empaqueta nada.
+- Se modulariza con archivos `.just` en `just/`, uno por categoría de scripts:
+
+```
+just/
+  install.just   ← tareas para scripts/install/
+```
+
+**Añadir un módulo:**
+
+```justfile
+# En Justfile
+import 'just/<nueva-categoria>.just'
+```
+
+**Añadir una tarea para un nuevo script** en `just/<categoria>.just`:
+
+```justfile
+# Descripción breve de la tarea
+nombre-tarea *args:
+    bash scripts/<categoria>/<script>.sh {{args}}
+```
+
+### Regla de no solapamiento
+
+| Acción | Makefile | Justfile |
+|---|---|---|
+| Verificar sintaxis bash | ✓ | ✗ |
+| Empaquetar scripts | ✓ | ✗ |
+| Limpiar artefactos | ✓ | ✗ |
+| Ejecutar un script | ✗ | ✓ |
+| Listar tareas disponibles | ✗ | ✓ (`just`) |
