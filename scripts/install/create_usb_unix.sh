@@ -68,9 +68,9 @@ load_env_file() {
   info "Cargando configuración desde: ${BOLD}$file${RESET}"
   local val
   val="$(grep -E '^USB_ISO=' "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'")" || true
-  [[ -n "$val" ]] && USB_ISO="$val"
+  if [[ -n "$val" ]]; then USB_ISO="$val"; info "  USB_ISO=${BOLD}$val${RESET}"; fi
   val="$(grep -E '^USB_DISK=' "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'")" || true
-  [[ -n "$val" ]] && USB_DISK="$val"
+  if [[ -n "$val" ]]; then USB_DISK="$val"; info "  USB_DISK=${BOLD}$val${RESET}"; fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

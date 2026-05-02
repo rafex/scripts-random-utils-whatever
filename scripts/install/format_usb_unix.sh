@@ -81,11 +81,11 @@ load_env_file() {
   info "Cargando configuración desde: ${BOLD}$file${RESET}"
   local val
   val="$(grep -E '^USB_DISK=' "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'")" || true
-  [[ -n "$val" ]] && USB_DISK="$val"
+  if [[ -n "$val" ]]; then USB_DISK="$val"; info "  USB_DISK=${BOLD}$val${RESET}"; fi
   val="$(grep -E '^USB_FORMAT=' "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'")" || true
-  [[ -n "$val" ]] && USB_FORMAT="$val"
+  if [[ -n "$val" ]]; then USB_FORMAT="$val"; info "  USB_FORMAT=${BOLD}$val${RESET}"; fi
   val="$(grep -E '^USB_NAME=' "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'")" || true
-  [[ -n "$val" ]] && USB_NAME="$val"
+  if [[ -n "$val" ]]; then USB_NAME="$val"; info "  USB_NAME=${BOLD}$val${RESET}"; fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
