@@ -129,6 +129,20 @@ Usar versionado semántico **vMAJOR.MINOR.PATCH**:
 
 ## Soporte de plataformas
 
+### Convención de sufijos en nombres de scripts
+
+El sufijo del nombre del archivo declara el soporte de plataforma:
+
+| Sufijo | Plataforma soportada | Ejemplo |
+|---|---|---|
+| `*_macos.sh` / `*_macos.py` | Solo macOS | `create_usb_macos.sh` |
+| `*_linux.sh` / `*_linux.py` | Solo Linux | `setup_linux.sh` |
+| `*_unix.sh` / `*_unix.py` | macOS y Linux | `clean_tmp_unix.sh` |
+
+Esta convención aplica a cualquier extensión: `.sh`, `.bash`, `.py`.
+
+Los scripts sin sufijo de plataforma son **legacy** y deben migrarse al nuevo esquema al ser modificados.
+
 ### Directriz general
 
 Todos los scripts de este repositorio deben **soportar macOS y Linux** salvo que sea técnicamente imposible. El campo `SO requerido` en la documentación indica el soporte real declarado.
