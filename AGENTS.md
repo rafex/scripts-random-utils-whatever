@@ -127,6 +127,58 @@ Usar versionado semántico **vMAJOR.MINOR.PATCH**:
 
 ---
 
+## Soporte de plataformas
+
+### Directriz general
+
+Todos los scripts de este repositorio deben **soportar macOS y Linux** salvo que sea técnicamente imposible. El campo `SO requerido` en la documentación indica el soporte real declarado.
+
+| Valor | Significado |
+|---|---|
+| `macOS` | Solo funciona en macOS (uso de `diskutil`, APIs exclusivas, etc.) |
+| `Linux` | Solo funciona en Linux |
+| `macOS, Linux` | Soporta ambos sistemas |
+
+### Cómo implementar soporte dual
+
+Detectar el sistema operativo al inicio del script:
+
+```bash
+OS_TYPE="$(uname -s)"   # Darwin = macOS, Linux = Linux
+```
+
+Bifurcar la lógica específica del SO con bloques `if/else`:
+
+```bash
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+  # comando macOS
+else
+  # comando Linux equivalente
+fi
+```
+
+### Herramientas con equivalentes por plataforma
+
+| Tarea | macOS | Linux |
+|---|---|---|
+| Listar discos | `diskutil list` | `lsblk` |
+| Info de disco | `diskutil info /dev/diskN` | `lsblk -o ... /dev/sdX` |
+| Desmontar disco | `diskutil unmountDisk /dev/diskN` | `udisksctl unmount` / `umount` |
+| Expulsar disco | `diskutil eject /dev/diskN` | `udisksctl power-off` / `eject` |
+| Disco de boot | `diskutil info /` → `Part of Whole` | `lsblk -no PKNAME $(findmnt -n -o SOURCE /)` |
+| Disco extraíble | `diskutil info` → `Removable Media` | `/sys/block/<dev>/removable` |
+| Progreso de `dd` | `kill -INFO <pid>` (SIGINFO) | `dd ... status=progress` |
+
+### Progreso de `dd`
+
+Orden de preferencia (cross-platform):
+
+1. **`pv`** disponible → `pv "$ISO" | sudo dd of=...` (funciona en ambos)
+2. **Linux** → `dd ... status=progress`
+3. **macOS sin `pv`** → `dd` en background + bucle `kill -INFO $dd_pid`
+
+---
+
 ## Referencias
 
 - Documentación de ejemplo: [docs/install/create_usb_macos_debian.md](docs/install/create_usb_macos_debian.md)
