@@ -5,6 +5,7 @@ Crea un USB booteable desde una imagen ISO en macOS usando `dd`.
 - **Ruta:** `scripts/install/create_usb_macos_debian.sh`
 - **SO requerido:** macOS
 - **Dependencias:** `diskutil`, `dd`, `sudo`
+- **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
 ---
 
@@ -20,6 +21,8 @@ Crea un USB booteable desde una imagen ISO en macOS usando `dd`.
 - [Fallos conocidos](#fallos-conocidos)
 - [Changelog](#changelog)
 
+> **Forma recomendada desde la raíz del repo:** usar `just create-usb`.
+
 ---
 
 ## Requisitos
@@ -32,6 +35,14 @@ Crea un USB booteable desde una imagen ISO en macOS usando `dd`.
 ---
 
 ## Uso
+
+### Desde la raíz del repositorio (recomendado)
+
+```sh
+just create-usb [opciones]
+```
+
+### Directamente
 
 ```sh
 ./scripts/install/create_usb_macos_debian.sh [opciones]
@@ -87,25 +98,57 @@ USB_DISK=disk4
 
 ## Ejemplos
 
-### Forma más explícita (recomendada)
+### Con `just` desde la raíz (recomendado)
+
+```sh
+just create-usb --from ~/Descargas/debian-12.iso --to disk4
+```
+
+```sh
+just create-usb -f ~/Descargas/debian-12.iso -t disk4
+```
+
+Con variables de entorno:
+
+```sh
+USB_ISO=~/Descargas/debian-12.iso USB_DISK=disk4 just create-usb
+```
+
+Con archivo `.env`:
+
+```sh
+just create-usb --env config.env
+```
+
+Ver tareas disponibles en el repo:
+
+```sh
+just
+```
+
+---
+
+### Directamente sobre el script
+
+#### Forma explícita
 
 ```sh
 ./scripts/install/create_usb_macos_debian.sh --from ~/Descargas/debian-12.iso --to disk4
 ```
 
-### Con alias cortos
+#### Con alias cortos
 
 ```sh
 ./scripts/install/create_usb_macos_debian.sh -f ~/Descargas/debian-12.iso -t disk4
 ```
 
-### Usando variables de entorno
+#### Usando variables de entorno
 
 ```sh
 USB_ISO=~/Descargas/debian-12.iso USB_DISK=disk4 ./scripts/install/create_usb_macos_debian.sh
 ```
 
-### Con archivo .env en el directorio actual
+#### Con archivo .env en el directorio actual
 
 ```sh
 # .env
@@ -117,13 +160,13 @@ USB_DISK=disk4
 ./scripts/install/create_usb_macos_debian.sh
 ```
 
-### Con archivo .env en otra ruta
+#### Con archivo .env en otra ruta
 
 ```sh
 ./scripts/install/create_usb_macos_debian.sh --env /tmp/usb.env
 ```
 
-### Modo legacy (argumento posicional, compatibilidad hacia atrás)
+#### Modo legacy (argumento posicional, compatibilidad hacia atrás)
 
 ```sh
 ./scripts/install/create_usb_macos_debian.sh /ruta/debian.iso
