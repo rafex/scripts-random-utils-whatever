@@ -1,9 +1,9 @@
-# create_usb_macos_debian.sh
+# create_usb_unix.sh
 
-Crea un USB booteable desde una imagen ISO en macOS usando `dd`.
+Crea un USB booteable desde una imagen ISO en macOS y Linux usando `dd`.
 
-- **Ruta:** `scripts/install/create_usb_macos_debian.sh`
-- **SO requerido:** macOS
+- **Ruta:** `scripts/install/create_usb_unix.sh`
+- **SO requerido:** macOS, Linux
 - **Dependencias:** `diskutil`, `dd`, `sudo`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
@@ -45,7 +45,7 @@ just create-usb [opciones]
 ### Directamente
 
 ```sh
-./scripts/install/create_usb_macos_debian.sh [opciones]
+./scripts/install/create_usb_unix.sh [opciones]
 ```
 
 Si no se especifica el disco destino por argumento o variable, el script lo pedirá de forma interactiva tras mostrar la lista de discos disponibles.
@@ -133,19 +133,19 @@ just
 #### Forma explícita
 
 ```sh
-./scripts/install/create_usb_macos_debian.sh --from ~/Descargas/debian-12.iso --to disk4
+./scripts/install/create_usb_unix.sh --from ~/Descargas/debian-12.iso --to disk4
 ```
 
 #### Con alias cortos
 
 ```sh
-./scripts/install/create_usb_macos_debian.sh -f ~/Descargas/debian-12.iso -t disk4
+./scripts/install/create_usb_unix.sh -f ~/Descargas/debian-12.iso -t disk4
 ```
 
 #### Usando variables de entorno
 
 ```sh
-USB_ISO=~/Descargas/debian-12.iso USB_DISK=disk4 ./scripts/install/create_usb_macos_debian.sh
+USB_ISO=~/Descargas/debian-12.iso USB_DISK=disk4 ./scripts/install/create_usb_unix.sh
 ```
 
 #### Con archivo .env en el directorio actual
@@ -157,19 +157,19 @@ USB_DISK=disk4
 ```
 
 ```sh
-./scripts/install/create_usb_macos_debian.sh
+./scripts/install/create_usb_unix.sh
 ```
 
 #### Con archivo .env en otra ruta
 
 ```sh
-./scripts/install/create_usb_macos_debian.sh --env /tmp/usb.env
+./scripts/install/create_usb_unix.sh --env /tmp/usb.env
 ```
 
 #### Modo legacy (argumento posicional, compatibilidad hacia atrás)
 
 ```sh
-./scripts/install/create_usb_macos_debian.sh /ruta/debian.iso
+./scripts/install/create_usb_unix.sh /ruta/debian.iso
 ```
 > El disco se solicitará de forma interactiva.
 

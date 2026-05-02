@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────────────────────
-# create_usb_macos_debian.sh
+# create_usb_unix.sh
 # Crea un USB booteable desde una ISO en macOS y Linux.
 # ─────────────────────────────────────────────────────────────────────────────
 

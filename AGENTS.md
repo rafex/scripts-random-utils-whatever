@@ -18,7 +18,7 @@ Donde `<categoria>` refleja el subdirectorio dentro de `scripts/`.
 
 | Script | Documentación |
 |---|---|
-| `scripts/install/create_usb_macos_debian.sh` | `docs/install/create_usb_macos_debian.md` |
+| `scripts/install/create_usb_unix.sh` | `docs/install/create_usb_unix.md` |
 
 ---
 
@@ -195,7 +195,7 @@ Orden de preferencia (cross-platform):
 
 ## Referencias
 
-- Documentación de ejemplo: [docs/install/create_usb_macos_debian.md](docs/install/create_usb_macos_debian.md)
+- Documentación de ejemplo: [docs/install/create_usb_unix.md](docs/install/create_usb_unix.md)
 
 ---
 
