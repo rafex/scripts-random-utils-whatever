@@ -293,16 +293,29 @@ dd_with_progress() {
   elif [[ "$OS_TYPE" == "Linux" ]]; then
     info "Usando ${BOLD}dd status=progress${RESET}..."
     sudo dd if="$iso" of="$dest" bs=4M conv=sync status=progress
+  elif command -v gdd &>/dev/null; then
+    # GNU coreutils (brew install coreutils) → status=progress disponible en macOS
+    info "Usando ${BOLD}gdd status=progress${RESET}..."
+    sudo gdd if="$iso" of="$dest" bs=4M conv=sync status=progress
   else
-    # macOS: dd en background + bucle de SIGINFO cada 5 segundos
+    # macOS sin pv ni gdd: dd en background + SIGINFO al proceso dd hijo de sudo
     info "Usando ${BOLD}dd${RESET} con SIGINFO periódico (macOS)..."
+    info "(instala ${BOLD}pv${RESET} o ${BOLD}brew install coreutils${RESET} para mejor progreso)"
     sudo dd if="$iso" of="$dest" bs=4m conv=sync &
-    local dd_pid=$!
-    while kill -0 "$dd_pid" 2>/dev/null; do
+    local sudo_pid=$!
+    # Esperar a que sudo lance el proceso dd hijo
+    sleep 0.5
+    local dd_pid
+    dd_pid=$(pgrep -P "$sudo_pid" -x dd 2>/dev/null || echo "")
+    while kill -0 "$sudo_pid" 2>/dev/null; do
       sleep 5
-      kill -INFO "$dd_pid" 2>/dev/null || true
+      if [[ -n "$dd_pid" ]]; then
+        kill -INFO "$dd_pid" 2>/dev/null || true
+      else
+        kill -INFO "$sudo_pid" 2>/dev/null || true
+      fi
     done
-    wait "$dd_pid"
+    wait "$sudo_pid"
   fi
 }
 
