@@ -60,7 +60,10 @@ usage() {
 # ─────────────────────────────────────────────────────────────────────────────
 load_env_file() {
   local file="$1"
-  [[ ! -f "$file" ]] && return
+  if [[ ! -f "$file" ]]; then
+    info "No se encontró archivo .env: ${BOLD}$file${RESET} (se omite)"
+    return
+  fi
 
   info "Cargando configuración desde: ${BOLD}$file${RESET}"
   local val
