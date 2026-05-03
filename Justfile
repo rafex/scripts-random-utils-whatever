@@ -5,6 +5,7 @@
 # =============================================================================
 
 import 'just/install.just'
+import 'just/macos.just'
 
 # Listar todas las tareas disponibles
 default:
