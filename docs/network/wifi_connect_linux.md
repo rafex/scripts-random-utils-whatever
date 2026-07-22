@@ -33,13 +33,13 @@ Conecta a una red WiFi usando NetworkManager (`nmcli`). Solicita la contraseña 
 
 ```sh
 # Con contraseña por argumento
-./scripts/network/wifi_connect_linux.sh MiRed miPassword123
+./scripts/network/wifi_connect_linux.sh MiRed <WIFI_PASSWORD>
 
 # Pedirá la contraseña interactivamente
 ./scripts/network/wifi_connect_linux.sh MiRed
 
 # Con contraseña por variable de entorno
-WIFI_PASSWORD=securePass ./scripts/network/wifi_connect_linux.sh MiRed
+WIFI_PASSWORD=<WIFI_PASSWORD> ./scripts/network/wifi_connect_linux.sh MiRed
 
 # Red con espacios en el nombre
 ./scripts/network/wifi_connect_linux.sh "Mi WiFi" contraseña

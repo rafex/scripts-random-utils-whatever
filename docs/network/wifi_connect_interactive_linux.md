@@ -42,7 +42,7 @@ Conecta a una red WiFi con selección interactiva de red e interfaz. Soporta mod
 ./scripts/network/wifi_connect_interactive_linux.sh
 
 # Modo directo
-WIFI_PASS=secret123 ./scripts/network/wifi_connect_interactive_linux.sh -s MiRed
+WIFI_PASS=<WIFI_PASSWORD> ./scripts/network/wifi_connect_interactive_linux.sh -s MiRed
 
 # Con interfaz específica
 ./scripts/network/wifi_connect_interactive_linux.sh -i wlp2s0

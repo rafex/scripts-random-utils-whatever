@@ -36,9 +36,9 @@ usage() {
     echo -e "  ${CYAN}WIFI_PASSWORD${RESET}   Contraseña (alternativa al argumento o prompt)"
     echo
     echo -e "${BOLD}Ejemplos:${RESET}"
-    echo "  $0 MiRed miPassword123"
+    echo "  $0 MiRed <WIFI_PASSWORD>"
     echo "  $0 MiRed                 # pedirá la contraseña"
-    echo "  WIFI_PASSWORD=securePass $0 MiRed"
+    echo "  WIFI_PASSWORD=<WIFI_PASSWORD> $0 MiRed"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
