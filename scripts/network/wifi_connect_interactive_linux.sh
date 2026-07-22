@@ -105,7 +105,15 @@ wifi_connect() {
     if [[ -n "$pass" ]]; then
       nmcli connection modify "$existing" wifi-sec.psk "$pass" 2>/dev/null || true
     fi
+    local profile_iface
+    profile_iface=$(nmcli -t -f connection.interface-name connection show id "$existing" 2>/dev/null | awk -F: '{print $2}')
+    if [[ -n "$profile_iface" && "$profile_iface" != "$IFACE" ]]; then
+      nmcli connection modify "$existing" connection.interface-name "$IFACE" 2>/dev/null || true
+    fi
     run_nmcli connection up "$existing"
+    local real_iface
+    real_iface=$(nmcli -t -f DEVICE connection show --active 2>/dev/null | awk -F: -v n="$existing" '$1==n{print $2; exit}')
+    IFACE="${real_iface:-$IFACE}"
     return
   fi
 
