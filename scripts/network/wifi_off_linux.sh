@@ -3,12 +3,12 @@ set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────────────────────
 # wifi_off_linux.sh
-# Apaga interfaces WiFi (interna, USB o ambas) usando NetworkManager / rfkill.
+# Apaga interfaces WiFi (interna, USB o ambas) usando NetworkManager.
+# Si no se pasa argumento, muestra un menú interactivo con el estado actual.
 # ─────────────────────────────────────────────────────────────────────────────
 
 INTERNAL="${WIFI_OFF_INTERNAL:-wlp2s0}"
 USB="${WIFI_OFF_USB:-wlxa047d76360c5}"
-USE_RFKILL="${WIFI_OFF_RFKILL:-0}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Colores
@@ -26,6 +26,29 @@ warn()    { echo -e "${YELLOW}${BOLD}  ⚠${RESET}  $*"; }
 error()   { echo -e "${RED}${BOLD}  ✗ ERROR:${RESET} $*" >&2; }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Mostrar estado actual de las interfaces WiFi
+# ─────────────────────────────────────────────────────────────────────────────
+show_status() {
+    echo -e "\n${BOLD}Estado actual de interfaces WiFi:${RESET}\n"
+    while IFS=: read -r dev type state conn; do
+        if [[ "$type" == "wifi" ]]; then
+            local icon="  "
+            case "$state" in
+                connected)          icon="${GREEN}●${RESET}" ;;
+                disconnected)       icon="${YELLOW}○${RESET}" ;;
+                unavailable)        icon="${RED}✕${RESET}" ;;
+                "connecting (configuring)"|"connecting (getting IP configuration)"|connecting)
+                                    icon="${CYAN}◌${RESET}" ;;
+                *)                  icon="  " ;;
+            esac
+            local conn_str="${conn:-—}"
+            echo -e "  ${icon} ${BOLD}${dev}${RESET} — ${conn_str} (${state})"
+        fi
+    done < <(nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status 2>/dev/null)
+    echo
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Uso
 # ─────────────────────────────────────────────────────────────────────────────
 usage() {
@@ -35,18 +58,50 @@ usage() {
     echo -e "${BOLD}Modos:${RESET}"
     echo -e "  ${CYAN}internal${RESET}  Apaga solo la interfaz WiFi interna (${BOLD}${INTERNAL}${RESET})"
     echo -e "  ${CYAN}usb${RESET}       Apaga solo la interfaz WiFi USB (${BOLD}${USB}${RESET})"
-    echo -e "  ${CYAN}all${RESET}        Apaga ambas interfaces"
+    echo -e "  ${CYAN}all${RESET}        Apaga ambas interfaces (pide confirmación)"
+    echo
+    echo "  Sin argumentos → menú interactivo con estado actual"
     echo
     echo -e "${BOLD}Variables de entorno:${RESET}"
     echo -e "  ${CYAN}WIFI_OFF_INTERNAL${RESET}   Nombre de la interfaz interna (default: ${INTERNAL})"
     echo -e "  ${CYAN}WIFI_OFF_USB${RESET}        Nombre de la interfaz USB (default: ${USB})"
-    echo -e "  ${CYAN}WIFI_OFF_RFKILL${RESET}     Usar rfkill en lugar de nmcli (0|1, default: 0)"
     echo
     echo -e "${BOLD}Ejemplos:${RESET}"
+    echo "  $0                   # menú interactivo"
     echo "  $0 internal"
     echo "  $0 usb"
-    echo "  $0 all"
+    echo "  $0 all               # apaga ambas (con confirmación)"
     echo "  WIFI_OFF_INTERNAL=wlan0 $0 internal"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Menú interactivo
+# ─────────────────────────────────────────────────────────────────────────────
+interactive_menu() {
+    show_status
+    echo -e "${BOLD}¿Qué WiFi querés apagar?${RESET}"
+    echo -e "  ${CYAN}1)${RESET} Solo interna (${BOLD}${INTERNAL}${RESET})"
+    echo -e "  ${CYAN}2)${RESET} Solo USB (${BOLD}${USB}${RESET})"
+    echo -e "  ${CYAN}3)${RESET} Ambas"
+    echo -e "  ${CYAN}q)${RESET} Cancelar"
+    echo
+    read -rp "Opción [q]: " OPT
+    case "${OPT:-q}" in
+        1) wifi_off_nmcli "$INTERNAL" ;;
+        2) wifi_off_nmcli "$USB" ;;
+        3)
+            echo -e "\n${YELLOW}${BOLD}  ⚠  ATENCIÓN: vas a apagar TODAS las interfaces WiFi.${RESET}"
+            read -rp "  ¿Confirmás? [s/N]: " CONFIRM
+            if [[ "${CONFIRM,,}" == "s" || "${CONFIRM,,}" == "si" || "${CONFIRM,,}" == "sí" ]]; then
+                wifi_off_nmcli "$INTERNAL"
+                wifi_off_nmcli "$USB"
+            else
+                echo "  Cancelado."
+                exit 0
+            fi
+            ;;
+        *) echo "  Cancelado." ; exit 0 ;;
+    esac
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -70,22 +125,9 @@ wifi_off_nmcli() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Apagar con rfkill (hard-block)
-# ─────────────────────────────────────────────────────────────────────────────
-wifi_off_rfkill() {
-    if ! command -v rfkill &>/dev/null; then
-        error "rfkill no está instalado."
-        exit 1
-    fi
-    info "Bloqueando todas las radios WiFi con ${BOLD}rfkill${RESET}..."
-    rfkill block wifi
-    success "WiFi bloqueado (rfkill)."
-}
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Principal
 # ─────────────────────────────────────────────────────────────────────────────
-case "${1:-all}" in
+case "${1:-}" in
     internal)
         wifi_off_nmcli "$INTERNAL"
         ;;
@@ -93,16 +135,23 @@ case "${1:-all}" in
         wifi_off_nmcli "$USB"
         ;;
     all)
-        if [[ "$USE_RFKILL" == "1" ]] && command -v rfkill &>/dev/null; then
-            wifi_off_rfkill
-        else
+        show_status
+        echo -e "${YELLOW}${BOLD}  ⚠  ATENCIÓN: vas a apagar TODAS las interfaces WiFi.${RESET}"
+        read -rp "  ¿Confirmás? [s/N]: " CONFIRM
+        if [[ "${CONFIRM,,}" == "s" || "${CONFIRM,,}" == "si" || "${CONFIRM,,}" == "sí" ]]; then
             wifi_off_nmcli "$INTERNAL"
             wifi_off_nmcli "$USB"
+        else
+            echo "  Cancelado."
+            exit 0
         fi
         ;;
     --help|-h)
         usage
         exit 0
+        ;;
+    "")
+        interactive_menu
         ;;
     *)
         error "opción no reconocida: ${BOLD}${1:-}${RESET}"

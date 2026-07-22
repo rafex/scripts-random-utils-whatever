@@ -70,6 +70,52 @@ if [[ "$MNM" != "sí" && "$MNM" != "yes" ]]; then
   run_nmcli device set "$IFACE" managed yes
 fi
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Conectar: prefiere connection up si el perfil ya existe, para evitar el
+# bug key-mgmt de nmcli al crear perfiles duplicados con device wifi connect.
+# ─────────────────────────────────────────────────────────────────────────────
+wifi_connect() {
+  local target="$1" pass="${2:-}" args=("${@:3}")
+
+  local current
+  current=$(nmcli -t -f GENERAL.CONNECTION device show "$IFACE" 2>/dev/null | awk -F: '{print $2}')
+  if [[ -n "$current" ]]; then
+    local current_ssid
+    current_ssid=$(nmcli -t -f 802-11-wireless.ssid connection show id "$current" 2>/dev/null | awk -F: '{print $2}')
+    if [[ "$current_ssid" == "$target" ]]; then
+      echo -e "  ${G}✓${N} Ya conectado a ${B}${target}${N} (perfil ${B}${current}${N})"
+      return 0
+    fi
+  fi
+
+  local existing
+  while IFS=: read -r conn_name conn_type; do
+    [[ "$conn_type" == "802-11-wireless" ]] || continue
+    local conn_ssid
+    conn_ssid=$(nmcli -t -f 802-11-wireless.ssid connection show id "$conn_name" 2>/dev/null \
+      | awk -F: '{print $2}')
+    if [[ "$conn_ssid" == "$target" ]]; then
+      existing="$conn_name"
+      break
+    fi
+  done < <(nmcli -t -f NAME,TYPE connection show 2>/dev/null)
+
+  if [[ -n "$existing" ]]; then
+    echo -e "  ${Y}ℹ${N} Perfil existente: ${B}${existing}${N}, reconectando..."
+    if [[ -n "$pass" ]]; then
+      nmcli connection modify "$existing" wifi-sec.psk "$pass" 2>/dev/null || true
+    fi
+    run_nmcli connection up "$existing"
+    return
+  fi
+
+  if [[ -n "$pass" ]]; then
+    run_nmcli device wifi connect "$target" password "$pass" "${args[@]}"
+  else
+    run_nmcli device wifi connect "$target" "${args[@]}"
+  fi
+}
+
 # ── MODO DIRECTO ──
 if [[ -n "$SSID_ARG" || -n "$BSSID_ARG" ]]; then
   CONN_ARGS=(ifname "$IFACE")
@@ -78,9 +124,9 @@ if [[ -n "$SSID_ARG" || -n "$BSSID_ARG" ]]; then
   SEC=$(nmcli -t -f SSID,SECURITY device wifi list ifname "$IFACE" 2>/dev/null | awk -F: -v s="$TARGET" '$1==s{print $2; exit}')
   if [[ "$SEC" != *"ninguno"* && -n "$SEC" ]]; then
     [[ -z "${WIFI_PASS:-}" ]] && die "Variable WIFI_PASS no está definida y la red requiere contraseña."
-    run_nmcli device wifi connect "$TARGET" password "$WIFI_PASS" "${CONN_ARGS[@]}"
+    wifi_connect "$TARGET" "$WIFI_PASS" "${CONN_ARGS[@]}"
   else
-    run_nmcli device wifi connect "$TARGET" "${CONN_ARGS[@]}"
+    wifi_connect "$TARGET" "" "${CONN_ARGS[@]}"
   fi
   echo -e "\n${G}✓${N} Conectado a ${B}$TARGET${N} por ${B}$IFACE${N}"
   exit 0
@@ -149,14 +195,14 @@ CONN_ARGS=(ifname "$IFACE")
 
 if [[ "$SEC" != "--" && "$SEC" != *"ninguno"* && -n "$SEC" ]]; then
   if [[ -n "${WIFI_PASS:-}" ]]; then
-    run_nmcli device wifi connect "$SSID_SEL" password "$WIFI_PASS" "${CONN_ARGS[@]}"
+    wifi_connect "$SSID_SEL" "$WIFI_PASS" "${CONN_ARGS[@]}"
   else
     read -rsp $'Contraseña de la red: ' PASS; echo
     [[ -z "$PASS" ]] && die "La contraseña no puede estar vacía."
-    run_nmcli device wifi connect "$SSID_SEL" password "$PASS" "${CONN_ARGS[@]}"
+    wifi_connect "$SSID_SEL" "$PASS" "${CONN_ARGS[@]}"
   fi
 else
-  run_nmcli device wifi connect "$SSID_SEL" "${CONN_ARGS[@]}"
+  wifi_connect "$SSID_SEL" "" "${CONN_ARGS[@]}"
 fi
 
 LABEL="$SSID_SEL"
