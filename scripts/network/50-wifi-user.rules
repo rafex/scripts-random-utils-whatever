@@ -1,0 +1,6 @@
+polkit.addRule(function(action, subject) {
+    if (subject.isInGroup("netdev") &&
+        (action.id.startsWith("org.freedesktop.NetworkManager."))) {
+        return polkit.Result.YES;
+    }
+});
