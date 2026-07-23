@@ -48,9 +48,19 @@ WIFI_PASS=<WIFI_PASSWORD> ./scripts/network/wifi_connect_interactive_linux.sh -s
 ./scripts/network/wifi_connect_interactive_linux.sh -i wlp2s0
 ```
 
+Cuando se selecciona una interfaz, el script conserva los perfiles que ya
+están activos. Si el mismo SSID ya está conectado en otra interfaz, crea una
+copia del perfil para la nueva interfaz en lugar de desconectar la conexión
+existente. Esto permite usar simultáneamente la WiFi interna y un adaptador
+USB, incluso con el mismo SSID.
+
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**fix:** conservar conexiones activas y crear perfiles por interfaz para el mismo SSID.
 
 ### v1.0.0 — 2026-07-22
 

@@ -77,6 +77,14 @@ fi
 wifi_connect() {
   local target="$1" pass="${2:-}" args=("${@:3}")
 
+  local requested_bssid="" arg_index
+  for ((arg_index = 0; arg_index < ${#args[@]}; arg_index++)); do
+    if [[ "${args[$arg_index]}" == "bssid" ]]; then
+      requested_bssid="${args[$((arg_index + 1))]:-}"
+      break
+    fi
+  done
+
   local current
   current=$(nmcli -t -f GENERAL.CONNECTION device show "$IFACE" 2>/dev/null | awk -F: '{print $2}')
   if [[ -n "$current" ]]; then
@@ -102,17 +110,50 @@ wifi_connect() {
 
   if [[ -n "$existing" ]]; then
     echo -e "  ${Y}ℹ${N} Perfil existente: ${B}${existing}${N}, reconectando..."
-    if [[ -n "$pass" ]]; then
-      nmcli connection modify "$existing" wifi-sec.psk "$pass" 2>/dev/null || true
-    fi
+
+    # No mover un perfil activo a otra interfaz: eso desconecta la interfaz
+    # donde ya está funcionando. Si el SSID ya está activo en otra interfaz,
+    # se usará una copia independiente para permitir ambas conexiones.
     local profile_iface
     profile_iface=$(nmcli -t -f connection.interface-name connection show id "$existing" 2>/dev/null | awk -F: '{print $2}')
-    if [[ -n "$profile_iface" && "$profile_iface" != "$IFACE" ]]; then
-      nmcli connection modify "$existing" connection.interface-name "$IFACE" 2>/dev/null || true
+    local active_iface
+    active_iface=$(nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null \
+      | awk -F: -v n="$existing" '$1==n{print $2; exit}')
+
+    if [[ -n "$active_iface" && "$active_iface" != "$IFACE" || \
+          -n "$profile_iface" && "$profile_iface" != "$IFACE" ]]; then
+      local iface_profile="${target} [${IFACE}]"
+      if nmcli -t -f NAME connection show id "$iface_profile" >/dev/null 2>&1; then
+        existing="$iface_profile"
+      else
+        if ! run_nmcli connection clone "$existing" "$iface_profile"; then
+          die "No se pudo crear un perfil independiente para ${IFACE}."
+        fi
+        existing="$iface_profile"
+      fi
+
+      if ! run_nmcli connection modify "$existing" connection.interface-name "$IFACE"; then
+        die "No se pudo asociar el perfil ${existing} con la interfaz ${IFACE}."
+      fi
     fi
-    run_nmcli connection up "$existing"
+
+    if [[ -n "$pass" ]]; then
+      if ! run_nmcli connection modify "$existing" wifi-sec.psk "$pass"; then
+        die "No se pudo actualizar la contraseña del perfil ${existing}."
+      fi
+    fi
+
+    # `bssid` se usa cuando se eligió una fila concreta del escaneo. Pasarlo
+    # al perfil evita que `connection up` termine en otro AP con el mismo SSID.
+    if [[ -n "$requested_bssid" ]]; then
+      if ! run_nmcli connection modify "$existing" 802-11-wireless.bssid "$requested_bssid"; then
+        die "No se pudo actualizar el BSSID del perfil ${existing}."
+      fi
+    fi
+
+    run_nmcli connection up "$existing" ifname "$IFACE"
     local real_iface
-    real_iface=$(nmcli -t -f DEVICE connection show --active 2>/dev/null | awk -F: -v n="$existing" '$1==n{print $2; exit}')
+    real_iface=$(nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null | awk -F: -v n="$existing" '$1==n{print $2; exit}')
     IFACE="${real_iface:-$IFACE}"
     return
   fi
