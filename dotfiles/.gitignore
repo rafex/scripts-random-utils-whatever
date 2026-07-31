@@ -1,0 +1,9 @@
+# Evitar que entren secretos al repo
+*.bak
+*.local
+*secrets*
+*.env
+*credentials*
+*.key
+*.pem
+*.token

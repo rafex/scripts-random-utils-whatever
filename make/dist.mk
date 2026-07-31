@@ -17,6 +17,9 @@ dist: check ## Empaquetar scripts en un archivo distribuible (requiere: make che
 		scripts/ docs/ README.md LICENSE
 	@echo "  \033[32m✓ Paquete generado: $(ARCHIVE)\033[0m"
 
+dist-dotfiles: check ## Empaquetar dotfiles i3wm en tar.gz distribuible
+	@bash scripts/install/install_dotfiles_unix.sh
+
 clean: ## Eliminar artefactos de build
 	@echo "  Limpiando $(DIST_DIR)/..."
 	@rm -rf $(DIST_DIR)
