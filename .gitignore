@@ -33,6 +33,43 @@ coverage/
 *.iso
 *.img
 
+# ── Claves criptográficas y certificados ──
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.pub
+*.gpg
+
+# ── SSH keys ──
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+
+# ── Credenciales y secretos ──
+.smbcredentials
+credentials
+credentials.*
+*.secret
+secrets/
+.env.local
+.env.*.local
+
+# ── Tokens / PAT ──
+*.token
+*.pat
+*.apikey
+
+# ── Perfiles de conexión de red ──
+*.nmconnection
+
 # opencode (local, no versionar)
 .opencode/sessions.db
 .opencode/sessions*db

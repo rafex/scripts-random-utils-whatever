@@ -1,0 +1,5 @@
+# ISOs e imágenes — no versionar binarios grandes
+*.iso
+*.img
+*.dmg
+.env

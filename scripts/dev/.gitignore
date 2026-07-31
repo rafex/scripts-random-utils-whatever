@@ -1,0 +1,7 @@
+# Artefactos de descarga y tokens — nunca versionar
+vsix/
+*.vsix
+*.token
+*.pat
+.copilot*
+*.apikey

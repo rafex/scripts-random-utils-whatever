@@ -1,0 +1,8 @@
+# Credenciales de red (SMB/WiFi) — nunca versionar
+.smbcredentials
+credentials*
+*.pass
+*.password
+wifi_passwords*
+*.nmconnection
+*.nmtui

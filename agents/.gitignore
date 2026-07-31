@@ -1,0 +1,6 @@
+# Bloquear dumps/logs/bases de datos — nunca versionar
+*.log
+*.dump
+*.db
+*.sqlite
+*.sqlite3

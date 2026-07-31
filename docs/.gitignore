@@ -1,0 +1,3 @@
+# Evitar que .env de ejemplo con valores reales entren al repo
+*.env
+.env*
