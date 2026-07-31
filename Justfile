@@ -6,6 +6,8 @@
 
 import 'just/install.just'
 import 'just/macos.just'
+import 'just/hardware.just'
+import 'just/dev.just'
 
 # Listar todas las tareas disponibles
 default:

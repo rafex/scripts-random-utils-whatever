@@ -11,3 +11,8 @@ create-usb *args:
 # Uso: just format-usb --disk disk5 --format FAT32 --name MI_USB
 format-usb *args:
     bash scripts/install/format_usb_unix.sh {{args}}
+
+# Empaquetar dotfiles i3wm en tar.gz distribuible con instalador autocontenido
+# Uso: just install-dotfiles | just install-dotfiles --dry-run
+install-dotfiles *args:
+    bash scripts/install/install_dotfiles_unix.sh {{args}}
