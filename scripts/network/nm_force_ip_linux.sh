@@ -69,14 +69,8 @@ need_sudo() {
         "$@"
         return $?
     fi
-    if sudo -n true 2>/dev/null; then
-        sudo "$@"
-    else
-        warn "Se requiere sudo para ejecutar:"
-        warn "  ${BOLD}$*${RESET}"
-        warn "Ejecuta el script con: ${CYAN}sudo $0 $IFACE --${MODE}${RESET}"
-        return 1
-    fi
+    echo -e "${YELLOW}${BOLD}  ⚡ Se requiere sudo para: $*${RESET}"
+    sudo "$@"
 }
 
 run_cmd() {
@@ -180,6 +174,7 @@ detect_dhcp_client() {
 
 detect_conflicts() {
     local conflicts=()
+    CONFLICTS=()
 
     if [[ "$NM_ACTIVE" -eq 1 ]]; then
         if systemctl is-active --quiet dhcpcd 2>/dev/null; then
@@ -198,7 +193,9 @@ detect_conflicts() {
         conflicts+=("isc-dhcp-client y dhcpcd-base ambos instalados (posible conflicto)")
     fi
 
-    CONFLICTS=("${conflicts[@]:-}")
+    if [[ ${#conflicts[@]} -gt 0 ]]; then
+        CONFLICTS=("${conflicts[@]}")
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -246,30 +243,197 @@ check_nm_iface() {
     nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status 2>/dev/null | grep "^${IFACE}:" | while IFS=: read -r dev type state con; do
         case "$state" in
             "conectado"|"connected")    success "  $dev ($type): ${BOLD}$state${RESET} (con: $con)" ;;
-            "desconectado"|"disconnected") error "  $dev ($type): ${BOLD}$state${RESET}" ;;
+            "desconectado"|"disconnected")
+                error "  $dev ($type): ${BOLD}$state${RESET}"
+                if [[ -z "$con" ]]; then
+                    error "  ${BOLD}La conexión NM no está asociada a este dispositivo${RESET}"
+                fi
+                ;;
+            "connecting (getting IP configuration)"|"connecting*")
+                warn "  $dev ($type): ${BOLD}$state${RESET} — intentando DHCP..."
+                ;;
+            "connecting (configuring)"|"configuring")
+                warn "  $dev ($type): ${BOLD}$state${RESET} (configurando...)"
+                ;;
             *)                            warn "  $dev ($type): ${BOLD}$state${RESET}" ;;
         esac
     done
 
-    if nmcli connection show "$IFACE" &>/dev/null; then
-        echo
-        info "Configuración de la conexión NM:"
-        nmcli connection show "$IFACE" 2>/dev/null | grep -iE "ipv4\.method|ipv4\.addresses|ipv4\.gateway|ipv4\.dns|autoconnect|802-3-ethernet\.auto-negotiate" | sed 's/^/  /'
-    else
+    if ! nmcli connection show "$IFACE" &>/dev/null; then
         warn "No hay conexión NM definida para ${BOLD}$IFACE${RESET}."
+        return
     fi
 
     echo
-    info "DHCP leases:"
-    local found=0
-    for f in /var/lib/NetworkManager/*.lease /var/lib/dhcp/*; do
-        [[ -f "$f" ]] || continue
-        if [[ "$f" == *"$IFACE"* ]]; then
-            info "  $f"
-            found=1
+    info "Perfil NM (configuración de la conexión):"
+    local profile_data
+    profile_data="$(LC_ALL=C nmcli connection show "$IFACE" 2>/dev/null)"
+
+    echo "$profile_data" | grep -iE "ipv4\.method|ipv4\.addresses|ipv4\.gateway|ipv4\.dns|autoconnect" | sed 's/^/  /'
+
+    echo
+    info "Link NM (ethernet):"
+    echo "$profile_data" | grep -iE "802-3-ethernet\.auto-negotiate|802-3-ethernet\.speed|802-3-ethernet\.duplex" | sed 's/^/  /'
+    local autoneg
+    autoneg="$(echo "$profile_data" | grep "802-3-ethernet.auto-negotiate:" | awk '{$1=""; print $0}' | xargs)"
+    if [[ "$autoneg" == "no" ]]; then
+        error "  ${BOLD}Auto-negociación DESACTIVADA en perfil NM${RESET}"
+        error "  ${BOLD}→ Esto causa que DHCP falle aunque el cable esté conectado${RESET}"
+    elif [[ "$autoneg" == "yes" ]]; then
+        success "  Auto-negociación activada en perfil NM"
+    fi
+
+    echo
+    info "Timeout y tolerancia a fallos:"
+    echo "$profile_data" | grep -iE "ipv4\.may-fail|ipv4\.dhcp-timeout|ipv4\.required-timeout" | sed 's/^/  /'
+
+    local ts
+    ts="$(echo "$profile_data" | grep "connection.timestamp:" | awk '{$1=""; print $0}' | xargs)"
+    if [[ -n "$ts" && "$ts" != "0" ]]; then
+        local ts_date
+        ts_date="$(date -d "@$ts" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "epoch $ts")"
+        info "Última conexión exitosa: ${BOLD}$ts_date${RESET}"
+    fi
+
+    echo
+    if [[ -f "/etc/network/interfaces" ]]; then
+        if grep -qE "^[^#]*iface $IFACE" /etc/network/interfaces 2>/dev/null; then
+            error "  ${BOLD}/etc/network/interfaces tiene una entrada ACTIVA para $IFACE${RESET}"
+            error "  ${BOLD}→ Esto bloquea a NetworkManager. Coméntala con '#' al inicio.${RESET}"
         fi
+        if grep -qE "^#.*iface $IFACE" /etc/network/interfaces 2>/dev/null; then
+            info "  /etc/network/interfaces: entrada comentada (OK para NM)"
+        fi
+    fi
+
+    echo
+    info "DHCP leases (sin leer — requiere sudo):"
+    local found=0
+    for f in /var/lib/NetworkManager/*.lease /var/lib/dhcp/dhclient*"$IFACE"*.leases; do
+        [[ -f "$f" ]] || continue
+        info "  $f"
+        found=1
     done 2>/dev/null
     [[ "$found" -eq 0 ]] && info "  (sin leases para $IFACE)"
+    [[ "$found" -eq 1 ]] && info "  ${YELLOW}Usa sudo para ver el contenido: sudo cat <file>${RESET}"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Diagnóstico automático (solo modo check)
+# ─────────────────────────────────────────────────────────────────────────────
+do_autodiagnosis() {
+    echo -e "\n${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+    echo -e "${BOLD}  Diagnóstico automático — recomendaciones${RESET}"
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+
+    local carrier operstate autoneg_nm nm_state nm_con
+    carrier="$(cat "/sys/class/net/$IFACE/carrier" 2>/dev/null || echo "0")"
+    operstate="$(cat "/sys/class/net/$IFACE/operstate" 2>/dev/null || echo "?")"
+
+    if [[ "$NM_ACTIVE" -eq 1 ]]; then
+        autoneg_nm="$(LC_ALL=C nmcli connection show "$IFACE" 2>/dev/null | grep "802-3-ethernet.auto-negotiate:" | awk '{$1=""; print $0}' | xargs)"
+        nm_state="$(nmcli -t -f DEVICE,STATE device status 2>/dev/null | grep "^${IFACE}:" | cut -d: -f2)"
+        nm_con="$(nmcli -t -f DEVICE,CONNECTION device status 2>/dev/null | grep "^${IFACE}:" | cut -d: -f2)"
+    fi
+
+    local issues=0
+    local cmds=()
+
+    # 1. Carrier check
+    if [[ "$carrier" != "1" ]]; then
+        error "No hay cable conectado (carrier=0)."
+        cmds+=("Conecta un cable Ethernet al puerto.")
+        issues=$((issues+1))
+    else
+        success "Cable conectado (carrier=1)"
+    fi
+
+    # 2. Auto-neg check
+    if [[ "$autoneg_nm" == "no" ]]; then
+        error "Auto-negociación DESACTIVADA en el perfil NM."
+        error "  → Esto impide que el enlace negocie velocidad/duplex correctamente."
+        cmds+=("sudo ~/.local/bin/nm-force-ip $IFACE --auto-neg on")
+        issues=$((issues+1))
+    elif [[ "$autoneg_nm" == "yes" ]]; then
+        success "Auto-negociación activada en perfil NM"
+    fi
+
+    # 3. Connection association
+    if [[ -z "$nm_con" && "$NM_ACTIVE" -eq 1 ]]; then
+        error "Conexión NM no asociada al dispositivo (GENERAL.CONNECTION vacío)."
+        cmds+=("sudo ~/.local/bin/nm-force-ip $IFACE --dhcp")
+        issues=$((issues+1))
+    elif [[ "$NM_ACTIVE" -eq 1 ]]; then
+        success "Conexión NM asociada: $nm_con"
+    fi
+
+    # 4. NM state check
+    case "$nm_state" in
+        "connected"|"conectado")
+            success "NM state: $nm_state — debería tener IP" ;;
+        "disconnected"|"desconectado"|"unmanaged")
+            if [[ "$carrier" == "1" ]]; then
+                error "NM state: $nm_state pero carrier=1 — algo bloquea la activación."
+                cmds+=("sudo ~/.local/bin/nm-force-ip $IFACE --dhcp")
+                issues=$((issues+1))
+            fi
+            ;;
+        *"configur"*|*"connect"*)
+            warn "NM state: $nm_state — está intentando conectar (posible DHCP timeout)" ;;
+    esac
+
+    # 5. iface in /etc/network/interfaces (active)
+    if [[ -f /etc/network/interfaces ]] && grep -qE "^[^#]*iface $IFACE" /etc/network/interfaces 2>/dev/null; then
+        error "/etc/network/interfaces tiene entrada ACTIVA para $IFACE — bloquea a NM."
+        cmds+=("Edita /etc/network/interfaces y comenta (añade #) las líneas de $IFACE")
+        issues=$((issues+1))
+    fi
+
+    # 6. Old lease info (solo si se puede leer)
+    local lease_file="/var/lib/dhcp/dhclient.${IFACE}.leases"
+    if [[ -f "$lease_file" ]]; then
+        local old_ip old_gw
+        old_ip="$(sudo -n cat "$lease_file" 2>/dev/null | grep "fixed-address" | tail -1 | awk '{print $2}' | tr -d ';' || true)"
+        old_gw="$(sudo -n cat "$lease_file" 2>/dev/null | grep "routers" | tail -1 | awk '{print $3}' | tr -d ';' || true)"
+        if [[ -n "$old_ip" ]]; then
+            info "Último lease exitoso: ${BOLD}${old_ip}${RESET} (gateway: ${old_gw:-?})"
+            if [[ -n "$old_gw" && "$nm_state" != "connected" && "$nm_state" != "conectado" ]]; then
+                cmds+=("sudo ~/.local/bin/nm-force-ip $IFACE --static ${old_ip}/24 --gateway ${old_gw}")
+            fi
+        else
+            info "Último lease: ${BOLD}$lease_file${RESET} existe pero no se puede leer (sin sudo)"
+        fi
+    fi
+
+    echo
+    if [[ "$issues" -gt 0 ]]; then
+        error "Se encontraron ${BOLD}$issues${RESET} problema(s)."
+        if [[ ${#cmds[@]} -gt 0 ]]; then
+            local seen=()
+            local uniq_cmds=()
+            for cmd in "${cmds[@]}"; do
+                local found_dup=0
+                for seen_cmd in "${seen[@]}"; do
+                    [[ "$cmd" == "$seen_cmd" ]] && found_dup=1 && break
+                done
+                if [[ "$found_dup" -eq 0 ]]; then
+                    seen+=("$cmd")
+                    uniq_cmds+=("$cmd")
+                fi
+            done
+            echo
+            echo -e "${BOLD}${CYAN}  Comandos recomendados (en orden):${RESET}"
+            for cmd in "${uniq_cmds[@]}"; do
+                echo -e "  ${GREEN}\$ ${cmd}${RESET}"
+            done
+        fi
+    else
+        success "No se detectaron problemas evidentes."
+        success "Si la interfaz no tiene IP, puede ser que no haya servidor DHCP en la red."
+        echo
+        info "Prueba con IP estática:"
+        echo -e "  ${GREEN}\$ sudo ~/.local/bin/nm-force-ip $IFACE --static <IP/CIDR> --gateway <GW>${RESET}"
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -313,11 +477,7 @@ do_check() {
         info "Hardware: ${BOLD}$hw${RESET}"
     fi
 
-    echo
-    info "DHCP leases stale:"
-    find /var/lib/dhcp /var/lib/NetworkManager /var/lib/dhcpcd -name "*${IFACE}*" -type f 2>/dev/null | while read -r f; do
-        info "  $f"
-    done || info "  (ninguno)"
+    do_autodiagnosis
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

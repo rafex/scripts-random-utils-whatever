@@ -65,15 +65,34 @@ El script avisa si detecta:
 
 ## Diagnóstico (`--check`)
 
-Muestra sin modificar:
+Muestra sin modificar y sin requerir sudo:
 
 1. Stack de red activo + DHCP client en uso
-2. Conflictos detectados
+2. Conflictos detectados (múltiples stacks/DHCP clients)
 3. Estado de la interfaz (carrier, operstate, driver, MAC, MTU, IPs)
-4. Link ethtool (speed, duplex, auto-neg)
-5. Estado de NetworkManager (device state, connection config, IP config)
-6. Hardware (lspci/lsusb)
-7. DHCP leases stale
+4. Estado de NetworkManager (device state, connection config, perfil IP)
+5. **Auto-negociación en perfil NM** — detecta si está desactivada (causa común de "sin IP")
+6. Estado de asociación conexión↔dispositivo
+7. Timeout y tolerancia a fallos (may-fail, dhcp-timeout)
+8. Última conexión exitosa (timestamp)
+9. Conflicto con `/etc/network/interfaces`
+10. DHCP leases (rutas, sin leer contenido)
+
+### Diagnóstico automático
+
+Al final del `--check`, el script analiza los hallazgos y emite recomendaciones concretas:
+
+```
+═══ Diagnóstico automático — recomendaciones ═══
+  ✓ Cable conectado (carrier=1)
+  ✗ Auto-negociación DESACTIVADA en el perfil NM.
+  ✗ Conexión NM no asociada al dispositivo.
+  ✗ NM state: disconnected pero carrier=1 — algo bloquea la activación.
+
+  Comandos recomendados (en orden):
+  $ sudo ~/.local/bin/nm-force-ip enp1s0f0 --auto-neg on
+  $ sudo ~/.local/bin/nm-force-ip enp1s0f0 --dhcp
+```
 
 ---
 
@@ -83,14 +102,14 @@ Muestra sin modificar:
 # Diagnóstico (sin sudo)
 ./scripts/network/nm_force_ip_linux.sh enp1s0f0 --check
 
-# Forzar DHCP (con sudo)
-sudo ./scripts/network/nm_force_ip_linux.sh enp1s0f0 --dhcp
+# Forzar DHCP (pide sudo interactivo si no se ejecuta con sudo)
+./scripts/network/nm_force_ip_linux.sh enp1s0f0 --dhcp
 
-# IP estática (con sudo)
-sudo ./scripts/network/nm_force_ip_linux.sh enp1s0f0 --static 192.168.3.50/24 --gateway 192.168.3.1 --dns 192.168.3.1
+# IP estática
+./scripts/network/nm_force_ip_linux.sh enp1s0f0 --static 192.168.3.50/24 --gateway 192.168.3.1 --dns 192.168.3.1
 
-# Activar auto-negociación (con sudo)
-sudo ./scripts/network/nm_force_ip_linux.sh enp1s0f0 --auto-neg on
+# Activar auto-negociación
+./scripts/network/nm_force_ip_linux.sh enp1s0f0 --auto-neg on
 
 # Liberar y renovar DHCP (con sudo)
 sudo ./scripts/network/nm_force_ip_linux.sh enp1s0f0 --release
