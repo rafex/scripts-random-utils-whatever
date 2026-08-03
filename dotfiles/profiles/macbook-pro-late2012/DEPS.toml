@@ -27,6 +27,7 @@ apt = [
     "dex",
     "udiskie",
     "udisks2",
+    "autorandr",
 ]
 
 [files]
@@ -48,6 +49,10 @@ source = "externo"        # el usuario debe copiarlo manualmente
 "screensaver-toggle"       = { source = "scripts/hardware/screensaver_toggle_linux.sh" }
 "hidpi_xorg.sh"            = { source = "scripts/display/hidpi_xorg_linux.sh" }
 "usb-mount-perms"          = { source = "scripts/hardware/usb_mount_perms_linux.sh" }
+"screen-mirror.sh"         = { source = "scripts/display/screen_mirror_linux.sh" }
+"screen-auto-mirror.sh"    = { source = "scripts/display/screen_auto_mirror_linux.sh" }
+"screen-auto-edge-mirror.sh" = { source = "scripts/display/screen_auto_edge_mirror_linux.sh" }
+"screen-extend-auto.sh"    = { source = "scripts/display/screen_extend_auto_linux.sh" }
 
 [polkit]
 # Reglas de polkit para montaje USB sin sudo.
@@ -56,3 +61,23 @@ rules = [
     "/etc/polkit-1/rules.d/10-udisks2-mount.rules",
 ]
 helper_script = "scripts/hardware/usb_mount_perms_linux.sh"
+
+[xorg]
+# Configs de Xorg incluidos en el perfil (config/X11/xorg.conf.d/)
+#
+# 20-intel.conf  — Intel HD 4000 (TearFree off, DRI 3)
+# 40-libinput.conf — Trackpad MacBook estilo macOS (tap-to-click, natural scroll, etc.)
+# 40-magicmouse.conf — Magic Mouse (NaturalScrolling true)
+#
+# 20-intel.conf y 40-libinput.conf deben copiarse a /etc/X11/xorg.conf.d/ con sudo.
+# 40-magicmouse.conf funciona desde ~/.config/X11/xorg.conf.d/ (user-space).
+system_files = [
+    "/etc/X11/xorg.conf.d/20-intel.conf",
+    "/etc/X11/xorg.conf.d/40-libinput.conf",
+]
+
+[autorandr]
+# Perfil de autorandr incluido en config/autorandr/mirror/
+# Configuración mirror: LVDS1 (1280x800) + HDMI1
+# Uso: autorandr --load mirror
+profile = "mirror"

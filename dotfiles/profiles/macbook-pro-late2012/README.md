@@ -57,13 +57,26 @@ Si usas otro wallpaper, edita la línea `exec_always --no-startup-id feh --bg-sc
 Los scripts referenciados en los bindsyms de i3 están en el repo principal:
 
 ```sh
+# Notificaciones de hardware
 cp scripts/hardware/notify_brightness_linux.sh ~/.local/bin/brightness-notify.sh
 cp scripts/hardware/notify_volume_linux.sh ~/.local/bin/volume-notify.sh
 cp scripts/hardware/notify_kbd_brightness_linux.sh ~/.local/bin/kbd-brightness-notify.sh
 cp scripts/hardware/notify_power_linux.sh ~/.local/bin/power-notify.sh
 cp scripts/hardware/screensaver_toggle_linux.sh ~/.local/bin/screensaver-toggle
+
+# HiDPI (ajuste de DPI y escala)
 cp scripts/display/hidpi_xorg_linux.sh ~/.local/bin/hidpi_xorg.sh
+
+# Montaje USB sin sudo
 cp scripts/hardware/usb_mount_perms_linux.sh ~/.local/bin/usb-mount-perms
+
+# Pantalla externa — para ponencias/proyector
+cp scripts/display/screen_mirror_linux.sh ~/.local/bin/screen-mirror.sh
+cp scripts/display/screen_auto_mirror_linux.sh ~/.local/bin/screen-auto-mirror.sh
+cp scripts/display/screen_auto_edge_mirror_linux.sh ~/.local/bin/screen-auto-edge-mirror.sh
+cp scripts/display/screen_extend_auto_linux.sh ~/.local/bin/screen-extend-auto.sh
+
+chmod +x ~/.local/bin/*.sh ~/.local/bin/screensaver-toggle ~/.local/bin/usb-mount-perms
 ```
 
 ### 3. Configurar permisos de montaje USB
@@ -83,7 +96,48 @@ sudo apt install ukui-polkit
 # Verifica que /etc/xdg/autostart/polkit-ukui-authentication-agent-1.desktop exista
 ```
 
-### 5. Reiniciar sesión
+### 5. Instalar configs de Xorg al sistema
+
+Los configs de Xorg (trackpad, gráficos, Magic Mouse) se instalan en `~/.config/X11/xorg.conf.d/` (espacio de usuario) por defecto. Para que el trackpad y los gráficos Intel usen estos configs, deben copiarse a `/etc/X11/xorg.conf.d/`:
+
+```sh
+sudo cp ~/.config/X11/xorg.conf.d/20-intel.conf /etc/X11/xorg.conf.d/
+sudo cp ~/.config/X11/xorg.conf.d/40-libinput.conf /etc/X11/xorg.conf.d/
+```
+
+El `40-magicmouse.conf` funciona desde `~/.config/X11/` (user-space). Si tienes conflictos con el de `/etc/`, elimina o renombra la versión del sistema:
+
+```sh
+sudo mv /etc/X11/xorg.conf.d/40-magicmouse.conf /etc/X11/xorg.conf.d/40-magicmouse.conf.bak
+```
+
+### 6. Trackpad estilo macOS
+
+El archivo `40-libinput.conf` replica el comportamiento del trackpad del MacBook:
+
+| Opción | Valor | Efecto |
+|---|---|---|
+| Tapping | on | Tap para hacer click |
+| NaturalScrolling | true | Scroll invertido (natural) |
+| ScrollMethod | twofinger | Scroll con dos dedos |
+| AccelSpeed | 0.3 | Velocidad del cursor |
+| PalmDetection | on | Ignorar palma al escribir |
+| ClickMethod | clickfinger | Click izq/der por número de dedos (sin zonas físicas) |
+| DisableWhileTyping | true | Pausa trackpad al teclear |
+
+### 7. Perfiles de pantalla (autorandr)
+
+El perfil incluye un preset de `autorandr` para configuración mirror (`LVDS1` + `HDMI1`):
+
+```sh
+autorandr --load mirror    # aplicar perfil guardado
+autorandr --save mirror    # guardar estado actual como "mirror"
+autorandr -c               # detectar y cargar perfil automático
+```
+
+Los scripts de pantalla en `~/.local/bin/` (`screen-mirror.sh`, `screen-extend-auto.sh`, etc.) usan `xrandr` directamente y son alternativas a autorandr.
+
+### 8. Reiniciar sesión
 
 ```sh
 i3-msg restart   # o Mod+Shift+R
@@ -102,6 +156,10 @@ i3-msg restart   # o Mod+Shift+R
 | picom (compositor) | `config/picom/picom.conf` |
 | udiskie (auto-montaje USB) | `config/udiskie/config.yml` |
 | Xresources (DPI/fuentes) | `config/Xresources` |
+| Xorg — gráficos Intel | `config/X11/xorg.conf.d/20-intel.conf` |
+| Xorg — trackpad macOS | `config/X11/xorg.conf.d/40-libinput.conf` |
+| Xorg — Magic Mouse | `config/X11/xorg.conf.d/40-magicmouse.conf` |
+| autorandr — perfil mirror | `config/autorandr/mirror/` |
 
 ## Dependencias externas
 

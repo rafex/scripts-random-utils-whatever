@@ -248,53 +248,31 @@ install_configs() {
             continue
         fi
 
-        # Si es un directorio: copiar todo su contenido a ~/.config/<name>/
+        # Si es un directorio: copiar recursivamente a ~/.config/<name>/
         if [[ -d "$item" ]]; then
             local dest="$HOME/.config/$name"
+            local file_count
+            file_count="$(find "$item" -type f 2>/dev/null | wc -l | tr -d ' ')"
 
-            if [[ "$DRY_RUN" -eq 1 ]]; then
-                info "[dry-run] instalar directorio: ${BOLD}$name${RESET} → ${dest}"
-            fi
-
-            shopt -s dotglob nullglob
-            local has_files=0
-            for file in "$item"/*; do
-                [[ -f "$file" ]] || continue
-                has_files=1
-                local fname="${file##*/}"
-                local target="$dest/$fname"
-
-                if [[ "$DRY_RUN" -eq 1 ]]; then
-                    info "  [dry-run] copiar: $fname → ${target}"
-                    continue
-                fi
-
-                backup_existing "$target"
-                mkdir -p "$dest"
-                cp "$file" "$target"
-                chmod 644 "$target"
-                success "  ${dest#"$HOME"/}/$fname"
-            done
-            shopt -u dotglob nullglob
-
-            if [[ "$has_files" -eq 0 ]]; then
+            if [[ "$file_count" -eq 0 ]]; then
                 warn "  Directorio ${BOLD}$name${RESET} vacío — se omite."
+                continue
             fi
 
-        # Si es un archivo suelto en config/: copiar a ~/.config/<name>
-        elif [[ -f "$item" ]]; then
-            local dest="$HOME/.config/$name"
-
             if [[ "$DRY_RUN" -eq 1 ]]; then
-                info "[dry-run] copiar archivo: ${BOLD}$name${RESET} → ${dest}"
+                info "[dry-run] instalar directorio: ${BOLD}$name${RESET} → ${dest} (${file_count} archivos)"
+                find "$item" -type f | while read -r f; do
+                    echo -e "    ${CYAN}→${RESET} ${f#"$item"/}"
+                done
                 continue
             fi
 
             backup_existing "$dest"
             mkdir -p "$(dirname "$dest")"
-            cp "$item" "$dest"
-            chmod 644 "$dest"
-            success "  ${dest#"$HOME"/}/$name"
+            cp -r "$item" "$dest"
+            find "$dest" -type f -exec chmod 644 {} \;
+            find "$dest" -type d -exec chmod 755 {} \;
+            success "  ${BOLD}$name${RESET}/ (${file_count} archivos)"
         fi
     done
 }

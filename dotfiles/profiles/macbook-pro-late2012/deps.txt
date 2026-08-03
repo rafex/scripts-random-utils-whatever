@@ -15,3 +15,4 @@ xss-lock
 i3lock
 dex
 udiskie
+autorandr
