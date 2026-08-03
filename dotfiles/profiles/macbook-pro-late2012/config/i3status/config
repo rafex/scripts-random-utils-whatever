@@ -1,0 +1,71 @@
+general {
+    colors = true
+    interval = 5
+}
+
+order += "wireless _first_"
+order += "ethernet _first_"
+order += "battery all"
+order += "volume master"
+order += "load"
+order += "memory"
+order += "tztime local"
+
+# ─────────────────────────────
+# RED
+# ─────────────────────────────
+
+wireless _first_ {
+    format_up = "📶 %quality %essid"
+    format_down = "📶 down"
+}
+
+ethernet _first_ {
+    format_up = "🌐 up"
+    format_down = ""
+}
+
+# ─────────────────────────────
+# BATERÍA
+# ─────────────────────────────
+
+battery all {
+    format = "🔋 %status %percentage (%remaining)"
+    format_down = ""
+    status_chr = "⚡"
+    status_bat = ""
+    status_full = "✔"
+    low_threshold = 15
+    threshold_type = percentage
+}
+
+# ─────────────────────────────
+# AUDIO (PipeWire / Pulse)
+# ─────────────────────────────
+
+volume master {
+    format = "🔊 %volume"
+    format_muted = "🔇 muted"
+    device = "pulse"
+    mixer = "Master"
+}
+
+# ─────────────────────────────
+# SISTEMA
+# ─────────────────────────────
+
+load {
+    format = "CPU %1min"
+}
+
+memory {
+    format = "RAM %used"
+}
+
+# ─────────────────────────────
+# FECHA / HORA
+# ─────────────────────────────
+
+tztime local {
+    format = "%Y-%m-%d %H:%M"
+}

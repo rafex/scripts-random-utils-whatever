@@ -1,0 +1,180 @@
+# i3 config — MacBook Pro Late 2012 (Debian 13 + Xorg)
+
+set $mod Mod4
+set $term alacritty
+set $menu rofi -show drun -show-icons
+
+# ── Autostart ──────────────────────────────────────────────────────────────────
+exec_always --no-startup-id xrdb -merge ~/.Xresources
+exec --no-startup-id volumeicon
+exec --no-startup-id udiskie --tray
+exec_always --no-startup-id dunst
+exec_always --no-startup-id setxkbmap es
+exec_always --no-startup-id feh --bg-scale ~/Imágenes/FondosDePantalla/wp15986180-debian-13-wallpapers.jpg
+exec_always --no-startup-id ~/.local/bin/power-notify.sh
+exec --no-startup-id dex --autostart --environment i3
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+exec --no-startup-id nm-applet
+
+# Identidad de sesión (si polkit no reconoce la sesión como activa, descomentar)
+#exec --no-startup-id sh -c 'export XDG_CURRENT_DESKTOP=i3; export XDG_SESSION_DESKTOP=i3; export DESKTOP_SESSION=i3; dbus-update-activation-environment --systemd DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP DESKTOP_SESSION'
+
+# ── Apariencia ─────────────────────────────────────────────────────────────────
+font pango:DejaVu Sans Mono 9
+default_border pixel 2
+default_floating_border pixel 2
+floating_modifier $mod
+tiling_drag modifier titlebar
+
+# ── Layout / navegación ───────────────────────────────────────────────────────
+bindsym $mod+Return exec $term
+bindsym $mod+q kill
+bindsym $mod+space exec --no-startup-id $menu
+bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
+bindsym $mod+Shift+Tab focus next
+
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+bindsym $mod+b split h
+bindsym $mod+v split v
+bindsym $mod+f fullscreen toggle
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+bindsym $mod+Shift+f floating toggle; move position center
+bindsym $mod+d focus mode_toggle
+bindsym $mod+a focus parent
+
+# ── Resize mode ────────────────────────────────────────────────────────────────
+bindsym $mod+r mode "resize"
+
+mode "resize" {
+    bindsym j resize shrink width 10 px or 10 ppt
+    bindsym k resize grow height 10 px or 10 ppt
+    bindsym l resize shrink height 10 px or 10 ppt
+    bindsym ntilde resize grow width 10 px or 10 ppt
+    bindsym Left resize shrink width 10 px or 10 ppt
+    bindsym Down resize grow height 10 px or 10 ppt
+    bindsym Up resize shrink height 10 px or 10 ppt
+    bindsym Right resize grow width 10 px or 10 ppt
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+    bindsym $mod+r mode "default"
+}
+
+# ── Scratchpad ─────────────────────────────────────────────────────────────────
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
+bindsym XF86LaunchA move scratchpad
+bindsym XF86LaunchB scratchpad show
+
+# ── Screenshot ─────────────────────────────────────────────────────────────────
+bindsym $mod+p exec --no-startup-id maim ~/Imágenes/CapturasDePantalla/screenshot-$(date +%F_%H-%M-%S).png && notify-send "Screenshot" "Pantalla completa guardada"
+
+# ── Toggle picom ───────────────────────────────────────────────────────────────
+bindsym $mod+Shift+p exec --no-startup-id sh -c 'pgrep picom && pkill picom && notify-send "Picom" "Desactivado" || (picom & notify-send "Picom" "Activado")'
+
+# ── Lock screen ────────────────────────────────────────────────────────────────
+bindsym $mod+Shift+l exec --no-startup-id i3lock -c 000000
+
+# ── Screensaver toggle ─────────────────────────────────────────────────────────
+bindsym $mod+Shift+s exec --no-startup-id ~/.local/bin/screensaver-toggle toggle
+
+# ── Salir / reiniciar ──────────────────────────────────────────────────────────
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+q exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec rofi -show run
+
+# ── Audio ──────────────────────────────────────────────────────────────────────
+set $refresh_i3status killall -SIGUSR1 i3status
+bindsym XF86AudioRaiseVolume exec --no-startup-id ~/.local/bin/volume-notify.sh up && $refresh_i3status
+bindsym XF86AudioLowerVolume exec --no-startup-id ~/.local/bin/volume-notify.sh down && $refresh_i3status
+bindsym XF86AudioMute exec --no-startup-id ~/.local/bin/volume-notify.sh mute && $refresh_i3status
+
+# ── Brillo pantalla ────────────────────────────────────────────────────────────
+bindsym XF86MonBrightnessUp exec --no-startup-id ~/.local/bin/brightness-notify.sh up
+bindsym XF86MonBrightnessDown exec --no-startup-id ~/.local/bin/brightness-notify.sh down
+
+# ── Brillo teclado ─────────────────────────────────────────────────────────────
+bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
+bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+
+# ── Workspaces ─────────────────────────────────────────────────────────────────
+set $ws1 "1:term"
+set $ws2 "2:code"
+set $ws3 "3:web"
+set $ws4 "4:docs"
+set $ws5 "5:misc"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+0 workspace number $ws10
+
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10
+
+# ── Assign apps to workspaces ──────────────────────────────────────────────────
+assign [class="Firefox"] $ws3
+assign [class="Google-chrome"] $ws3
+assign [class="google-chrome"] $ws3
+assign [class="Codium"] $ws2
+assign [class="codium"] $ws2
+
+# ── Floating rules ─────────────────────────────────────────────────────────────
+for_window [class="Thunar"] floating enable, resize set 800 600
+
+for_window [window_type="dialog"] floating enable
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [window_type="utility"] floating enable
+for_window [window_type="toolbar"] floating enable
+
+for_window [class="^Eclipse$" window_type="dialog"] floating enable
+for_window [class="^Eclipse$" window_type="utility"] floating enable
+for_window [class="^Eclipse$" window_type="popup_menu"] floating enable
+for_window [class="^Eclipse$" window_type="dropdown_menu"] floating enable
+for_window [class="^Eclipse$" window_type="menu"] floating enable
+for_window [class="^Eclipse$" floating] move position center
+
+for_window [window_type="dialog"] move position center
+for_window [window_type="dialog"] resize set 900 600
+
+for_window [class="Google-chrome" window_type="dialog"] floating enable
+for_window [class="Google-chrome" window_type="dialog"] move position center
+
+# ── Bar (i3status) ─────────────────────────────────────────────────────────────
+bar {
+    status_command i3status
+    position bottom
+    tray_output primary
+    font pango:DejaVu Sans Mono, Font Awesome 9
+}

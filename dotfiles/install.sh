@@ -3,8 +3,7 @@ set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────────────────────
 # i3-dotfiles install.sh
-# Instalador autocontenido para dotfiles de i3wm.
-# Se ejecuta desde dentro del tar.gz extraído: ./install.sh
+# Instalador autocontenido para dotfiles de i3wm con soporte de perfiles.
 # ─────────────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -20,6 +19,104 @@ info()    { echo -e "${CYAN}${BOLD}  →${RESET} $*"; }
 success() { echo -e "${GREEN}${BOLD}  ✓${RESET} $*"; }
 warn()    { echo -e "${YELLOW}${BOLD}  ⚠${RESET}  $*"; }
 error()   { echo -e "${RED}${BOLD}  ✗ ERROR:${RESET} $*" >&2; }
+
+PROFILE="default"
+DRY_RUN=0
+PROFILES_DIR="$SCRIPT_DIR/profiles"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Uso
+# ─────────────────────────────────────────────────────────────────────────────
+usage() {
+    echo -e "${BOLD}Uso:${RESET}"
+    echo "  $0 [opciones]"
+    echo
+    echo -e "${BOLD}Opciones:${RESET}"
+    echo -e "  ${CYAN}--profile <name>${RESET}   Perfil a instalar (default: default)"
+    echo -e "  ${CYAN}--list-profiles${RESET}    Lista perfiles disponibles y sale"
+    echo -e "  ${CYAN}--dry-run${RESET}          Muestra acciones sin ejecutarlas"
+    echo -e "  ${CYAN}-h, --help${RESET}         Muestra esta ayuda"
+    echo
+    echo -e "${BOLD}Ejemplos:${RESET}"
+    echo "  $0"
+    echo "  $0 --profile macbook-pro-late2012"
+    echo "  $0 --list-profiles"
+    echo "  $0 --profile macbook-pro-late2012 --dry-run"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Parseo de argumentos
+# ─────────────────────────────────────────────────────────────────────────────
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --profile)
+                PROFILE="$2"
+                shift 2
+                ;;
+            --list-profiles)
+                list_profiles
+                exit 0
+                ;;
+            --dry-run)
+                DRY_RUN=1
+                shift
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                error "argumento desconocido: $1"
+                echo
+                usage
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Listar perfiles disponibles
+# ─────────────────────────────────────────────────────────────────────────────
+list_profiles() {
+    echo -e "${BOLD}Perfiles disponibles:${RESET}"
+    if [[ ! -d "$PROFILES_DIR" ]]; then
+        warn "Directorio profiles/ no encontrado."
+        return
+    fi
+    for d in "$PROFILES_DIR"/*/; do
+        [[ -d "$d" ]] || continue
+        local name
+        name="$(basename "$d")"
+                local count
+                count="$(find "$d" -type f 2>/dev/null | wc -l | tr -d ' ')"
+        if [[ "$name" == "$PROFILE" ]]; then
+            echo -e "  ${GREEN}${BOLD}* $name${RESET} (${count} archivos) ← activo"
+        else
+            echo -e "  ${CYAN}$name${RESET} (${count} archivos)"
+        fi
+    done
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Validar que el perfil existe
+# ─────────────────────────────────────────────────────────────────────────────
+validate_profile() {
+    local profile_dir="$PROFILES_DIR/$PROFILE"
+    if [[ ! -d "$profile_dir" ]]; then
+        error "perfil ${BOLD}$PROFILE${RESET} no encontrado en ${BOLD}$PROFILES_DIR/${RESET}."
+        echo
+        list_profiles
+        exit 1
+    fi
+
+    local config_dir="$profile_dir/config"
+    if [[ ! -d "$config_dir" ]]; then
+        error "el perfil ${BOLD}$PROFILE${RESET} no tiene directorio config/."
+        exit 1
+    fi
+}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Detectar shell del usuario y archivo RC
@@ -66,6 +163,14 @@ check_sudo() {
 # 3. Instalar paquetes (solo si hay sudo)
 # ─────────────────────────────────────────────────────────────────────────────
 install_packages() {
+    local deps_file="$PROFILES_DIR/$PROFILE/deps.txt"
+
+    if [[ ! -f "$deps_file" ]]; then
+        warn "Archivo deps.txt no encontrado para el perfil ${BOLD}$PROFILE${RESET}."
+        warn "Saltando instalación de paquetes."
+        return
+    fi
+
     if [[ "$HAS_SUDO" != "true" ]]; then
         warn "Saltando instalación de paquetes (sin sudo)."
         echo
@@ -73,21 +178,30 @@ install_packages() {
         while IFS= read -r pkg; do
             [[ -z "$pkg" || "$pkg" == \#* ]] && continue
             echo -e "    ${CYAN}${pkg}${RESET}"
-        done < "$SCRIPT_DIR/deps.txt"
+        done < "$deps_file"
         echo
         return
     fi
 
-    info "Instalando paquetes desde deps.txt..."
+    info "Instalando paquetes desde ${BOLD}${deps_file}${RESET}..."
     local pkgs=()
     while IFS= read -r pkg; do
         [[ -z "$pkg" || "$pkg" == \#* ]] && continue
         pkgs+=("$pkg")
-    done < "$SCRIPT_DIR/deps.txt"
+    done < "$deps_file"
 
-    sudo apt-get update -qq
-    sudo apt-get install -y "${pkgs[@]}"
-    success "Paquetes instalados."
+    if [[ ${#pkgs[@]} -eq 0 ]]; then
+        warn "deps.txt vacío — no hay paquetes para instalar."
+        return
+    fi
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] apt-get update && apt-get install -y ${pkgs[*]}"
+    else
+        sudo apt-get update -qq
+        sudo apt-get install -y "${pkgs[@]}"
+        success "Paquetes instalados."
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -99,44 +213,89 @@ backup_existing() {
     backup_name="${target}.bak.$(date +%Y%m%d_%H%M%S)"
 
     if [[ -e "$target" && ! -L "$target" ]]; then
-        info "Respaldando ${BOLD}${target}${RESET} → ${backup_name}"
-        mv "$target" "$backup_name"
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "[dry-run] backup: ${target} → ${backup_name}"
+        else
+            info "Respaldando ${BOLD}${target}${RESET} → ${backup_name}"
+            mv "$target" "$backup_name"
+        fi
     elif [[ -L "$target" ]]; then
-        info "Eliminando symlink anterior: ${BOLD}${target}${RESET}"
-        rm "$target"
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "[dry-run] eliminar symlink: ${target}"
+        else
+            info "Eliminando symlink anterior: ${BOLD}${target}${RESET}"
+            rm "$target"
+        fi
     fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. Copiar configs a ~/.config/
+# 5. Copiar configs de directorios a ~/.config/<dir>
+#    Detecta automáticamente los directorios dentro de config/
 # ─────────────────────────────────────────────────────────────────────────────
 install_configs() {
-    info "Instalando configs en ${BOLD}~/.config/${RESET}..."
-    local config_src="$SCRIPT_DIR/config"
+    info "Instalando configs desde perfil ${BOLD}$PROFILE${RESET} a ${BOLD}~/.config/${RESET}..."
+    local config_src="$PROFILES_DIR/$PROFILE/config"
 
-    for dir in i3 i3status rofi dunst alacritty picom; do
-        local src="$config_src/$dir"
-        local dest="$HOME/.config/$dir"
+    # Mapeo de archivos especiales (fuera de ~/.config/)
+    local special_files="Xresources xsession"
 
-        if [[ ! -d "$src" ]]; then
-            warn "Directorio fuente no encontrado: ${src} — se omite"
+    for item in "$config_src"/*; do
+        local name="${item##*/}"
+
+        # Saltar archivos especiales (se manejan por separado)
+        if echo "$special_files" | grep -qw "$name"; then
             continue
         fi
 
-        mkdir -p "$(dirname "$dest")"
+        # Si es un directorio: copiar todo su contenido a ~/.config/<name>/
+        if [[ -d "$item" ]]; then
+            local dest="$HOME/.config/$name"
 
-        shopt -s dotglob
-        for file in "$src"/*; do
-            [[ -f "$file" ]] || continue
-            local fname="${file##*/}"
-            local target="$dest/$fname"
-            backup_existing "$target"
-            mkdir -p "$dest"
-            cp "$file" "$target"
-            chmod 644 "$target"
-            success "  ${dest#"$HOME"/}/$fname"
-        done
-        shopt -u dotglob
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                info "[dry-run] instalar directorio: ${BOLD}$name${RESET} → ${dest}"
+            fi
+
+            shopt -s dotglob nullglob
+            local has_files=0
+            for file in "$item"/*; do
+                [[ -f "$file" ]] || continue
+                has_files=1
+                local fname="${file##*/}"
+                local target="$dest/$fname"
+
+                if [[ "$DRY_RUN" -eq 1 ]]; then
+                    info "  [dry-run] copiar: $fname → ${target}"
+                    continue
+                fi
+
+                backup_existing "$target"
+                mkdir -p "$dest"
+                cp "$file" "$target"
+                chmod 644 "$target"
+                success "  ${dest#"$HOME"/}/$fname"
+            done
+            shopt -u dotglob nullglob
+
+            if [[ "$has_files" -eq 0 ]]; then
+                warn "  Directorio ${BOLD}$name${RESET} vacío — se omite."
+            fi
+
+        # Si es un archivo suelto en config/: copiar a ~/.config/<name>
+        elif [[ -f "$item" ]]; then
+            local dest="$HOME/.config/$name"
+
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                info "[dry-run] copiar archivo: ${BOLD}$name${RESET} → ${dest}"
+                continue
+            fi
+
+            backup_existing "$dest"
+            mkdir -p "$(dirname "$dest")"
+            cp "$item" "$dest"
+            chmod 644 "$dest"
+            success "  ${dest#"$HOME"/}/$name"
+        fi
     done
 }
 
@@ -144,11 +303,16 @@ install_configs() {
 # 6. Instalar Xresources
 # ─────────────────────────────────────────────────────────────────────────────
 install_xresources() {
-    local src="$SCRIPT_DIR/config/Xresources"
+    local src="$PROFILES_DIR/$PROFILE/config/Xresources"
     local dest="$HOME/.Xresources"
 
     if [[ ! -f "$src" ]]; then
-        warn "Xresources no encontrado — se omite."
+        warn "Xresources no encontrado en el perfil — se omite."
+        return
+    fi
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] instalar Xresources → ${dest}"
         return
     fi
 
@@ -159,44 +323,77 @@ install_xresources() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. Instalar scripts en ~/.local/bin/
+# 7. Instalar xsession
 # ─────────────────────────────────────────────────────────────────────────────
-install_scripts() {
-    info "Instalando scripts en ${BOLD}~/.local/bin/${RESET}..."
-    local scripts_src="$SCRIPT_DIR/scripts"
+install_xsession() {
+    local src="$PROFILES_DIR/$PROFILE/config/xsession"
+    local dest="$HOME/.xsession"
 
-    if [[ ! -d "$scripts_src" ]]; then
-        warn "Directorio scripts no encontrado — se omite."
+    if [[ ! -f "$src" ]]; then
         return
     fi
 
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] instalar xsession → ${dest}"
+        return
+    fi
+
+    backup_existing "$dest"
+    cp "$src" "$dest"
+    chmod 755 "$dest"
+    success "  .xsession"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. Instalar scripts del perfil en ~/.local/bin/
+# ─────────────────────────────────────────────────────────────────────────────
+install_profile_scripts() {
+    local scripts_src="$PROFILES_DIR/$PROFILE/scripts"
+
+    if [[ ! -d "$scripts_src" ]]; then
+        return
+    fi
+
+    info "Instalando scripts del perfil en ${BOLD}~/.local/bin/${RESET}..."
+
     mkdir -p "$HOME/.local/bin"
 
+    shopt -s nullglob dotglob
     for script in "$scripts_src"/*; do
         [[ -f "$script" ]] || continue
         local fname="${script##*/}"
         local target="$HOME/.local/bin/$fname"
+
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "  [dry-run] copiar script: $fname → $target"
+            continue
+        fi
+
         backup_existing "$target"
         cp "$script" "$target"
         chmod 755 "$target"
         success "  ~/.local/bin/$fname"
     done
+    shopt -u dotglob nullglob
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. Crear directorios de imágenes
+# 9. Crear directorios de imágenes
 # ─────────────────────────────────────────────────────────────────────────────
 create_image_dirs() {
     info "Creando directorios de imágenes..."
-    mkdir -p "$HOME/Imágenes/FondosDePantalla"
-    mkdir -p "$HOME/Imágenes/CapturasDePantalla"
-    success "  ~/Imágenes/FondosDePantalla/"
-    success "  ~/Imágenes/CapturasDePantalla/"
-    warn "No olvides copiar un wallpaper a: ~/Imágenes/FondosDePantalla/wallpaper.jpg"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] mkdir -p ~/Imágenes/FondosDePantalla ~/Imágenes/CapturasDePantalla"
+    else
+        mkdir -p "$HOME/Imágenes/FondosDePantalla"
+        mkdir -p "$HOME/Imágenes/CapturasDePantalla"
+        success "  ~/Imágenes/FondosDePantalla/"
+        success "  ~/Imágenes/CapturasDePantalla/"
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. Inyectar variables de entorno en el RC file
+# 10. Inyectar variables de entorno en el RC file
 # ─────────────────────────────────────────────────────────────────────────────
 inject_env_vars() {
     local marker_start="# >>> i3-dotfiles (auto-generated) >>>"
@@ -205,46 +402,84 @@ inject_env_vars() {
 
     info "Inyectando variables de entorno en ${BOLD}${rc#"$HOME"/}${RESET}..."
 
-    # Crear RC file si no existe
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] inyectar vars en $rc"
+        return
+    fi
+
     if [[ ! -f "$rc" ]]; then
         touch "$rc"
     fi
 
-    # Eliminar bloque anterior si existe
     if grep -q "$marker_start" "$rc" 2>/dev/null; then
         sed -i.tmp "/$marker_start/,/$marker_end/d" "$rc"
         rm -f "${rc}.tmp"
     fi
 
-    # Añadir nuevo bloque
-    cat >> "$rc" <<EOF
+    cat >> "$rc" <<'EOF'
 
-$marker_start
+# >>> i3-dotfiles (auto-generated) >>>
 export XDG_CURRENT_DESKTOP=i3
 export XDG_SESSION_DESKTOP=i3
 export DESKTOP_SESSION=i3
 
-if [[ -d "\$HOME/.local/bin" ]]; then
-    case ":\$PATH:" in
-        *:"\$HOME/.local/bin":*) ;;
-        *) export PATH="\$HOME/.local/bin:\$PATH" ;;
+if [[ -d "$HOME/.local/bin" ]]; then
+    case ":$PATH:" in
+        *:"$HOME/.local/bin":*) ;;
+        *) export PATH="$HOME/.local/bin:$PATH" ;;
     esac
 fi
-$marker_end
+# <<< i3-dotfiles <<<
 EOF
 
     success "Variables de entorno agregadas a ${rc#"$HOME"/}"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 11. Mostrar dependencias externas del perfil (informativo)
+# ─────────────────────────────────────────────────────────────────────────────
+show_profile_deps() {
+    local deps_toml="$PROFILES_DIR/$PROFILE/DEPS.toml"
+
+    if [[ ! -f "$deps_toml" ]]; then
+        return
+    fi
+
+    echo
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+    echo -e "${BOLD}  Dependencias externas del perfil ${BOLD}$PROFILE${RESET}"
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+    echo
+    echo -e "  ${BOLD}DEPS.toml:${RESET} $deps_toml"
+    echo -e "  ${BOLD}README.md:${RESET} $PROFILES_DIR/$PROFILE/README.md"
+    echo
+    echo -e "  ${YELLOW}Revisa DEPS.toml y README.md del perfil para:${RESET}"
+    echo -e "  - Scripts de ${CYAN}~/.local/bin/${RESET} que deben copiarse del repo principal"
+    echo -e "  - Wallpapers y archivos externos necesarios"
+    echo -e "  - Reglas de polkit y configuración post-instalación"
+    echo
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Principal
 # ─────────────────────────────────────────────────────────────────────────────
 main() {
+    parse_args "$@"
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        echo -e "\n${YELLOW}${BOLD}┌─────────────────────────────────────────────────────┐${RESET}"
+        echo -e "${YELLOW}${BOLD}│  DRY-RUN: no se aplicarán cambios reales           │${RESET}"
+        echo -e "${YELLOW}${BOLD}└─────────────────────────────────────────────────────┘${RESET}"
+    fi
+
     echo
     echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
     echo -e "${BOLD}  i3 Dotfiles — Instalador${RESET}"
+    echo -e "${BOLD}  Perfil: ${PROFILE}${RESET}"
     echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
     echo
+
+    validate_profile
 
     detect_shell
     check_sudo
@@ -259,7 +494,10 @@ main() {
     install_xresources
     echo
 
-    install_scripts
+    install_xsession
+    echo
+
+    install_profile_scripts
     echo
 
     create_image_dirs
@@ -271,19 +509,18 @@ main() {
     echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
     echo -e "${GREEN}${BOLD}  Instalación completada.${RESET}"
     echo
+    if [[ -f "$PROFILES_DIR/$PROFILE/README.md" ]]; then
+        echo -e "  ${BOLD}Post-instalación:${RESET} revisa ${CYAN}$PROFILES_DIR/$PROFILE/README.md${RESET}"
+    fi
     echo -e "  ${BOLD}Para aplicar los cambios:${RESET}"
-    echo -e "  1. Copia un wallpaper a: ~/Imágenes/FondosDePantalla/wallpaper.jpg"
-    echo -e "  2. Reinicia la sesión: ${CYAN}i3-msg restart${RESET}"
+    echo -e "  1. Reinicia la sesión: ${CYAN}i3-msg restart${RESET}"
     echo -e "     o cierra sesión y vuelve a entrar"
-    echo -e "  3. Scripts en ~/.local/bin/ están listos para usarse"
     echo
-    echo -e "  ${BOLD}Atajos útiles:${RESET}"
-    echo -e "  ${CYAN}Mod4+Shift+s${RESET} → Toggle protector de pantalla"
-    echo -e "  ${CYAN}Mod4+Shift+p${RESET} → Toggle picom (compositor)"
-    echo -e "  ${CYAN}Mod4+Shift+l${RESET} → Bloquear pantalla"
-    echo -e "  ${CYAN}Mod4+Shift+f${RESET} → Toggle ventana flotante"
+
+    show_profile_deps
+
     echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
     echo
 }
 
-main
+main "$@"

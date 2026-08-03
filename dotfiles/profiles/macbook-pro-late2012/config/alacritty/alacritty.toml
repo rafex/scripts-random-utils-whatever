@@ -1,0 +1,20 @@
+[env]
+TERM = "xterm-256color"
+COLORTERM = "truecolor"
+
+[font]
+normal = { family = "DejaVu Sans Mono", style = "Regular" }
+bold = { family = "DejaVu Sans Mono", style = "Bold" }
+italic = { family = "DejaVu Sans Mono", style = "Italic" }
+bold_italic = { family = "DejaVu Sans Mono", style = "Bold Italic" }
+size = 11
+
+[window]
+decorations = "none"
+dynamic_title = true
+
+[scrolling]
+history = 50000
+
+[selection]
+save_to_clipboard = true

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Variables (mejor en ~/.profile, pero aquí funciona)
+export EDITOR=gedit
+export BROWSER=firefox
+
+# Cargar Xresources (por si tienes más settings)
+[ -f "$HOME/.Xresources" ] && xrdb -merge "$HOME/.Xresources"
+
+# Ajuste HiDPI / DPI / xrandr
+LOCK="$HOME/.cache/hidpi_xorg.lock"
+if [ ! -f "$LOCK" ]; then
+  mkdir -p "$HOME/.cache"
+  "$HOME/.local/bin/hidpi_xorg.sh" && touch "$LOCK"
+fi
+
+# Arrancar i3
+exec i3

@@ -1,0 +1,17 @@
+# Configuración de udiskie para auto-montaje de USB
+program_options:
+  tray: auto           # auto: solo muestra icono si hay dispositivos
+  automount: true      # auto-montar al insertar
+  notify: true         # notificaciones de montaje/desmontaje
+
+device_config:
+  - device_file: /dev/sda*
+    ignore: true       # ignorar disco de sistema
+  - device_file: /dev/nvme*
+    ignore: true       # ignorar NVMe del sistema
+  - device_file: /dev/mmcblk*
+    ignore: true       # ignorar SD interna si aplica
+
+# Montar en /run/media/$USER (requiere que el directorio exista)
+mount_options:
+  - all: [noatime, nosuid, nodev, noexec]
