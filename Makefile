@@ -9,6 +9,7 @@ VERSION  ?= dev
 
 include make/check.mk
 include make/dist.mk
+include make/checksums.mk
 
 .DEFAULT_GOAL := help
 

@@ -1,0 +1,45 @@
+# PATH.toml — Script-to-remote-name mapping and host definitions.
+# Used by: deploy_verify_unix.sh, deploy_configs_unix.sh
+#
+# Format:
+#   [hosts.<name>]           — defines an SSH host
+#   [scripts]                — maps repo paths to remote names
+#   [search]                 — fallback search paths on remote hosts
+
+# ── Host definitions ─────────────────────────────────────────────────────────
+[hosts.bastion-usb-wifi]
+address = "bastion-usb-wifi"
+base_path = "~/.local/bin"
+user = "rafex"
+
+[hosts.macbook-pro-late2012]
+address = "192.168.3.177"
+base_path = "~/.local/bin"
+user = "rafex"
+
+# ── Script → remote name mapping ─────────────────────────────────────────────
+# Left side: repo path. Right side: name on remote host (deployed to base_path)
+[scripts]
+"scripts/network/nm_force_ip_linux.sh"              = "nm-force-ip"
+"scripts/hardware/usb_mount_perms_linux.sh"          = "usb-mount-perms"
+"scripts/hardware/screensaver_toggle_linux.sh"       = "screensaver-toggle"
+"scripts/hardware/notify_brightness_linux.sh"        = "brightness-notify.sh"
+"scripts/hardware/notify_volume_linux.sh"            = "volume-notify.sh"
+"scripts/hardware/notify_kbd_brightness_linux.sh"    = "kbd-brightness-notify.sh"
+"scripts/hardware/notify_power_linux.sh"             = "power-notify.sh"
+"scripts/display/hidpi_xorg_linux.sh"                = "hidpi_xorg.sh"
+"scripts/display/screen_mirror_linux.sh"             = "screen-mirror.sh"
+"scripts/display/screen_auto_mirror_linux.sh"        = "screen-auto-mirror.sh"
+"scripts/display/screen_auto_edge_mirror_linux.sh"   = "screen-auto-edge-mirror.sh"
+"scripts/display/screen_extend_auto_linux.sh"        = "screen-extend-auto.sh"
+"scripts/network/myip_linux.sh"                      = "myip.sh"
+"scripts/network/connect_nas_linux.sh"               = "connect_nas.sh"
+
+# ── Fallback search paths on remote hosts ────────────────────────────────────
+# Used when a script is not found at its mapped base_path.
+[search]
+paths = [
+    "~/.local/bin",
+    "/usr/local/bin",
+    "~/bin",
+]
