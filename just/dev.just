@@ -21,6 +21,20 @@ disk-usage *args:
 podman-cleanup *args:
     bash scripts/dev/podman_cleanup_linux.sh {{args}}
 
+# ── podman-recover ─────────────────────────────────────────────────────────────
+
+# Recupera el socket de Podman cuando falla la conexión (systemctl --user)
+# Uso: just podman-recover | just podman-recover --watch | just podman-recover --check-only
+podman-recover *args:
+    bash scripts/dev/podman_recover_linux.sh {{args}}
+
+# ── podman-overlay-watch ───────────────────────────────────────────────────────
+
+# Monitor del overlay de Podman — auto-prune build cache cuando > 150GB o disco > 85%
+# Uso: just podman-overlay-watch --install-timer | just podman-overlay-watch --oneshot
+podman-overlay-watch *args:
+    bash scripts/dev/podman_overlay_watch_linux.sh {{args}}
+
 # ── deploy + verify ───────────────────────────────────────────────────────────
 
 # Deploy + verify todos los scripts mapeados a un host
