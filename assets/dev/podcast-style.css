@@ -1,0 +1,235 @@
+/* ============================================
+   ESTILO PODCAST — LECTURA CÓMODA EN PANTALLA
+   Sans-serif humanista, paleta cálida.
+   ============================================ */
+
+@page {
+  margin: 2cm 2cm 2cm 2cm;
+  size: A4;
+  @bottom-center {
+    content: counter(page) " de " counter(pages);
+    font-size: 9pt;
+    color: #888888;
+    font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+  }
+}
+
+body {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  margin: 0;
+  padding: 0;
+}
+
+/* ----- TITULO PRINCIPAL ----- */
+h1.title {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #c2410c;
+  text-align: center;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #c2410c;
+  padding-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+}
+
+/* ----- ENCABEZADOS h1 (markdown #) ----- */
+h1 {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #c2410c;
+  text-align: left;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #fed7aa;
+  padding-bottom: 6px;
+  font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+}
+
+/* ----- ENCABEZADOS h2 ----- */
+h2 {
+  font-size: 14pt;
+  font-weight: 700;
+  color: #9a3412;
+  margin-top: 22px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #fed7aa;
+  padding-bottom: 4px;
+  font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+}
+
+/* ----- ENCABEZADOS h3 ----- */
+h3 {
+  font-size: 12pt;
+  font-weight: 600;
+  color: #c2410c;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+}
+
+/* ----- PARRAFOS ----- */
+p {
+  margin-bottom: 10px;
+  text-align: justify;
+  text-indent: 1.5em;
+}
+
+p:first-of-type {
+  text-indent: 0;
+}
+
+/* ----- ENFASIS ----- */
+strong {
+  color: #9a3412;
+  font-weight: 700;
+}
+
+em {
+  color: #78350f;
+  font-style: italic;
+}
+
+strong em, em strong {
+  color: #c2410c;
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* ----- ENLACES ----- */
+a {
+  color: #c2410c;
+  text-decoration: none;
+  border-bottom: 1px dotted #c2410c;
+}
+
+/* ----- BLOQUOTE DE APERTURA (primer blockquote) ----- */
+blockquote:first-of-type {
+  text-align: center;
+  margin: 10px 0 25px 0;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid #fed7aa;
+  background: transparent;
+  font-size: 10.5pt;
+  color: #92400e;
+  line-height: 1.6;
+}
+
+blockquote:first-of-type p {
+  text-indent: 0;
+  margin: 0;
+  text-align: center;
+}
+
+blockquote:first-of-type strong {
+  color: #c2410c;
+  font-weight: 600;
+}
+
+/* ----- RESTO DE BLOCKQUOTES (citas normales) ----- */
+blockquote:not(:first-of-type) {
+  border-left: 3px solid #c2410c;
+  padding: 10px 20px;
+  margin: 15px 0;
+  background-color: #fff7ed;
+  font-style: italic;
+  color: #78350f;
+}
+
+blockquote:not(:first-of-type) p {
+  text-indent: 0;
+  margin-bottom: 0;
+}
+
+/* ----- LISTAS ----- */
+ul, ol {
+  padding-left: 30px;
+  margin-bottom: 12px;
+}
+
+li {
+  margin-bottom: 4px;
+  text-align: justify;
+}
+
+ul li::marker {
+  color: #c2410c;
+}
+
+/* ----- TABLAS ----- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0 20px 0;
+  font-size: 10.5pt;
+}
+
+th {
+  background-color: #fff7ed;
+  color: #9a3412;
+  font-weight: 700;
+  padding: 8px 12px;
+  text-align: left;
+  border: 1px solid #fed7aa;
+}
+
+td {
+  padding: 7px 12px;
+  border: 1px solid #fed7aa;
+}
+
+tr:nth-child(even) td {
+  background-color: #fffbeb;
+}
+
+/* ----- CODIGO ----- */
+code {
+  font-family: 'Courier New', 'Fira Code', monospace;
+  font-size: 10pt;
+  background-color: #fff7ed;
+  color: #9a3412;
+  padding: 1px 6px;
+  border: 1px solid #fed7aa;
+  border-radius: 3px;
+}
+
+pre {
+  background-color: #fffbeb;
+  border: 1px solid #fed7aa;
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 10pt;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1a1a1a;
+  border-radius: 0;
+}
+
+/* ----- SEPARADORES ----- */
+hr {
+  border: none;
+  height: 1px;
+  background: #fed7aa;
+  margin: 25px 0;
+}
+
+/* ----- AJUSTES DE IMPRESION ----- */
+@media print {
+  body {
+    background-color: #ffffff;
+    color: #1a1a1a;
+  }
+  a {
+    color: #c2410c !important;
+  }
+}

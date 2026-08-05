@@ -1,7 +1,9 @@
 # ── md2pdf ────────────────────────────────────────────────────────────────────
 
-# Convierte Markdown a PDF con pandoc + weasyprint (profesional, estilo libro)
-# Uso: just md2pdf -f doc.md -t "Título" | just md2pdf (procesa todos los .md en input/)
+# Convierte Markdown a PDF con pandoc + weasyprint/xelatex.
+# Temas: podcast (sans-serif cálido) y academic (serif formal).
+# Auto-detecta CSS local, título YAML, fallback de motor e idempotencia.
+# Uso: just md2pdf -f doc.md --theme podcast | just md2pdf -i ./podcast
 md2pdf *args:
     bash scripts/dev/md2pdf_unix.sh {{args}}
 
