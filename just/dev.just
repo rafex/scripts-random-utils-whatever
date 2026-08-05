@@ -14,6 +14,13 @@ md2pdf *args:
 disk-usage *args:
     bash scripts/dev/disk_usage_linux.sh {{args}}
 
+# ── podman-cleanup ─────────────────────────────────────────────────────────────
+
+# Limpia almacenamiento de Podman/Docker por niveles (0=análisis, 5=nuclear)
+# Uso: just podman-cleanup --analyze | just podman-cleanup -l 2 | just podman-cleanup -l 4 --yes
+podman-cleanup *args:
+    bash scripts/dev/podman_cleanup_linux.sh {{args}}
+
 # ── deploy + verify ───────────────────────────────────────────────────────────
 
 # Deploy + verify todos los scripts mapeados a un host
