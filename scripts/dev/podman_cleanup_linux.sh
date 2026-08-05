@@ -286,6 +286,141 @@ confirm() {
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Generar REPORTE.md
+# ══════════════════════════════════════════════════════════════════════════════
+generate_report() {
+    echo
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+    echo -e "  ${BOLD}Generando REPORTE.md${RESET}"
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+
+    local disk_before="" disk_after="" disk_pct_before="" disk_pct_after=""
+    local overlay_before="" overlay_after="" layers_before="" layers_after=""
+    local containers_before="" containers_after="" images_before="" images_after=""
+
+    if [[ -f "$OUTDIR/snapshot-before.txt" ]]; then
+        disk_before=$(grep "disco_used:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "N/D")
+        disk_pct_before=$(grep "disco_pct:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "N/D")
+        overlay_before=$(grep "podman_overlay_size:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "N/D")
+        layers_before=$(grep "podman_layer_count:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "0")
+        containers_before=$(grep "podman_containers:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "0")
+        images_before=$(grep "podman_images:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "0")
+    fi
+
+    if [[ -f "$OUTDIR/snapshot-after.txt" ]]; then
+        disk_after=$(grep "disco_used:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "N/D")
+        disk_pct_after=$(grep "disco_pct:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "N/D")
+        overlay_after=$(grep "podman_overlay_size:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "N/D")
+        layers_after=$(grep "podman_layer_count:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "0")
+        containers_after=$(grep "podman_containers:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "0")
+        images_after=$(grep "podman_images:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "0")
+    fi
+
+    local layers_freed=$((layers_before - layers_after))
+    local layers_freed_abs=${layers_freed#-}
+
+    {
+        echo "# Reporte de limpieza de contenedores — $(hostname)"
+        echo
+        echo "**Fecha:** $(date)"
+        echo "**Nivel ejecutado:** ${LEVEL}"
+        echo "**Directorio de evidencia:** ${OUTDIR}"
+        echo
+
+        echo "## Resultado"
+        echo
+        echo "| Metrica | Antes | Despues | Delta |"
+        echo "|---------|-------|---------|-------|"
+
+        echo "| Disco usado | ${disk_before} (${disk_pct_before}) | ${disk_after} (${disk_pct_after}) | — |"
+
+        if [[ "$HAS_PODMAN" -eq 1 ]]; then
+            echo "| Overlay (size) | ${overlay_before} | ${overlay_after} | — |"
+            echo "| Capas (count) | ${layers_before} | ${layers_after} | -${layers_freed_abs} |"
+            echo "| Contenedores | ${containers_before} | ${containers_after} | — |"
+            echo "| Imagenes | ${images_before} | ${images_after} | — |"
+        fi
+
+        echo
+
+        echo "## Niveles ejecutados"
+        echo
+        [[ "$LEVEL" -ge 1 ]] && echo "- [x] Nivel 1 — Container prune"
+        [[ "$LEVEL" -ge 2 ]] && echo "- [x] Nivel 2 — Image prune"
+        [[ "$LEVEL" -ge 3 ]] && echo "- [x] Nivel 3 — Builder prune"
+        [[ "$LEVEL" -ge 4 ]] && echo "- [x] Nivel 4 — System prune + volumes"
+        [[ "$LEVEL" -ge 5 ]] && echo "- [x] Nivel 5 — Storage reset (rm -rf overlay)"
+        echo
+
+        echo "## Log de monitor (disco en tiempo real)"
+        echo
+        echo '```'
+        cat "$OUTDIR/monitor.log" 2>/dev/null || echo "(monitor no disponible)"
+        echo '```'
+        echo
+
+        echo "## Top 10 capas antes de limpiar"
+        echo
+        echo '```'
+        cat "$OUTDIR/top-layers-before.txt" 2>/dev/null || echo "(no disponible)"
+        echo '```'
+        echo
+
+        if [[ "$LEVEL" -ge 1 ]]; then
+            echo "## Top 10 capas despues de limpiar"
+            echo
+            echo '```'
+            cat "$OUTDIR/top-layers-after.txt" 2>/dev/null || echo "(no disponible)"
+            echo '```'
+            echo
+        fi
+
+        if [[ "$LEVEL" -ge 5 ]]; then
+            echo "## Post-nivel 5: reinicializar storage"
+            echo
+            echo '```bash'
+            echo "podman system reset"
+            echo '```'
+            echo
+        fi
+
+        echo "---"
+        echo "*Reporte generado por podman_cleanup_linux.sh v1.0.0*"
+    } > "$report"
+
+    success "REPORTE.md generado: ${BOLD}${report}${RESET}"
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Empaquetar resultados
+# ══════════════════════════════════════════════════════════════════════════════
+package_results() {
+    echo
+    info "Empaquetando resultados..."
+
+    TARNAME="$(basename "$OUTDIR").tar.gz"
+    tar czf "/tmp/${TARNAME}" -C /tmp "$(basename "$OUTDIR")"
+
+    echo
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+    echo -e "  ${BOLD}Limpieza nivel ${LEVEL} completado${RESET}"
+    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
+    echo
+    echo -e "  Evidencia: ${BOLD}${OUTDIR}/${RESET}"
+    echo -e "  Reporte:   ${BOLD}${report}${RESET}"
+    echo -e "  Tarball:   ${BOLD}/tmp/${TARNAME}${RESET}"
+    echo
+    echo -e "  Para traer a tu maquina local:"
+    echo -e "  ${CYAN}scp $(hostname):/tmp/${TARNAME} .${RESET}"
+
+    if [[ "$LEVEL" -ge 5 ]]; then
+        echo
+        warn "Despues de nivel 5, ejecuta ${BOLD}podman system reset${RESET} para reinicializar."
+    fi
+    echo
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
 # EJECUCION
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -301,7 +436,11 @@ echo
 HAS_PODMAN=0; HAS_DOCKER=0
 has_podman && { HAS_PODMAN=1; info "Podman detectado: $(podman --version | head -1)"; }
 has_docker && { if [[ "$PODMAN_ONLY" -eq 0 ]] || [[ "$INCLUDE_DOCKER" -eq 1 ]]; then
-    HAS_DOCKER=1; info "Docker detectado: $(docker --version | head -1)"
+    if docker --version 2>/dev/null | grep -qi podman; then
+        info "Docker detectado como alias de Podman (podman-docker) — omitiendo limpieza Docker"
+    else
+        HAS_DOCKER=1; info "Docker detectado: $(docker --version | head -1)"
+    fi
 fi; }
 
 if [[ "$HAS_PODMAN" -eq 0 ]] && [[ "$HAS_DOCKER" -eq 0 ]]; then
@@ -482,142 +621,6 @@ snapshot_after
 if [[ "$HAS_PODMAN" -eq 1 ]] && [[ -d "$PODMAN_OVERLAY" ]]; then
     du -sh "$PODMAN_OVERLAY"/* 2>/dev/null | sort -rh | head -10 > "$OUTDIR/top-layers-after.txt" || true
 fi
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Generar REPORTE.md
-# ══════════════════════════════════════════════════════════════════════════════
-generate_report() {
-    echo
-    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
-    echo -e "  ${BOLD}Generando REPORTE.md${RESET}"
-    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
-
-    local disk_before="" disk_after="" disk_pct_before="" disk_pct_after=""
-    local overlay_before="" overlay_after="" layers_before="" layers_after=""
-    local containers_before="" containers_after="" images_before="" images_after=""
-
-    if [[ -f "$OUTDIR/snapshot-before.txt" ]]; then
-        disk_before=$(grep "disco_used:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "N/D")
-        disk_pct_before=$(grep "disco_pct:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "N/D")
-        overlay_before=$(grep "podman_overlay_size:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "N/D")
-        layers_before=$(grep "podman_layer_count:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "0")
-        containers_before=$(grep "podman_containers:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "0")
-        images_before=$(grep "podman_images:" "$OUTDIR/snapshot-before.txt" | cut -d' ' -f2 || echo "0")
-    fi
-
-    if [[ -f "$OUTDIR/snapshot-after.txt" ]]; then
-        disk_after=$(grep "disco_used:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "N/D")
-        disk_pct_after=$(grep "disco_pct:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "N/D")
-        overlay_after=$(grep "podman_overlay_size:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "N/D")
-        layers_after=$(grep "podman_layer_count:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "0")
-        containers_after=$(grep "podman_containers:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "0")
-        images_after=$(grep "podman_images:" "$OUTDIR/snapshot-after.txt" | cut -d' ' -f2 || echo "0")
-    fi
-
-    local layers_freed=$((layers_before - layers_after))
-    local layers_freed_abs=${layers_freed#-}
-
-    {
-        echo "# Reporte de limpieza de contenedores — $(hostname)"
-        echo
-        echo "**Fecha:** $(date)"
-        echo "**Nivel ejecutado:** ${LEVEL}"
-        echo "**Directorio de evidencia:** ${OUTDIR}"
-        echo
-
-        echo "## Resultado"
-        echo
-        echo "| Metrica | Antes | Despues | Delta |"
-        echo "|---------|-------|---------|-------|"
-
-        echo "| Disco usado | ${disk_before} (${disk_pct_before}) | ${disk_after} (${disk_pct_after}) | — |"
-
-        if [[ "$HAS_PODMAN" -eq 1 ]]; then
-            echo "| Overlay (size) | ${overlay_before} | ${overlay_after} | — |"
-            echo "| Capas (count) | ${layers_before} | ${layers_after} | -${layers_freed_abs} |"
-            echo "| Contenedores | ${containers_before} | ${containers_after} | — |"
-            echo "| Imagenes | ${images_before} | ${images_after} | — |"
-        fi
-
-        echo
-
-        echo "## Niveles ejecutados"
-        echo
-        [[ "$LEVEL" -ge 1 ]] && echo "- [x] Nivel 1 — Container prune"
-        [[ "$LEVEL" -ge 2 ]] && echo "- [x] Nivel 2 — Image prune"
-        [[ "$LEVEL" -ge 3 ]] && echo "- [x] Nivel 3 — Builder prune"
-        [[ "$LEVEL" -ge 4 ]] && echo "- [x] Nivel 4 — System prune + volumes"
-        [[ "$LEVEL" -ge 5 ]] && echo "- [x] Nivel 5 — Storage reset (rm -rf overlay)"
-        echo
-
-        echo "## Log de monitor (disco en tiempo real)"
-        echo
-        echo '```'
-        cat "$OUTDIR/monitor.log" 2>/dev/null || echo "(monitor no disponible)"
-        echo '```'
-        echo
-
-        echo "## Top 10 capas antes de limpiar"
-        echo
-        echo '```'
-        cat "$OUTDIR/top-layers-before.txt" 2>/dev/null || echo "(no disponible)"
-        echo '```'
-        echo
-
-        if [[ "$LEVEL" -ge 1 ]]; then
-            echo "## Top 10 capas despues de limpiar"
-            echo
-            echo '```'
-            cat "$OUTDIR/top-layers-after.txt" 2>/dev/null || echo "(no disponible)"
-            echo '```'
-            echo
-        fi
-
-        if [[ "$LEVEL" -ge 5 ]]; then
-            echo "## Post-nivel 5: reinicializar storage"
-            echo
-            echo '```bash'
-            echo "podman system reset"
-            echo '```'
-            echo
-        fi
-
-        echo "---"
-        echo "*Reporte generado por podman_cleanup_linux.sh v1.0.0*"
-    } > "$report"
-
-    success "REPORTE.md generado: ${BOLD}${report}${RESET}"
-}
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Empaquetar resultados
-# ══════════════════════════════════════════════════════════════════════════════
-package_results() {
-    echo
-    info "Empaquetando resultados..."
-
-    TARNAME="$(basename "$OUTDIR").tar.gz"
-    tar czf "/tmp/${TARNAME}" -C /tmp "$(basename "$OUTDIR")"
-
-    echo
-    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
-    echo -e "  ${BOLD}Limpieza nivel ${LEVEL} completado${RESET}"
-    echo -e "${BOLD}${CYAN}═══════════════════════════════════════════════════${RESET}"
-    echo
-    echo -e "  Evidencia: ${BOLD}${OUTDIR}/${RESET}"
-    echo -e "  Reporte:   ${BOLD}${report}${RESET}"
-    echo -e "  Tarball:   ${BOLD}/tmp/${TARNAME}${RESET}"
-    echo
-    echo -e "  Para traer a tu maquina local:"
-    echo -e "  ${CYAN}scp $(hostname):/tmp/${TARNAME} .${RESET}"
-
-    # Aviso post-nivel 5
-    if [[ "$LEVEL" -ge 5 ]]; then
-        echo
-        warn "Despues de nivel 5, ejecuta ${BOLD}podman system reset${RESET} para reinicializar."
-    fi
-    echo
-}
 
 generate_report
 package_results
