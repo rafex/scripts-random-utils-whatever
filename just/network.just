@@ -2,6 +2,11 @@
 # just/network.just — Tareas para scripts/network/
 # =============================================================================
 
+# Diagnostica problemas de una interfaz de red: WiFi, driver, fail2ban, firewall, MTU
+# Uso: just diag-iface -i wlxa047d76360c5 | just diag-iface --auto
+diag-iface *args:
+    bash scripts/network/diag_iface_linux.sh {{args}}
+
 # Diagnostica y fuerza la obtención de IP en una interfaz de red
 # Uso: just nm-force-ip enp1s0f0 --check | just nm-force-ip enp1s0f0 --dhcp
 nm-force-ip *args:

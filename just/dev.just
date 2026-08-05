@@ -7,6 +7,13 @@
 md2pdf *args:
     bash scripts/dev/md2pdf_unix.sh {{args}}
 
+# ── disk-usage ─────────────────────────────────────────────────────────────────
+
+# Diagnostica qué llena el disco con sudo, genera REPORTE.md con análisis automático
+# Uso: just disk-usage | just disk-usage -p /var -t 10M --top 30
+disk-usage *args:
+    bash scripts/dev/disk_usage_linux.sh {{args}}
+
 # ── deploy + verify ───────────────────────────────────────────────────────────
 
 # Deploy + verify todos los scripts mapeados a un host
