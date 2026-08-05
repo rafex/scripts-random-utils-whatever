@@ -128,7 +128,9 @@ THRESHOLD_BYTES=$((THRESHOLD_GB * 1073741824))
 # Funciones de medicion
 # ─────────────────────────────────────────────────────────────────────────────
 get_overlay_bytes() {
-    du -sb "$OVERLAY_DIR" 2>/dev/null | awk '{print $1}' || echo "0"
+    local bytes
+    bytes=$(du -sb "$OVERLAY_DIR" 2>/dev/null | head -1 | awk '{print $1}' 2>/dev/null)
+    echo "${bytes:-0}"
 }
 
 get_overlay_gb() {
@@ -138,7 +140,9 @@ get_overlay_gb() {
 }
 
 get_disk_pct() {
-    df -h / 2>/dev/null | awk 'NR==2{print $5}' | tr -d '%' || echo "0"
+    local pct
+    pct=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' | tr -d '%')
+    echo "${pct:-0}"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
