@@ -32,6 +32,11 @@ install-mosh-tmux-kitty *args:
 enable-debian-repositories *args:
     bash scripts/install/enable_debian_repositories_linux.sh {{args}}
 
+# Configurar el repositorio oficial de Mozilla e instalar Firefox DEB nativo
+# Uso: just install-firefox-mozilla --apply
+install-firefox-mozilla *args:
+    bash scripts/install/install_firefox_mozilla_linux.sh {{args}}
+
 # Generar clave SSH y establecer confianza instalando solo la pública
 # Uso: just setup-ssh-trust --apply --target rafex@192.168.3.91
 setup-ssh-trust *args:
