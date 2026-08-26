@@ -93,9 +93,19 @@ backup_file() {
 
 key_fingerprint() {
   local file="$1"
+  local gpg_home
+  local fingerprint
+
   command -v gpg >/dev/null 2>&1 || return 1
-  gpg --batch --no-options --no-default-keyring --show-keys --with-colons "$file" 2>/dev/null |
-    awk -F: '$1 == "fpr" { print toupper($10); exit }'
+  gpg_home="$(mktemp -d)"
+  fingerprint="$(
+    GNUPGHOME="$gpg_home" gpg --batch --no-options --no-default-keyring \
+      --show-keys --with-colons "$file" 2>/dev/null |
+      awk -F: '$1 == "fpr" { print toupper($10); exit }'
+  )" || fingerprint=''
+  rm -rf -- "$gpg_home"
+  [[ -n "$fingerprint" ]] || return 1
+  printf '%s\n' "$fingerprint"
 }
 
 source_content() {

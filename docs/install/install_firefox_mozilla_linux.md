@@ -127,6 +127,16 @@ validar Firefox nativo.
 **Solución:** no continúes manualmente; revisa proxy, DNS y fecha del sistema.
 El script no instala la clave si la huella no coincide.
 
+### `gpg: Fatal: .../.gnupg: directory does not exist!`
+
+**Causa:** algunas versiones de GnuPG requieren un `GNUPGHOME` válido incluso
+cuando se usa `--no-default-keyring`; una instalación nueva puede no tener
+creado `~/.gnupg`.
+
+**Solución:** actualizar el repositorio y repetir `--apply`. El script usa un
+directorio GnuPG temporal y aislado exclusivamente para verificar la clave;
+no modifica `~/.gnupg`.
+
 ### `apt-get update` no valida `packages.mozilla.org`
 
 **Causa:** fuente incompleta, clave incorrecta o reloj del sistema inválido.
@@ -140,3 +150,5 @@ respaldos y corrige la causa antes de repetir `--apply`.
 
 - **feat:** añadir repositorio APT oficial de Mozilla con verificación de
   huella e instalación de Firefox DEB nativo.
+- **fix:** verificar la clave Mozilla con un `GNUPGHOME` temporal cuando el
+  usuario aún no tiene configuración local de GnuPG.
