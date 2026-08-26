@@ -112,6 +112,8 @@ apt-cache policy firmware-intel-graphics
 - Nunca acepta ni almacena contraseñas.
 - Crea respaldos fechados antes de modificar cada archivo.
 - Es idempotente y no duplica componentes.
+- Respaldará y retirará el archivo legado `90-laptop-nonfree.list` si otra
+  fuente Debian ya contiene las cuatro componentes.
 - Conserva mirrors, suites, opciones y entradas existentes.
 - Solo añade los cuatro componentes oficiales de Debian.
 - No activa `backports`, `experimental`, `sid`, PPAs ni repositorios de

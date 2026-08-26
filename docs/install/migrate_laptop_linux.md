@@ -123,8 +123,12 @@ La etapa `hardware` instala y verifica:
   `/dev/dri/renderD128`.
 
 El driver `intel-media-va-driver-non-free` requiere que APT tenga habilitado
-el componente `non-free`. El script crea un archivo separado e idempotente en
-`/etc/apt/sources.list.d/` y lo respalda antes de modificarlo.
+el componente `non-free`. La etapa `hardware` delega esta operación al script
+central `enable_debian_repositories_linux.sh`, que garantiza las cuatro
+componentes (`main`, `contrib`, `non-free` y `non-free-firmware`) tanto en
+fuentes `.list` como `.sources`. Si existe el archivo legado generado por
+versiones anteriores (`90-laptop-nonfree.list`) y ya hay otra fuente Debian
+completa, se respalda y se retira para evitar advertencias de duplicados.
 
 Tras cerrar sesión y volver a entrar, valida la aceleración:
 
@@ -242,3 +246,5 @@ se instala automáticamente.
   audio, input, WWAN y firmware.
 - **feat:** configuración portable de i3 para ThinkPad X1 Yoga.
 - **feat:** NetworkManager, udisks2, cámaras, VA-API, TLP y NVMe.
+- **fix:** reutilizar el gestor central de repositorios y retirar fuentes
+  `90-laptop-nonfree.list` redundantes después de respaldarlas.

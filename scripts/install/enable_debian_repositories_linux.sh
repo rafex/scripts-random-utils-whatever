@@ -266,6 +266,61 @@ apply_source_file() {
   CHANGED=1
 }
 
+source_has_all_components() {
+  local file="$1"
+  if [[ "$file" == *.sources ]]; then
+    awk '
+      BEGIN { IGNORECASE = 1 }
+      /^[[:space:]]*Components:[[:space:]]*/ {
+        line = $0
+        if (line ~ /(^|[[:space:]])main([[:space:]]|$)/ &&
+            line ~ /(^|[[:space:]])contrib([[:space:]]|$)/ &&
+            line ~ /(^|[[:space:]])non-free([[:space:]]|$)/ &&
+            line ~ /(^|[[:space:]])non-free-firmware([[:space:]]|$)/) found = 1
+      }
+      END { exit(found ? 0 : 1) }
+    ' "$file"
+  else
+    awk '
+      /^[[:space:]]*deb(-src)?([[:space:]]|$)/ &&
+      /(^|[[:space:]])main([[:space:]]|$)/ &&
+      /(^|[[:space:]])contrib([[:space:]]|$)/ &&
+      /(^|[[:space:]])non-free([[:space:]]|$)/ &&
+      /(^|[[:space:]])non-free-firmware([[:space:]]|$)/ { found = 1 }
+      END { exit(found ? 0 : 1) }
+    ' "$file"
+  fi
+}
+
+remove_redundant_legacy_source() {
+  local target='/etc/apt/sources.list.d/90-laptop-nonfree.list'
+  local source
+  local backup
+
+  [[ -f "$target" ]] || return 0
+  for source in "${SOURCE_FILES[@]}"; do
+    [[ -f "$source" && "$source" != "$target" ]] || continue
+    if [[ "$source" == *.sources ]]; then
+      is_debian_sources_file "$source" || continue
+    else
+      is_debian_list_file "$source" || continue
+    fi
+    source_has_all_components "$source" || continue
+
+    if [[ "$ACTION" == "plan" ]]; then
+      info "[plan] retirar fuente redundante $target"
+      CHANGED=1
+    else
+      backup="${target}.bak.${BACKUP_STAMP}.redundant"
+      sudo cp -a "$target" "$backup"
+      sudo rm -f "$target"
+      info "fuente redundante retirada: $target; respaldo: $backup"
+      CHANGED=1
+    fi
+    return 0
+  done
+}
+
 create_fallback_sources() {
   local destination='/etc/apt/sources.list.d/90-debian-all-components.list'
   local codename
@@ -322,6 +377,7 @@ main() {
   if [[ "$active" -eq 0 ]]; then
     create_fallback_sources
   fi
+  remove_redundant_legacy_source
 
   if [[ "$ACTION" == "plan" ]]; then
     info "[plan] apt-get update si se detectan cambios"

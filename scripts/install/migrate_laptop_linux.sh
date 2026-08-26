@@ -213,26 +213,16 @@ Paquetes por etapa:
 EOF
 }
 
-ensure_nonfree_repository() {
-  local target='/etc/apt/sources.list.d/90-laptop-nonfree.list'
-  local codename
-  local content
+ensure_debian_repositories() {
+  local repository_script="$REPO_ROOT/scripts/install/enable_debian_repositories_linux.sh"
+  [[ -x "$repository_script" || -f "$repository_script" ]] || \
+    die "falta el script de repositorios: $repository_script"
 
-  if grep -RqsE '^[[:space:]]*deb([[:space:]]+\[[^]]*\])?[[:space:]]+[^#]+[[:space:]]non-free([[:space:]]|$)' \
-    /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null; then
-    ok "repositorio non-free ya está disponible"
-    return 0
+  if [[ "$ACTION" == "plan" ]]; then
+    bash "$repository_script" --plan
+  else
+    bash "$repository_script" --apply
   fi
-
-  codename="$({ . /etc/os-release 2>/dev/null; printf '%s' "${VERSION_CODENAME:-}"; })"
-  [[ -n "$codename" ]] || die "no se pudo detectar VERSION_CODENAME para configurar non-free"
-  content="deb http://deb.debian.org/debian ${codename} main non-free
-deb http://security.debian.org/debian-security ${codename}-security main non-free
-deb http://deb.debian.org/debian ${codename}-updates main non-free"
-
-  backup_root_file "$target"
-  write_root_file "$target" 644 "$content"
-  info "se habilitará non-free para el driver multimedia Intel"
 }
 
 apt_install_optional() {
@@ -386,7 +376,7 @@ stage_desktop() {
 }
 
 stage_hardware() {
-  ensure_nonfree_repository
+  ensure_debian_repositories
   apt_install pciutils usbutils lshw dmidecode dkms gcc linux-headers-amd64 \
     libgl1-mesa-dri libglx-mesa0 mesa-utils mesa-vulkan-drivers vulkan-tools \
     vainfo intel-gpu-tools ffmpeg intel-media-va-driver-non-free \
