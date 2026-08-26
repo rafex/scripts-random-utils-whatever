@@ -27,6 +27,21 @@ Habilita los componentes oficiales de Debian `main`, `contrib`, `non-free` y
 - Conectividad a los mirrors oficiales de Debian.
 - El script debe ejecutarse como usuario normal, no como root.
 
+## Componentes habilitados
+
+El script garantiza, en este orden, las cuatro componentes oficiales de Debian:
+`main contrib non-free non-free-firmware`.
+
+| Componente | Contenido |
+|---|---|
+| `main` | Paquetes que cumplen las Directrices de Software Libre de Debian (DFSG). |
+| `contrib` | Paquetes libres que dependen de paquetes fuera de la DFSG. |
+| `non-free` | Paquetes que no cumplen la DFSG. |
+| `non-free-firmware` | Firmware que no cumple la DFSG y se distribuye separadamente. |
+
+Referencias oficiales: [Debian SourcesList](https://wiki.debian.org/SourcesList) y
+[sources.list(5)](https://manpages.debian.org/unstable/apt/sources.list.5.en.html).
+
 ## Uso
 
 Diagnostica primero:
@@ -134,3 +149,4 @@ apt-cache policy firmware-intel-graphics
 
 - **feat:** habilitación idempotente de componentes Debian en formatos `.list`
   y `.sources`.
+- **fix:** comprobar y agregar explícitamente también `main`.

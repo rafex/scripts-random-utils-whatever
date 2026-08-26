@@ -112,11 +112,13 @@ missing_components_list() {
       line = $0
       sub(/[[:space:]]+#.*$/, "", line)
       seen = 1
+      if (!has_component(line, "main")) missing_main = 1
       if (!has_component(line, "contrib")) missing_contrib = 1
       if (!has_component(line, "non-free")) missing_nonfree = 1
       if (!has_component(line, "non-free-firmware")) missing_firmware = 1
     }
     END {
+      if (seen && missing_main) printf "main "
       if (seen && missing_contrib) printf "contrib "
       if (seen && missing_nonfree) printf "non-free "
       if (seen && missing_firmware) printf "non-free-firmware"
@@ -135,6 +137,7 @@ missing_components_sources() {
       values = $0
       sub(/^[^:]*:[[:space:]]*/, "", values)
       seen = 1
+      if (!has_component(values, "main")) missing_main = 1
       if (!has_component(values, "contrib")) missing_contrib = 1
       if (!has_component(values, "non-free")) missing_nonfree = 1
       if (!has_component(values, "non-free-firmware")) missing_firmware = 1
@@ -143,6 +146,7 @@ missing_components_sources() {
       if (!seen) {
         printf "Components"
       } else {
+        if (missing_main) printf "main "
         if (missing_contrib) printf "contrib "
         if (missing_nonfree) printf "non-free "
         if (missing_firmware) printf "non-free-firmware"
@@ -201,8 +205,8 @@ transform_list_file() {
         comment = substr(line, RSTART)
         line = substr(line, 1, RSTART - 1)
       }
-      for (i = 1; i <= 3; i++) {
-        component = (i == 1 ? "contrib" : i == 2 ? "non-free" : "non-free-firmware")
+      for (i = 1; i <= 4; i++) {
+        component = (i == 1 ? "main" : i == 2 ? "contrib" : i == 3 ? "non-free" : "non-free-firmware")
         if (!has_component(line, component)) {
           line = line " " component
         }
@@ -222,8 +226,8 @@ transform_sources_file() {
       colon = index($0, ":")
       prefix = substr($0, 1, colon)
       values = substr($0, colon + 1)
-      for (i = 1; i <= 3; i++) {
-        component = (i == 1 ? "contrib" : i == 2 ? "non-free" : "non-free-firmware")
+      for (i = 1; i <= 4; i++) {
+        component = (i == 1 ? "main" : i == 2 ? "contrib" : i == 3 ? "non-free" : "non-free-firmware")
         if (!has_component(values, component)) {
           values = values " " component
         }
