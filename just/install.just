@@ -32,6 +32,11 @@ install-mosh-tmux-kitty *args:
 enable-debian-repositories *args:
     bash scripts/install/enable_debian_repositories_linux.sh {{args}}
 
+# Generar clave SSH y establecer confianza instalando solo la pública
+# Uso: just setup-ssh-trust --apply --target rafex@192.168.3.91
+setup-ssh-trust *args:
+    bash scripts/install/setup_ssh_trust_unix.sh {{args}}
+
 # Migrar configuración segura y hardware desde otra laptop Debian/Linux
 # Uso: just migrate-laptop --source rafex@192.168.3.174 --check
 # Hardware: just migrate-laptop --stage hardware --apply
