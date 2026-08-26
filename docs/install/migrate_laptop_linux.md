@@ -254,3 +254,5 @@ se instala automáticamente.
   `pavucontrol` y hacer opcional el icono de volumen en i3.
 - **fix:** retirar opciones GLX obsoletas de Picom que generaban advertencias
   al iniciar la sesión gráfica.
+- **fix:** instalar Font Awesome y reemplazar emojis de i3status por glifos
+  compatibles con la barra i3.

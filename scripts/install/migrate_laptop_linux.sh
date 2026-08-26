@@ -200,7 +200,7 @@ Paquetes por etapa:
             modemmanager usb-modeswitch bluez blueman fwupd
             fprintd libpam-fprintd (opcionales)
   desktop: xorg lightdm lightdm-gtk-greeter i3-wm i3status rofi dunst
-           alacritty picom feh maim brightnessctl pavucontrol
+           alacritty picom feh maim brightnessctl pavucontrol fonts-font-awesome
            x11-xserver-utils x11-xkb-utils xss-lock i3lock dex libnotify-bin
   network: network-manager network-manager-applet polkitd lxpolkit
   usb:     udisks2 udiskie libnotify-bin
@@ -360,7 +360,7 @@ audit_target() {
 
 stage_desktop() {
   apt_install xorg lightdm lightdm-gtk-greeter i3-wm i3status rofi dunst \
-    alacritty picom feh maim brightnessctl pavucontrol x11-xserver-utils \
+    alacritty picom feh maim brightnessctl pavucontrol fonts-font-awesome \
     x11-xkb-utils xss-lock i3lock dex libnotify-bin xinput \
     xserver-xorg-input-libinput
 

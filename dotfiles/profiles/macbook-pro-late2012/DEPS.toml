@@ -19,6 +19,7 @@ apt = [
     "maim",
     "brightnessctl",
     "pavucontrol",
+    "fonts-font-awesome",
     "network-manager-gnome",
     "x11-xserver-utils",
     "x11-xkb-utils",

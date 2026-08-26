@@ -133,5 +133,5 @@ bar {
         status_command i3status
         position bottom
         tray_output primary
-        font pango:DejaVu Sans Mono, Font Awesome 9
+        font pango:DejaVu Sans Mono 10, Font Awesome 7 Free 10
 }
