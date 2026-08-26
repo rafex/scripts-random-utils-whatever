@@ -39,9 +39,10 @@ Opciones:
   --apply                Instalar paquetes y configurar archivos
   -h, --help             Mostrar esta ayuda
 
-En Debian instala Mosh y tmux. En macOS instala Mosh, tmux y Kitty mediante
-Homebrew. La contraseña de sudo, cuando sea necesaria, se solicita solamente
-mediante `sudo -v`.
+En Debian instala Mosh, tmux y la definición terminfo de Kitty para permitir
+sesiones remotas con `TERM=xterm-kitty`. En macOS instala Mosh, tmux y Kitty
+mediante Homebrew. La contraseña de sudo, cuando sea necesaria, se solicita
+solamente mediante `sudo -v`.
 EOF
 }
 
@@ -125,12 +126,12 @@ install_debian() {
   if [[ "$ACTION" == "plan" ]]; then
     info "[plan] sudo -v"
     info "[plan] sudo apt-get update"
-    info "[plan] sudo apt-get install -y mosh tmux"
+    info "[plan] sudo apt-get install -y mosh tmux kitty-terminfo ncurses-bin"
     return 0
   fi
   sudo -v
   sudo apt-get update
-  sudo apt-get install -y mosh tmux
+  sudo apt-get install -y mosh tmux kitty-terminfo ncurses-bin
 }
 
 install_macos() {
@@ -171,6 +172,11 @@ check_commands() {
       echo 'mosh-server=available'
     else
       echo 'mosh-server=missing'
+    fi
+    if command -v infocmp >/dev/null 2>&1 && infocmp -x xterm-kitty >/dev/null 2>&1; then
+      echo 'kitty-terminfo=available'
+    else
+      warn "kitty-terminfo ausente: tmux no puede usar TERM=xterm-kitty"
     fi
   fi
   if [[ -f "$TMUX_CONFIG" ]] && grep -Fq '# BEGIN mosh-tmux-kitty' "$TMUX_CONFIG"; then

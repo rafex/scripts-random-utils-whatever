@@ -1,7 +1,8 @@
 # install_mosh_tmux_kitty_unix.sh
 
-Instala Mosh y tmux en Debian, Mosh/tmux/Kitty en macOS y configura el
-portapapeles OSC 52 para copiar desde tmux remoto hacia Kitty.
+Instala Mosh y tmux en Debian, la definición terminfo de Kitty para el servidor
+remoto, Mosh/tmux/Kitty en macOS y configura el portapapeles OSC 52 para copiar
+desde tmux remoto hacia Kitty.
 
 - **Ruta:** `scripts/install/install_mosh_tmux_kitty_unix.sh`
 - **SO requerido:** macOS, Linux
@@ -40,7 +41,9 @@ just install-mosh-tmux-kitty --plan
 just install-mosh-tmux-kitty --apply
 ```
 
-En Debian, `--apply` solicita la contraseña solamente mediante `sudo -v`.
+En Debian, `--apply` solicita la contraseña solamente mediante `sudo -v` e
+instala `kitty-terminfo`, que proporciona la entrada `xterm-kitty` para el
+servidor remoto.
 En macOS, Homebrew gestiona la instalación de Mosh, tmux y Kitty.
 
 Conecta desde Kitty en macOS:
@@ -107,6 +110,8 @@ bash scripts/install/install_mosh_tmux_kitty_unix.sh --apply
 
 - Nunca recibe ni almacena contraseñas.
 - En Debian valida sudo con `sudo -v` antes de usar `apt-get`.
+- Instala `kitty-terminfo` en Debian en lugar de copiar manualmente archivos
+  terminfo desde macOS.
 - Nunca ejecuta Mosh como root.
 - Modifica solamente los archivos de configuración del usuario y crea
   respaldos fechados antes de agregar bloques.
@@ -155,8 +160,30 @@ login iniciado por SSH.
 **Solución:** ejecuta la etapa `--apply` en la ThinkPad y valida `command -v
 tmux` mediante SSH.
 
+### `missing or unsuitable terminal: xterm-kitty`
+
+**Causa:** la ThinkPad no tiene instalada la definición terminfo que Kitty
+envía en la variable `TERM`.
+
+**Solución:** actualiza el repositorio y ejecuta en la ThinkPad:
+
+```sh
+git pull --ff-only
+just install-mosh-tmux-kitty --apply
+infocmp -x xterm-kitty
+tmux new -s thinkpad
+```
+
+Como solución temporal, puedes iniciar tmux con un terminal genérico:
+
+```sh
+TERM=xterm-256color tmux new -s thinkpad
+```
+
 ## Changelog
 
 ### [Unreleased]
 
 - **feat:** instalación multiplataforma de Mosh, tmux y Kitty con OSC 52.
+- **fix:** instalar y verificar `kitty-terminfo` para sesiones remotas desde
+  Kitty.
