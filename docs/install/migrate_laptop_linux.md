@@ -252,3 +252,5 @@ se instala automáticamente.
   Debian Forky, en lugar del nombre de paquete fuente `libwacom`.
 - **fix:** reemplazar `volumeicon-alsa`, ausente en Debian Forky, por
   `pavucontrol` y hacer opcional el icono de volumen en i3.
+- **fix:** retirar opciones GLX obsoletas de Picom que generaban advertencias
+  al iniciar la sesión gráfica.
