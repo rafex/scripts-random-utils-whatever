@@ -7,14 +7,14 @@ set $menu rofi -show drun -show-icons
 # ── Autostart ──────────────────────────────────────────────────────────────────
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 exec --no-startup-id sh -c 'command -v volumeicon >/dev/null 2>&1 && exec volumeicon'
-exec --no-startup-id udiskie --tray
+exec --no-startup-id sh -c 'command -v udiskie >/dev/null 2>&1 && exec udiskie --tray'
 exec_always --no-startup-id dunst
 exec_always --no-startup-id setxkbmap es
 exec_always --no-startup-id feh --bg-scale ~/Imágenes/FondosDePantalla/wp15986180-debian-13-wallpapers.jpg
 exec_always --no-startup-id ~/.local/bin/power-notify.sh
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-exec --no-startup-id nm-applet
+exec --no-startup-id sh -c 'command -v nm-applet >/dev/null 2>&1 && exec nm-applet'
 
 # Identidad de sesión (si polkit no reconoce la sesión como activa, descomentar)
 #exec --no-startup-id sh -c 'export XDG_CURRENT_DESKTOP=i3; export XDG_SESSION_DESKTOP=i3; export DESKTOP_SESSION=i3; dbus-update-activation-environment --systemd DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP DESKTOP_SESSION'

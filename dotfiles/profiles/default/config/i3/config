@@ -33,7 +33,7 @@ exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 
 # NetworkManager applet
-exec --no-startup-id nm-applet
+exec --no-startup-id sh -c 'command -v nm-applet >/dev/null 2>&1 && exec nm-applet'
 
 # Volume control
 set $refresh_i3status killall -SIGUSR1 i3status

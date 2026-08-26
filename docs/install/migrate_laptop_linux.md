@@ -256,3 +256,5 @@ se instala automáticamente.
   al iniciar la sesión gráfica.
 - **fix:** instalar Font Awesome y reemplazar emojis de i3status por glifos
   compatibles con la barra i3.
+- **fix:** hacer condicionales los autostarts de `udiskie` y `nm-applet` para
+  que el perfil funcione aunque las etapas USB y network se apliquen después.
