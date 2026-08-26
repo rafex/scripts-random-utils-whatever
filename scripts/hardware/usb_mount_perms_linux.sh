@@ -9,11 +9,14 @@ set -euo pipefail
 
 MODE="check"
 DRY_RUN=0
+LEGACY_UDEV=0
+AUTO_CONFIRM=0
 USB_PERMS_GROUP="${USB_PERMS_GROUP:-plugdev}"
 I3_CONFIG="${I3_CONFIG:-$HOME/.config/i3/config}"
 UDISKIE_CONFIG="$HOME/.config/udiskie/config.yml"
 POLKIT_RULE="/etc/polkit-1/rules.d/10-udisks2-mount.rules"
 UDEV_RULE="/etc/udev/rules.d/99-usb-storage.rules"
+TARGET_USER="${SUDO_USER:-${USER:-}}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Colores
@@ -42,6 +45,9 @@ usage() {
   echo -e "  ${CYAN}--check${RESET}       Diagnostica permisos USB (sin modificar nada, default)"
   echo -e "  ${CYAN}--fix${RESET}         Aplica correcciones (requiere sudo)"
   echo -e "  ${CYAN}--dry-run${RESET}     Muestra los cambios sin aplicarlos"
+  echo -e "  ${CYAN}--legacy-udev${RESET} Instala regla udev para acceso directo a bloques USB"
+  echo -e "  ${CYAN}--no-legacy-udev${RESET} No instala la regla udev (default)"
+  echo -e "  ${CYAN}--yes${RESET}         No solicita confirmación adicional"
   echo -e "  ${CYAN}-h, --help${RESET}   Mostrar esta ayuda"
   echo
   echo -e "${BOLD}Variables de entorno:${RESET}"
@@ -63,6 +69,9 @@ while [[ $# -gt 0 ]]; do
     --check)  MODE="check"; shift ;;
     --fix)    MODE="fix"; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
+    --legacy-udev) LEGACY_UDEV=1; shift ;;
+    --no-legacy-udev) LEGACY_UDEV=0; shift ;;
+    --yes) AUTO_CONFIRM=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) fatal "argumento desconocido: $1"; echo; usage; exit 1 ;;
   esac
@@ -137,8 +146,8 @@ fix_groups() {
     info "Grupo ${BOLD}$USB_PERMS_GROUP${RESET}: ya correcto, omitiendo."
     return
   fi
-  info "Agregando usuario ${BOLD}$USER${RESET} al grupo ${BOLD}$USB_PERMS_GROUP${RESET}..."
-  sudo_cmd usermod -aG "$USB_PERMS_GROUP" "$USER"
+  info "Agregando usuario ${BOLD}$TARGET_USER${RESET} al grupo ${BOLD}$USB_PERMS_GROUP${RESET}..."
+  sudo_cmd usermod -aG "$USB_PERMS_GROUP" "$TARGET_USER"
   success "Usuario agregado a ${BOLD}$USB_PERMS_GROUP${RESET}. Requiere cerrar sesión y volver a entrar."
 }
 
@@ -230,8 +239,14 @@ fix_polkit_rule() {
 
   local content
   content='polkit.addRule(function(action, subject) {
-    if (action.id.indexOf("org.freedesktop.udisks2.") == 0 &&
-        subject.isInGroup("'"$USB_PERMS_GROUP"'")) {
+    var allowed = [
+        "org.freedesktop.udisks2.filesystem-mount",
+        "org.freedesktop.udisks2.filesystem-unmount-others",
+        "org.freedesktop.udisks2.eject-media",
+        "org.freedesktop.udisks2.power-off-drive"
+    ];
+    if (subject.local && subject.active && subject.isInGroup("'"$USB_PERMS_GROUP"'") &&
+        allowed.indexOf(action.id) >= 0) {
         return polkit.Result.YES;
     }
 });'
@@ -292,6 +307,10 @@ check_udev() {
 }
 
 fix_udev_rule() {
+  if [[ "$LEGACY_UDEV" -eq 0 ]]; then
+    info "Regla udev legacy omitida; udisks2/polkit gestionan el montaje."
+    return
+  fi
   if [[ "${UDEV_RULE_NEEDED:-0}" -eq 0 ]]; then
     info "Regla udev USB: ya existe, omitiendo."
     return
@@ -634,7 +653,13 @@ main() {
       echo -e "${YELLOW}${BOLD}│  Se requiere sudo para polkit, udev y systemctl.   │${RESET}"
       echo -e "${YELLOW}${BOLD}└─────────────────────────────────────────────────────┘${RESET}"
       echo
-      read -rp "$(echo -e "${YELLOW}${BOLD}Presiona Enter para continuar o Ctrl+C para cancelar...${RESET}")"
+      if [[ "$AUTO_CONFIRM" -eq 0 ]]; then
+        read -rp "$(echo -e "${YELLOW}${BOLD}Presiona Enter para continuar o Ctrl+C para cancelar...${RESET}")"
+      fi
+      if ! sudo -v; then
+        fatal "no se pudo validar sudo"
+        exit 1
+      fi
     fi
 
     # Ejecutar diagnósticos primero (las check_* setean las variables FIX_NEEDED)
@@ -666,7 +691,11 @@ main() {
       warn "Ejecuta ${BOLD}$0 --fix${RESET} sin --dry-run para aplicar."
     else
       success "Polkit: regla udisks2 activa (sin auth para plugdev)."
-      success "udev: regla USB activa (permisos de nodos)."
+      if [[ "$LEGACY_UDEV" -eq 1 ]]; then
+        success "udev: regla USB activa (permisos de nodos)."
+      else
+        info "udev legacy: omitido; no se amplió acceso directo a dispositivos de bloque."
+      fi
       success "udiskie: configurado en i3 y con archivo de configuración."
       echo
       warn "${BOLD}IMPORTANTE:${RESET} cierra sesión y vuelve a entrar para que los cambios surtan efecto."

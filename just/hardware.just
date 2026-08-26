@@ -11,3 +11,8 @@ screensaver-toggle *args:
 # Uso: just usb-perms --check | just usb-perms --fix | just usb-perms --dry-run --fix
 usb-perms *args:
     bash scripts/hardware/usb_mount_perms_linux.sh {{args}}
+
+# Preparar apagado, reinicio, suspensión, hibernación y bloqueo
+# Uso: just power-control --check | just power-control --apply
+power-control *args:
+    bash scripts/hardware/power_control_linux.sh {{args}}

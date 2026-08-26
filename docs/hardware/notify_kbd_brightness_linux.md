@@ -3,7 +3,7 @@
 Ajusta el brillo del teclado retroiluminado directamente vía sysfs y muestra notificación.
 
 - **Ruta:** `scripts/hardware/notify_kbd_brightness_linux.sh`
-- **SO requerido:** Linux (Mac con driver applesmc o similar)
+- **SO requerido:** Linux (ThinkPad, MacBook u otro equipo con LED de teclado)
 - **Dependencias:** `notify-send`
 
 ---
@@ -21,7 +21,7 @@ Ajusta el brillo del teclado retroiluminado directamente vía sysfs y muestra no
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `KBD_BACKLIGHT_DEVICE` | `/sys/class/leds/smc::kbd_backlight` | Ruta al dispositivo sysfs del backlight |
+| `KBD_BACKLIGHT_DEVICE` | autodetectado | Ruta al dispositivo sysfs del backlight |
 | `KBD_BRIGHTNESS_STEP` | `20` | Incremento/decremento (unidades raw) |
 
 ---
@@ -36,6 +36,10 @@ KBD_BRIGHTNESS_STEP=10 ./scripts/hardware/notify_kbd_brightness_linux.sh down
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**fix:** autodetección de `tpacpi::kbd_backlight` y pasos adecuados para dispositivos con pocos niveles.
 
 ### v1.0.0 — 2026-07-22
 

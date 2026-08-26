@@ -20,8 +20,8 @@ Extiende el escritorio al monitor externo (a la derecha). Si no hay externo cone
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `SCREEN_INTERNAL` | `LVDS1` | Salida de pantalla interna |
-| `SCREEN_EXTERNAL` | `HDMI1` | Salida de monitor externo |
+| `SCREEN_INTERNAL` | autodetectada (`eDP-*`, `LVDS-*`, `DSI-*`) | Salida interna |
+| `SCREEN_EXTERNAL` | autodetectada (`HDMI-*`, `DP-*`, `DVI-*`, `VGA-*`) | Salida externa |
 
 ---
 
@@ -36,6 +36,10 @@ SCREEN_INTERNAL=eDP1 SCREEN_EXTERNAL=DP1 ./scripts/display/screen_extend_auto_li
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**feat:** autodetección de salidas xrandr.
 
 ### v1.0.0 — 2026-07-22
 

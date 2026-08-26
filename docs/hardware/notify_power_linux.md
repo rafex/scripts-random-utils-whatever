@@ -22,7 +22,7 @@ Se ejecuta como daemon (bloquea escuchando eventos).
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `POWER_DEVICE` | `/org/freedesktop/UPower/devices/line_power_ADP1` | Dispositivo UPower a monitorizar |
+| `POWER_DEVICE` | autodetectado | Dispositivo UPower a monitorizar; útil para forzar un nombre concreto |
 
 ---
 
@@ -32,6 +32,9 @@ Se ejecuta como daemon (bloquea escuchando eventos).
 # Lanzar en background
 ./scripts/hardware/notify_power_linux.sh &
 
+# ThinkPad: detecta automáticamente AC y BAT0
+~/.local/bin/power-notify.sh &
+
 # Con dispositivo personalizado
 POWER_DEVICE=/org/freedesktop/UPower/devices/line_power_AC0 \
   ./scripts/hardware/notify_power_linux.sh &
@@ -40,6 +43,10 @@ POWER_DEVICE=/org/freedesktop/UPower/devices/line_power_AC0 \
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**fix:** detección dinámica de dispositivos AC compatible con ThinkPad y MacBook.
 
 ### v1.0.0 — 2026-07-22
 

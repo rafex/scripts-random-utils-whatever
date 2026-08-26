@@ -1,0 +1,42 @@
+# ThinkPad X1 Yoga 1st generation — Debian + i3/Xorg.
+# No contiene Xorg, DPI ni autorandr específicos del hardware.
+
+[packages]
+apt = [
+    "i3-wm",
+    "i3status",
+    "rofi",
+    "dunst",
+    "alacritty",
+    "picom",
+    "feh",
+    "maim",
+    "brightnessctl",
+    "volumeicon-alsa",
+    "x11-xserver-utils",
+    "x11-xkb-utils",
+    "xss-lock",
+    "i3lock",
+    "dex",
+    "libnotify-bin",
+    "autorandr",
+]
+
+[files]
+portable = [
+    "config/i3",
+    "config/i3status",
+    "config/rofi",
+    "config/dunst",
+    "config/alacritty",
+    "config/picom",
+    "config/udiskie",
+    "config/Xresources",
+]
+
+[excluded]
+hardware_specific = [
+    "config/X11/xorg.conf.d/20-intel.conf",
+    "config/X11/xorg.conf.d/40-libinput.conf",
+    "config/autorandr/mirror",
+]

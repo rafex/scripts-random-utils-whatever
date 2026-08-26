@@ -7,16 +7,31 @@
 set -euo pipefail
 
 RULE='/etc/polkit-1/rules.d/10-nm-wifi.rules'
+TARGET_USER="${SUDO_USER:-}"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Ejecutar con sudo: sudo $0" >&2
   exit 1
 fi
 
+if [[ -z "$TARGET_USER" || "$TARGET_USER" == root ]]; then
+  echo "No se pudo determinar el usuario que invocó sudo." >&2
+  echo "Ejecuta el script como: sudo $0" >&2
+  exit 1
+fi
+
 cat > "$RULE" << 'EOF'
 polkit.addRule(function(action, subject) {
-  if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 &&
-      subject.isInGroup("netdev")) {
+  var allowed = [
+    "org.freedesktop.NetworkManager.settings.modify.system",
+    "org.freedesktop.NetworkManager.settings.modify.own",
+    "org.freedesktop.NetworkManager.network-control",
+    "org.freedesktop.NetworkManager.enable-disable-wifi",
+    "org.freedesktop.NetworkManager.enable-disable-network",
+    "org.freedesktop.NetworkManager.wifi.scan"
+  ];
+  if (subject.local && subject.active && subject.isInGroup("netdev") &&
+      allowed.indexOf(action.id) >= 0) {
     return polkit.Result.YES;
   }
 });
@@ -25,14 +40,14 @@ EOF
 chmod 644 "$RULE"
 
 if getent group netdev >/dev/null 2>&1; then
-  if ! groups "$SUDO_USER" | grep -q netdev; then
-    usermod -aG netdev "$SUDO_USER"
-    echo "Usuario $SUDO_USER agregado al grupo netdev."
+  if ! id -nG "$TARGET_USER" | tr ' ' '\n' | grep -qx netdev; then
+    usermod -aG netdev "$TARGET_USER"
+    echo "Usuario $TARGET_USER agregado al grupo netdev."
   fi
 else
   groupadd netdev
-  usermod -aG netdev "$SUDO_USER"
-  echo "Grupo netdev creado y $SUDO_USER agregado."
+  usermod -aG netdev "$TARGET_USER"
+  echo "Grupo netdev creado y $TARGET_USER agregado."
 fi
 
 echo "Regla creada: $RULE"

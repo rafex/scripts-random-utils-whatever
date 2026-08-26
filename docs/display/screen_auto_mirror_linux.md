@@ -20,8 +20,8 @@ Duplica la pantalla si hay un monitor externo conectado. Si no, vuelve a solo la
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `SCREEN_INTERNAL` | `LVDS1` | Salida de pantalla interna |
-| `SCREEN_EXTERNAL` | `HDMI1` | Salida de monitor externo |
+| `SCREEN_INTERNAL` | autodetectada (`eDP-*`, `LVDS-*`, `DSI-*`) | Salida interna |
+| `SCREEN_EXTERNAL` | autodetectada (`HDMI-*`, `DP-*`, `DVI-*`, `VGA-*`) | Salida externa |
 
 ---
 
@@ -36,6 +36,10 @@ SCREEN_INTERNAL=eDP1 SCREEN_EXTERNAL=DP1 ./scripts/display/screen_auto_mirror_li
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**feat:** autodetección de salidas xrandr para evitar nombres exclusivos de MacBook.
 
 ### v1.0.0 — 2026-07-22
 

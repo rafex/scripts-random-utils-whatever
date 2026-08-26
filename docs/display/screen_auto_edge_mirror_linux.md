@@ -20,8 +20,8 @@ Duplica la pantalla ajustando el monitor externo al modo nativo del panel intern
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `SCREEN_INTERNAL` | `LVDS1` | Salida de pantalla interna |
-| `SCREEN_EXTERNAL` | `HDMI1` | Salida de monitor externo |
+| `SCREEN_INTERNAL` | autodetectada (`eDP-*`, `LVDS-*`, `DSI-*`) | Salida de pantalla interna |
+| `SCREEN_EXTERNAL` | autodetectada (`HDMI-*`, `DP-*`, `DVI-*`, `VGA-*`) | Salida de monitor externo |
 
 ---
 
@@ -34,6 +34,10 @@ Duplica la pantalla ajustando el monitor externo al modo nativo del panel intern
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**feat:** autodetección de salidas xrandr para ThinkPad y otros equipos.
 
 ### v1.0.0 — 2026-07-22
 

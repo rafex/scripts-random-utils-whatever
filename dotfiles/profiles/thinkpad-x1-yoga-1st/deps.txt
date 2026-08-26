@@ -1,0 +1,17 @@
+i3-wm
+i3status
+rofi
+dunst
+alacritty
+picom
+feh
+maim
+brightnessctl
+volumeicon-alsa
+x11-xserver-utils
+x11-xkb-utils
+xss-lock
+i3lock
+dex
+libnotify-bin
+autorandr

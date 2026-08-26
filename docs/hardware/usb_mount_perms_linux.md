@@ -1,6 +1,6 @@
 # usb_mount_perms_linux.sh
 
-Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debian/Ubuntu). Crea las reglas necesarias de polkit y udev, y configura udiskie para auto-montaje en i3.
+Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debian/Ubuntu). Usa polkit/udisks2 como camino principal y deja el acceso udev directo como opción legacy.
 
 - **Ruta:** `scripts/hardware/usb_mount_perms_linux.sh`
 - **SO requerido:** Linux
@@ -29,6 +29,9 @@ Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debi
 | `--check` | Diagnostica permisos USB sin modificar nada (default) |
 | `--fix` | Aplica todas las correcciones necesarias (requiere sudo) |
 | `--dry-run` | Muestra los comandos sin ejecutarlos (útil con `--fix`) |
+| `--legacy-udev` | Crea la regla udev de acceso directo a bloques USB |
+| `--no-legacy-udev` | Omite la regla udev (default) |
+| `--yes` | Omite la confirmación interactiva de `--fix` |
 | `-h, --help` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -52,7 +55,7 @@ Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debi
 ### Modo corrección
 
 ```sh
-# Aplicar todas las correcciones
+# Aplicar polkit, grupos, udiskie y configuración de i3
 ./scripts/hardware/usb_mount_perms_linux.sh --fix
 ```
 
@@ -67,6 +70,9 @@ Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debi
 
 ```sh
 USB_PERMS_GROUP=storage ./scripts/hardware/usb_mount_perms_linux.sh --fix
+
+# Compatibilidad con herramientas que requieren acceso directo a bloques USB
+./scripts/hardware/usb_mount_perms_linux.sh --fix --legacy-udev
 ```
 
 ### Forma recomendada (instalado en PATH)
@@ -85,7 +91,7 @@ usb-mount-perms --fix      # corregir
 | Corrección | Archivo | Detalle |
 |---|---|---|
 | Regla polkit | `/etc/polkit-1/rules.d/10-udisks2-mount.rules` | Permite `mount/unmount/eject/power-off` sin auth al grupo `plugdev` |
-| Regla udev | `/etc/udev/rules.d/99-usb-storage.rules` | Otorga `MODE=0660, GROUP=plugdev` a dispositivos de bloque USB |
+| Regla udev legacy | `/etc/udev/rules.d/99-usb-storage.rules` | Opcional; otorga `MODE=0660, GROUP=plugdev` a dispositivos de bloque USB |
 | Grupo usuario | `usermod -aG plugdev` | Agrega al usuario al grupo de montaje si no está ya |
 | i3 config | `~/.config/i3/config` | Activa `udiskie --tray` para auto-montaje y habilita `dbus-update-activation-environment` para registro de sesión |
 | udiskie config | `~/.config/udiskie/config.yml` | Auto-montaje al insertar, notificaciones, ignorar discos de sistema |
@@ -96,7 +102,7 @@ usb-mount-perms --fix      # corregir
 
 - El script **nunca modifica** nada en modo `--check` (default).
 - Las reglas polkit se limitan al grupo `plugdev` — otros usuarios sin el grupo no heredan los permisos.
-- La regla udev solo afecta dispositivos USB (`ENV{ID_BUS}=="usb"`), no discos internos.
+- La regla udev no se instala por defecto; solo afecta dispositivos USB si se solicita `--legacy-udev`.
 - La config de udiskie ignora explícitamente `/dev/sda*`, `/dev/nvme*` y `/dev/mmcblk*` (discos de sistema).
 - El modo `--dry-run` permite previsualizar todos los cambios antes de aplicarlos.
 
@@ -129,6 +135,10 @@ usb-mount-perms --fix      # corregir
 ## Changelog
 
 ### [Unreleased]
+
+- **fix:** usa el usuario invocante (`SUDO_USER`) al modificar grupos.
+- **fix:** limita la regla polkit a montaje, desmontaje, expulsión y apagado.
+- **feat:** hace opcional la regla udev legacy.
 
 ### v1.0.0 — 2026-08-02
 

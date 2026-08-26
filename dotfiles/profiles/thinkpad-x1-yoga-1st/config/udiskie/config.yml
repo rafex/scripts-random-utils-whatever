@@ -1,0 +1,14 @@
+# Configuración portable de udiskie para la sesión i3.
+program_options:
+  tray: auto
+  automount: true
+  notify: true
+
+device_config:
+  - device_file: /dev/nvme*
+    ignore: true
+  - device_file: /dev/mmcblk*
+    ignore: true
+
+mount_options:
+  - all: [noatime, nosuid, nodev, noexec]

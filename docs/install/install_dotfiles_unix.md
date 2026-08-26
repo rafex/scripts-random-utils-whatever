@@ -19,6 +19,7 @@ Empaqueta los dotfiles de i3wm en un `tar.gz` distribuible con un instalador aut
 | Opción | Descripción |
 |---|---|
 | `--dist-dir <dir>` | Directorio de salida (default: `dist/`) |
+| `--profile <name>` | Perfil a empaquetar (default: `default`) |
 | `--dry-run` | Muestra los pasos sin empaquetar |
 | `-h, --help` | Muestra la ayuda |
 
@@ -29,22 +30,12 @@ Empaqueta los dotfiles de i3wm en un `tar.gz` distribuible con un instalador aut
 ```
 i3-dotfiles-bundle.tar.gz
 ├── install.sh                    ← Instalador autocontenido
-├── deps.txt                      ← Lista de paquetes apt
-├── config/
-│   ├── i3/config                 ← Config de i3wm
-│   ├── i3status/config           ← Config de i3status (barra)
-│   ├── i3status/brightness.sh    ← Helper de brillo para la barra
-│   ├── rofi/config.rasi          ← Config de rofi (launcher)
-│   ├── dunst/dunstrc             ← Config de dunst (notificaciones)
-│   ├── alacritty/alacritty.toml  ← Config de alacritty (terminal)
-│   ├── picom/picom.conf          ← Config de picom (compositor)
-│   └── Xresources                ← X resources (DPI, fuentes)
-└── scripts/
-    ├── volume-notify.sh
-    ├── brightness-notify.sh
-    ├── kbd-brightness-notify.sh
-    ├── power-notify.sh
-    └── screensaver-toggle
+└── profiles/<perfil>/
+    ├── README.md
+    ├── DEPS.toml
+    ├── deps.txt
+    ├── config/                   ← Configuración del perfil
+    └── scripts/                  ← Helpers para ~/.local/bin/
 ```
 
 ## Comportamiento de install.sh (dentro del tar.gz)
@@ -69,8 +60,11 @@ i3-dotfiles-bundle.tar.gz
 ## Ejemplos
 
 ```sh
-# Empaquetar
+# Empaquetar el perfil default
 ./scripts/install/install_dotfiles_unix.sh
+
+# Empaquetar el perfil ThinkPad
+./scripts/install/install_dotfiles_unix.sh --profile thinkpad-x1-yoga-1st
 
 # Empaquetar con directorio de salida personalizado
 ./scripts/install/install_dotfiles_unix.sh --dist-dir ./output
@@ -82,7 +76,7 @@ i3-dotfiles-bundle.tar.gz
 scp dist/i3-dotfiles-bundle.tar.gz user@machine:~/
 ssh user@machine
 tar xzf i3-dotfiles-bundle.tar.gz
-cd i3-dotfiles-bundle && ./install.sh
+cd i3-dotfiles-bundle && ./install.sh --profile thinkpad-x1-yoga-1st
 ```
 
 ### Usando Justfile
@@ -98,10 +92,9 @@ just install-dotfiles --dry-run
 
 | Archivo | Propósito |
 |---|---|
-| `dotfiles/config/i3/config` | Configuración de i3wm (sanitizada, sin secretos) |
+| `dotfiles/profiles/<perfil>/config/i3/config` | Configuración de i3wm (sanitizada, sin secretos) |
 | `dotfiles/install.sh` | Instalador autocontenido dentro del tar.gz |
-| `dotfiles/deps.txt` | Lista de paquetes apt |
-| `dotfiles/.gitignore` | Bloquea archivos sensibles fuera del repo |
+| `dotfiles/profiles/<perfil>/deps.txt` | Lista de paquetes apt |
 
 ---
 

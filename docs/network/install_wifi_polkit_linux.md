@@ -1,6 +1,8 @@
 # install_wifi_polkit_linux.sh
 
-Instala la regla PolicyKit que permite a usuarios del grupo `netdev` gestionar NetworkManager (escanear, conectar, modificar conexiones) sin contraseña de sudo.
+Instala una regla PolicyKit limitada que permite a usuarios locales activos del
+grupo `netdev` gestionar las operaciones habituales de NetworkManager sin
+contraseña de sudo.
 
 Debe ejecutarse con `sudo`.
 
@@ -32,8 +34,16 @@ Requiere cerrar sesión y volver a entrar para que el grupo tome efecto.
 
 ```js
 polkit.addRule(function(action, subject) {
-  if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 &&
-      subject.isInGroup("netdev")) {
+  var allowed = [
+    "org.freedesktop.NetworkManager.settings.modify.system",
+    "org.freedesktop.NetworkManager.settings.modify.own",
+    "org.freedesktop.NetworkManager.network-control",
+    "org.freedesktop.NetworkManager.enable-disable-wifi",
+    "org.freedesktop.NetworkManager.enable-disable-network",
+    "org.freedesktop.NetworkManager.wifi.scan"
+  ];
+  if (subject.local && subject.active && subject.isInGroup("netdev") &&
+      allowed.indexOf(action.id) >= 0) {
     return polkit.Result.YES;
   }
 });
@@ -42,6 +52,10 @@ polkit.addRule(function(action, subject) {
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**fix:** limita las acciones a operaciones NetworkManager necesarias para una sesión local activa.
 
 ### v1.0.0 — 2026-07-22
 

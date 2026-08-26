@@ -11,17 +11,26 @@ Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg 
 ## Uso
 
 ```sh
-./scripts/display/hidpi_xorg_linux.sh
+./scripts/display/hidpi_xorg_linux.sh --check
+./scripts/display/hidpi_xorg_linux.sh --apply
 ```
 
 ---
 
 ## Cómo funciona
 
-1. Detecta el monitor externo (HDMI/DP/DVI) o usa el primero disponible
+1. Detecta el panel interno (`eDP-*`, `LVDS-*` o `DSI-*`) o usa el primero disponible
 2. Mide DPI a partir de la resolución y dimensiones físicas (mm) del EDID
 3. Si no hay mm en EDID, estima por resolución (4K → 200%, QHD+ → 150%, etc.)
-4. Ajusta `Xft.dpi` en `~/.Xresources` y aplica con `xrdb -merge`
+4. `--check` solo informa; `--apply` ajusta `xrandr`, `Xft.dpi` y aplica `xrdb -merge`
+
+## Opciones
+
+| Opción | Descripción |
+|---|---|
+| `--check` | Diagnóstico sin modificar archivos, modo predeterminado |
+| `--apply` | Aplica el escalado y actualiza `~/.Xresources` |
+| `--output <nombre>` | Fuerza una salida concreta |
 
 ---
 
@@ -34,6 +43,10 @@ Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg 
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**feat:** modo diagnóstico y detección de panel interno portable.
 
 ### v1.0.0 — 2026-07-22
 

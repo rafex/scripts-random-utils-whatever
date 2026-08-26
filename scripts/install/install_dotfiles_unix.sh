@@ -25,6 +25,7 @@ error()   { echo -e "${RED}${BOLD}  ✗ ERROR:${RESET} $*" >&2; }
 # ─────────────────────────────────────────────────────────────────────────────
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DIST_DIR="${DIST_DIR:-$REPO_ROOT/dist}"
+PROFILE="${PROFILE:-default}"
 BUNDLE_DIR="$DIST_DIR/i3-dotfiles-bundle"
 ARCHIVE="$DIST_DIR/i3-dotfiles-bundle.tar.gz"
 DRY_RUN="${DRY_RUN:-0}"
@@ -35,6 +36,12 @@ SCRIPTS_MAP=(
     "scripts/hardware/notify_kbd_brightness_linux.sh:kbd-brightness-notify.sh"
     "scripts/hardware/notify_power_linux.sh:power-notify.sh"
     "scripts/hardware/screensaver_toggle_linux.sh:screensaver-toggle"
+    "scripts/hardware/usb_mount_perms_linux.sh:usb-mount-perms"
+    "scripts/display/hidpi_xorg_linux.sh:hidpi_xorg.sh"
+    "scripts/display/screen_auto_mirror_linux.sh:screen-auto-mirror.sh"
+    "scripts/display/screen_auto_edge_mirror_linux.sh:screen-auto-edge-mirror.sh"
+    "scripts/display/screen_extend_auto_linux.sh:screen-extend-auto.sh"
+    "scripts/display/screen_mirror_linux.sh:screen-mirror.sh"
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -46,6 +53,7 @@ usage() {
     echo
     echo -e "${BOLD}Opciones:${RESET}"
     echo -e "  ${CYAN}--dist-dir${RESET} <dir>   Directorio de salida (default: dist/)"
+    echo -e "  ${CYAN}--profile${RESET} <name>   Perfil de dotfiles (default: default)"
     echo -e "  ${CYAN}--dry-run${RESET}         Muestra los pasos sin empaquetar"
     echo -e "  ${CYAN}-h, --help${RESET}        Esta ayuda"
     echo
@@ -60,6 +68,7 @@ usage() {
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dist-dir) DIST_DIR="$2"; shift 2 ;;
+        --profile) PROFILE="$2"; shift 2 ;;
         --dry-run)  DRY_RUN=1; shift ;;
         -h|--help)  usage; exit 0 ;;
         *) error "argumento desconocido: $1"; usage; exit 1 ;;
@@ -73,10 +82,11 @@ ARCHIVE="$DIST_DIR/i3-dotfiles-bundle.tar.gz"
 # Validaciones
 # ─────────────────────────────────────────────────────────────────────────────
 preflight() {
-    local dotfiles_config="$REPO_ROOT/dotfiles/config"
+    local profile_dir="$REPO_ROOT/dotfiles/profiles/$PROFILE"
+    local dotfiles_config="$profile_dir/config"
 
-    if [[ ! -d "$dotfiles_config" ]]; then
-        error "No se encontró dotfiles/config/ en el repo. Ejecuta desde la raíz del repositorio."
+    if [[ ! -d "$profile_dir" || ! -d "$dotfiles_config" ]]; then
+        error "No se encontró el perfil dotfiles/profiles/$PROFILE/ en el repo."
         exit 1
     fi
 
@@ -91,19 +101,22 @@ preflight() {
 # ─────────────────────────────────────────────────────────────────────────────
 build_bundle() {
     local bundle="$BUNDLE_DIR"
-    local dotfiles="$REPO_ROOT/dotfiles"
+    local profile_dir="$REPO_ROOT/dotfiles/profiles/$PROFILE"
+    local bundle_profile="$bundle/profiles/$PROFILE"
 
     info "Preparando bundle en ${BOLD}${bundle#"$REPO_ROOT"/}${RESET}..."
     rm -rf "$bundle"
-    mkdir -p "$bundle/scripts"
+    mkdir -p "$bundle_profile/scripts"
 
     # Copiar configs
     info "Copiando configs..."
-    cp -r "$dotfiles/config" "$bundle/"
+    cp -r "$profile_dir/config" "$bundle_profile/"
+    cp "$profile_dir/DEPS.toml" "$bundle_profile/"
+    cp "$profile_dir/README.md" "$bundle_profile/"
 
-    # Copiar install.sh + deps.txt
-    cp "$dotfiles/install.sh" "$bundle/"
-    cp "$dotfiles/deps.txt" "$bundle/"
+    # Copiar el instalador y la lista de dependencias del perfil
+    cp "$REPO_ROOT/dotfiles/install.sh" "$bundle/"
+    cp "$profile_dir/deps.txt" "$bundle_profile/"
 
     # Copiar scripts referenciados (renombrar según nombre en ~/.local/bin/)
     info "Copiando scripts auxiliares..."
@@ -112,8 +125,8 @@ build_bundle() {
         local dst="${entry##*:}"
         local src_path="$REPO_ROOT/$src"
         if [[ -f "$src_path" ]]; then
-            cp "$src_path" "$bundle/scripts/$dst"
-            success "  ${src#"$REPO_ROOT"/} → scripts/${dst}"
+            cp "$src_path" "$bundle_profile/scripts/$dst"
+            success "  ${src#"$REPO_ROOT"/} → profiles/$PROFILE/scripts/${dst}"
         else
             warn "  ${src} no encontrado — se omite"
         fi
@@ -121,7 +134,7 @@ build_bundle() {
 
     # Asegurar permisos
     chmod +x "$bundle/install.sh"
-    chmod +x "$bundle/scripts/"* 2>/dev/null || true
+    chmod +x "$bundle_profile/scripts/"* 2>/dev/null || true
 
     # Crear tar.gz
     info "Empaquetando ${BOLD}${ARCHIVE#"$REPO_ROOT"/}${RESET}..."
@@ -150,7 +163,7 @@ build_bundle() {
     echo -e "  ${CYAN}  scp dist/i3-dotfiles-bundle.tar.gz user@machine:~/${RESET}"
     echo -e "  ${CYAN}  ssh user@machine${RESET}"
     echo -e "  ${CYAN}  tar xzf i3-dotfiles-bundle.tar.gz${RESET}"
-    echo -e "  ${CYAN}  cd i3-dotfiles-bundle && ./install.sh${RESET}"
+    echo -e "  ${CYAN}  cd i3-dotfiles-bundle && ./install.sh --profile $PROFILE${RESET}"
     echo
 }
 

@@ -6,11 +6,16 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-INTERNAL="${SCREEN_INTERNAL:-LVDS1}"
-EXTERNAL="${SCREEN_EXTERNAL:-HDMI1}"
+connected_outputs() { xrandr --query | awk '$2 == "connected" {print $1}'; }
+INTERNAL="${SCREEN_INTERNAL:-$(connected_outputs | awk '/^(eDP|LVDS|DSI)-/ {print; exit}')}"
+[[ -n "$INTERNAL" ]] || INTERNAL="$(connected_outputs | head -n1)"
+EXTERNAL="${SCREEN_EXTERNAL:-$(connected_outputs | awk -v internal="$INTERNAL" '$0 != internal && $0 ~ /^(HDMI|DP|DVI|VGA)-/ {print; exit}')}"
 
-if ! xrandr | grep -q "^${EXTERNAL} connected"; then
-  xrandr --output "$EXTERNAL" --off --output "$INTERNAL" --auto --primary
+[[ -n "$INTERNAL" ]] || { echo "No se detectó una salida interna." >&2; exit 1; }
+
+if [[ -z "$EXTERNAL" ]] || ! xrandr | grep -q "^${EXTERNAL} connected"; then
+  if [[ -n "$EXTERNAL" ]]; then xrandr --output "$EXTERNAL" --off; fi
+  xrandr --output "$INTERNAL" --auto --primary
   notify-send "Pantalla" "Solo laptop (${INTERNAL})"
   exit 0
 fi

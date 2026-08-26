@@ -7,8 +7,34 @@
 set -euo pipefail
 
 MIN_DPI=72
-MAX_DPI=90
-DEFAULT_DPI=84
+MAX_DPI=140
+DEFAULT_DPI=96
+MODE="check"
+OUTPUT="${SCREEN_INTERNAL:-}"
+
+usage() {
+  cat <<'EOF'
+Uso: hidpi_xorg.sh [--check|--apply] [--output NOMBRE]
+
+--check          Calcula DPI y escala sin modificar archivos (default)
+--apply          Aplica la escala y actualiza ~/.Xresources
+--output NOMBRE  Salida xrandr; por defecto detecta eDP/LVDS/DSI
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check) MODE="check"; shift ;;
+    --apply) MODE="apply"; shift ;;
+    --output)
+      [[ $# -ge 2 ]] || { echo "--output requiere un nombre" >&2; exit 1; }
+      OUTPUT="$2"
+      shift 2
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Argumento desconocido: $1" >&2; usage >&2; exit 1 ;;
+  esac
+done
 
 choose_scale_by_res() {
   local w="$1" h="$2"
@@ -24,7 +50,7 @@ dpi_for_scale() {
     0.5)   dpi=90  ;;
     0.666) dpi=88  ;;
     0.75)  dpi=84  ;;
-    1.0)   dpi=76  ;;
+    1.0)   dpi="$DEFAULT_DPI" ;;
     *)     dpi="$DEFAULT_DPI" ;;
   esac
   (( dpi < MIN_DPI )) && dpi="$MIN_DPI"
@@ -90,12 +116,14 @@ fi
 mapfile -t outputs < <(xrandr | awk '$2=="connected"{print $1}')
 [[ ${#outputs[@]} -eq 0 ]] && { echo "No hay outputs conectados."; exit 0; }
 
-target=""
-for o in "${outputs[@]}"; do
-  if [[ "$o" == HDMI* || "$o" == DP* || "$o" == DVI* ]]; then
-    target="$o"; break
-  fi
-done
+target="$OUTPUT"
+if [[ -z "$target" ]]; then
+  for o in "${outputs[@]}"; do
+    if [[ "$o" == eDP-* || "$o" == LVDS* || "$o" == DSI-* ]]; then
+      target="$o"; break
+    fi
+  done
+fi
 [[ -z "$target" ]] && target="${outputs[0]}"
 
 read -r w h wmm hmm < <(get_output_info "$target")
@@ -119,7 +147,12 @@ dpi="$(dpi_for_scale "$scale")"
 
 echo "Target: $target"
 echo "Modo: ${w:-?}x${h:-?}  mm: ${wmm:-?}x${hmm:-?}  DPI_medido: ${dpi_measured:-N/A}"
-echo "Aplicando: scale=$scale  Xft.dpi=$dpi"
+echo "Aplicando: scale=$scale  Xft.dpi=$dpi  modo=$MODE"
+
+if [[ "$MODE" == "check" ]]; then
+  echo "No se aplicaron cambios. Usa --apply después de validar el resultado."
+  exit 0
+fi
 
 xrandr --output "$target" --scale "${scale}x${scale}"
 

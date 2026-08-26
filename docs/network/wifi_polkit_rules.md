@@ -37,7 +37,8 @@ Cerrar sesión y volver a entrar para que el grupo tome efecto.
 
 ## Acciones autorizadas
 
-La regla cubre todas las acciones bajo el namespace `org.freedesktop.NetworkManager.*`, que incluye:
+La regla cubre únicamente las acciones habituales de NetworkManager para una
+sesión local activa:
 
 | Acción | Descripción |
 |---|---|
@@ -47,7 +48,6 @@ La regla cubre todas las acciones bajo el namespace `org.freedesktop.NetworkMana
 | `network-control` | Control general de red |
 | `enable-disable-wifi` | Activar/desactivar WiFi |
 | `enable-disable-network` | Activar/desactivar red |
-| `checkpoint-rollback` | Rollback de configuración de red |
 
 ---
 
@@ -55,8 +55,16 @@ La regla cubre todas las acciones bajo el namespace `org.freedesktop.NetworkMana
 
 ```js
 polkit.addRule(function(action, subject) {
-    if (subject.isInGroup("netdev") &&
-        (action.id.startsWith("org.freedesktop.NetworkManager."))) {
+    var allowed = [
+        "org.freedesktop.NetworkManager.settings.modify.system",
+        "org.freedesktop.NetworkManager.settings.modify.own",
+        "org.freedesktop.NetworkManager.network-control",
+        "org.freedesktop.NetworkManager.enable-disable-wifi",
+        "org.freedesktop.NetworkManager.enable-disable-network",
+        "org.freedesktop.NetworkManager.wifi.scan"
+    ];
+    if (subject.local && subject.active && subject.isInGroup("netdev") &&
+        allowed.indexOf(action.id) >= 0) {
         return polkit.Result.YES;
     }
 });
@@ -79,12 +87,16 @@ Verificar que:
 Instalar:
 
 ```sh
-sudo apt install policykit-1
+sudo apt install polkitd
 ```
 
 ---
 
 ## Changelog
+
+### [Unreleased]
+
+**fix:** limita las acciones a operaciones necesarias y sesiones locales activas.
 
 ### v1.0.0 — 2026-07-22
 
