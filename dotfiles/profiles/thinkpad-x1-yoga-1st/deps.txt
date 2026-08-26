@@ -8,6 +8,7 @@ feh
 maim
 brightnessctl
 pavucontrol
+pasystray
 fonts-font-awesome
 x11-xserver-utils
 x11-xkb-utils

@@ -251,7 +251,7 @@ se instala automáticamente.
 - **fix:** usar `libwacom-common` y `libwacom-bin`, los paquetes disponibles en
   Debian Forky, en lugar del nombre de paquete fuente `libwacom`.
 - **fix:** reemplazar `volumeicon-alsa`, ausente en Debian Forky, por
-  `pavucontrol` y hacer opcional el icono de volumen en i3.
+  `pasystray` para el icono de volumen y mantener `pavucontrol` como mezclador.
 - **fix:** retirar opciones GLX obsoletas de Picom que generaban advertencias
   al iniciar la sesión gráfica.
 - **fix:** instalar Font Awesome y reemplazar emojis de i3status por glifos
