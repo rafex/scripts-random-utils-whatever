@@ -110,10 +110,13 @@ apt-cache policy firmware-intel-graphics
 
 - Solicita sudo solamente mediante `sudo -v`.
 - Nunca acepta ni almacena contraseñas.
-- Crea respaldos fechados antes de modificar cada archivo.
+- Crea respaldos fechados antes de modificar cada archivo en
+  `/var/backups/rafex-debian-sources/`, fuera del directorio que APT escanea.
 - Es idempotente y no duplica componentes.
 - Respaldará y retirará el archivo legado `90-laptop-nonfree.list` si otra
   fuente Debian ya contiene las cuatro componentes.
+- Reubica respaldos antiguos de `90-laptop-nonfree.list` que hayan quedado en
+  `/etc/apt/sources.list.d/`.
 - Conserva mirrors, suites, opciones y entradas existentes.
 - Solo añade los cuatro componentes oficiales de Debian.
 - No activa `backports`, `experimental`, `sid`, PPAs ni repositorios de

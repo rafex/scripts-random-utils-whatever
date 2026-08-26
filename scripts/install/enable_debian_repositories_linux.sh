@@ -9,6 +9,7 @@ umask 077
 ACTION="check"
 OS_TYPE="$(uname -s)"
 BACKUP_STAMP="$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR='/var/backups/rafex-debian-sources'
 CHANGED=0
 SOURCE_FILES=()
 
@@ -259,11 +260,25 @@ apply_source_file() {
   else
     transform_list_file "$file" > "$temporary"
   fi
-  sudo cp -a "$file" "${file}.bak.${BACKUP_STAMP}"
+  backup_source_file "$file"
   sudo install -m 0644 "$temporary" "$file"
   rm -f "$temporary"
-  info "actualizado $file; respaldo: ${file}.bak.${BACKUP_STAMP}"
+  info "actualizado $file"
   CHANGED=1
+}
+
+backup_source_file() {
+  local file="$1"
+  local relative
+  local encoded
+  local destination
+
+  relative="${file#/}"
+  encoded="${relative//\//_}"
+  destination="$BACKUP_DIR/${encoded}.bak.${BACKUP_STAMP}"
+  sudo install -d -m 0755 "$BACKUP_DIR"
+  sudo cp -a "$file" "$destination"
+  info "respaldo: $destination"
 }
 
 source_has_all_components() {
@@ -296,6 +311,8 @@ remove_redundant_legacy_source() {
   local target='/etc/apt/sources.list.d/90-laptop-nonfree.list'
   local source
   local backup
+  local relative
+  local encoded
 
   [[ -f "$target" ]] || return 0
   for source in "${SOURCE_FILES[@]}"; do
@@ -311,13 +328,37 @@ remove_redundant_legacy_source() {
       info "[plan] retirar fuente redundante $target"
       CHANGED=1
     else
-      backup="${target}.bak.${BACKUP_STAMP}.redundant"
+      relative="${target#/}"
+      encoded="${relative//\//_}"
+      backup="$BACKUP_DIR/${encoded}.redundant.bak.${BACKUP_STAMP}"
+      sudo install -d -m 0755 "$BACKUP_DIR"
       sudo cp -a "$target" "$backup"
       sudo rm -f "$target"
       info "fuente redundante retirada: $target; respaldo: $backup"
       CHANGED=1
     fi
     return 0
+  done
+}
+
+relocate_legacy_backups() {
+  local legacy
+  local relative
+  local encoded
+  local destination
+
+  for legacy in /etc/apt/sources.list.d/90-laptop-nonfree.list.bak.*; do
+    [[ -f "$legacy" ]] || continue
+    relative="${legacy#/}"
+    encoded="${relative//\//_}"
+    destination="$BACKUP_DIR/${encoded}"
+    if [[ "$ACTION" == "plan" ]]; then
+      info "[plan] mover respaldo fuera de sources.list.d: $legacy"
+    else
+      sudo install -d -m 0755 "$BACKUP_DIR"
+      sudo mv "$legacy" "$destination"
+      info "respaldo legado reubicado: $destination"
+    fi
   done
 }
 
@@ -361,6 +402,9 @@ main() {
 
   if [[ "$ACTION" == "apply" ]]; then
     sudo -v
+  fi
+  if [[ "$ACTION" != "check" ]]; then
+    relocate_legacy_backups
   fi
 
   local active=0
