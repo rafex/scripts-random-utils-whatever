@@ -12,7 +12,7 @@ apt = [
     "feh",
     "maim",
     "brightnessctl",
-    "volumeicon-alsa",
+    "pavucontrol",
     "x11-xserver-utils",
     "x11-xkb-utils",
     "xss-lock",

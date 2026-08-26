@@ -18,7 +18,7 @@ apt = [
     "feh",
     "maim",
     "brightnessctl",
-    "volumeicon-alsa",
+    "pavucontrol",
     "network-manager-gnome",
     "x11-xserver-utils",
     "x11-xkb-utils",

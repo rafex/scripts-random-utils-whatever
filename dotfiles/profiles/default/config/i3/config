@@ -9,7 +9,7 @@ set $menu rofi -show drun -show-icons
 # Autostart
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 
-exec --no-startup-id volumeicon
+exec --no-startup-id sh -c 'command -v volumeicon >/dev/null 2>&1 && exec volumeicon'
 
 exec_always --no-startup-id dunst
 

@@ -250,3 +250,5 @@ se instala automáticamente.
   `90-laptop-nonfree.list` redundantes después de respaldarlas.
 - **fix:** usar `libwacom-common` y `libwacom-bin`, los paquetes disponibles en
   Debian Forky, en lugar del nombre de paquete fuente `libwacom`.
+- **fix:** reemplazar `volumeicon-alsa`, ausente en Debian Forky, por
+  `pavucontrol` y hacer opcional el icono de volumen en i3.
