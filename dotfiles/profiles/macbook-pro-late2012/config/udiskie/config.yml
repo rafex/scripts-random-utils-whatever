@@ -11,7 +11,3 @@ device_config:
     ignore: true       # ignorar NVMe del sistema
   - device_file: /dev/mmcblk*
     ignore: true       # ignorar SD interna si aplica
-
-# Montar en /run/media/$USER (requiere que el directorio exista)
-mount_options:
-  - all: [noatime, nosuid, nodev, noexec]

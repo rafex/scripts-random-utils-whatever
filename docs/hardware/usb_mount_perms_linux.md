@@ -104,6 +104,7 @@ usb-mount-perms --fix      # corregir
 - Las reglas polkit se limitan al grupo `plugdev` — otros usuarios sin el grupo no heredan los permisos.
 - La regla udev no se instala por defecto; solo afecta dispositivos USB si se solicita `--legacy-udev`.
 - La config de udiskie ignora explícitamente `/dev/sda*`, `/dev/nvme*` y `/dev/mmcblk*` (discos de sistema).
+- No añade opciones globales de montaje incompatibles con udiskie 2.7; se usan las opciones predeterminadas de udisks2.
 - El modo `--dry-run` permite previsualizar todos los cambios antes de aplicarlos.
 
 ---
@@ -125,6 +126,15 @@ usb-mount-perms --fix      # corregir
 **Causa:** i3 necesita ser recargado (`Mod+Shift+R`).
 **Solución:** Recargar i3 con `Mod+Shift+R` o reiniciar la sesión X.
 
+### `Atributo de filtrado desconocido: 'all'`
+
+**Causa:** Una configuración antigua de udiskie usaba `mount_options: - all: ...`,
+una sintaxis que udiskie 2.7 ya no acepta.
+
+**Solución:** Ejecutar `./scripts/hardware/usb_mount_perms_linux.sh --fix`.
+El script respalda la configuración anterior y la reemplaza por una configuración
+compatible, sin forzar opciones de montaje inseguras o incompatibles.
+
 ### Sin polkit agent en i3, los prompts de auth fallan silenciosamente
 
 **Causa:** i3 no incluye un agente de polkit por defecto.
@@ -139,6 +149,7 @@ usb-mount-perms --fix      # corregir
 - **fix:** usa el usuario invocante (`SUDO_USER`) al modificar grupos.
 - **fix:** limita la regla polkit a montaje, desmontaje, expulsión y apagado.
 - **feat:** hace opcional la regla udev legacy.
+- **fix:** repara configuraciones antiguas de udiskie y evita duplicar su autostart en i3.
 
 ### v1.0.0 — 2026-08-02
 

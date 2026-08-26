@@ -9,6 +9,3 @@ device_config:
     ignore: true
   - device_file: /dev/mmcblk*
     ignore: true
-
-mount_options:
-  - all: [noatime, nosuid, nodev, noexec]

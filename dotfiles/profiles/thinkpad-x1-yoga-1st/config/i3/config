@@ -10,9 +10,9 @@ exec_always --no-startup-id setxkbmap es
 exec --no-startup-id sh -c 'if [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"; fi'
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'
 exec --no-startup-id dex --autostart --environment i3
-exec --no-startup-id sh -c 'command -v udiskie >/dev/null 2>&1 && exec udiskie --tray'
+exec --no-startup-id udiskie --tray
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-exec --no-startup-id sh -c 'command -v nm-applet >/dev/null 2>&1 && exec nm-applet'
+exec --no-startup-id nm-applet
 
 font pango:DejaVu Sans Mono 9
 default_border pixel 2

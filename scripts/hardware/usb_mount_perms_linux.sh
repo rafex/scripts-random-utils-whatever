@@ -111,6 +111,16 @@ write_file_dry() {
   fi
 }
 
+backup_user_file() {
+  local file="$1"
+  local destination
+
+  [[ -f "$file" ]] || return 0
+  destination="${file}.bak.$(date +%Y%m%d_%H%M%S)"
+  cp -a "$file" "$destination"
+  info "Respaldo de configuración: ${BOLD}$destination${RESET}"
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Verificar OS (solo Linux)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -411,7 +421,13 @@ check_udiskie() {
   fi
 
   if [[ -f "$UDISKIE_CONFIG" ]]; then
-    success "Config de udiskie presente: ${BOLD}$UDISKIE_CONFIG${RESET}"
+    if grep -qE '^[[:space:]]*-[[:space:]]*all[[:space:]]*:' "$UDISKIE_CONFIG"; then
+      warn "Config de udiskie contiene la opción obsoleta 'all'"
+      UDISKIE_CONFIG_NEEDED=1
+      UDISKIE_CONFIG_INVALID=1
+    else
+      success "Config de udiskie presente: ${BOLD}$UDISKIE_CONFIG${RESET}"
+    fi
   else
     warn "No hay config de udiskie en ${BOLD}$UDISKIE_CONFIG${RESET}"
     UDISKIE_CONFIG_NEEDED=1
@@ -447,8 +463,8 @@ fix_udiskie() {
     info "udiskie en i3: ya configurado, omitiendo."
   else
     local udiskie_line="exec --no-startup-id udiskie --tray"
-    if grep -qF "$udiskie_line" "$I3_CONFIG" 2>/dev/null; then
-      info "Línea de udiskie ya presente en i3 config (aunque esté comentada)."
+    if grep -qE '^[[:space:]]*exec(_always)?[^#]*udiskie[^#]*--tray' "$I3_CONFIG" 2>/dev/null; then
+      info "Línea de udiskie ya presente en i3 config."
       if [[ "${UDISKIE_I3_COMMENTED:-0}" -eq 1 ]]; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
           info "[dry-run] Descomentar línea de udiskie en ${BOLD}$I3_CONFIG${RESET}"
@@ -493,9 +509,6 @@ device_config:
   - device_file: /dev/mmcblk*
     ignore: true       # ignorar SD interna si aplica
 
-# Montar en /run/media/$USER (requiere que el directorio exista)
-mount_options:
-  - all: [noatime, nosuid, nodev, noexec]
 '
     info "Creando config de udiskie: ${BOLD}$UDISKIE_CONFIG${RESET}"
     if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -503,8 +516,13 @@ mount_options:
       echo "$config_content"
     else
       mkdir -p "$(dirname "$UDISKIE_CONFIG")"
-      echo "$config_content" > "$UDISKIE_CONFIG"
-      success "Config de udiskie creada."
+      backup_user_file "$UDISKIE_CONFIG"
+      printf '%s\n' "$config_content" > "$UDISKIE_CONFIG"
+      if [[ "${UDISKIE_CONFIG_INVALID:-0}" -eq 1 ]]; then
+        success "Config de udiskie reparada."
+      else
+        success "Config de udiskie creada."
+      fi
     fi
   else
     info "Config de udiskie: ya existe, omitiendo."
