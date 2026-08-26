@@ -248,3 +248,5 @@ se instala automáticamente.
 - **feat:** NetworkManager, udisks2, cámaras, VA-API, TLP y NVMe.
 - **fix:** reutilizar el gestor central de repositorios y retirar fuentes
   `90-laptop-nonfree.list` redundantes después de respaldarlas.
+- **fix:** usar `libwacom-common` y `libwacom-bin`, los paquetes disponibles en
+  Debian Forky, en lugar del nombre de paquete fuente `libwacom`.

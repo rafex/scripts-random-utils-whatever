@@ -196,7 +196,7 @@ Paquetes por etapa:
             pipewire pipewire-pulse pipewire-audio wireplumber alsa-utils
             pavucontrol v4l-utils guvcview obs-studio
             xserver-xorg-input-libinput xserver-xorg-input-wacom
-            libinput-tools iio-sensor-proxy libwacom
+            libinput-tools iio-sensor-proxy libwacom-common libwacom-bin
             modemmanager usb-modeswitch bluez blueman fwupd
             fprintd libpam-fprintd (opcionales)
   desktop: xorg lightdm lightdm-gtk-greeter i3-wm i3status rofi dunst
@@ -383,7 +383,8 @@ stage_hardware() {
     pipewire pipewire-pulse pipewire-audio wireplumber alsa-utils pavucontrol \
     v4l-utils guvcview obs-studio \
     xserver-xorg-input-libinput xserver-xorg-input-wacom libinput-tools \
-    iio-sensor-proxy libwacom modemmanager usb-modeswitch bluez blueman fwupd
+    iio-sensor-proxy libwacom-common libwacom-bin modemmanager usb-modeswitch \
+    bluez blueman fwupd
   apt_install_optional fprintd libpam-fprintd
 
   ensure_group_membership video
