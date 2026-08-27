@@ -88,3 +88,8 @@ migrate-laptop *args:
 # Uso: just install-terminal-workstation --apply --stage all
 install-terminal-workstation *args:
     bash scripts/install/install_terminal_workstation_linux.sh {{args}}
+
+# Instalar controles multimedia, Wi-Fi, modo avión, Rofi y configuraciones para i3
+# Uso: just install-i3-laptop-controls --apply
+install-i3-laptop-controls *args:
+    bash scripts/install/install_i3_laptop_controls_linux.sh {{args}}

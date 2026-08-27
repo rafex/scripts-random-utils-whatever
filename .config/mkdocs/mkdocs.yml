@@ -74,6 +74,7 @@ nav:
       - autorotate_x1_yoga_linux: hardware/autorotate_x1_yoga_linux.md
       - notify_brightness_linux: hardware/notify_brightness_linux.md
       - notify_kbd_brightness_linux: hardware/notify_kbd_brightness_linux.md
+      - notify_microphone_linux: hardware/notify_microphone_linux.md
       - notify_power_linux: hardware/notify_power_linux.md
       - notify_volume_linux: hardware/notify_volume_linux.md
       - power_control_linux: hardware/power_control_linux.md
@@ -90,6 +91,7 @@ nav:
       - install_ether_rules_mcp_unix: install/install_ether_rules_mcp_unix.md
       - install_firefox_mozilla_linux: install/install_firefox_mozilla_linux.md
       - install_github_cli_linux: install/install_github_cli_linux.md
+      - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_mosh_tmux_kitty_unix: install/install_mosh_tmux_kitty_unix.md
       - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
@@ -111,7 +113,12 @@ nav:
       - wifi_scan_linux: network/wifi_scan_linux.md
       - wifi_toggle_interface_linux: network/wifi_toggle_interface_linux.md
       - wifi_toggle_internal_linux: network/wifi_toggle_internal_linux.md
+      - wifi_toggle_linux: network/wifi_toggle_linux.md
+      - flight_mode_toggle_linux: network/flight_mode_toggle_linux.md
       - Reglas polkit: network/wifi_polkit_rules.md
+  - Sistema:
+      - rofi_search_linux: system/rofi_search_linux.md
+      - i3_settings_menu_linux: system/i3_settings_menu_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

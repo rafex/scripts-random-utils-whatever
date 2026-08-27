@@ -42,6 +42,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/autorotate_x1_yoga_linux.sh` | Linux | — | no | sí | medio | [doc](hardware/autorotate_x1_yoga_linux.md) |
 | `scripts/hardware/notify_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_brightness_linux.md) |
 | `scripts/hardware/notify_kbd_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_kbd_brightness_linux.md) |
+| `scripts/hardware/notify_microphone_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_microphone_linux.md) |
 | `scripts/hardware/notify_power_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_power_linux.md) |
 | `scripts/hardware/notify_volume_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_volume_linux.md) |
 | `scripts/hardware/power_control_linux.sh` | Linux | power-control | sí | sí | alto | [doc](hardware/power_control_linux.md) |
@@ -64,6 +65,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
 | `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
 | `scripts/install/scrape_java_runtimes.py` | Linux | scrape-java-runtimes | no | — | bajo | [doc](install/scrape_java_runtimes.md) |
+| `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
 | `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
 | `scripts/macos/clean_apple_meta_macos.sh` | macOS | clean-apple-meta | no | sí | alto | [doc](macos/clean_apple_meta_macos.md) |
 | `scripts/network/connect_nas_linux.sh` | Linux | connect-nas | sí | — | medio | [doc](network/connect_nas_linux.md) |
@@ -78,6 +80,10 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/network/wifi_scan_linux.sh` | Linux | wifi-scan | opcional | — | bajo | [doc](network/wifi_scan_linux.md) |
 | `scripts/network/wifi_toggle_interface_linux.sh` | Linux | wifi-toggle-interface | opcional | — | medio | [doc](network/wifi_toggle_interface_linux.md) |
 | `scripts/network/wifi_toggle_internal_linux.sh` | Linux | wifi-toggle-radio | opcional | — | medio | [doc](network/wifi_toggle_internal_linux.md) |
+| `scripts/network/flight_mode_toggle_linux.sh` | Linux | — | no | — | medio | [doc](network/flight_mode_toggle_linux.md) |
+| `scripts/network/wifi_toggle_linux.sh` | Linux | — | no | — | bajo | [doc](network/wifi_toggle_linux.md) |
+| `scripts/system/i3_settings_menu_linux.sh` | Linux | — | no | — | bajo | [doc](system/i3_settings_menu_linux.md) |
+| `scripts/system/rofi_search_linux.sh` | Linux | — | no | — | bajo | [doc](system/rofi_search_linux.md) |
 
 ## Documentos suplementarios
 
