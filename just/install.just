@@ -57,6 +57,16 @@ scrape-eclipse-packages *args:
 install-eclipse-ide *args:
     bash scripts/install/install_eclipse_ide_linux.sh {{args}}
 
+# Consultar versiones y binarios oficiales de Temurin, GraalVM y Semeru
+# Uso: just scrape-java-runtimes --provider all --pretty
+scrape-java-runtimes *args:
+    python3 scripts/install/scrape_java_runtimes.py {{args}}
+
+# Descargar y seleccionar un runtime Java local sin modificar mise ni /usr/lib
+# Uso: just install-java-runtime --provider temurin --version 21 --apply
+install-java-runtime *args:
+    bash scripts/install/install_java_runtime_linux.sh {{args}}
+
 # Generar clave SSH y establecer confianza instalando solo la pública
 # Uso: just setup-ssh-trust --apply --target rafex@192.168.3.91
 setup-ssh-trust *args:
