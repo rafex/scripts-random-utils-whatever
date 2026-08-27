@@ -45,6 +45,7 @@ setup-ssh-trust *args:
 # Migrar configuración segura y hardware desde otra laptop Debian/Linux
 # Uso: just migrate-laptop --source rafex@192.168.3.174 --check
 # Hardware: just migrate-laptop --stage hardware --apply
+# Tablet: just migrate-laptop --stage tablet --apply
 migrate-laptop *args:
     bash scripts/install/migrate_laptop_linux.sh {{args}}
 

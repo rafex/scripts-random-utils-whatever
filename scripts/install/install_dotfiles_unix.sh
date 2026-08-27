@@ -37,6 +37,7 @@ SCRIPTS_MAP=(
     "scripts/hardware/notify_power_linux.sh:power-notify.sh"
     "scripts/hardware/screensaver_toggle_linux.sh:screensaver-toggle"
     "scripts/hardware/usb_mount_perms_linux.sh:usb-mount-perms"
+    "scripts/hardware/autorotate_x1_yoga_linux.sh:autorotate-x1-yoga.sh"
     "scripts/display/hidpi_xorg_linux.sh:hidpi_xorg.sh"
     "scripts/display/screen_auto_mirror_linux.sh:screen-auto-mirror.sh"
     "scripts/display/screen_auto_edge_mirror_linux.sh:screen-auto-edge-mirror.sh"

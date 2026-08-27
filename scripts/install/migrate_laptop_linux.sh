@@ -44,6 +44,7 @@ Etapas:
   cameras     Cámara física, PipeWire, VA-API y v4l2loopback
   laptop      TLP, energía, brillo, thermald y NVMe
   display     Herramientas de pantalla; el ajuste se hace en sesión Xorg
+  tablet      Rotación automática, touch y pruebas de pluma Wacom
   all         Todas las etapas en el orden recomendado
 
 Opciones:
@@ -83,7 +84,7 @@ parse_args() {
   done
 
   case "$STAGE" in
-    audit|hardware|desktop|network|usb|cameras|laptop|display|all) ;;
+    audit|hardware|desktop|network|usb|cameras|laptop|display|tablet|all) ;;
     *) die "etapa inválida: $STAGE" ;;
   esac
 }
@@ -210,6 +211,9 @@ Paquetes por etapa:
            v4l2loopback-utils linux-headers-amd64
   laptop:  tlp tlp-rdw upower acpi thermald nvme-cli smartmontools
   display: xrandr autorandr xinput libinput-tools
+  tablet:  evtest libinput-tools xinput xrandr iio-sensor-proxy
+           xserver-xorg-input-wacom xserver-xorg-input-libinput
+           libwacom-common libwacom-bin xournalpp krita
 EOF
 }
 
@@ -328,7 +332,9 @@ audit_target() {
   echo
   echo -e "${BOLD}${CYAN}═══ Auditoría de destino ═══${RESET}"
   echo "host=$(hostname)"
-  printf "os="; . /etc/os-release 2>/dev/null && printf "%s %s\n" "$ID" "${VERSION_ID:-$VERSION_CODENAME}"
+  printf "os="
+  # shellcheck disable=SC1091
+  . /etc/os-release 2>/dev/null && printf "%s %s\n" "$ID" "${VERSION_ID:-$VERSION_CODENAME}"
   printf "kernel="; uname -r
   printf "model="; cat /sys/devices/virtual/dmi/id/product_name 2>/dev/null || echo desconocido
   printf "cpu="; lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}'
@@ -417,6 +423,7 @@ install_user_helpers() {
     "scripts/display/screen_extend_auto_linux.sh:screen-extend-auto.sh"
     "scripts/display/screen_mirror_linux.sh:screen-mirror.sh"
     "scripts/hardware/usb_mount_perms_linux.sh:usb-mount-perms"
+    "scripts/hardware/autorotate_x1_yoga_linux.sh:autorotate-x1-yoga.sh"
   )
 
   for entry in "${mapping[@]}"; do
@@ -531,6 +538,47 @@ stage_display() {
   echo "  ~/.local/bin/hidpi_xorg.sh --check"
 }
 
+ensure_tablet_i3_startup() {
+  local config="$HOME/.config/i3/config"
+  local begin='# BEGIN managed by migrate_laptop_linux.sh: tablet-autorotation'
+  local end='# END managed by migrate_laptop_linux.sh: tablet-autorotation'
+  local line='exec --no-startup-id ~/.local/bin/autorotate-x1-yoga.sh --daemon'
+
+  if [[ "$ACTION" == "plan" ]]; then
+    info "[plan] asegurar autorrotación en $config"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$config")"
+  if [[ -f "$config" && ! -s "$config" ]]; then
+    :
+  elif [[ -f "$config" ]] && grep -Fq "$line" "$config"; then
+    ok "autorrotación ya está en $config"
+    return 0
+  elif [[ -f "$config" ]]; then
+    cp -a "$config" "${config}.bak.$BACKUP_STAMP"
+    info "respaldo de i3: ${config}.bak.$BACKUP_STAMP"
+  fi
+
+  {
+    printf '\n%s\n' "$begin"
+    printf '%s\n' "$line"
+    printf '%s\n' "$end"
+  } >> "$config"
+  ok "autorrotación agregada al inicio de i3"
+}
+
+stage_tablet() {
+  apt_install evtest libinput-tools xinput xrandr iio-sensor-proxy \
+    xserver-xorg-input-wacom xserver-xorg-input-libinput \
+    libwacom-common libwacom-bin xournalpp krita
+  install_user_helpers
+  ensure_tablet_i3_startup
+  info "La desactivación opcional de teclado/touchpad se activa con AUTOROTATE_DISABLE_INPUTS=1"
+  info "Prueba de pluma: just test-wacom-pen --check"
+  ok "rotación automática y herramientas Wacom preparadas"
+}
+
 run_stage() {
   case "$1" in
     hardware) stage_hardware ;;
@@ -540,6 +588,7 @@ run_stage() {
     cameras) stage_cameras ;;
     laptop) stage_laptop ;;
     display) stage_display ;;
+    tablet) stage_tablet ;;
     *) die "etapa no aplicable: $1" ;;
   esac
 }
@@ -571,7 +620,7 @@ main() {
   ensure_sudo
 
   if [[ "$STAGE" == "all" ]]; then
-    for stage in hardware desktop network usb cameras laptop display; do
+    for stage in hardware desktop network usb cameras laptop display tablet; do
       run_stage "$stage"
     done
   else

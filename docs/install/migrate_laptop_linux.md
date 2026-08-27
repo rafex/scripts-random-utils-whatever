@@ -68,7 +68,7 @@ just migrate-laptop --stage hardware --check
 | `--plan` | — | Muestra paquetes y archivos previstos sin modificar nada |
 | `--dry-run` | — | Alias compatible de `--plan` |
 | `--apply` | — | Aplica la etapa seleccionada |
-| `--stage <etapa>` | — | `audit`, `hardware`, `desktop`, `network`, `usb`, `cameras`, `laptop`, `display` o `all` |
+| `--stage <etapa>` | — | `audit`, `hardware`, `desktop`, `network`, `usb`, `cameras`, `laptop`, `display`, `tablet` o `all` |
 | `--help` | `-h` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -110,6 +110,7 @@ just migrate-laptop --source rafex@192.168.3.174 --apply --stage network
 just migrate-laptop --source rafex@192.168.3.174 --apply --stage usb
 just migrate-laptop --source rafex@192.168.3.174 --apply --stage cameras
 just migrate-laptop --source rafex@192.168.3.174 --apply --stage laptop
+just migrate-laptop --source rafex@192.168.3.174 --apply --stage tablet
 ```
 
 La etapa `hardware` instala y verifica:
@@ -152,6 +153,34 @@ fwupdmgr get-devices
 fprintd-enroll
 ```
 
+La etapa `tablet` instala Wacom/XInput, las herramientas de sensores,
+Xournal++ y Krita, copia el daemon de rotación y añade su inicio a i3.
+Comprueba la orientación desde una terminal abierta dentro de la sesión
+gráfica local:
+
+```sh
+just migrate-laptop --stage tablet --check
+just test-wacom-pen --check
+monitor-sensor --accel
+~/.local/bin/autorotate-x1-yoga.sh --once --orientation normal
+```
+
+Después de validar las cuatro orientaciones, recarga i3 con `Mod4+Shift+r`.
+El daemon usa `hotkey_tablet_mode` para activar la rotación y vuelve a
+`normal` al regresar al modo laptop. Si el firmware no entrega ese evento,
+puedes probar explícitamente:
+
+```sh
+~/.local/bin/autorotate-x1-yoga.sh --daemon --sensor-only
+```
+
+El teclado, touchpad y TrackPoint permanecen activos por defecto. Para
+desactivarlos solo después de una prueba física, usa:
+
+```sh
+AUTOROTATE_DISABLE_INPUTS=1 ~/.local/bin/autorotate-x1-yoga.sh --daemon
+```
+
 ### Usando variables de entorno
 
 ```sh
@@ -182,6 +211,10 @@ sudo scripts/hardware/usb_mount_perms_linux.sh --fix --legacy-udev
 - No activa automáticamente parámetros GuC/HuC ni otros parámetros del kernel.
 - No aplica actualizaciones de BIOS o firmware mediante `fwupdmgr`.
 - No añade PPAs ni software externo para el lector Validity VFS7500.
+- La autorrotación opera como usuario en Xorg; no instala `20-intel.conf` ni
+  reglas udev amplias para sensores.
+- La desactivación de entrada en modo tablet es opt-in y se limita a teclado,
+  touchpad y TrackPoint detectados por nombre.
 
 ## Fallos conocidos
 
@@ -237,6 +270,24 @@ estándar. El soporte experimental de `python-validity` requiere software
 externo, firmware del lector y posiblemente inicialización desde Windows; no
 se instala automáticamente.
 
+### `Failed to claim accelerometer: ... AccessDenied`
+
+**Causa:** `monitor-sensor` se ejecutó desde SSH o fuera de la sesión gráfica
+local de i3.
+
+**Solución:** abre Alacritty dentro de i3 y repite `monitor-sensor --accel`.
+Si el error persiste localmente, revisa `iio-sensor-proxy` antes de modificar
+permisos de `/dev/iio:*`.
+
+### La pantalla rota pero la pluma queda desalineada
+
+**Causa:** algunos firmwares reportan el sentido del acelerómetro invertido o
+el dispositivo está gestionado por otro controlador Xorg.
+
+**Solución:** ejecuta las cuatro pruebas `--once`, revisa
+`xsetwacom --list devices` y conserva el mapeo que coincida con el movimiento
+físico de la pantalla.
+
 ## Changelog
 
 ### [Unreleased]
@@ -258,3 +309,5 @@ se instala automáticamente.
   compatibles con la barra i3.
 - **fix:** hacer condicionales los autostarts de `udiskie` y `nm-applet` para
   que el perfil funcione aunque las etapas USB y network se apliquen después.
+- **feat:** añadir etapa tablet con autorrotación dinámica, alineación Wacom y
+  herramientas Xournal++/Krita.

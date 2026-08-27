@@ -12,6 +12,11 @@ screensaver-toggle *args:
 usb-perms *args:
     bash scripts/hardware/usb_mount_perms_linux.sh {{args}}
 
+# Diagnosticar herramientas y dispositivos de pluma Wacom
+# Uso: just test-wacom-pen --check | just test-wacom-pen --apply
+test-wacom-pen *args:
+    bash scripts/hardware/test_wacom_pen_linux.sh {{args}}
+
 # Preparar apagado, reinicio, suspensión, hibernación y bloqueo
 # Uso: just power-control --check | just power-control --apply
 power-control *args:
