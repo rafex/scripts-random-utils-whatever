@@ -47,6 +47,16 @@ install-github-cli *args:
 install-vscodium *args:
     bash scripts/install/install_vscodium_linux.sh {{args}}
 
+# Extraer versiones/enlaces oficiales de Eclipse IDE Java y Enterprise Java
+# Uso: just scrape-eclipse-packages --package all --pretty
+scrape-eclipse-packages *args:
+    python3 scripts/install/scrape_eclipse_packages.py {{args}}
+
+# Descargar, verificar e instalar Eclipse IDE Java o Enterprise Java/Web
+# Uso: just install-eclipse-ide --package jee --apply
+install-eclipse-ide *args:
+    bash scripts/install/install_eclipse_ide_linux.sh {{args}}
+
 # Generar clave SSH y establecer confianza instalando solo la pública
 # Uso: just setup-ssh-trust --apply --target rafex@192.168.3.91
 setup-ssh-trust *args:
