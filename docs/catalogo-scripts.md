@@ -66,6 +66,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
 | `scripts/install/scrape_java_runtimes.py` | Linux | scrape-java-runtimes | no | — | bajo | [doc](install/scrape_java_runtimes.md) |
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
+| `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
 | `scripts/macos/clean_apple_meta_macos.sh` | macOS | clean-apple-meta | no | sí | alto | [doc](macos/clean_apple_meta_macos.md) |
 | `scripts/network/connect_nas_linux.sh` | Linux | connect-nas | sí | — | medio | [doc](network/connect_nas_linux.md) |

@@ -93,3 +93,8 @@ install-terminal-workstation *args:
 # Uso: just install-i3-laptop-controls --apply
 install-i3-laptop-controls *args:
     bash scripts/install/install_i3_laptop_controls_linux.sh {{args}}
+
+# Instalar y configurar UFW con SSH/Mosh y perfiles opcionales de desarrollo/media
+# Uso: just install-ufw --apply [--profile base|dev|media|all]
+install-ufw *args:
+    bash scripts/install/install_ufw_linux.sh {{args}}
