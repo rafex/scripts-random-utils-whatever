@@ -47,3 +47,8 @@ setup-ssh-trust *args:
 # Hardware: just migrate-laptop --stage hardware --apply
 migrate-laptop *args:
     bash scripts/install/migrate_laptop_linux.sh {{args}}
+
+# Preparar terminal, editor, runtimes, OpenCode y Podman rootless en Debian
+# Uso: just install-terminal-workstation --apply --stage all
+install-terminal-workstation *args:
+    bash scripts/install/install_terminal_workstation_linux.sh {{args}}

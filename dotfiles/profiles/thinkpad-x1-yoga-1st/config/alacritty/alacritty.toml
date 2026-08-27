@@ -7,7 +7,7 @@ normal = { family = "DejaVu Sans Mono", style = "Regular" }
 bold = { family = "DejaVu Sans Mono", style = "Bold" }
 italic = { family = "DejaVu Sans Mono", style = "Italic" }
 bold_italic = { family = "DejaVu Sans Mono", style = "Bold Italic" }
-size = 11
+size = 10
 
 [window]
 decorations = "none"
@@ -18,3 +18,9 @@ history = 50000
 
 [selection]
 save_to_clipboard = true
+
+# BEGIN terminal-workstation alacritty
+[terminal.shell]
+program = "/bin/bash"
+args = ["-lc", "exec \"$HOME/.local/bin/start-thinkpad-tmux\""]
+# END terminal-workstation alacritty
