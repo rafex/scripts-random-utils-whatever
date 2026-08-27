@@ -1,3 +1,10 @@
+---
+title: disk_usage_linux.sh
+description: Diagnóstico del uso de disco en Linux
+tags:
+  - desarrollo
+---
+
 # disk_usage_linux.sh
 
 Diagnóstico rápido de uso de disco. Identifica qué está llenando el disco con sudo, genera evidencia en `/tmp` y un `REPORTE.md` con análisis automático y recomendaciones de limpieza.
@@ -7,7 +14,7 @@ Diagnóstico rápido de uso de disco. Identifica qué está llenando el disco co
 - **Dependencias:** `sudo`, `du`, `df`, `journalctl`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -21,7 +28,7 @@ Diagnóstico rápido de uso de disco. Identifica qué está llenando el disco co
 
 > **Forma recomendada desde la raíz del repo:** usar `just disk-usage`.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -29,7 +36,7 @@ Diagnóstico rápido de uso de disco. Identifica qué está llenando el disco co
 - `du`, `df`, `find`, `journalctl`, `dpkg-query`
 - `docker` o `podman` opcionales (detecta automáticamente)
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -50,11 +57,12 @@ El script requiere `sudo` para leer directorios del sistema (`/var`, `/etc`, `/r
 ### Resultado
 
 El script crea:
+
 - `/tmp/disk-usage-<timestamp>/` — directorio con evidencia
 - `/tmp/disk-usage-<timestamp>.tar.gz` — tarball para transporte
 - `REPORTE.md` — análisis automático con semáforo 🔴🟡🟢
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -68,7 +76,7 @@ El script crea:
 | `--output <dir>` | `-o` | Directorio de salida (default: autogenerado en /tmp) |
 | `--help` | `-h` | Muestra la ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -82,7 +90,7 @@ El script crea:
 
 **Orden de prioridad:** flags CLI > variables de entorno > defaults.
 
----
+______________________________________________________________________
 
 ## Qué recolecta
 
@@ -105,7 +113,7 @@ El script crea:
 | 4 | `15-large-packages.txt` | Paquetes Debian más grandes instalados |
 | 4 | `16-apt-autoclean.txt` | Simulación de `apt-get autoclean` |
 
----
+______________________________________________________________________
 
 ## Análisis automático
 
@@ -121,7 +129,7 @@ El `REPORTE.md` incluye una tabla de hallazgos con semáforo:
 | Core dumps | cualquier archivo `core*` | 🔴 |
 | Archivos antiguos | > 5 archivos de 90+ días | 🟡 |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -144,7 +152,11 @@ tar xzf disk-usage-*.tar.gz
 cat disk-usage-*/REPORTE.md
 ```
 
----
+______________________________________________________________________
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

@@ -1,3 +1,10 @@
+---
+title: install_dotfiles_unix.sh
+description: Instalación de dotfiles en macOS y Linux
+tags:
+  - instalación
+---
+
 # install_dotfiles_unix.sh
 
 Empaqueta los dotfiles de i3wm en un `tar.gz` distribuible con un instalador autocontenido. El paquete se transfiere a cualquier máquina Debian/Linux y al extraerlo contiene su propio `install.sh` que detecta shell, verifica sudo, instala paquetes, copia configs, scripts y añade variables de entorno.
@@ -6,7 +13,7 @@ Empaqueta los dotfiles de i3wm en un `tar.gz` distribuible con un instalador aut
 - **SO requerido:** macOS, Linux
 - **Dependencias:** `tar`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -23,7 +30,7 @@ Empaqueta los dotfiles de i3wm en un `tar.gz` distribuible con un instalador aut
 | `--dry-run` | Muestra los pasos sin empaquetar |
 | `-h, --help` | Muestra la ayuda |
 
----
+______________________________________________________________________
 
 ## Qué incluye el paquete
 
@@ -41,15 +48,15 @@ i3-dotfiles-bundle.tar.gz
 ## Comportamiento de install.sh (dentro del tar.gz)
 
 1. **Detecta shell** (bash/zsh/fish) → determina el archivo RC correcto
-2. **Verifica sudo**:
+1. **Verifica sudo**:
    - Con sudo → instala paquetes vía `apt-get`
    - Sin sudo → advierte y salta instalación de paquetes (todo en `~/.config/`)
-3. **Backup** de configs existentes → `~/.config/<app>.bak.<timestamp>`
-4. **Copia configs** a `~/.config/i3/`, `~/.config/i3status/`, etc.
-5. **Copia Xresources** a `~/.Xresources`
-6. **Copia scripts** a `~/.local/bin/` (con nombres que i3 config espera)
-7. **Crea directorios** de imágenes: `~/Imágenes/FondosDePantalla/`, `~/Imágenes/CapturasDePantalla/`
-8. **Inyecta env vars** en el RC file (idempotente):
+1. **Backup** de configs existentes → `~/.config/<app>.bak.<timestamp>`
+1. **Copia configs** a `~/.config/i3/`, `~/.config/i3status/`, etc.
+1. **Copia Xresources** a `~/.Xresources`
+1. **Copia scripts** a `~/.local/bin/` (con nombres que i3 config espera)
+1. **Crea directorios** de imágenes: `~/Imágenes/FondosDePantalla/`, `~/Imágenes/CapturasDePantalla/`
+1. **Inyecta env vars** en el RC file (idempotente):
    ```sh
    export XDG_CURRENT_DESKTOP=i3
    export XDG_SESSION_DESKTOP=i3
@@ -86,7 +93,7 @@ just install-dotfiles
 just install-dotfiles --dry-run
 ```
 
----
+______________________________________________________________________
 
 ## Archivos del repositorio asociados
 
@@ -96,7 +103,29 @@ just install-dotfiles --dry-run
 | `dotfiles/install.sh` | Instalador autocontenido dentro del tar.gz |
 | `dotfiles/profiles/<perfil>/deps.txt` | Lista de paquetes apt |
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Variables de entorno
+
+No se requieren variables adicionales fuera de las indicadas en esta documentación.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

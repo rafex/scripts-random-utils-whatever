@@ -1,3 +1,10 @@
+---
+title: deploy_verify_unix.sh
+description: Script de despliegue y verificación remota de scripts
+tags:
+  - desarrollo
+---
+
 # deploy_verify_unix.sh
 
 Deploya scripts del repo a hosts remotos y verifica checksums SHA256. Usa `find` + `xargs` con procesamiento paralelo (`-P4`).
@@ -6,7 +13,7 @@ Deploya scripts del repo a hosts remotos y verifica checksums SHA256. Usa `find`
 - **SO requerido:** macOS, Linux
 - **Dependencias:** `ssh`, `scp`, `sha256sum`, `bash` 4+
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -15,7 +22,7 @@ Deploya scripts del repo a hosts remotos y verifica checksums SHA256. Usa `find`
 - Conexión SSH configurada a los hosts (`.ssh/config` o IP directa)
 - `scripts/dev/commons_deploy_verify_unix.sh` en el mismo directorio (source)
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -42,7 +49,7 @@ Deploya scripts del repo a hosts remotos y verifica checksums SHA256. Usa `find`
 | `DEPLOY_PARALLEL` | `4` | Procesos paralelos de xargs |
 | `PATH_TOML` | `PATH.toml` | Ruta al archivo de configuración |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -63,7 +70,7 @@ Deploya scripts del repo a hosts remotos y verifica checksums SHA256. Usa `find`
 ./scripts/dev/deploy_verify_unix.sh --deploy-verify bastion-usb-wifi --dry-run
 ```
 
----
+______________________________________________________________________
 
 ## PATH.toml
 
@@ -80,7 +87,21 @@ user = "rafex"
 "scripts/hardware/usb_mount_perms_linux.sh" = "usb-mount-perms"
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

@@ -1,3 +1,10 @@
+---
+title: configure_sudo_linux.sh
+description: Configuración segura de sudo para un usuario Linux
+tags:
+  - instalación
+---
+
 # configure_sudo_linux.sh
 
 Instala y configura `sudo` para un usuario normal en una instalación Debian
@@ -8,7 +15,7 @@ recién instalada. Está diseñado para ejecutarse una vez como `root` mediante
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `apt-get`, `getent`, `id`, `usermod`, `visudo`
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -136,7 +143,7 @@ elevar privilegios.
 **Causa:** existe una regla previa con sintaxis incorrecta.
 
 **Solución:** revisa el archivo indicado por `visudo -c`, corrige o restaura
-  el respaldo `.bak.YYYYMMDD_HHMMSS` y vuelve a ejecutar el diagnóstico.
+el respaldo `.bak.YYYYMMDD_HHMMSS` y vuelve a ejecutar el diagnóstico.
 
 ## Changelog
 

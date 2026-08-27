@@ -1,3 +1,10 @@
+---
+title: diag_iface_linux.sh
+description: Diagnóstico completo de una interfaz de red
+tags:
+  - red
+---
+
 # diag_iface_linux.sh
 
 Diagnóstico completo de una interfaz de red. Recolecta evidencia con sudo: WiFi, driver, fail2ban, firewall, kernel, ARP, conntrack, MTU path test, captura tcpdump y hardware. Genera evidencia en `/tmp` y `REPORTE.md` con análisis automático.
@@ -7,7 +14,7 @@ Diagnóstico completo de una interfaz de red. Recolecta evidencia con sudo: WiFi
 - **Dependencias:** `sudo`, `iproute2`, `iw`, `ethtool`, `fail2ban-client`, `tcpdump` (opcional), `nft`/`iptables`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -22,7 +29,7 @@ Diagnóstico completo de una interfaz de red. Recolecta evidencia con sudo: WiFi
 
 > **Forma recomendada desde la raíz del repo:** usar `just diag-iface`.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -32,7 +39,7 @@ Diagnóstico completo de una interfaz de red. Recolecta evidencia con sudo: WiFi
 - `tcpdump` (opcional, auto-detecta)
 - `nft` o `iptables` (auto-detecta)
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -57,11 +64,12 @@ El script requiere `sudo` para acceder a fail2ban, dmesg, iptables, tcpdump y st
 ### Resultado
 
 El script crea:
+
 - `/tmp/diag-iface-<timestamp>/` — directorio con evidencia
 - `/tmp/diag-iface-<timestamp>.tar.gz` — tarball para transporte
 - `REPORTE.md` — análisis automático con semáforo 🔴🟡🟢
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -75,7 +83,7 @@ El script crea:
 | `--output <dir>` | `-o` | Directorio de salida (default: autogenerado en /tmp) |
 | `--help` | `-h` | Muestra la ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -87,7 +95,7 @@ El script crea:
 
 **Orden de prioridad:** flags CLI > variables de entorno > defaults.
 
----
+______________________________________________________________________
 
 ## Auto-detección de interfaz
 
@@ -99,7 +107,7 @@ sudo ./scripts/network/diag_iface_linux.sh --auto
 
 Útil cuando no sabes qué interfaz está fallando — el script deduce cuál tiene más paquetes descartados.
 
----
+______________________________________________________________________
 
 ## Qué recolecta
 
@@ -134,7 +142,7 @@ sudo ./scripts/network/diag_iface_linux.sh --auto
 | 10 | `27-hardware.txt` | RAM, CPUs, load, interrupts, top procesos |
 | 11 | `28-capture.pcap` | `tcpdump -i <iface> -c N` (50 paquetes) |
 
----
+______________________________________________________________________
 
 ## Análisis automático
 
@@ -152,7 +160,7 @@ El `REPORTE.md` incluye una tabla de hallazgos con semáforo:
 | MTU path | ping DF falla | 🟡 |
 | ARP STALE | `> 2` entradas | 🟡 |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -176,7 +184,11 @@ tar xzf diag-iface-*.tar.gz
 cat diag-iface-*/REPORTE.md
 ```
 
----
+______________________________________________________________________
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

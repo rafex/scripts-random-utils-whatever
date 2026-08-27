@@ -1,3 +1,10 @@
+---
+title: setup_ssh_trust_unix.sh
+description: Generación de claves y confianza SSH
+tags:
+  - instalación
+---
+
 # setup_ssh_trust_unix.sh
 
 Genera una clave SSH `ed25519` local y, opcionalmente, instala solamente la
@@ -7,7 +14,7 @@ clave pública en `authorized_keys` de otra máquina.
 - **SO requerido:** macOS, Linux
 - **Dependencias:** `bash`, `ssh`, `ssh-keygen`
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -127,24 +134,24 @@ SSH_TRUST_KEY="$HOME/.ssh/id_ed25519_trust" \
 ### `Permission denied (publickey,password)`
 
 **Causa:** el usuario remoto no permite autenticación inicial o la contraseña
-  no es correcta.
+no es correcta.
 
 **Solución:** verifica `ssh usuario@host` manualmente, habilita temporalmente
-  autenticación por contraseña o instala la pública por consola.
+autenticación por contraseña o instala la pública por consola.
 
 ### `Host key verification failed`
 
 **Causa:** la huella guardada en `known_hosts` no coincide con la máquina.
 
 **Solución:** verifica la identidad del host antes de corregir o retirar la
-  entrada antigua de `~/.ssh/known_hosts`.
+entrada antigua de `~/.ssh/known_hosts`.
 
 ### `clave privada ausente`
 
 **Causa:** existe una `.pub` sin su clave privada correspondiente.
 
 **Solución:** conserva la pública como referencia y genera otra clave con una
-  ruta distinta usando `--key`; el script no sobrescribe archivos.
+ruta distinta usando `--key`; el script no sobrescribe archivos.
 
 ## Changelog
 

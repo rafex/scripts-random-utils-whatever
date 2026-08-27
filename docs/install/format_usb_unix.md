@@ -1,3 +1,10 @@
+---
+title: format_usb_unix.sh
+description: Formateo controlado de memorias USB
+tags:
+  - instalación
+---
+
 # format_usb_unix.sh
 
 Formatea un disco USB en macOS y Linux con el sistema de archivos y nombre de volumen deseados.
@@ -7,7 +14,7 @@ Formatea un disco USB en macOS y Linux con el sistema de archivos y nombre de vo
 - **Dependencias:** `diskutil` (macOS), `mkfs.*` (Linux), `sudo`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -22,7 +29,7 @@ Formatea un disco USB en macOS y Linux con el sistema de archivos y nombre de vo
 - [Fallos conocidos](#fallos-conocidos)
 - [Changelog](#changelog)
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -31,7 +38,7 @@ Formatea un disco USB en macOS y Linux con el sistema de archivos y nombre de vo
 - `sudo` disponible y configurado para el usuario actual
 - El disco USB debe estar conectado y reconocido por el sistema
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -49,7 +56,7 @@ just format-usb [opciones]
 
 Si no se especifica el disco por argumento o variable, el script mostrará un error con instrucciones de uso.
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -61,7 +68,7 @@ Si no se especifica el disco por argumento o variable, el script mostrará un er
 | `--env <archivo.env>` | | Archivo `.env` con `USB_DISK`, `USB_FORMAT`, `USB_NAME` |
 | `--help` | `-h` | Mostrar ayuda |
 
----
+______________________________________________________________________
 
 ## Formatos disponibles
 
@@ -76,7 +83,7 @@ Si no se especifica el disco por argumento o variable, el script mostrará un er
 | `ext2` | ✗ | ✓ | Requiere `e2fsprogs` |
 | `NTFS` | ✗ | ✓ | Requiere `ntfs-3g` |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -92,7 +99,7 @@ Si no se especifica el disco por argumento o variable, el script mostrará un er
 --disk / --format / --name  >  USB_DISK / USB_FORMAT / USB_NAME (env)  >  .env file
 ```
 
----
+______________________________________________________________________
 
 ## Archivo .env
 
@@ -108,7 +115,7 @@ USB_FORMAT=FAT32
 USB_NAME=MI_USB
 ```
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -140,7 +147,7 @@ Ver tareas disponibles:
 just
 ```
 
----
+______________________________________________________________________
 
 ### Directamente sobre el script
 
@@ -174,7 +181,7 @@ USB_DISK=disk5 USB_FORMAT=FAT32 USB_NAME=MI_USB ./scripts/install/format_usb_uni
 ./scripts/install/format_usb_unix.sh --env /tmp/usb.env
 ```
 
----
+______________________________________________________________________
 
 ## Protecciones de seguridad
 
@@ -187,7 +194,7 @@ USB_DISK=disk5 USB_FORMAT=FAT32 USB_NAME=MI_USB ./scripts/install/format_usb_uni
 | Formato no soportado en el OS actual | Error con lista de formatos válidos |
 | Confirmación final antes de formatear | Se requiere escribir `YES` en mayúsculas |
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -195,7 +202,7 @@ USB_DISK=disk5 USB_FORMAT=FAT32 USB_NAME=MI_USB ./scripts/install/format_usb_uni
 
 ### `mkfs.exfat: command not found`
 
-**Causa:** el paquete `exfatprogs` (o `exfat-utils` en distribuciones antiguas) no está instalado.  
+**Causa:** el paquete `exfatprogs` (o `exfat-utils` en distribuciones antiguas) no está instalado.\
 **Solución:**
 
 ```sh
@@ -209,11 +216,11 @@ sudo pacman -S exfatprogs
 sudo dnf install exfatprogs
 ```
 
----
+______________________________________________________________________
 
 ### `mkfs.ntfs: command not found`
 
-**Causa:** el paquete `ntfs-3g` no está instalado.  
+**Causa:** el paquete `ntfs-3g` no está instalado.\
 **Solución:**
 
 ```sh
@@ -224,11 +231,11 @@ sudo apt install ntfs-3g
 sudo pacman -S ntfs-3g
 ```
 
----
+______________________________________________________________________
 
 ### `diskutil eraseDisk` falla con error de permisos en macOS
 
-**Causa:** el disco tiene particiones protegidas o está siendo usado por otro proceso.  
+**Causa:** el disco tiene particiones protegidas o está siendo usado por otro proceso.\
 **Solución:** desmontar manualmente y reintentar:
 
 ```sh
@@ -236,18 +243,18 @@ diskutil unmountDisk force /dev/disk5
 just format-usb --disk disk5 --format FAT32 --name MI_USB
 ```
 
----
+______________________________________________________________________
 
 ### El volumen no aparece en el Finder después de formatear
 
-**Causa:** macOS no montó automáticamente el nuevo volumen.  
+**Causa:** macOS no montó automáticamente el nuevo volumen.\
 **Solución:**
 
 ```sh
 diskutil mountDisk /dev/disk5
 ```
 
----
+______________________________________________________________________
 
 ## Changelog
 
@@ -255,7 +262,7 @@ diskutil mountDisk /dev/disk5
 
 - Pendiente: soporte para particionado personalizado (MBR/GPT).
 
----
+______________________________________________________________________
 
 ### v1.0.0 — 2026-05-02
 

@@ -1,3 +1,10 @@
+---
+title: md2pdf_unix.sh
+description: Conversión de Markdown a PDF en macOS y Linux
+tags:
+  - desarrollo
+---
+
 # md2pdf_unix.sh
 
 Convierte archivos Markdown a PDF con estilo profesional usando pandoc + weasyprint (con fallback automático a xelatex). Soporta temas CSS predefinidos, auto-detección de front-matter YAML, idempotencia (no reescribe PDFs sin cambios), archivo `.env` y conversión por lote recursiva.
@@ -6,7 +13,7 @@ Convierte archivos Markdown a PDF con estilo profesional usando pandoc + weasypr
 - **SO requerido:** macOS, Linux
 - **Dependencias:** `pandoc`, `weasyprint` (o `xelatex`, `pdflatex`, `lualatex`)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -26,7 +33,7 @@ Convierte archivos Markdown a PDF con estilo profesional usando pandoc + weasypr
 
 > **Forma recomendada desde la raíz del repo:** usar `just md2pdf`.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -42,7 +49,7 @@ pip install weasyprint
 
 Si no tienes `weasyprint`, el script hará fallback automático a `xelatex` (TeX Live) o `pdflatex`.
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -62,7 +69,7 @@ just md2pdf -i ./podcast -o ./pdfs --theme podcast
 
 Si no se especifica `--file`, convierte todos los archivos `.md` del directorio de entrada (default: `./input/`).
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -83,7 +90,7 @@ Si no se especifica `--file`, convierte todos los archivos `.md` del directorio 
 | `--env <archivo>` | | Archivo `.env` con configuración (default: `.env`) |
 | `--help` | `-h` | Muestra la ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -104,7 +111,7 @@ Si no se especifica `--file`, convierte todos los archivos `.md` del directorio 
 
 **Orden de prioridad:** flags CLI > variables de entorno > `.env` > defaults.
 
----
+______________________________________________________________________
 
 ## Archivo .env
 
@@ -120,7 +127,7 @@ MD2PDF_TITLE=Mi Podcast
 
 El script carga automáticamente `.env` desde el directorio actual. Usa `--env otro.env` para una ruta personalizada.
 
----
+______________________________________________________________________
 
 ## Temas CSS
 
@@ -131,16 +138,16 @@ El script incluye dos temas predefinidos en `assets/dev/`:
 | `podcast` | `assets/dev/podcast-style.css` | Sans-serif cálido (ámbar `#c2410c`), lectura cómoda en pantalla |
 | `academic` | `assets/dev/academic-style.css` | Serif formal (azul marino `#0a1628`), estilo postulación/ensayo |
 
----
+______________________________________________________________________
 
 ## Auto-detección de CSS
 
 Al procesar un archivo `.md`, el script busca automáticamente un CSS en su mismo directorio, en este orden:
 
 1. `style.css`
-2. `galaxia-style.css`
-3. `podcast-style.css`
-4. `academic-style.css`
+1. `galaxia-style.css`
+1. `podcast-style.css`
+1. `academic-style.css`
 
 Si encuentra alguno, lo usa en lugar del tema definido. Esto permite tener CSS específicos por proyecto sin modificar la configuración global.
 
@@ -156,7 +163,7 @@ proyecto/
 │   └── otro.md
 ```
 
----
+______________________________________________________________________
 
 ## Auto-detección de título (YAML front matter)
 
@@ -173,7 +180,7 @@ date: 2026-08-04
 
 El título se inyecta como metadata de pandoc y aparece en las propiedades del PDF. El flag `--title` tiene prioridad sobre el YAML.
 
----
+______________________________________________________________________
 
 ## Fallback de motor PDF
 
@@ -185,7 +192,7 @@ Si se especifica explícitamente `xelatex` o `pdflatex` con `--engine`, no hay f
 
 > **Nota:** los motores LaTeX (`xelatex`, `pdflatex`) no soportan CSS. El PDF se genera con el estilo por defecto de pandoc/LaTeX.
 
----
+______________________________________________________________________
 
 ## Idempotencia
 
@@ -197,7 +204,7 @@ El script compara la fecha de modificación (`mtime`) del `.md` con el `.pdf` ex
 
 Usa `--force` para reconstruir todos los PDFs sin importar el estado.
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -231,7 +238,7 @@ just md2pdf -f documento.md
 just md2pdf -i ./podcast -o ./pdfs
 ```
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -240,9 +247,11 @@ just md2pdf -i ./podcast -o ./pdfs
 **Causa:** weasyprint en macOS a veces no detecta las fuentes del sistema.
 
 **Solución:** instalar fuentes adicionales:
+
 ```sh
 brew install --cask font-helvetica-neue font-inter
 ```
+
 O usar el fallback a xelatex con `--engine xelatex`.
 
 ### `ModuleNotFoundError: No module named 'weasyprint'`
@@ -250,6 +259,7 @@ O usar el fallback a xelatex con `--engine xelatex`.
 **Causa:** weasyprint no está instalado en el Python activo.
 
 **Solución:**
+
 ```sh
 pip install weasyprint
 # o si usas brew:
@@ -261,6 +271,7 @@ brew install weasyprint
 **Causa:** TeX Live no está instalado.
 
 **Solución:**
+
 ```sh
 # macOS
 brew install basictex
@@ -269,7 +280,7 @@ brew install basictex
 sudo apt install texlive-xetex
 ```
 
----
+______________________________________________________________________
 
 ## Changelog
 

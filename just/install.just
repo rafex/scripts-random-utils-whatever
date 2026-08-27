@@ -67,6 +67,11 @@ scrape-java-runtimes *args:
 install-java-runtime *args:
     bash scripts/install/install_java_runtime_linux.sh {{args}}
 
+# Instalar y configurar el MCP oficial Ether-rules para clientes detectados
+# Uso: just install-ether-rules-mcp --apply
+install-ether-rules-mcp *args:
+    bash scripts/install/install_ether_rules_mcp_unix.sh {{args}}
+
 # Generar clave SSH y establecer confianza instalando solo la pública
 # Uso: just setup-ssh-trust --apply --target rafex@192.168.3.91
 setup-ssh-trust *args:

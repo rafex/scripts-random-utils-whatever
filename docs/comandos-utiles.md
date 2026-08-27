@@ -1,3 +1,10 @@
+---
+title: Comandos útiles
+description: Referencia de comandos frecuentes del repositorio
+tags:
+  - referencia
+---
+
 # Comandos y binarios útiles para la terminal
 
 Alternativas prácticas a varios comandos nativos de macOS y Linux. La combinación más útil para localizar archivos grandes y limpiar carpetas es `ncdu` para explorar y `trash`/`trash-put` para borrar de forma recuperable.
@@ -5,11 +12,11 @@ Alternativas prácticas a varios comandos nativos de macOS y Linux. La combinaci
 - **SO requerido:** macOS, Linux
 - **Dependencias:** las herramientas indicadas en cada sección
 
----
+______________________________________________________________________
 
 ## Índice
 
-- [Instalación](#instalación)
+- [Instalación](#instalacion)
 - [Archivos grandes y uso de disco](#archivos-grandes-y-uso-de-disco)
 - [Borrar carpetas con seguridad](#borrar-carpetas-con-seguridad)
 - [Alternativas a comandos nativos](#alternativas-a-comandos-nativos)
@@ -242,7 +249,7 @@ Antes de borrar `.cache`, `node_modules`, `target`, `build` o artefactos similar
 
 **Causa:** el paquete no está instalado o Linux expone otro nombre (`fdfind`, `batcat` o `trash-put`).
 
-**Solución:** revisa la sección [Instalación](#instalación), ejecuta `command -v <binario>` y usa el nombre alternativo correspondiente.
+**Solución:** revisa la sección [Instalación](#instalacion), ejecuta `command -v <binario>` y usa el nombre alternativo correspondiente.
 
 ### `ncdu` muestra menos espacio del esperado
 

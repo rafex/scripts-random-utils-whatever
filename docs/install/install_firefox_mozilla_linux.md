@@ -1,3 +1,10 @@
+---
+title: install_firefox_mozilla_linux.sh
+description: Instalación de Firefox DEB desde Mozilla
+tags:
+  - instalación
+---
+
 # install_firefox_mozilla_linux.sh
 
 Configura el repositorio APT oficial de Mozilla e instala el paquete DEB
@@ -7,7 +14,7 @@ nativo `firefox`, sin instalar ni eliminar Firefox ESR automáticamente.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `apt-get`, `sudo`; el script instala `wget`, `gnupg` y `ca-certificates` si faltan
 
----
+______________________________________________________________________
 
 ## Índice
 

@@ -1,3 +1,10 @@
+---
+title: scrape_eclipse_packages.py
+description: Consulta de descargas oficiales de Eclipse
+tags:
+  - instalación
+---
+
 # scrape_eclipse_packages.py
 
 Extrae desde Eclipse.org la versión vigente, los enlaces Linux por arquitectura
@@ -7,7 +14,7 @@ y el checksum SHA-512 de los paquetes Java y Enterprise Java/Web.
 - **SO requerido:** macOS, Linux
 - **Dependencias:** `python3` estándar, acceso HTTPS a `www.eclipse.org`
 
----
+______________________________________________________________________
 
 ## Índice
 

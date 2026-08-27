@@ -1,3 +1,10 @@
+---
+title: usb_mount_perms_linux.sh
+description: Permisos para montar USB sin sudo
+tags:
+  - hardware
+---
+
 # usb_mount_perms_linux.sh
 
 Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debian/Ubuntu). Usa polkit/udisks2 como camino principal y deja el acceso udev directo como opción legacy.
@@ -6,7 +13,7 @@ Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debi
 - **SO requerido:** Linux
 - **Dependencias:** `pkaction`, `systemctl`, `loginctl` (todas presentes en Debian/Ubuntu base)
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -14,7 +21,7 @@ Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debi
 - `udisks2` para montaje por CLI (`udisksctl`).
 - `udiskie` para auto-montaje (opcional, recomendado en i3/Xorg).
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -41,7 +48,7 @@ Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux (Debi
 | `USB_PERMS_GROUP` | `plugdev` | Grupo que tendrá permisos de montaje |
 | `I3_CONFIG` | `~/.config/i3/config` | Ruta al archivo de configuración de i3 |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -84,7 +91,7 @@ usb-mount-perms --check   # diagnosticar
 usb-mount-perms --fix      # corregir
 ```
 
----
+______________________________________________________________________
 
 ## Qué corrige (modo `--fix`)
 
@@ -96,7 +103,7 @@ usb-mount-perms --fix      # corregir
 | i3 config | `~/.config/i3/config` | Activa `udiskie --tray` para auto-montaje y habilita `dbus-update-activation-environment` para registro de sesión |
 | udiskie config | `~/.config/udiskie/config.yml` | Auto-montaje al insertar, notificaciones, ignorar discos de sistema |
 
----
+______________________________________________________________________
 
 ## Protecciones de seguridad
 
@@ -107,7 +114,7 @@ usb-mount-perms --fix      # corregir
 - No añade opciones globales de montaje incompatibles con udiskie 2.7; se usan las opciones predeterminadas de udisks2.
 - El modo `--dry-run` permite previsualizar todos los cambios antes de aplicarlos.
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -140,7 +147,17 @@ compatible, sin forzar opciones de montaje inseguras o incompatibles.
 **Causa:** i3 no incluye un agente de polkit por defecto.
 **Solución:** El script lo detecta en modo `check`. Instalar `lxpolkit` o `ukui-polkit` y asegurarse de que arranque en la sesión X (vía `dex --autostart` o manualmente en el config de i3).
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
 
 ## Changelog
 

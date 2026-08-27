@@ -1,3 +1,10 @@
+---
+title: install_terminal_workstation_linux.sh
+description: Preparación de estación de terminal y desarrollo
+tags:
+  - instalación
+---
+
 # install_terminal_workstation_linux.sh
 
 Prepara una estación Debian para terminal, desarrollo, Neovim/LazyVim, runtimes
@@ -7,7 +14,7 @@ gestionados por mise, OpenCode y contenedores rootless con Podman.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `sudo`, `apt-get`; `curl` para herramientas upstream
 
----
+______________________________________________________________________
 
 ## Índice
 

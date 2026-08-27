@@ -1,3 +1,10 @@
+---
+title: nm_force_ip_linux.sh
+description: Diagnóstico y configuración de IP de red
+tags:
+  - red
+---
+
 # nm_force_ip_linux.sh
 
 Diagnostica y fuerza la obtención de IP en una interfaz de red. Detecta el stack de red activo (NetworkManager, systemd-networkd, dhcpcd, ifupdown, dhclient standalone) y usa las herramientas adecuadas sin conflictos.
@@ -6,7 +13,7 @@ Diagnostica y fuerza la obtención de IP en una interfaz de red. Detecta el stac
 - **SO requerido:** Linux
 - **Dependencias:** `nmcli` (NetworkManager), `networkctl`, `dhcpcd`, `dhclient`, `ethtool`, `iproute2` (según el stack)
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -16,7 +23,7 @@ Diagnostica y fuerza la obtención de IP en una interfaz de red. Detecta el stac
 - **ethtool** — para modo `--auto-neg`
 - **iproute2** — fallback para IP estática con `ip`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -61,22 +68,22 @@ El script avisa si detecta:
 - NetworkManager + systemd-networkd corriendo simultáneamente
 - `isc-dhcp-client` + `dhcpcd-base` ambos instalados
 
----
+______________________________________________________________________
 
 ## Diagnóstico (`--check`)
 
 Muestra sin modificar y sin requerir sudo:
 
 1. Stack de red activo + DHCP client en uso
-2. Conflictos detectados (múltiples stacks/DHCP clients)
-3. Estado de la interfaz (carrier, operstate, driver, MAC, MTU, IPs)
-4. Estado de NetworkManager (device state, connection config, perfil IP)
-5. **Auto-negociación en perfil NM** — detecta si está desactivada (causa común de "sin IP")
-6. Estado de asociación conexión↔dispositivo
-7. Timeout y tolerancia a fallos (may-fail, dhcp-timeout)
-8. Última conexión exitosa (timestamp)
-9. Conflicto con `/etc/network/interfaces`
-10. DHCP leases (rutas, sin leer contenido)
+1. Conflictos detectados (múltiples stacks/DHCP clients)
+1. Estado de la interfaz (carrier, operstate, driver, MAC, MTU, IPs)
+1. Estado de NetworkManager (device state, connection config, perfil IP)
+1. **Auto-negociación en perfil NM** — detecta si está desactivada (causa común de "sin IP")
+1. Estado de asociación conexión↔dispositivo
+1. Timeout y tolerancia a fallos (may-fail, dhcp-timeout)
+1. Última conexión exitosa (timestamp)
+1. Conflicto con `/etc/network/interfaces`
+1. DHCP leases (rutas, sin leer contenido)
 
 ### Diagnóstico automático
 
@@ -94,7 +101,7 @@ Al final del `--check`, el script analiza los hallazgos y emite recomendaciones 
   $ sudo ~/.local/bin/nm-force-ip enp1s0f0 --dhcp
 ```
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -128,17 +135,18 @@ nm-force-ip enp1s0f0 --check
 sudo nm-force-ip enp1s0f0 --dhcp
 ```
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
 ### `DHCP falló en todos los intentos`
 
 **Causa:** No hay servidor DHCP en la red o la auto-negociación no funciona.
-**Solución:** 
+**Solución:**
+
 1. Probar `--auto-neg on` para reactivar auto-negociación
-2. Usar IP estática: `--static 192.168.x.x/24 --gateway 192.168.x.1`
-3. Verificar que el puerto del switch/router tiene DHCP habilitado
+1. Usar IP estática: `--static 192.168.x.x/24 --gateway 192.168.x.1`
+1. Verificar que el puerto del switch/router tiene DHCP habilitado
 
 ### `Se requiere sudo`
 
@@ -150,7 +158,21 @@ sudo nm-force-ip enp1s0f0 --dhcp
 **Causa:** La interfaz está configurada sin auto-negociación, lo que puede causar que DHCP falle aunque el cable esté conectado.
 **Solución:** `sudo $0 <iface> --auto-neg on`
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Variables de entorno
+
+No se requieren variables adicionales fuera de las indicadas en esta documentación.
 
 ## Changelog
 

@@ -1,3 +1,10 @@
+---
+title: install_github_cli_linux.sh
+description: Instalación de GitHub CLI oficial
+tags:
+  - instalación
+---
+
 # install_github_cli_linux.sh
 
 Configura el repositorio APT oficial de GitHub CLI e instala el comando `gh`
@@ -7,7 +14,7 @@ en Debian. No configura autenticación ni almacena tokens.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `apt-get`, `dpkg`, `sudo`; el script instala `wget`, `gnupg` y `ca-certificates` si faltan
 
----
+______________________________________________________________________
 
 ## Índice
 

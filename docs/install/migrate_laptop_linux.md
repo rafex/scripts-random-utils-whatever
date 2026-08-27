@@ -1,3 +1,10 @@
+---
+title: migrate_laptop_linux.sh
+description: Migración segura de configuración entre laptops Debian
+tags:
+  - instalación
+---
+
 # migrate_laptop_linux.sh
 
 Audita y prepara una ThinkPad Debian a partir de una laptop Debian fuente,
@@ -7,7 +14,7 @@ transfiriendo únicamente configuración portable y sin copiar secretos.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `ssh`, `sudo`, `apt-get`, `systemctl`
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -23,6 +30,7 @@ transfiriendo únicamente configuración portable y sin copiar secretos.
 ## Requisitos
 
 - Ejecutar como el usuario normal de la ThinkPad, no como root.
+
 - Para `--apply`, `sudo` debe estar instalado y el usuario debe pertenecer al
   grupo `sudo`. Esta instalación recién hecha puede requerir una preparación
   única desde una consola root:
@@ -34,9 +42,12 @@ transfiriendo únicamente configuración portable y sin copiar secretos.
   ```
 
   Cierra la sesión y vuelve a entrar antes de ejecutar una etapa `--apply`.
+
 - Tener acceso SSH por clave a la laptop fuente o usar una sesión SSH ya
   configurada.
+
 - La fuente predeterminada es `rafex@192.168.3.174`.
+
 - La ThinkPad debe usar Debian y tener `apt-get` y `systemd`.
 
 ## Uso

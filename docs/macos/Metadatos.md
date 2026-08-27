@@ -1,3 +1,11 @@
+---
+title: Archivos .\_\* en macOS (AppleDouble)
+description: Referencia sobre metadatos de macOS
+tags:
+  - macos
+  - suplementario
+---
+
 # Archivos `._*` en macOS (AppleDouble)
 
 Esos archivos `._nombre` son **AppleDouble**: macOS los crea para guardar metadatos que otros sistemas de archivos no soportan bien, por ejemplo:

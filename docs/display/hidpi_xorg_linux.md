@@ -1,3 +1,10 @@
+---
+title: hidpi_xorg_linux.sh
+description: Diagnóstico y configuración de DPI para Xorg
+tags:
+  - pantallas
+---
+
 # hidpi_xorg_linux.sh
 
 Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg (`xrandr --scale`) y `Xft.dpi` en `~/.Xresources`.
@@ -6,7 +13,7 @@ Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg 
 - **SO requerido:** Linux (Xorg)
 - **Dependencias:** `xrandr`, `python3`, `xrdb`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -15,14 +22,14 @@ Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg 
 ./scripts/display/hidpi_xorg_linux.sh --apply
 ```
 
----
+______________________________________________________________________
 
 ## Cómo funciona
 
 1. Detecta el panel interno (`eDP-*`, `LVDS-*` o `DSI-*`) o usa el primero disponible
-2. Mide DPI a partir de la resolución y dimensiones físicas (mm) del EDID
-3. Si no hay mm en EDID, estima por resolución (4K → 200%, QHD+ → 150%, etc.)
-4. `--check` solo informa; `--apply` ajusta `xrandr`, `Xft.dpi` y aplica `xrdb -merge`
+1. Mide DPI a partir de la resolución y dimensiones físicas (mm) del EDID
+1. Si no hay mm en EDID, estima por resolución (4K → 200%, QHD+ → 150%, etc.)
+1. `--check` solo informa; `--apply` ajusta `xrandr`, `Xft.dpi` y aplica `xrdb -merge`
 
 ## Opciones
 
@@ -32,7 +39,7 @@ Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg 
 | `--apply` | Aplica el escalado y actualiza `~/.Xresources` |
 | `--output <nombre>` | Fuerza una salida concreta |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -40,7 +47,29 @@ Detecta la resolución y DPI del monitor conectado y ajusta el escalado de Xorg 
 ./scripts/display/hidpi_xorg_linux.sh
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Variables de entorno
+
+No se requieren variables adicionales fuera de las indicadas en esta documentación.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

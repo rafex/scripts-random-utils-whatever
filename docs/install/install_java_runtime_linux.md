@@ -1,3 +1,10 @@
+---
+title: install_java_runtime_linux.sh
+description: Instalación local de runtimes Java oficiales
+tags:
+  - instalación
+---
+
 # install_java_runtime_linux.sh
 
 Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema ni la configuración de `mise`.
@@ -6,7 +13,7 @@ Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin
 - **SO requerido:** Linux
 - **Dependencias:** Bash, Python 3, `curl`, `tar` y `sha256sum`
 
----
+______________________________________________________________________
 
 ## Índice
 

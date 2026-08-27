@@ -1,3 +1,10 @@
+---
+title: install_vscodium_linux.sh
+description: Instalación de VSCodium DEB oficial
+tags:
+  - instalación
+---
+
 # install_vscodium_linux.sh
 
 Configura el repositorio APT oficial de VSCodium e instala el paquete DEB
@@ -8,7 +15,7 @@ Code.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `apt-get`, `dpkg`, `sudo`; el script instala `wget`, `gnupg` y `ca-certificates` si faltan
 
----
+______________________________________________________________________
 
 ## Índice
 

@@ -1,3 +1,10 @@
+---
+title: install_wifi_polkit_linux.sh
+description: Instalación de permisos polkit para NetworkManager
+tags:
+  - red
+---
+
 # install_wifi_polkit_linux.sh
 
 Instala una regla PolicyKit limitada que permite a usuarios locales activos del
@@ -10,7 +17,7 @@ Debe ejecutarse con `sudo`.
 - **SO requerido:** Linux (PolicyKit)
 - **Dependencias:** `polkit`, `sudo`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -18,17 +25,17 @@ Debe ejecutarse con `sudo`.
 sudo ./scripts/network/install_wifi_polkit_linux.sh
 ```
 
----
+______________________________________________________________________
 
 ## Qué hace
 
 1. Crea `/etc/polkit-1/rules.d/10-nm-wifi.rules`
-2. Crea el grupo `netdev` si no existe
-3. Agrega al usuario actual al grupo `netdev`
+1. Crea el grupo `netdev` si no existe
+1. Agrega al usuario actual al grupo `netdev`
 
 Requiere cerrar sesión y volver a entrar para que el grupo tome efecto.
 
----
+______________________________________________________________________
 
 ## Regla instalada
 
@@ -49,7 +56,37 @@ polkit.addRule(function(action, subject) {
 });
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
+
+## Variables de entorno
+
+No se requieren variables adicionales fuera de las indicadas en esta documentación.
+
+## Ejemplos
+
+Consulta los ejemplos de uso incluidos en las secciones anteriores y ejecuta primero un modo de diagnóstico cuando exista.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

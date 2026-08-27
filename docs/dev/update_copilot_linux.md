@@ -1,3 +1,10 @@
+---
+title: update_copilot_linux.sh
+description: Actualización de Copilot en Linux
+tags:
+  - desarrollo
+---
+
 # update_copilot_linux.sh
 
 Variante de `update_copilot_chat_linux.sh` con múltiples flags de API (914, 2151, 103, 870, 0) para mayor compatibilidad con el Marketplace de VS Code cuando el flag por defecto no devuelve resultados.
@@ -8,7 +15,7 @@ Mismas opciones, variables y funcionamiento que `update_copilot_chat_linux.sh`. 
 - **SO requerido:** Linux, macOS
 - **Dependencias:** `curl`, `jq`, `sort`, `awk`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -16,7 +23,7 @@ Mismas opciones, variables y funcionamiento que `update_copilot_chat_linux.sh`. 
 ./scripts/dev/update_copilot_linux.sh [opciones]
 ```
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -28,7 +35,7 @@ Mismas opciones, variables y funcionamiento que `update_copilot_chat_linux.sh`. 
 | `--bin codium\|code` | Binario del editor |
 | `-h, --help` | Mostrar ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -39,7 +46,7 @@ Mismas opciones, variables y funcionamiento que `update_copilot_chat_linux.sh`. 
 | `FORCE` | `1` | Usar `--force` al instalar |
 | `EDITOR_BIN` | auto | Binario del editor |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -49,7 +56,25 @@ Mismas opciones, variables y funcionamiento que `update_copilot_chat_linux.sh`. 
 ./scripts/dev/update_copilot_linux.sh --install --bin codium
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

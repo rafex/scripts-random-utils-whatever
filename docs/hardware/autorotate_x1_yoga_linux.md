@@ -1,3 +1,10 @@
+---
+title: autorotate_x1_yoga_linux.sh
+description: Rotación automática de pantalla para ThinkPad X1 Yoga
+tags:
+  - hardware
+---
+
 # autorotate_x1_yoga_linux.sh
 
 Rota automáticamente la pantalla interna de una ThinkPad X1 Yoga en Xorg y
@@ -7,7 +14,7 @@ alinea la pantalla táctil y la pluma Wacom con la orientación actual.
 - **SO requerido:** Linux
 - **Dependencias:** `xrandr`, `xinput`, `xsetwacom`, `monitor-sensor`, `iio-sensor-proxy`, `flock`, `notify-send` (opcional)
 
----
+______________________________________________________________________
 
 ## Índice
 

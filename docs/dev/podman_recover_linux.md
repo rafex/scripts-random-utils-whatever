@@ -1,3 +1,10 @@
+---
+title: podman_recover_linux.sh
+description: Recuperación del socket de Podman rootless
+tags:
+  - contenedores
+---
+
 # podman_recover_linux.sh
 
 Recupera el socket de Podman cuando falla la conexión (systemctl --user). Diagnostica el estado del socket file, las units `podman.socket` y `podman.service`, y la respuesta de `podman --remote info`. Si algo falla, restaura con reintentos y genera `REPORTE.md` con evidencia en `/tmp`.
@@ -7,7 +14,7 @@ Recupera el socket de Podman cuando falla la conexión (systemctl --user). Diagn
 - **Dependencias:** `systemctl --user`, `podman`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -22,7 +29,7 @@ Recupera el socket de Podman cuando falla la conexión (systemctl --user). Diagn
 
 > **Forma recomendada desde la raíz del repo:** usar `just podman-recover`.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -31,7 +38,7 @@ Recupera el socket de Podman cuando falla la conexión (systemctl --user). Diagn
 - UID 1000 (o configurable: el script detecta el UID automáticamente)
 - `loginctl enable-linger` habilitado para que los servicios --user sobrevivan al logout
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -59,11 +66,12 @@ El script **no requiere sudo** (opera con `systemctl --user`, rootless).
 ### Resultado
 
 El script crea:
+
 - `/tmp/podman-recover-<timestamp>/` — directorio con evidencia
 - `/tmp/podman-recover-<timestamp>.tar.gz` — tarball para transporte
 - `REPORTE.md` — diagnóstico y log de recuperación
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -77,7 +85,7 @@ El script crea:
 | `--output <dir>` | `-o` | Directorio de salida (default: autogenerado en /tmp) |
 | `--help` | `-h` | Muestra la ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -90,7 +98,7 @@ El script crea:
 
 **Orden de prioridad:** flags CLI > variables de entorno > defaults.
 
----
+______________________________________________________________________
 
 ## Diagnóstico
 
@@ -105,7 +113,7 @@ El script verifica 4 componentes:
 
 El diagnóstico se muestra en consola y se guarda en `$OUTDIR/diagnose.txt`.
 
----
+______________________________________________________________________
 
 ## Recuperación
 
@@ -127,12 +135,13 @@ Intentos 4-5:
 ```
 
 Si falla tras 5 intentos:
+
 - Muestra `journalctl --user -u podman` para diagnóstico
 - Sugerencias: `loginctl enable-linger`, `systemctl --user daemon-reexec`, `df -h /run`
 
 Con `--force-reset`, el `reset-failed` se ejecuta desde el intento 1.
 
----
+______________________________________________________________________
 
 ## Modo watch
 
@@ -154,7 +163,7 @@ while true:
 ./scripts/dev/podman_recover_linux.sh --watch --interval 10 &
 ```
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -185,7 +194,11 @@ tar xzf podman-recover-*.tar.gz
 cat podman-recover-*/REPORTE.md
 ```
 
----
+______________________________________________________________________
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

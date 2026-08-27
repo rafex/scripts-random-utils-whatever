@@ -1,3 +1,10 @@
+---
+title: wifi_scan_linux.sh
+description: Escaneo de redes Wi-Fi
+tags:
+  - red
+---
+
 # wifi_scan_linux.sh
 
 Escanea y muestra redes WiFi disponibles usando NetworkManager.
@@ -6,7 +13,7 @@ Escanea y muestra redes WiFi disponibles usando NetworkManager.
 - **SO requerido:** Linux (Debian/Ubuntu con NetworkManager)
 - **Dependencias:** `nmcli`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -14,7 +21,7 @@ Escanea y muestra redes WiFi disponibles usando NetworkManager.
 ./scripts/network/wifi_scan_linux.sh
 ```
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -22,7 +29,7 @@ Escanea y muestra redes WiFi disponibles usando NetworkManager.
 |---|---|---|
 | `WIFI_SCAN_MAX` | `50` | Máximo de redes a mostrar en la salida |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -34,7 +41,7 @@ Escanea y muestra redes WiFi disponibles usando NetworkManager.
 WIFI_SCAN_MAX=10 ./scripts/network/wifi_scan_linux.sh
 ```
 
----
+______________________________________________________________________
 
 ## Salida
 
@@ -49,7 +56,29 @@ WiFi-Abierto      --         30      ▂___     1
   ✓ Total: 12 redes detectadas.
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

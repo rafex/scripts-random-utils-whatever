@@ -1,3 +1,10 @@
+---
+title: enable_debian_repositories_linux.sh
+description: Habilitación de componentes de repositorios Debian
+tags:
+  - instalación
+---
+
 # enable_debian_repositories_linux.sh
 
 Habilita los componentes oficiales de Debian `main`, `contrib`, `non-free` y
@@ -7,7 +14,7 @@ Habilita los componentes oficiales de Debian `main`, `contrib`, `non-free` y
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `apt-get`, `sudo`, `grep`, `awk`, `sed`, `find`
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -135,18 +142,18 @@ apt-cache policy firmware-intel-graphics
 ### `No se encontraron entradas Debian activas`
 
 **Causa:** las fuentes están ausentes, deshabilitadas o usan una extensión no
-  compatible.
+compatible.
 
 **Solución:** usa `--plan`; si no hay fuentes activas, el script propondrá
-  crear un archivo oficial de fallback para la versión detectada.
+crear un archivo oficial de fallback para la versión detectada.
 
 ### `apt-get update` falla después del cambio
 
 **Causa:** mirror inaccesible, suite inválida, proxy o reloj del sistema
-  incorrecto.
+incorrecto.
 
 **Solución:** revisa el respaldo `.bak.YYYYMMDD_HHMMSS`, corrige conectividad
-  o firma de repositorios y repite `sudo apt-get update`.
+o firma de repositorios y repite `sudo apt-get update`.
 
 ## Changelog
 

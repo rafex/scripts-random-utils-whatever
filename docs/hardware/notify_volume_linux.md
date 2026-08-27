@@ -1,3 +1,10 @@
+---
+title: notify_volume_linux.sh
+description: Notificaciones de volumen
+tags:
+  - hardware
+---
+
 # notify_volume_linux.sh
 
 Ajusta el volumen del sistema con `pactl` (PipeWire/PulseAudio) y muestra notificación con el nivel actual o estado de mute.
@@ -6,7 +13,7 @@ Ajusta el volumen del sistema con `pactl` (PipeWire/PulseAudio) y muestra notifi
 - **SO requerido:** Linux (PipeWire o PulseAudio)
 - **Dependencias:** `pactl`, `notify-send`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -16,7 +23,7 @@ Ajusta el volumen del sistema con `pactl` (PipeWire/PulseAudio) y muestra notifi
 ./scripts/hardware/notify_volume_linux.sh mute
 ```
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -24,7 +31,7 @@ Ajusta el volumen del sistema con `pactl` (PipeWire/PulseAudio) y muestra notifi
 |---|---|---|
 | `VOLUME_STEP` | `5` | Porcentaje de incremento/decremento |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -34,7 +41,29 @@ Ajusta el volumen del sistema con `pactl` (PipeWire/PulseAudio) y muestra notifi
 VOLUME_STEP=10 ./scripts/hardware/notify_volume_linux.sh down
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

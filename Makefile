@@ -10,6 +10,7 @@ VERSION  ?= dev
 include make/check.mk
 include make/dist.mk
 include make/checksums.mk
+include make/docs.mk
 
 .DEFAULT_GOAL := help
 

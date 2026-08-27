@@ -1,3 +1,10 @@
+---
+title: clean_apple_meta_macos.sh
+description: Limpieza de metadatos Apple en macOS
+tags:
+  - macos
+---
+
 # clean_apple_meta_macos.sh
 
 Limpia metadatos Apple (`._*`, `.DS_Store`, atributos extendidos) en volúmenes montados que no soportan APFS/HFS+, como NAS, SMB, exFAT o FAT32.
@@ -6,12 +13,12 @@ Limpia metadatos Apple (`._*`, `.DS_Store`, atributos extendidos) en volúmenes 
 - **SO requerido:** macOS
 - **Dependencias:** `xattr`, `find` (incluidos en macOS)
 
----
+______________________________________________________________________
 
 ## Índice
 
 - [Requisitos](#requisitos)
-- [Por qué aparecen estos archivos](#por-qué-aparecen-estos-archivos)
+- [Por qué aparecen estos archivos](#por-que-aparecen-estos-archivos)
 - [Uso](#uso)
 - [Opciones](#opciones)
 - [Variables de entorno](#variables-de-entorno)
@@ -21,7 +28,7 @@ Limpia metadatos Apple (`._*`, `.DS_Store`, atributos extendidos) en volúmenes 
 
 > **Forma recomendada desde la raíz del repo:** usar `just clean-apple-meta`.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -29,7 +36,7 @@ Limpia metadatos Apple (`._*`, `.DS_Store`, atributos extendidos) en volúmenes 
 - El directorio a limpiar debe existir y ser accesible por el usuario actual
 - Para limpiar volúmenes del sistema puede requerirse `sudo`
 
----
+______________________________________________________________________
 
 ## Por qué aparecen estos archivos
 
@@ -43,7 +50,7 @@ macOS guarda metadatos de cada archivo/carpeta (resource fork, etiquetas Finder,
 
 El símbolo `@` en `ls -l` indica que una entrada tiene atributos extendidos activos. Aunque tengas configurado `DSDontWriteNetworkStores = 1`, esto solo afecta a `.DS_Store`, no a los archivos `._*`.
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -59,7 +66,7 @@ just clean-apple-meta --path /Volumes/rafex/repository
 ./scripts/macos/clean_apple_meta_macos.sh --path /Volumes/rafex/repository
 ```
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -70,7 +77,7 @@ just clean-apple-meta --path /Volumes/rafex/repository
 | `--dry-run` | | Mostrar qué se eliminaría sin borrar nada |
 | `--help` | `-h` | Mostrar la ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -80,7 +87,7 @@ just clean-apple-meta --path /Volumes/rafex/repository
 
 Orden de prioridad: argumento `--path` > variable de entorno `CLEAN_PATH`.
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -116,7 +123,7 @@ just clean-apple-meta --path /Volumes/nas/datos
 just clean-apple-meta --path /Volumes/nas/datos --dry-run
 ```
 
----
+______________________________________________________________________
 
 ## Protecciones de seguridad
 
@@ -126,31 +133,31 @@ just clean-apple-meta --path /Volumes/nas/datos --dry-run
 - No se usa `eval` ni interpolación sin sanitizar.
 - Los conteos de archivos se hacen antes de borrar para informar al usuario.
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
 ### `xattr: [path]: No such file or directory` en algunos archivos
 
-**Causa:** Archivos que desaparecen durante el recorrido de `xattr -rc` (race condition en sistemas activos).  
+**Causa:** Archivos que desaparecen durante el recorrido de `xattr -rc` (race condition en sistemas activos).\
 **Solución:** Normal en uso concurrente. Los archivos restantes sí se limpian. Vuelve a ejecutar el script si es necesario.
 
 ### Algunos `._*` vuelven a aparecer después de limpiar
 
-**Causa:** Las carpetas aún tienen atributos extendidos (`@`). macOS los regenera al acceder al volumen.  
+**Causa:** Las carpetas aún tienen atributos extendidos (`@`). macOS los regenera al acceder al volumen.\
 **Solución:** Ejecuta el script sin `--no-xattr` para que limpie también los xattrs con `xattr -rc`.
 
 ### `xattr: command not found`
 
-**Causa:** Se está ejecutando en Linux (aunque el script debería haber abortado antes).  
+**Causa:** Se está ejecutando en Linux (aunque el script debería haber abortado antes).\
 **Solución:** Este script es exclusivo de macOS.
 
 ### No se eliminan los `.DS_Store` en el raíz del volumen
 
-**Causa:** El Finder recrea `.DS_Store` inmediatamente si el volumen está abierto en una ventana del Finder.  
+**Causa:** El Finder recrea `.DS_Store` inmediatamente si el volumen está abierto en una ventana del Finder.\
 **Solución:** Cierra las ventanas del Finder que apunten a ese volumen antes de ejecutar el script.
 
----
+______________________________________________________________________
 
 ## Changelog
 

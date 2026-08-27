@@ -1,0 +1,121 @@
+site_name: scripts-random-utils-whatever
+site_description: Scripts portables para macOS y Linux
+site_author: Rafex
+
+docs_dir: ../../docs
+site_dir: ../../site
+strict: true
+
+theme:
+  name: material
+  language: es
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+
+plugins:
+  - search:
+      lang: es
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Inicio: index.md
+  - Catálogo de scripts: catalogo-scripts.md
+  - Comandos útiles: comandos-utiles.md
+  - Desarrollo:
+      - commons_deploy_verify_unix: dev/commons_deploy_verify_unix.md
+      - deploy_configs_unix: dev/deploy_configs_unix.md
+      - deploy_verify_unix: dev/deploy_verify_unix.md
+      - disk_usage_linux: dev/disk_usage_linux.md
+      - jdtls_linux: dev/jdtls_linux.md
+      - md2pdf_unix: dev/md2pdf_unix.md
+      - Podman cleanup: dev/podman_cleanup_linux.md
+      - Podman overlay watch: dev/podman_overlay_watch_linux.md
+      - Podman recover: dev/podman_recover_linux.md
+      - update_copilot_chat_linux: dev/update_copilot_chat_linux.md
+      - update_copilot_linux: dev/update_copilot_linux.md
+      - validate_script_docs: dev/validate_script_docs.md
+  - Pantallas:
+      - hidpi_xorg_linux: display/hidpi_xorg_linux.md
+      - screen_auto_edge_mirror_linux: display/screen_auto_edge_mirror_linux.md
+      - screen_auto_mirror_linux: display/screen_auto_mirror_linux.md
+      - screen_extend_auto_linux: display/screen_extend_auto_linux.md
+      - screen_mirror_linux: display/screen_mirror_linux.md
+  - Hardware:
+      - autorotate_x1_yoga_linux: hardware/autorotate_x1_yoga_linux.md
+      - notify_brightness_linux: hardware/notify_brightness_linux.md
+      - notify_kbd_brightness_linux: hardware/notify_kbd_brightness_linux.md
+      - notify_power_linux: hardware/notify_power_linux.md
+      - notify_volume_linux: hardware/notify_volume_linux.md
+      - power_control_linux: hardware/power_control_linux.md
+      - screensaver_toggle_linux: hardware/screensaver_toggle_linux.md
+      - test_wacom_pen_linux: hardware/test_wacom_pen_linux.md
+      - usb_mount_perms_linux: hardware/usb_mount_perms_linux.md
+  - Instalación:
+      - configure_sudo_linux: install/configure_sudo_linux.md
+      - create_usb_unix: install/create_usb_unix.md
+      - enable_debian_repositories_linux: install/enable_debian_repositories_linux.md
+      - format_usb_unix: install/format_usb_unix.md
+      - install_dotfiles_unix: install/install_dotfiles_unix.md
+      - install_eclipse_ide_linux: install/install_eclipse_ide_linux.md
+      - install_ether_rules_mcp_unix: install/install_ether_rules_mcp_unix.md
+      - install_firefox_mozilla_linux: install/install_firefox_mozilla_linux.md
+      - install_github_cli_linux: install/install_github_cli_linux.md
+      - install_java_runtime_linux: install/install_java_runtime_linux.md
+      - install_mosh_tmux_kitty_unix: install/install_mosh_tmux_kitty_unix.md
+      - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
+      - install_vscodium_linux: install/install_vscodium_linux.md
+      - migrate_laptop_linux: install/migrate_laptop_linux.md
+      - scrape_eclipse_packages: install/scrape_eclipse_packages.md
+      - scrape_java_runtimes: install/scrape_java_runtimes.md
+      - setup_ssh_trust_unix: install/setup_ssh_trust_unix.md
+  - Red:
+      - connect_nas_linux: network/connect_nas_linux.md
+      - diag_iface_linux: network/diag_iface_linux.md
+      - install_wifi_polkit_linux: network/install_wifi_polkit_linux.md
+      - myip_linux: network/myip_linux.md
+      - nm_force_ip_linux: network/nm_force_ip_linux.md
+      - wifi_connect_interactive_linux: network/wifi_connect_interactive_linux.md
+      - wifi_connect_linux: network/wifi_connect_linux.md
+      - wifi_off_linux: network/wifi_off_linux.md
+      - wifi_reset_linux: network/wifi_reset_linux.md
+      - wifi_scan_linux: network/wifi_scan_linux.md
+      - wifi_toggle_interface_linux: network/wifi_toggle_interface_linux.md
+      - wifi_toggle_internal_linux: network/wifi_toggle_internal_linux.md
+      - Reglas polkit: network/wifi_polkit_rules.md
+  - macOS:
+      - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
+      - Metadatos: macos/Metadatos.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/rafex/scripts-random-utils-whatever

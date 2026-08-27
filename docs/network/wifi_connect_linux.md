@@ -1,3 +1,10 @@
+---
+title: wifi_connect_linux.sh
+description: Conexión a redes Wi-Fi mediante NetworkManager
+tags:
+  - red
+---
+
 # wifi_connect_linux.sh
 
 Conecta a una red WiFi usando NetworkManager (`nmcli`). Solicita la contraseña de forma interactiva si no se pasa por argumento.
@@ -6,7 +13,7 @@ Conecta a una red WiFi usando NetworkManager (`nmcli`). Solicita la contraseña 
 - **SO requerido:** Linux (Debian/Ubuntu con NetworkManager)
 - **Dependencias:** `nmcli`, `NetworkManager`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -19,7 +26,7 @@ Conecta a una red WiFi usando NetworkManager (`nmcli`). Solicita la contraseña 
 | `SSID` | Nombre de la red WiFi (obligatorio) |
 | `password` | Contraseña (opcional; si se omite se pide interactivamente) |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -27,7 +34,7 @@ Conecta a una red WiFi usando NetworkManager (`nmcli`). Solicita la contraseña 
 |---|---|
 | `WIFI_PASSWORD` | Contraseña de la red WiFi (alternativa al argumento o prompt) |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -45,17 +52,17 @@ WIFI_PASSWORD=<WIFI_PASSWORD> ./scripts/network/wifi_connect_linux.sh MiRed
 ./scripts/network/wifi_connect_linux.sh "Mi WiFi" contraseña
 ```
 
----
+______________________________________________________________________
 
 ## Validaciones previas
 
 Antes de conectar el script verifica:
 
 1. `nmcli` está instalado
-2. `NetworkManager` está corriendo (`systemctl is-active`)
-3. El WiFi no está bloqueado a nivel radio — si lo está, lo activa automáticamente
+1. `NetworkManager` está corriendo (`systemctl is-active`)
+1. El WiFi no está bloqueado a nivel radio — si lo está, lo activa automáticamente
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -79,7 +86,25 @@ Instalar NetworkManager:
 sudo apt install network-manager
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
 
 ## Changelog
 

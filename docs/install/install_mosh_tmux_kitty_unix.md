@@ -1,3 +1,10 @@
+---
+title: install_mosh_tmux_kitty_unix.sh
+description: Instalación de Mosh, tmux y Kitty
+tags:
+  - instalación
+---
+
 # install_mosh_tmux_kitty_unix.sh
 
 Instala Mosh y tmux en Debian, la definición terminfo de Kitty para el servidor
@@ -8,7 +15,7 @@ desde tmux remoto hacia Kitty.
 - **SO requerido:** macOS, Linux
 - **Dependencias:** `bash`, `ssh`; `sudo` en Debian; Homebrew en macOS
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -157,8 +164,7 @@ repite `Ctrl-b [`, selección y `y`.
 **Causa:** tmux no está instalado en la ThinkPad o no está en el `PATH` del
 login iniciado por SSH.
 
-**Solución:** ejecuta la etapa `--apply` en la ThinkPad y valida `command -v
-tmux` mediante SSH.
+**Solución:** ejecuta la etapa `--apply` en la ThinkPad y valida `command -v tmux` mediante SSH.
 
 ### `missing or unsuitable terminal: xterm-kitty`
 

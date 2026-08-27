@@ -1,3 +1,10 @@
+---
+title: power_control_linux.sh
+description: Acciones de energía y apagado en Linux
+tags:
+  - hardware
+---
+
 # power_control_linux.sh
 
 Prepara comandos de energía en Debian y crea `powerctl` para apagar,
@@ -7,7 +14,7 @@ reiniciar, suspender, hibernar o bloquear desde terminal/i3.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `apt-get`, `sudo`, `systemctl`, `loginctl`
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -114,24 +121,24 @@ bash scripts/hardware/power_control_linux.sh --apply
 ### `poweroff` aparece instalado pero `command not found`
 
 **Causa:** Debian coloca el enlace en `/sbin` o `/usr/sbin`, y la sesión SSH
-  no tiene esos directorios en `PATH`.
+no tiene esos directorios en `PATH`.
 
 **Solución:** ejecuta `just power-control --apply` y abre una nueva sesión.
 
 ### `Interactive authentication required`
 
 **Causa:** la acción se ejecuta desde una sesión SSH sin una sesión gráfica
-  activa de logind.
+activa de logind.
 
 **Solución:** ejecuta el comando desde i3 o permite que `powerctl` solicite
-  autorización mediante `sudo`.
+autorización mediante `sudo`.
 
 ### `hibernate` falla
 
 **Causa:** no hay swap suficiente o la plataforma no permite hibernación.
 
 **Solución:** usa `powerctl suspend` y revisa `swapon --show` antes de
-  configurar hibernación.
+configurar hibernación.
 
 ## Changelog
 

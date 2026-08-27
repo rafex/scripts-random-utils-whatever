@@ -1,0 +1,91 @@
+---
+title: Catálogo de scripts
+description: Inventario de scripts, tareas, privilegios y documentación del repositorio
+tags:
+  - referencia
+  - onboarding
+---
+
+# Catálogo de scripts
+
+Este inventario se mantiene junto con los scripts. El validador documental comprueba que cada script ejecutable tenga una fila y un documento asociado.
+
+## Cómo leer la tabla
+
+- **sudo:** indica si el script puede solicitar o ejecutar privilegios elevados.
+- **seguro:** indica si ofrece `--check`, `--plan` o `--dry-run`.
+- **riesgo:** `bajo`, `medio` o `alto` según cambios externos, red, archivos o discos.
+- Los documentos suplementarios no representan scripts ejecutables.
+
+## Scripts
+
+| Script | Plataforma | Tarea Just | sudo | Seguro | Riesgo | Documentación |
+|---|---|---|---|---|---|---|
+| `scripts/dev/commons_deploy_verify_unix.sh` | macOS/Linux | — | no | — | medio | [doc](dev/commons_deploy_verify_unix.md) |
+| `scripts/dev/deploy_configs_unix.sh` | macOS/Linux | deploy-configs | opcional | sí | alto | [doc](dev/deploy_configs_unix.md) |
+| `scripts/dev/deploy_verify_unix.sh` | macOS/Linux | deploy-verify | no | sí | medio | [doc](dev/deploy_verify_unix.md) |
+| `scripts/dev/disk_usage_linux.sh` | Linux | disk-usage | sí | no | medio | [doc](dev/disk_usage_linux.md) |
+| `scripts/dev/jdtls_linux.sh` | Linux | — | no | — | bajo | [doc](dev/jdtls_linux.md) |
+| `scripts/dev/md2pdf_unix.sh` | macOS/Linux | md2pdf | no | sí | bajo | [doc](dev/md2pdf_unix.md) |
+| `scripts/dev/podman_cleanup_linux.sh` | Linux | podman-cleanup | no | sí | alto | [doc](dev/podman_cleanup_linux.md) |
+| `scripts/dev/podman_overlay_watch_linux.sh` | Linux | podman-overlay-watch | no | sí | medio | [doc](dev/podman_overlay_watch_linux.md) |
+| `scripts/dev/podman_recover_linux.sh` | Linux | podman-recover | no | sí | medio | [doc](dev/podman_recover_linux.md) |
+| `scripts/dev/update_copilot_chat_linux.sh` | Linux | — | no | — | medio | [doc](dev/update_copilot_chat_linux.md) |
+| `scripts/dev/update_copilot_linux.sh` | Linux | — | no | — | medio | [doc](dev/update_copilot_linux.md) |
+| `scripts/dev/validate_script_docs.py` | macOS/Linux | validate-script-docs | no | sí | bajo | [doc](dev/validate_script_docs.md) |
+| `scripts/display/hidpi_xorg_linux.sh` | Linux | — | opcional | sí | medio | [doc](display/hidpi_xorg_linux.md) |
+| `scripts/display/screen_auto_edge_mirror_linux.sh` | Linux | — | no | — | medio | [doc](display/screen_auto_edge_mirror_linux.md) |
+| `scripts/display/screen_auto_mirror_linux.sh` | Linux | — | no | — | medio | [doc](display/screen_auto_mirror_linux.md) |
+| `scripts/display/screen_extend_auto_linux.sh` | Linux | — | no | — | medio | [doc](display/screen_extend_auto_linux.md) |
+| `scripts/display/screen_mirror_linux.sh` | Linux | — | no | — | medio | [doc](display/screen_mirror_linux.md) |
+| `scripts/hardware/autorotate_x1_yoga_linux.sh` | Linux | — | no | sí | medio | [doc](hardware/autorotate_x1_yoga_linux.md) |
+| `scripts/hardware/notify_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_brightness_linux.md) |
+| `scripts/hardware/notify_kbd_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_kbd_brightness_linux.md) |
+| `scripts/hardware/notify_power_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_power_linux.md) |
+| `scripts/hardware/notify_volume_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_volume_linux.md) |
+| `scripts/hardware/power_control_linux.sh` | Linux | power-control | sí | sí | alto | [doc](hardware/power_control_linux.md) |
+| `scripts/hardware/screensaver_toggle_linux.sh` | Linux | screensaver-toggle | no | sí | bajo | [doc](hardware/screensaver_toggle_linux.md) |
+| `scripts/hardware/test_wacom_pen_linux.sh` | Linux | test-wacom-pen | opcional | sí | bajo | [doc](hardware/test_wacom_pen_linux.md) |
+| `scripts/hardware/usb_mount_perms_linux.sh` | Linux | usb-perms | sí | sí | alto | [doc](hardware/usb_mount_perms_linux.md) |
+| `scripts/install/configure_sudo_linux.sh` | Linux | configure-sudo | sí | sí | alto | [doc](install/configure_sudo_linux.md) |
+| `scripts/install/create_usb_unix.sh` | macOS/Linux | create-usb | sí | sí | alto | [doc](install/create_usb_unix.md) |
+| `scripts/install/enable_debian_repositories_linux.sh` | Linux | enable-debian-repositories | sí | sí | alto | [doc](install/enable_debian_repositories_linux.md) |
+| `scripts/install/format_usb_unix.sh` | macOS/Linux | format-usb | sí | sí | alto | [doc](install/format_usb_unix.md) |
+| `scripts/install/install_dotfiles_unix.sh` | macOS/Linux | install-dotfiles | no | sí | medio | [doc](install/install_dotfiles_unix.md) |
+| `scripts/install/install_eclipse_ide_linux.sh` | Linux | install-eclipse-ide | no | sí | medio | [doc](install/install_eclipse_ide_linux.md) |
+| `scripts/install/install_ether_rules_mcp_unix.sh` | macOS/Linux | install-ether-rules-mcp | no | sí | medio | [doc](install/install_ether_rules_mcp_unix.md) |
+| `scripts/install/install_firefox_mozilla_linux.sh` | Linux | install-firefox-mozilla | sí | sí | medio | [doc](install/install_firefox_mozilla_linux.md) |
+| `scripts/install/install_github_cli_linux.sh` | Linux | install-github-cli | sí | sí | medio | [doc](install/install_github_cli_linux.md) |
+| `scripts/install/install_java_runtime_linux.sh` | Linux | install-java-runtime | no | sí | medio | [doc](install/install_java_runtime_linux.md) |
+| `scripts/install/install_mosh_tmux_kitty_unix.sh` | macOS/Linux | install-mosh-tmux-kitty | opcional | sí | medio | [doc](install/install_mosh_tmux_kitty_unix.md) |
+| `scripts/install/install_terminal_workstation_linux.sh` | Linux | install-terminal-workstation | sí | sí | medio | [doc](install/install_terminal_workstation_linux.md) |
+| `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
+| `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
+| `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
+| `scripts/install/scrape_java_runtimes.py` | Linux | scrape-java-runtimes | no | — | bajo | [doc](install/scrape_java_runtimes.md) |
+| `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
+| `scripts/macos/clean_apple_meta_macos.sh` | macOS | clean-apple-meta | no | sí | alto | [doc](macos/clean_apple_meta_macos.md) |
+| `scripts/network/connect_nas_linux.sh` | Linux | connect-nas | sí | — | medio | [doc](network/connect_nas_linux.md) |
+| `scripts/network/diag_iface_linux.sh` | Linux | diag-iface | sí | sí | medio | [doc](network/diag_iface_linux.md) |
+| `scripts/network/install_wifi_polkit_linux.sh` | Linux | — | sí | — | alto | [doc](network/install_wifi_polkit_linux.md) |
+| `scripts/network/myip_linux.sh` | Linux | myip | no | — | bajo | [doc](network/myip_linux.md) |
+| `scripts/network/nm_force_ip_linux.sh` | Linux | nm-force-ip | opcional | sí | alto | [doc](network/nm_force_ip_linux.md) |
+| `scripts/network/wifi_connect_interactive_linux.sh` | Linux | wifi-connect-interactive | opcional | — | medio | [doc](network/wifi_connect_interactive_linux.md) |
+| `scripts/network/wifi_connect_linux.sh` | Linux | wifi-connect | opcional | — | medio | [doc](network/wifi_connect_linux.md) |
+| `scripts/network/wifi_off_linux.sh` | Linux | wifi-off | opcional | — | medio | [doc](network/wifi_off_linux.md) |
+| `scripts/network/wifi_reset_linux.sh` | Linux | wifi-reset | sí | — | alto | [doc](network/wifi_reset_linux.md) |
+| `scripts/network/wifi_scan_linux.sh` | Linux | wifi-scan | opcional | — | bajo | [doc](network/wifi_scan_linux.md) |
+| `scripts/network/wifi_toggle_interface_linux.sh` | Linux | wifi-toggle-interface | opcional | — | medio | [doc](network/wifi_toggle_interface_linux.md) |
+| `scripts/network/wifi_toggle_internal_linux.sh` | Linux | wifi-toggle-radio | opcional | — | medio | [doc](network/wifi_toggle_internal_linux.md) |
+
+## Documentos suplementarios
+
+- [Reglas polkit de Wi-Fi](network/wifi_polkit_rules.md): explica la política, no es un ejecutable.
+- [Metadatos de macOS](macos/Metadatos.md): referencia conceptual para limpieza de volúmenes.
+
+## Hallazgos
+
+- `deploy_configs_unix.sh` documenta una interfaz cuyo orden de argumentos no coincide completamente con la tarea `deploy-configs`.
+- `commons_deploy_verify_unix.sh` no tiene tarea Just dedicada.
+- Algunos scripts simples no exponen `--help`; sus modos se describen directamente en su documento.
+- Los scripts con cambios de sistema o disco están marcados como riesgo alto y requieren leer sus protecciones antes de aplicar.

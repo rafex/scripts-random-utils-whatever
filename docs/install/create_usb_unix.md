@@ -1,3 +1,10 @@
+---
+title: create_usb_unix.sh
+description: Creación de USB booteable en macOS y Linux
+tags:
+  - instalación
+---
+
 # create_usb_unix.sh
 
 Crea un USB booteable desde una imagen ISO en macOS y Linux usando `dd`.
@@ -7,7 +14,7 @@ Crea un USB booteable desde una imagen ISO en macOS y Linux usando `dd`.
 - **Dependencias:** `diskutil`, `dd`, `sudo`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -23,7 +30,7 @@ Crea un USB booteable desde una imagen ISO en macOS y Linux usando `dd`.
 
 > **Forma recomendada desde la raíz del repo:** usar `just create-usb`.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -32,7 +39,7 @@ Crea un USB booteable desde una imagen ISO en macOS y Linux usando `dd`.
 - La imagen ISO debe existir en el sistema de archivos antes de ejecutar
 - El disco USB debe estar conectado y reconocido por el sistema
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -50,7 +57,7 @@ just create-usb [opciones]
 
 Si no se especifica el disco destino por argumento o variable, el script lo pedirá de forma interactiva tras mostrar la lista de discos disponibles.
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -61,7 +68,7 @@ Si no se especifica el disco destino por argumento o variable, el script lo pedi
 | `--env <archivo.env>` | | Archivo `.env` con `USB_ISO` y `USB_DISK` |
 | `--help` | `-h` | Mostrar ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -78,7 +85,7 @@ Las variables de entorno tienen menos prioridad que los argumentos CLI explícit
 --from / --to  >  USB_ISO / USB_DISK (env)  >  .env file
 ```
 
----
+______________________________________________________________________
 
 ## Archivo .env
 
@@ -94,7 +101,7 @@ USB_ISO=/ruta/debian.iso
 USB_DISK=disk4
 ```
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -126,7 +133,7 @@ Ver tareas disponibles en el repo:
 just
 ```
 
----
+______________________________________________________________________
 
 ### Directamente sobre el script
 
@@ -171,6 +178,7 @@ USB_DISK=disk4
 ```sh
 ./scripts/install/create_usb_unix.sh /ruta/debian.iso
 ```
+
 > El disco se solicitará de forma interactiva.
 
 ### Ver progreso del `dd` desde otra terminal
@@ -181,7 +189,7 @@ Mientras el script copia la ISO, en otra terminal ejecutar:
 sudo pkill -INFO dd
 ```
 
----
+______________________________________________________________________
 
 ## Protecciones de seguridad
 
@@ -195,7 +203,7 @@ El script incluye múltiples salvaguardas antes de escribir en el disco:
 | Disco sin `Removable Media: Yes` ni `External` | Advertencia en amarillo + confirmación adicional requerida |
 | Confirmación final antes de escribir | Se requiere escribir `YES` en mayúsculas |
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -203,33 +211,33 @@ El script incluye múltiples salvaguardas antes de escribir en el disco:
 
 ### `dd: /dev/rdisk4: Permission denied`
 
-**Causa:** el usuario no tiene permisos de escritura en el dispositivo raw.  
+**Causa:** el usuario no tiene permisos de escritura en el dispositivo raw.\
 **Solución:** el script ya usa `sudo dd`. Verificar que `sudo` esté configurado. Si persiste, revisar si hay un proceso que tenga el disco montado:
 
 ```sh
 diskutil unmountDisk /dev/disk4
 ```
 
----
+______________________________________________________________________
 
 ### `dd: /dev/rdiskN: Resource busy`
 
-**Causa:** el disco tiene particiones montadas al momento de ejecutar `dd`.  
+**Causa:** el disco tiene particiones montadas al momento de ejecutar `dd`.\
 **Solución:** el script ejecuta `diskutil unmountDisk` antes de `dd`. Si el error persiste:
 
 ```sh
 diskutil unmountDisk force /dev/disk4
 ```
 
----
+______________________________________________________________________
 
 ### El USB no arranca en el equipo destino
 
-**Causa posible 1:** la ISO fue copiada incorrectamente o el proceso fue interrumpido.  
-**Causa posible 2:** el equipo destino requiere modo UEFI/Legacy específico.  
+**Causa posible 1:** la ISO fue copiada incorrectamente o el proceso fue interrumpido.\
+**Causa posible 2:** el equipo destino requiere modo UEFI/Legacy específico.\
 **Solución:** repetir el proceso y verificar que `dd` termine sin errores antes de expulsar.
 
----
+______________________________________________________________________
 
 ## Changelog
 
@@ -237,7 +245,7 @@ diskutil unmountDisk force /dev/disk4
 
 - Pendiente: soporte para mostrar progreso de `dd` en tiempo real (pv).
 
----
+______________________________________________________________________
 
 ### v1.2.0 — 2026-05-02
 
@@ -249,7 +257,7 @@ diskutil unmountDisk force /dev/disk4
 - Prompts interactivos coloreados
 - Sección de discos y cabeceras en cyan/bold
 
----
+______________________________________________________________________
 
 ### v1.1.0 — 2026-05-02
 
@@ -264,7 +272,7 @@ diskutil unmountDisk force /dev/disk4
 - Banner de confirmación prominente antes de la escritura
 - `usage()` con ejemplos y documentación
 
----
+______________________________________________________________________
 
 ### v1.0.0 — 2026-05-02
 

@@ -1,3 +1,10 @@
+---
+title: screensaver_toggle_linux.sh
+description: Control de protector de pantalla y DPMS
+tags:
+  - hardware
+---
+
 # screensaver_toggle_linux.sh
 
 Activa o desactiva la espera de inactividad del protector de pantalla (X11). Opera sobre `xset` — Screen Saver + DPMS. No bloquea la pantalla inmediatamente: solo controla si el protector se activará tras N segundos sin actividad.
@@ -6,7 +13,7 @@ Activa o desactiva la espera de inactividad del protector de pantalla (X11). Ope
 - **SO requerido:** Linux (X11)
 - **Dependencias:** `xset`, `notify-send` (opcional para notificaciones)
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -92,7 +99,7 @@ screensaver-toggle toggle # alternar
 screensaver-toggle status # consultar
 ```
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -106,7 +113,21 @@ screensaver-toggle status # consultar
 **Causa:** `xset` no está instalado o la versión es muy antigua.
 **Solución:** Instalar `x11-xserver-utils`: `sudo apt install x11-xserver-utils`.
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
 
 ## Changelog
 

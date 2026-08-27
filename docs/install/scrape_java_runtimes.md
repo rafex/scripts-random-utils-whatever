@@ -1,3 +1,10 @@
+---
+title: scrape_java_runtimes.py
+description: Consulta de runtimes Java oficiales
+tags:
+  - instalación
+---
+
 # scrape_java_runtimes.py
 
 Consulta los catálogos y enlaces oficiales de Eclipse Temurin, GraalVM Community, Oracle GraalVM e IBM Semeru para Linux y devuelve metadatos JSON verificables.
@@ -6,7 +13,7 @@ Consulta los catálogos y enlaces oficiales de Eclipse Temurin, GraalVM Communit
 - **SO requerido:** Linux
 - **Dependencias:** Python 3 y acceso HTTPS; solo usa la biblioteca estándar
 
----
+______________________________________________________________________
 
 ## Índice
 

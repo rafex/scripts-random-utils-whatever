@@ -1,3 +1,10 @@
+---
+title: screen_auto_edge_mirror_linux.sh
+description: Espejo automático de pantallas en el borde
+tags:
+  - pantallas
+---
+
 # screen_auto_edge_mirror_linux.sh
 
 Duplica la pantalla ajustando el monitor externo al modo nativo del panel interno. Si el externo no está conectado, vuelve a solo laptop.
@@ -6,7 +13,7 @@ Duplica la pantalla ajustando el monitor externo al modo nativo del panel intern
 - **SO requerido:** Linux (Xorg)
 - **Dependencias:** `xrandr`, `notify-send`, `awk`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -14,7 +21,7 @@ Duplica la pantalla ajustando el monitor externo al modo nativo del panel intern
 ./scripts/display/screen_auto_edge_mirror_linux.sh
 ```
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -23,7 +30,7 @@ Duplica la pantalla ajustando el monitor externo al modo nativo del panel intern
 | `SCREEN_INTERNAL` | autodetectada (`eDP-*`, `LVDS-*`, `DSI-*`) | Salida de pantalla interna |
 | `SCREEN_EXTERNAL` | autodetectada (`HDMI-*`, `DP-*`, `DVI-*`, `VGA-*`) | Salida de monitor externo |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -31,7 +38,29 @@ Duplica la pantalla ajustando el monitor externo al modo nativo del panel intern
 ./scripts/display/screen_auto_edge_mirror_linux.sh
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

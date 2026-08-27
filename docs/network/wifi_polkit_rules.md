@@ -1,3 +1,11 @@
+---
+title: wifi_polkit_rules — Permisos sin sudo para NetworkManager
+description: Referencia de reglas polkit para NetworkManager
+tags:
+  - red
+  - suplementario
+---
+
 # wifi_polkit_rules — Permisos sin sudo para NetworkManager
 
 Regla PolicyKit que permite a usuarios del grupo `netdev` gestionar WiFi sin contraseña de sudo: conectar, escanear, modificar conexiones, activar/desactivar interfaces.
@@ -6,7 +14,7 @@ Regla PolicyKit que permite a usuarios del grupo `netdev` gestionar WiFi sin con
 - **Ubicación en el sistema:** `/etc/polkit-1/rules.d/50-wifi-user.rules`
 - **SO requerido:** Linux con PolicyKit (pkaction >= 106)
 
----
+______________________________________________________________________
 
 ## Instalación
 
@@ -17,7 +25,7 @@ sudo chmod 644 /etc/polkit-1/rules.d/50-wifi-user.rules
 
 No requiere reinicio — PolicyKit recarga las reglas automáticamente.
 
----
+______________________________________________________________________
 
 ## Verificar que el usuario está en el grupo `netdev`
 
@@ -33,7 +41,7 @@ sudo usermod -aG netdev $USER
 
 Cerrar sesión y volver a entrar para que el grupo tome efecto.
 
----
+______________________________________________________________________
 
 ## Acciones autorizadas
 
@@ -49,7 +57,7 @@ sesión local activa:
 | `enable-disable-wifi` | Activar/desactivar WiFi |
 | `enable-disable-network` | Activar/desactivar red |
 
----
+______________________________________________________________________
 
 ## Contenido de la regla
 
@@ -70,7 +78,7 @@ polkit.addRule(function(action, subject) {
 });
 ```
 
----
+______________________________________________________________________
 
 ## Troubleshooting
 
@@ -79,8 +87,8 @@ polkit.addRule(function(action, subject) {
 Verificar que:
 
 1. El usuario está en el grupo `netdev` (puede requerir re-login)
-2. La regla tiene permisos 644
-3. PolicyKit está corriendo: `systemctl status polkit`
+1. La regla tiene permisos 644
+1. PolicyKit está corriendo: `systemctl status polkit`
 
 ### `pkaction: command not found`
 
@@ -90,7 +98,7 @@ Instalar:
 sudo apt install polkitd
 ```
 
----
+______________________________________________________________________
 
 ## Changelog
 

@@ -1,3 +1,10 @@
+---
+title: wifi_connect_interactive_linux.sh
+description: Conexión interactiva a redes Wi-Fi
+tags:
+  - red
+---
+
 # wifi_connect_interactive_linux.sh
 
 Conecta a una red WiFi con selección interactiva de red e interfaz. Soporta modo directo con flags `-s` (SSID) y `-b` (BSSID) para uso no interactivo.
@@ -6,7 +13,7 @@ Conecta a una red WiFi con selección interactiva de red e interfaz. Soporta mod
 - **SO requerido:** Linux (NetworkManager)
 - **Dependencias:** `nmcli`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -14,7 +21,7 @@ Conecta a una red WiFi con selección interactiva de red e interfaz. Soporta mod
 ./scripts/network/wifi_connect_interactive_linux.sh [opciones]
 ```
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -25,7 +32,7 @@ Conecta a una red WiFi con selección interactiva de red e interfaz. Soporta mod
 | `-b, --bssid <mac>` | Conectar directo al BSSID (usa `$WIFI_PASS`) |
 | `-h, --help` | Mostrar ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -33,7 +40,7 @@ Conecta a una red WiFi con selección interactiva de red e interfaz. Soporta mod
 |---|---|
 | `WIFI_PASS` | Contraseña para modo directo con `-s` o `-b` |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -54,7 +61,25 @@ copia del perfil para la nueva interfaz en lugar de desconectar la conexión
 existente. Esto permite usar simultáneamente la WiFi interna y un adaptador
 USB, incluso con el mismo SSID.
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

@@ -6,7 +6,7 @@ SCRIPTS := $(shell find scripts/ -name '*.sh')
 
 .PHONY: check check-syntax shellcheck
 
-check: check-syntax verify-checksums ## Ejecutar todas las verificaciones de código
+check: check-syntax verify-checksums docs-check ## Ejecutar todas las verificaciones de código
 
 check-syntax: ## Verificar sintaxis bash de todos los scripts
 	@echo "  Verificando sintaxis bash..."

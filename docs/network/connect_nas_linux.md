@@ -1,3 +1,10 @@
+---
+title: connect_nas_linux.sh
+description: Montaje de un NAS mediante CIFS
+tags:
+  - red
+---
+
 # connect_nas_linux.sh
 
 Monta un recurso compartido CIFS/SMB (NAS) en `/mnt/nas` usando credenciales almacenadas en un archivo.
@@ -6,7 +13,7 @@ Monta un recurso compartido CIFS/SMB (NAS) en `/mnt/nas` usando credenciales alm
 - **SO requerido:** Linux
 - **Dependencias:** `sudo`, `mount.cifs`, `notify-send`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -14,7 +21,7 @@ Monta un recurso compartido CIFS/SMB (NAS) en `/mnt/nas` usando credenciales alm
 ./scripts/network/connect_nas_linux.sh
 ```
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -26,7 +33,7 @@ Monta un recurso compartido CIFS/SMB (NAS) en `/mnt/nas` usando credenciales alm
 | `NAS_UID` | `1000` | UID del dueño |
 | `NAS_GID` | `1000` | GID del grupo |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -37,7 +44,29 @@ NAS_SMB="//192.168.1.100/shared" NAS_MOUNT_POINT="/mnt/backup" \
   ./scripts/network/connect_nas_linux.sh
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

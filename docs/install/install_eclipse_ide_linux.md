@@ -1,3 +1,10 @@
+---
+title: install_eclipse_ide_linux.sh
+description: Instalación de Eclipse IDE oficial
+tags:
+  - instalación
+---
+
 # install_eclipse_ide_linux.sh
 
 Descarga, verifica e instala la versión vigente de Eclipse IDE para Java o
@@ -7,7 +14,7 @@ Enterprise Java/Web desde las páginas oficiales de Eclipse.
 - **SO requerido:** Linux (Debian)
 - **Dependencias:** `bash`, `python3`, `dpkg`, `sudo`; el script instala `ca-certificates`, `wget`, `tar` y `default-jre` si faltan
 
----
+______________________________________________________________________
 
 ## Índice
 

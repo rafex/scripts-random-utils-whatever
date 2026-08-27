@@ -1,3 +1,10 @@
+---
+title: wifi_off_linux.sh
+description: Desactivación de Wi-Fi
+tags:
+  - red
+---
+
 # wifi_off_linux.sh
 
 Apaga interfaces WiFi (interna, USB o ambas) en Linux usando NetworkManager o rfkill.
@@ -6,7 +13,7 @@ Apaga interfaces WiFi (interna, USB o ambas) en Linux usando NetworkManager o rf
 - **SO requerido:** Linux (Debian/Ubuntu con NetworkManager)
 - **Dependencias:** `nmcli`, `rfkill` (opcional)
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -20,7 +27,7 @@ Apaga interfaces WiFi (interna, USB o ambas) en Linux usando NetworkManager o rf
 | `usb` | Apaga solo la interfaz WiFi USB (`wlxa047d76360c5`) |
 | `all` | Apaga ambas interfaces (default) |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -30,7 +37,7 @@ Apaga interfaces WiFi (interna, USB o ambas) en Linux usando NetworkManager o rf
 | `WIFI_OFF_USB` | `wlxa047d76360c5` | Nombre de la interfaz WiFi USB |
 | `WIFI_OFF_RFKILL` | `0` | Usar `rfkill block wifi` en lugar de nmcli (`1` = sí) |
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -51,17 +58,17 @@ WIFI_OFF_RFKILL=1 ./scripts/network/wifi_off_linux.sh all
 WIFI_OFF_INTERNAL=wlan0 ./scripts/network/wifi_off_linux.sh internal
 ```
 
----
+______________________________________________________________________
 
 ## Cómo funciona
 
 1. Si se usa el modo `nmcli` (default):
    - Desconecta la interfaz con `nmcli device disconnect`
    - La pone en modo no gestionado con `nmcli device set <iface> managed false`
-2. Si se usa `rfkill` (`WIFI_OFF_RFKILL=1`):
+1. Si se usa `rfkill` (`WIFI_OFF_RFKILL=1`):
    - Ejecuta `rfkill block wifi` que bloquea todas las radios WiFi a nivel kernel
 
----
+______________________________________________________________________
 
 ## Fallos conocidos
 
@@ -79,7 +86,25 @@ Y usar la variable de entorno:
 WIFI_OFF_USB=wlxNUEVOID ./scripts/network/wifi_off_linux.sh usb
 ```
 
----
+______________________________________________________________________
+
+## Índice
+
+- Requisitos
+- Uso
+- Opciones
+- Variables de entorno
+- Ejemplos
+- Fallos conocidos
+- Changelog
+
+## Requisitos
+
+Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+
+## Opciones
+
+Las opciones disponibles se describen en la ayuda del script y en los ejemplos de esta página. Si no se muestran opciones específicas, se ejecuta sin argumentos.
 
 ## Changelog
 

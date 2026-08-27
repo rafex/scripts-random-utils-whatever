@@ -1,3 +1,10 @@
+---
+title: podman_cleanup_linux.sh
+description: Limpieza controlada de almacenamiento de Podman
+tags:
+  - contenedores
+---
+
 # podman_cleanup_linux.sh
 
 Limpia almacenamiento de Podman/Docker por niveles (0=análisis a 5=nuclear). Ejecuta análisis en paralelo (jobs background que monitorean disco y capas en tiempo real) y genera `REPORTE.md` con comparativa antes/después.
@@ -7,7 +14,7 @@ Limpia almacenamiento de Podman/Docker por niveles (0=análisis a 5=nuclear). Ej
 - **Dependencias:** `podman` y/o `docker`, `du`, `df`
 - **Task runner:** `just` (opcional, para lanzar desde la raíz del repo)
 
----
+______________________________________________________________________
 
 ## Índice
 
@@ -22,7 +29,7 @@ Limpia almacenamiento de Podman/Docker por niveles (0=análisis a 5=nuclear). Ej
 
 > **Forma recomendada desde la raíz del repo:** usar `just podman-cleanup`.
 
----
+______________________________________________________________________
 
 ## Niveles de limpieza
 
@@ -40,7 +47,7 @@ Los niveles 4+ se niegan si hay contenedores running (a menos que se use `--forc
 
 El nivel 5 requiere `podman system reset` posterior para reinicializar el storage.
 
----
+______________________________________________________________________
 
 ## Requisitos
 
@@ -49,7 +56,7 @@ El nivel 5 requiere `podman system reset` posterior para reinicializar el storag
 - `du`, `df`, `sleep` (coreutils)
 - Para nivel 5 Docker: `sudo`
 
----
+______________________________________________________________________
 
 ## Uso
 
@@ -77,11 +84,12 @@ El script **no requiere sudo** (Podman rootless, Docker requiere sudo ya instala
 ### Resultado
 
 El script crea:
+
 - `/tmp/podman-cleanup-<timestamp>/` — directorio con evidencia
 - `/tmp/podman-cleanup-<timestamp>.tar.gz` — tarball para transporte
 - `REPORTE.md` — comparativa antes/después con métricas
 
----
+______________________________________________________________________
 
 ## Opciones
 
@@ -97,7 +105,7 @@ El script crea:
 | `--output <dir>` | `-o` | Directorio de salida (default: autogenerado en /tmp) |
 | `--help` | `-h` | Muestra la ayuda |
 
----
+______________________________________________________________________
 
 ## Variables de entorno
 
@@ -112,7 +120,7 @@ El script crea:
 
 **Orden de prioridad:** flags CLI > variables de entorno > defaults.
 
----
+______________________________________________________________________
 
 ## Análisis en paralelo
 
@@ -137,17 +145,17 @@ El `REPORTE.md` muestra una tabla comparativa:
 | Capas (count) | 1591 | XXX | -XXX |
 ```
 
----
+______________________________________________________________________
 
 ## Medidas de seguridad
 
 1. **Dry-run por defecto** — sin `--level`, solo analiza (nivel 0)
-2. **Backup de `images.json`** — copia a `$OUTDIR/images.json.bak` antes de tocar nada
-3. **Confirmación `y/N`** en niveles 3, 4, 5 (omitible con `--yes`)
-4. **Detección de contenedores running** — aborta niveles 4+ si los hay (excepto `--force`)
-5. **Nivel 5 avisa** que necesita `podman system reset` posterior
+1. **Backup de `images.json`** — copia a `$OUTDIR/images.json.bak` antes de tocar nada
+1. **Confirmación `y/N`** en niveles 3, 4, 5 (omitible con `--yes`)
+1. **Detección de contenedores running** — aborta niveles 4+ si los hay (excepto `--force`)
+1. **Nivel 5 avisa** que necesita `podman system reset` posterior
 
----
+______________________________________________________________________
 
 ## Ejemplos
 
@@ -184,7 +192,11 @@ tar xzf podman-cleanup-*.tar.gz
 cat podman-cleanup-*/REPORTE.md
 ```
 
----
+______________________________________________________________________
+
+## Fallos conocidos
+
+No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
 
 ## Changelog
 

@@ -1,3 +1,10 @@
+---
+title: test_wacom_pen_linux.sh
+description: Diagnóstico de pluma y dispositivos Wacom
+tags:
+  - hardware
+---
+
 # test_wacom_pen_linux.sh
 
 Instala y diagnostica las herramientas necesarias para probar escritura,
@@ -7,7 +14,7 @@ presión e inclinación de la pluma Wacom en la ThinkPad X1 Yoga.
 - **SO requerido:** Linux
 - **Dependencias:** `sudo`, `apt-get`, `xinput`, `xsetwacom`, `libinput`, `evtest`
 
----
+______________________________________________________________________
 
 ## Índice
 
