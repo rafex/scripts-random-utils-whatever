@@ -59,7 +59,9 @@ packages=(rofi pavucontrol network-manager network-manager-gnome nm-connection-e
 install_packages() {
   info "Paquetes: ${packages[*]}"
   [[ "$ACTION" == plan ]] && { info "[plan] sudo apt-get update"; info "[plan] sudo apt-get install -y ${packages[*]}"; return; }
-  [[ "$ACTION" == apply ]] || return
+  if [[ "$ACTION" != apply ]]; then
+    return 0
+  fi
   sudo apt-get update
   sudo apt-get install -y "${packages[@]}"
 }
@@ -72,7 +74,9 @@ install_helper() {
     info "[plan] instalar $target"
     return
   fi
-  [[ "$ACTION" == apply ]] || return
+  if [[ "$ACTION" != apply ]]; then
+    return 0
+  fi
   mkdir -p "$HOME/.local/bin"
   if [[ -e "$target" && ! -L "$target" ]]; then
     cp -a "$target" "$target.bak.$BACKUP_STAMP"
@@ -97,7 +101,9 @@ $end"
     info "[plan] actualizar bloque administrado en $I3_CONFIG"
     return
   fi
-  [[ "$ACTION" == apply ]] || return
+  if [[ "$ACTION" != apply ]]; then
+    return 0
+  fi
   mkdir -p "$(dirname "$I3_CONFIG")"
   if [[ -f "$I3_CONFIG" ]]; then cp -a "$I3_CONFIG" "$I3_CONFIG.bak.$BACKUP_STAMP"; fi
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$begin" "$I3_CONFIG"; then
