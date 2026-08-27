@@ -4,7 +4,7 @@ set $term alacritty
 set $menu rofi -show drun -show-icons
 
 exec_always --no-startup-id xrdb -merge ~/.Xresources
-exec --no-startup-id pasystray
+# pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
 exec_always --no-startup-id dunst
 exec_always --no-startup-id setxkbmap es
 exec --no-startup-id sh -c 'if [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"; fi'

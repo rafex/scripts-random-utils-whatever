@@ -25,7 +25,8 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 ## Incluye
 
 - i3, i3status, rofi, dunst, alacritty y picom.
-- Inicio de `udiskie` y `nm-applet` desde i3.
+- Inicio de `udiskie` desde i3; `pasystray` y `nm-applet` se gestionan mediante
+  los archivos XDG de autostart ejecutados por `dex`.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas.
 - Configuración de udiskie que ignora el NVMe interno.
 - `.Xresources` sin un DPI fijo.

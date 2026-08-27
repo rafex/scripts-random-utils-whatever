@@ -313,3 +313,5 @@ físico de la pantalla.
   herramientas Xournal++/Krita.
 - **fix:** instalar `fonts-noto-color-emoji` para renderizar emojis de las
   notificaciones de energía, brillo y audio.
+- **fix:** evitar el doble inicio de `pasystray` cuando `dex` procesa su
+  archivo XDG de autostart.
