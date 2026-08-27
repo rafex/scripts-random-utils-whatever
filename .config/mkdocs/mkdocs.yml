@@ -91,6 +91,7 @@ nav:
       - install_ether_rules_mcp_unix: install/install_ether_rules_mcp_unix.md
       - install_firefox_mozilla_linux: install/install_firefox_mozilla_linux.md
       - install_github_cli_linux: install/install_github_cli_linux.md
+      - harden_thinkpad_linux: install/harden_thinkpad_linux.md
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_mosh_tmux_kitty_unix: install/install_mosh_tmux_kitty_unix.md

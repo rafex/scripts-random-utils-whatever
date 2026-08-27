@@ -98,3 +98,8 @@ install-i3-laptop-controls *args:
 # Uso: just install-ufw --apply [--profile base|dev|media|all]
 install-ufw *args:
     bash scripts/install/install_ufw_linux.sh {{args}}
+
+# Endurecer SSH y controles de seguridad de la ThinkPad por fases
+# Uso: just harden-thinkpad --apply --stage ssh|local|all
+harden-thinkpad *args:
+    bash scripts/install/harden_thinkpad_linux.sh {{args}}
