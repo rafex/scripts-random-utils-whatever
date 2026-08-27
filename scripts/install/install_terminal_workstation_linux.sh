@@ -407,7 +407,7 @@ update_alacritty() {
   local temporary
   if [[ ! -f "$ALACRITTY_CONFIG" ]]; then
     if [[ "$ACTION" == "plan" ]]; then
-      info "[plan] crear $ALACRITTY_CONFIG con fuente 10 y tmux thinkpad"
+      info "[plan] crear $ALACRITTY_CONFIG con fuente 9 y tmux thinkpad"
       return 0
     fi
     mkdir -p "$(dirname "$ALACRITTY_CONFIG")"
@@ -422,7 +422,7 @@ normal = { family = "DejaVu Sans Mono", style = "Regular" }
 bold = { family = "DejaVu Sans Mono", style = "Bold" }
 italic = { family = "DejaVu Sans Mono", style = "Italic" }
 bold_italic = { family = "DejaVu Sans Mono", style = "Bold Italic" }
-size = 10
+size = 9
 
 [window]
 decorations = "none"
@@ -461,14 +461,14 @@ EOF
   if awk '
     /^\[font\]$/ { in_font=1; next }
     /^\[/ { in_font=0 }
-    in_font && /^size[[:space:]]*=[[:space:]]*10[[:space:]]*$/ { found=1 }
+    in_font && /^size[[:space:]]*=[[:space:]]*9[[:space:]]*$/ { found=1 }
     END { exit(found ? 0 : 1) }
   ' "$ALACRITTY_CONFIG"; then
-    ok "tamaño de fuente Alacritty ya es 10"
+    ok "tamaño de fuente Alacritty ya es 9"
     return 0
   fi
   if [[ "$ACTION" == "plan" ]]; then
-    info "[plan] cambiar tamaño de fuente Alacritty a 10"
+    info "[plan] cambiar tamaño de fuente Alacritty a 9"
     return 0
   fi
   if ! grep -q '^\[font\]$' "$ALACRITTY_CONFIG"; then
@@ -480,12 +480,12 @@ EOF
   awk '
     /^\[font\]$/ { in_font=1 }
     /^\[/ && $0 != "[font]" { in_font=0 }
-    in_font && /^size[[:space:]]*=/ && !changed { print "size = 10"; changed=1; next }
+    in_font && /^size[[:space:]]*=/ && !changed { print "size = 9"; changed=1; next }
     { print }
   ' "$ALACRITTY_CONFIG" > "$temporary"
   chmod --reference="$ALACRITTY_CONFIG" "$temporary"
   mv "$temporary" "$ALACRITTY_CONFIG"
-  ok "tamaño de fuente Alacritty ajustado a 10"
+  ok "tamaño de fuente Alacritty ajustado a 9"
 }
 
 configure_terminal() {

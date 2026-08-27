@@ -49,7 +49,9 @@ just install-terminal-workstation --apply --stage all
 Esa etapa se ejecuta de forma explícita cuando sea necesaria.
 
 Después de aplicar, cierra y abre Alacritty. Debe conectarse a la sesión tmux
-fija `thinkpad`. Las conexiones SSH no se envuelven automáticamente en tmux.
+fija `thinkpad`, usando fuente DejaVu Sans Mono tamaño `9` para la pantalla
+1920x1080 de la ThinkPad. Las conexiones SSH no se envuelven automáticamente
+en tmux.
 
 ## Opciones
 
@@ -156,3 +158,5 @@ la sesión para namespaces rootless.
 
 - **feat:** instalador idempotente de terminal, LazyVim, mise, OpenCode y
   Podman rootless para ThinkPad Debian.
+- **fix:** ajustar Alacritty a tamaño de fuente 9 y evitar que el instalador
+  lo restaure a 10.
