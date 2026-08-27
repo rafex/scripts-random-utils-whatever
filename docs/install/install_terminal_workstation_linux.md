@@ -60,6 +60,11 @@ fija `thinkpad`, usando fuente DejaVu Sans Mono tamaño `7` para la pantalla
 1920x1080 de la ThinkPad. Las conexiones SSH no se envuelven automáticamente
 en tmux.
 
+La etapa `terminal` instala TPM en `~/.tmux/plugins/tpm` y declara los plugins
+del perfil developer. Si una descarga falla, la configuración sigue siendo
+usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
+`Ctrl-b I` para instalarlos o actualizarlos.
+
 ## Opciones
 
 | Opción | Alias | Descripción |
@@ -158,6 +163,21 @@ la sesión para namespaces rootless.
 
 **Solución:** revisa `podman info`, `/etc/subuid`, `/etc/subgid` y la salida de
 `loginctl`; no ejecutes Podman con sudo como solución permanente.
+
+### `Los plugins TPM aparecen como pendientes`
+
+**Causa:** TPM necesita acceso a GitHub y los plugins son instalaciones locales
+separadas del paquete `tmux`.
+
+**Solución:** comprueba la conexión y ejecuta `Ctrl-b I` dentro de tmux. La
+configuración no descarga plugins mediante `sudo`.
+
+### `tmux-256color no está disponible`
+
+**Causa:** el terminal remoto o el sistema no tiene la entrada terminfo.
+
+**Solución:** conserva `TERM=xterm-256color` en Alacritty, instala
+`kitty-terminfo` y utiliza `infocmp tmux-256color` para diagnosticar.
 
 ## Changelog
 

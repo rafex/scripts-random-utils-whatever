@@ -13,6 +13,7 @@ BODA_VERSION="${BODA_VERSION:-0.2616.0}"
 MISE_BIN="${HOME}/.local/bin/mise"
 OPENCODE_BIN="${HOME}/.local/bin/opencode"
 TMUX_CONFIG="${HOME}/.tmux.conf"
+TPM_DIR="${HOME}/.tmux/plugins/tpm"
 BASHRC="${HOME}/.bashrc"
 ALACRITTY_CONFIG="${HOME}/.config/alacritty/alacritty.toml"
 STARSHIP_CONFIG="${HOME}/.config/starship.toml"
@@ -92,7 +93,7 @@ require_linux_user() {
 terminal_packages=(
   bash-completion fzf fd-find bat btop hwatch entr inotify-tools
   ripgrep eza zoxide jq yq tree ncdu duf git-delta lazygit direnv starship
-  just tmux mosh kitty-terminfo git curl wget ca-certificates unzip xclip
+  just tmux mosh kitty-terminfo urlview xdg-utils git curl wget ca-certificates unzip xclip
   shellcheck shfmt build-essential fonts-jetbrains-mono python3-venv pipx
   rustc cargo golang-go
 )
@@ -347,8 +348,82 @@ tmux_block() {
 # BEGIN terminal-workstation tmux
 set -g default-terminal "tmux-256color"
 set -ag terminal-features ",xterm-256color:RGB"
+set -g set-clipboard on
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'tmux-plugins/tmux-yank'
+set -g @plugin 'tmux-plugins/tmux-open'
+set -g @plugin 'sainnhe/tmux-fzf'
+set -g @plugin 'tmux-plugins/tmux-copycat'
+set -g @plugin 'tmux-plugins/tmux-urlview'
+set -g @plugin 'christoomey/vim-tmux-navigator'
+if-shell '[ -x "$HOME/.tmux/plugins/tpm/tpm" ]' 'run-shell "$HOME/.tmux/plugins/tpm/tpm"'
 # END terminal-workstation tmux
 EOF
+}
+
+tpm_plugins=(
+  tmux-sensible tmux-resurrect tmux-continuum tmux-yank tmux-open tmux-fzf
+  tmux-copycat tmux-urlview vim-tmux-navigator
+)
+
+install_tpm() {
+  local temporary
+  if [[ -x "$TPM_DIR/tpm" ]]; then
+    ok "TPM ya está instalado: $TPM_DIR"
+    return 0
+  fi
+  if [[ "$ACTION" == "plan" ]]; then
+    info "[plan] clonar TPM en $TPM_DIR"
+    return 0
+  fi
+  command -v git >/dev/null 2>&1 || die "git es necesario para instalar TPM"
+  temporary="$(mktemp -d)"
+  if git clone --depth 1 https://github.com/tmux-plugins/tpm "$temporary/tpm"; then
+    mkdir -p "$(dirname "$TPM_DIR")"
+    move_to_backup "$TPM_DIR"
+    mv "$temporary/tpm" "$TPM_DIR"
+    chmod 755 "$TPM_DIR/tpm"
+    ok "TPM instalado en $TPM_DIR"
+  else
+    rm -rf "$temporary"
+    warn "no se pudo descargar TPM; instala los plugins manualmente con Ctrl-b I"
+    return 0
+  fi
+  rm -rf "$temporary"
+}
+
+report_tpm_plugins() {
+  local plugin
+  [[ -x "$TPM_DIR/tpm" ]] || return 0
+  for plugin in "${tpm_plugins[@]}"; do
+    if [[ -d "$HOME/.tmux/plugins/$plugin" ]]; then
+      ok "plugin TPM presente: $plugin"
+    else
+      warn "plugin TPM pendiente: $plugin (usa Ctrl-b I dentro de tmux)"
+    fi
+  done
+}
+
+install_tpm_plugins() {
+  if [[ "$ACTION" == "plan" ]]; then
+    info "[plan] instalar plugins declarados mediante TPM"
+    return 0
+  fi
+  [[ -x "$TPM_DIR/bin/install_plugins" ]] || {
+    warn "TPM no tiene install_plugins; usa Ctrl-b I dentro de tmux"
+    return 0
+  }
+  if [[ ! -f "$TMUX_CONFIG" ]] || ! grep -Fq "tmux-plugins/tpm" "$TMUX_CONFIG"; then
+    warn "$TMUX_CONFIG no declara plugins TPM; instala primero el perfil ThinkPad"
+    return 0
+  fi
+  if ! "$TPM_DIR/bin/install_plugins"; then
+    warn "TPM no pudo descargar todos los plugins; revisa la red y usa Ctrl-b I"
+  fi
+  report_tpm_plugins
 }
 
 tmux_launcher() {
@@ -491,6 +566,7 @@ EOF
 configure_terminal() {
   install_apt_stage terminal
   install_boda
+  install_tpm
   install_user_executable "$HOME/.local/bin/start-thinkpad-tmux" "$(tmux_launcher)"
   install_user_executable "$HOME/.local/bin/fd" "$(fd_wrapper)"
   install_user_executable "$HOME/.local/bin/bat" "$(bat_wrapper)"
@@ -503,6 +579,7 @@ configure_terminal() {
     '# BEGIN terminal-workstation tmux' \
     '# END terminal-workstation tmux' \
     "$(tmux_block)"
+  install_tpm_plugins
   write_starship_config
   update_alacritty
 }

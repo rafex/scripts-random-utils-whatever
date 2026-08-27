@@ -53,6 +53,8 @@ i3-dotfiles-bundle.tar.gz
    - Sin sudo → advierte y salta instalación de paquetes (todo en `~/.config/`)
 1. **Backup** de configs existentes → `~/.config/<app>.bak.<timestamp>`
 1. **Copia configs** a `~/.config/i3/`, `~/.config/i3status/`, etc.
+1. **Fusiona paletas** en `~/.config/rafex/themes/` y conserva el tema activo.
+1. **Copia `.tmux.conf`** del perfil a `~/.tmux.conf`, con respaldo fechado.
 1. **Copia Xresources** a `~/.Xresources`
 1. **Copia scripts** a `~/.local/bin/` (con nombres que i3 config espera)
 1. **Crea directorios** de imágenes: `~/Imágenes/FondosDePantalla/`, `~/Imágenes/CapturasDePantalla/`
@@ -89,9 +91,19 @@ cd i3-dotfiles-bundle && ./install.sh --profile thinkpad-x1-yoga-1st
 ### Usando Justfile
 
 ```sh
+# Empaquetar un perfil para distribuirlo
 just install-dotfiles
 just install-dotfiles --dry-run
+
+# Aplicar directamente un perfil en el equipo actual
+just install-profile thinkpad-x1-yoga-1st --dry-run
+just install-profile thinkpad-x1-yoga-1st
 ```
+
+`install-dotfiles` genera el bundle distribuible. `install-profile` ejecuta el
+instalador de `dotfiles/` directamente y acepta el nombre del perfil como
+primer parámetro; los argumentos restantes se pasan al instalador, por ejemplo
+`--dry-run`.
 
 ______________________________________________________________________
 
@@ -100,6 +112,8 @@ ______________________________________________________________________
 | Archivo | Propósito |
 |---|---|
 | `dotfiles/profiles/<perfil>/config/i3/config` | Configuración de i3wm (sanitizada, sin secretos) |
+| `dotfiles/profiles/thinkpad-x1-yoga-1st/config/tmux.conf` | Perfil tmux developer para el usuario |
+| `dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes/` | Paletas light/dark de la sesión |
 | `dotfiles/install.sh` | Instalador autocontenido dentro del tar.gz |
 | `dotfiles/profiles/<perfil>/deps.txt` | Lista de paquetes apt |
 
@@ -130,6 +144,8 @@ No se han registrado fallos adicionales; conserva la salida del comando para dia
 ## Changelog
 
 ### [Unreleased]
+
+**feat:** instalar `.tmux.conf` y paletas ThinkPad preservando el tema activo.
 
 ### v1.0.0 — 2026-07-31
 

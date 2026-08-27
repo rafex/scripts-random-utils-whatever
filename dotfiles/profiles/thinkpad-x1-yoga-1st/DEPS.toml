@@ -37,6 +37,8 @@ portable = [
     "config/picom",
     "config/udiskie",
     "config/Xresources",
+    "config/rafex",
+    "config/tmux.conf",
 ]
 
 [excluded]

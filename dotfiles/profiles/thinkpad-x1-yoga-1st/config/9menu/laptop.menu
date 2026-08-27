@@ -12,6 +12,7 @@ Proyector:exec ~/.local/bin/screen-projector.sh --apply --mode next
 Camara:exec guvcview
 Pluma Wacom:exec ~/.local/bin/test-wacom-pen.sh --check
 Centro de control:exec ~/.local/bin/i3-settings-menu.sh
+Tema claro/oscuro:exec ~/.local/bin/theme-toggle.sh --toggle
 Estado del sistema:exec alacritty -e btop
 Bloquear sesion:exec loginctl lock-session
 Energia:exec ~/.local/bin/i3-settings-menu.sh power

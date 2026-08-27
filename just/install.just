@@ -17,6 +17,11 @@ format-usb *args:
 install-dotfiles *args:
     bash scripts/install/install_dotfiles_unix.sh {{args}}
 
+# Aplicar un perfil de dotfiles directamente en el usuario actual
+# Uso: just install-profile thinkpad-x1-yoga-1st [--dry-run]
+install-profile profile *args:
+    bash dotfiles/install.sh --profile {{profile}} {{args}}
+
 # Configurar sudo para un usuario Debian recién instalado (ejecutar como root)
 # Uso: su -; just configure-sudo --user rafex --apply
 configure-sudo *args:

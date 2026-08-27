@@ -7,7 +7,7 @@ específicas de Xorg, DPI ni autorandr.
 ## Instalación
 
 ```sh
-./dotfiles/install.sh --profile thinkpad-x1-yoga-1st
+just install-profile thinkpad-x1-yoga-1st
 ```
 
 Después de iniciar sesión en Xorg:
@@ -37,6 +37,11 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - `.Xresources` sin un DPI fijo.
 - La autorrotación y las pruebas Wacom se activan con la etapa `tablet` de la
   migración; no se inician desde `.bashrc`.
+- Incluye un tema claro inicial y un tema oscuro de alto contraste para i3,
+  tmux, Alacritty, Rofi y Dunst. Se alternan con `Mod+Shift+T` o desde el
+  centro de control.
+- Incluye `.tmux.conf` basado en el perfil `developer` de
+  `development-environment-rafex`, con navegación tipo Vim, OSC52 y TPM.
 
 ## No incluye
 
@@ -64,3 +69,26 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 Las clases no reconocidas permanecen en el escritorio actual. Para incorporar
 una aplicación nueva, ejecuta `xprop WM_CLASS`, pulsa sobre su ventana y añade
 su clase al bloque de asignaciones de `config/i3`.
+
+## Tema y tmux
+
+El instalador de perfiles crea `~/.config/rafex/themes/current` apuntando a
+`light` la primera vez. Para cambiar el tema sin `sudo`:
+
+```sh
+~/.local/bin/theme-toggle.sh --set light
+~/.local/bin/theme-toggle.sh --set dark
+~/.local/bin/theme-toggle.sh --toggle
+```
+
+`Mod+Shift+T`, la entrada `Tema claro/oscuro` de 9menu y la opción equivalente
+del centro Rofi ejecutan el mismo selector. La fuente de Alacritty conserva el
+tamaño `7`.
+
+El archivo `~/.tmux.conf` contiene los plugins del perfil developer. TPM se
+instala en `~/.tmux/plugins/tpm`; dentro de tmux usa `Ctrl-b I` para instalar o
+actualizar plugins. Una sesión existente puede recargar la configuración con:
+
+```sh
+tmux source-file ~/.tmux.conf
+```

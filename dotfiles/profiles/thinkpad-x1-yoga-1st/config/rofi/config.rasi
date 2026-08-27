@@ -1,3 +1,5 @@
+@theme "~/.config/rafex/themes/current/rofi.rasi"
+
 configuration {
   dpi: 72;
 }

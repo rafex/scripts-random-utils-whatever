@@ -3,10 +3,11 @@ set $mod Mod4
 set $term alacritty
 set $menu rofi -show drun -show-icons
 set $laptop_menu 9menu -popup -label "ThinkPad" -file ~/.config/9menu/laptop.menu
+include ~/.config/rafex/themes/current/i3.conf
 
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
-exec_always --no-startup-id dunst
+exec_always --no-startup-id dunst --config ~/.config/rafex/themes/current/dunst.conf
 exec_always --no-startup-id setxkbmap es
 exec --no-startup-id sh -c 'if [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"; fi'
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'
@@ -28,6 +29,7 @@ bindsym XF86Display exec --no-startup-id ~/.local/bin/screen-projector.sh --appl
 bindsym XF86Tools exec --no-startup-id $laptop_menu
 bindsym $mod+F9 exec --no-startup-id $laptop_menu
 bindsym XF86WakeUp exec --no-startup-id loginctl suspend
+bindsym $mod+Shift+t exec --no-startup-id ~/.local/bin/theme-toggle.sh --toggle
 
 floating_modifier $mod
 tiling_drag modifier titlebar
@@ -150,4 +152,14 @@ bar {
         position bottom
         tray_output primary
         font pango:DejaVu Sans Mono 10, Font Awesome 7 Free 10
+        colors {
+                background $theme_bar_bg
+                statusline $theme_bar_fg
+                separator $theme_separator
+                focused_workspace $theme_active_bg $theme_active_bg $theme_active_fg
+                active_workspace $theme_inactive_bg $theme_inactive_bg $theme_bar_fg
+                inactive_workspace $theme_inactive_bg $theme_inactive_bg $theme_inactive_fg
+                urgent_workspace $theme_urgent_bg $theme_urgent_bg $theme_urgent_fg
+                binding_mode $theme_active_bg $theme_active_bg $theme_active_fg
+        }
 }

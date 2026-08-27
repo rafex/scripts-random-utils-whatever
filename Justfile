@@ -10,6 +10,7 @@ import 'just/hardware.just'
 import 'just/dev.just'
 import 'just/network.just'
 import 'just/display.just'
+import 'just/system.just'
 
 # Listar todas las tareas disponibles
 default:

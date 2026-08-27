@@ -86,6 +86,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/network/wifi_toggle_linux.sh` | Linux | — | no | — | bajo | [doc](network/wifi_toggle_linux.md) |
 | `scripts/system/i3_settings_menu_linux.sh` | Linux | — | no | — | bajo | [doc](system/i3_settings_menu_linux.md) |
 | `scripts/system/rofi_search_linux.sh` | Linux | — | no | — | bajo | [doc](system/rofi_search_linux.md) |
+| `scripts/system/theme_toggle_linux.sh` | Linux | theme-toggle | no | sí | bajo | [doc](system/theme_toggle_linux.md) |
 
 ## Documentos suplementarios
 

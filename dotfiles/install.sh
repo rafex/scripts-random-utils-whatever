@@ -238,7 +238,7 @@ install_configs() {
     local config_src="$PROFILES_DIR/$PROFILE/config"
 
     # Mapeo de archivos especiales (fuera de ~/.config/)
-    local special_files="Xresources xsession"
+    local special_files="Xresources xsession tmux.conf rafex"
 
     for item in "$config_src"/*; do
         local name="${item##*/}"
@@ -275,6 +275,86 @@ install_configs() {
             success "  ${BOLD}$name${RESET}/ (${file_count} archivos)"
         fi
     done
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5b. Fusionar paletas sin reemplazar el estado actual del selector
+# ─────────────────────────────────────────────────────────────────────────────
+install_theme_configs() {
+    local source_root="$PROFILES_DIR/$PROFILE/config/rafex/themes"
+    local target_root="$HOME/.config/rafex/themes"
+    local source_file target_file
+
+    [[ -d "$source_root" ]] || return
+    info "Instalando paletas de tema en ${BOLD}${target_root}${RESET}..."
+    while IFS= read -r -d '' source_file; do
+        target_file="$target_root/${source_file#"$source_root/"}"
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "[dry-run] instalar tema: ${target_file}"
+            continue
+        fi
+        mkdir -p "$(dirname "$target_file")"
+        if [[ -f "$target_file" ]] && cmp -s "$source_file" "$target_file"; then
+            continue
+        fi
+        backup_existing "$target_file"
+        cp "$source_file" "$target_file"
+        chmod 644 "$target_file"
+    done < <(find "$source_root" -type f -print0)
+    success "  paletas light/dark"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6b. Instalar configuración de tmux en ~/.tmux.conf
+# ─────────────────────────────────────────────────────────────────────────────
+install_tmux_config() {
+    local src="$PROFILES_DIR/$PROFILE/config/tmux.conf"
+    local dest="$HOME/.tmux.conf"
+
+    if [[ ! -f "$src" ]]; then
+        return
+    fi
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] instalar tmux.conf → ${dest}"
+        return
+    fi
+
+    backup_existing "$dest"
+    cp "$src" "$dest"
+    chmod 600 "$dest"
+    success "  .tmux.conf"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6c. Inicializar la paleta clara como tema por defecto
+# ─────────────────────────────────────────────────────────────────────────────
+initialize_theme() {
+    local theme_root="$HOME/.config/rafex/themes"
+    local current="$theme_root/current"
+
+    if [[ ! -d "$theme_root/light" ]]; then
+        return
+    fi
+    if [[ -L "$current" ]]; then
+        success "  tema actual: $(readlink "$current")"
+        return
+    fi
+    if [[ -e "$current" ]]; then
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "[dry-run] respaldar tema actual: $current"
+        else
+            backup_existing "$current"
+        fi
+    fi
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] enlazar tema light → $current"
+    else
+        ln -s light "$current"
+        printf '%s\n' light > "$HOME/.config/rafex/theme"
+        chmod 600 "$HOME/.config/rafex/theme"
+        success "  tema inicial: light"
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -329,6 +409,21 @@ install_profile_scripts() {
     local scripts_src="$PROFILES_DIR/$PROFILE/scripts"
 
     if [[ ! -d "$scripts_src" ]]; then
+        local direct_theme_script="$SCRIPT_DIR/../scripts/system/theme_toggle_linux.sh"
+        if [[ "$PROFILE" == "thinkpad-x1-yoga-1st" && -f "$direct_theme_script" ]]; then
+            local target="$HOME/.local/bin/theme-toggle.sh"
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                info "[dry-run] instalar script: ${target}"
+            else
+                mkdir -p "$(dirname "$target")"
+                backup_existing "$target"
+                cp "$direct_theme_script" "$target"
+                chmod 755 "$target"
+                success "  theme-toggle.sh"
+            fi
+        else
+            return
+        fi
         return
     fi
 
@@ -467,6 +562,15 @@ main() {
     echo
 
     install_configs
+    echo
+
+    install_theme_configs
+    echo
+
+    install_tmux_config
+    echo
+
+    initialize_theme
     echo
 
     install_xresources

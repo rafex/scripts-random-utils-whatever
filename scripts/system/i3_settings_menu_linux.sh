@@ -14,6 +14,7 @@ case "$section" in
       'Wi‑Fi — alternar'
       'Modo avión — alternar radios'
       'Audio — pavucontrol'
+      'Tema visual — alternar'
       'Micrófono — alternar mute'
       'Pantallas — arandr'
       'Proyector — siguiente modo'
@@ -57,6 +58,7 @@ case "$choice" in
   'Wi‑Fi — alternar') exec "$HOME/.local/bin/wifi-toggle.sh" toggle ;;
   'Modo avión — alternar radios') exec "$HOME/.local/bin/flight-mode-toggle.sh" toggle ;;
   'Audio — pavucontrol') exec pavucontrol ;;
+  'Tema visual — alternar') exec "$HOME/.local/bin/theme-toggle.sh" --toggle ;;
   'Micrófono — alternar mute') exec "$HOME/.local/bin/microphone-notify.sh" toggle ;;
   'Pantallas — arandr') exec arandr ;;
   'Proyector — siguiente modo') exec "$HOME/.local/bin/screen-projector.sh" --apply --mode next ;;
