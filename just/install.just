@@ -37,6 +37,16 @@ enable-debian-repositories *args:
 install-firefox-mozilla *args:
     bash scripts/install/install_firefox_mozilla_linux.sh {{args}}
 
+# Configurar el repositorio oficial e instalar GitHub CLI (`gh`)
+# Uso: just install-github-cli --apply
+install-github-cli *args:
+    bash scripts/install/install_github_cli_linux.sh {{args}}
+
+# Configurar el repositorio oficial e instalar VSCodium como paquete DEB
+# Uso: just install-vscodium --apply
+install-vscodium *args:
+    bash scripts/install/install_vscodium_linux.sh {{args}}
+
 # Generar clave SSH y establecer confianza instalando solo la pública
 # Uso: just setup-ssh-trust --apply --target rafex@192.168.3.91
 setup-ssh-trust *args:
