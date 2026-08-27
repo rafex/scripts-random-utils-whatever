@@ -77,11 +77,11 @@ set $ws2 "2:code"
 set $ws3 "3:web"
 set $ws4 "4:docs"
 set $ws5 "5:misc"
-set $ws6 "6"
-set $ws7 "7"
-set $ws8 "8"
-set $ws9 "9"
-set $ws10 "10"
+set $ws6 "6:media"
+set $ws7 "7:comms"
+set $ws8 "8:ops"
+set $ws9 "9:monitor"
+set $ws10 "10:scratch"
 
 bindsym $mod+1 workspace number $ws1
 bindsym $mod+2 workspace number $ws2
@@ -104,11 +104,21 @@ bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
-assign [class="Firefox"] $ws3
-assign [class="Google-chrome"] $ws3
-assign [class="google-chrome"] $ws3
-assign [class="Codium"] $ws2
-assign [class="codium"] $ws2
+# Colocación por clase de ventana. Las aplicaciones no listadas permanecen
+# en el escritorio actual para no mover ventanas desconocidas por accidente.
+# Comprueba una clase nueva con: xprop WM_CLASS
+assign [class="(?i)^alacritty$"] $ws1
+assign [class="(?i)^kitty$"] $ws1
+assign [class="(?i)^xterm$"] $ws1
+assign [class="(?i)^firefox$"] $ws3
+assign [class="(?i)^(google-chrome|chromium|chromium-browser)$"] $ws3
+assign [class="(?i)^(codium|vscodium)$"] $ws2
+assign [class="(?i)^eclipse$"] $ws2
+assign [class="(?i)^(zathura|evince|libreoffice|xournalpp)$"] $ws4
+assign [class="(?i)^thunar$"] $ws5
+assign [class="(?i)^(pavucontrol|nm-connection-editor|blueman-manager|arandr)$"] $ws5
+assign [class="(?i)^(obs|guvcview|krita|mpv)$"] $ws6
+assign [class="(?i)^(virt-manager|virtualbox)$"] $ws8
 
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart

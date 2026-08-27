@@ -4,15 +4,15 @@ Archivos:exec thunar
 Audio:exec pavucontrol
 Red:exec nm-connection-editor
 Wi-Fi:exec ~/.local/bin/wifi-toggle.sh toggle
-Modo avión:exec ~/.local/bin/flight-mode-toggle.sh toggle
+Modo avion:exec ~/.local/bin/flight-mode-toggle.sh toggle
 Bluetooth:exec blueman-manager
-Micrófono:exec ~/.local/bin/microphone-notify.sh toggle
+Microfono:exec ~/.local/bin/microphone-notify.sh toggle
 Pantallas:exec arandr
 Proyector:exec ~/.local/bin/screen-projector.sh --apply --mode next
-Cámara:exec guvcview
+Camara:exec guvcview
 Pluma Wacom:exec ~/.local/bin/test-wacom-pen.sh --check
 Centro de control:exec ~/.local/bin/i3-settings-menu.sh
 Estado del sistema:exec alacritty -e btop
-Bloquear sesión:exec loginctl lock-session
-Energía:exec ~/.local/bin/i3-settings-menu.sh power
+Bloquear sesion:exec loginctl lock-session
+Energia:exec ~/.local/bin/i3-settings-menu.sh power
 exit

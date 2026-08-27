@@ -30,6 +30,9 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas.
 - Menú 9menu en `Mod+F9` y `XF86Tools` con accesos a las herramientas de la
   ThinkPad.
+- Diez escritorios con nombres y reglas para colocar automáticamente las
+  aplicaciones habituales: terminal, código, web, documentos, configuración,
+  multimedia, comunicaciones, operaciones, monitorización y scratch.
 - Configuración de udiskie que ignora el NVMe interno.
 - `.Xresources` sin un DPI fijo.
 - La autorrotación y las pruebas Wacom se activan con la etapa `tablet` de la
@@ -42,3 +45,22 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - Perfil autorandr de la Mac.
 - Contraseñas, perfiles `.nmconnection` o archivos privados.
 - Rotación automática hasta validar sensores y orientación en la ThinkPad.
+
+## Escritorios i3
+
+| Escritorio | Uso | Aplicaciones asignadas |
+|---|---|---|
+| `1:term` | Terminal | Alacritty, Kitty, XTerm |
+| `2:code` | Desarrollo | Codium, VSCodium, Eclipse |
+| `3:web` | Web | Firefox, Chromium, Chrome |
+| `4:docs` | Documentos | Zathura, Evince, LibreOffice, Xournal++ |
+| `5:misc` | Configuración | Thunar, Pavucontrol, NetworkManager, Bluetooth, Arandr |
+| `6:media` | Multimedia | OBS, Guvcview, Krita, mpv |
+| `7:comms` | Comunicaciones | Reserva para aplicaciones de comunicación |
+| `8:ops` | Operaciones | Virt-manager, VirtualBox |
+| `9:monitor` | Monitorización | Reserva para herramientas de monitorización |
+| `10:scratch` | Temporal | Reserva para ventanas temporales |
+
+Las clases no reconocidas permanecen en el escritorio actual. Para incorporar
+una aplicación nueva, ejecuta `xprop WM_CLASS`, pulsa sobre su ventana y añade
+su clase al bloque de asignaciones de `config/i3`.
