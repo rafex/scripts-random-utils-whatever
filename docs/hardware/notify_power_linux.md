@@ -4,9 +4,13 @@ Monitoriza cambios de estado de energía (AC/batería) mediante eventos de UPowe
 
 Se ejecuta como daemon (bloquea escuchando eventos).
 
+El perfil ThinkPad instala `fonts-noto-color-emoji` porque Dunst necesita una
+fuente con esos glifos para mostrar `🔌` y `🔋` en el título de la notificación.
+Después de instalarla, recarga Dunst o reinicia la sesión gráfica.
+
 - **Ruta:** `scripts/hardware/notify_power_linux.sh`
 - **SO requerido:** Linux (UPower)
-- **Dependencias:** `upower`, `notify-send`
+- **Dependencias:** `upower`, `notify-send`, `fonts-noto-color-emoji` (para los iconos Unicode)
 
 ---
 

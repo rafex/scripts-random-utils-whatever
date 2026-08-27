@@ -202,6 +202,7 @@ Paquetes por etapa:
             fprintd libpam-fprintd (opcionales)
   desktop: xorg lightdm lightdm-gtk-greeter i3-wm i3status rofi dunst
            alacritty picom feh maim brightnessctl pavucontrol pasystray fonts-font-awesome
+           fonts-noto-color-emoji
            x11-xserver-utils x11-xkb-utils xss-lock i3lock dex libnotify-bin
   network: network-manager network-manager-applet polkitd lxpolkit
   usb:     udisks2 udiskie libnotify-bin
@@ -367,6 +368,7 @@ audit_target() {
 stage_desktop() {
   apt_install xorg lightdm lightdm-gtk-greeter i3-wm i3status rofi dunst \
     alacritty picom feh maim brightnessctl pavucontrol pasystray fonts-font-awesome \
+    fonts-noto-color-emoji \
     x11-xkb-utils xss-lock i3lock dex libnotify-bin xinput \
     xserver-xorg-input-libinput
 

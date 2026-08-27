@@ -311,3 +311,5 @@ físico de la pantalla.
   que el perfil funcione aunque las etapas USB y network se apliquen después.
 - **feat:** añadir etapa tablet con autorrotación dinámica, alineación Wacom y
   herramientas Xournal++/Krita.
+- **fix:** instalar `fonts-noto-color-emoji` para renderizar emojis de las
+  notificaciones de energía, brillo y audio.

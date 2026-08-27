@@ -15,6 +15,7 @@ apt = [
     "pavucontrol",
     "pasystray",
     "fonts-font-awesome",
+    "fonts-noto-color-emoji",
     "x11-xserver-utils",
     "x11-xkb-utils",
     "xss-lock",
