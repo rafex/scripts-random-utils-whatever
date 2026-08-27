@@ -69,6 +69,7 @@ nav:
       - screen_auto_mirror_linux: display/screen_auto_mirror_linux.md
       - screen_extend_auto_linux: display/screen_extend_auto_linux.md
       - screen_mirror_linux: display/screen_mirror_linux.md
+      - screen_projector_linux: display/screen_projector_linux.md
   - Hardware:
       - autorotate_x1_yoga_linux: hardware/autorotate_x1_yoga_linux.md
       - notify_brightness_linux: hardware/notify_brightness_linux.md

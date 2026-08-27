@@ -7,11 +7,11 @@ tags:
 
 # notify_volume_linux.sh
 
-Ajusta el volumen del sistema con `pactl` (PipeWire/PulseAudio) y muestra notificación con el nivel actual o estado de mute.
+Ajusta el volumen del sistema con `wpctl` (PipeWire) y usa `pactl` como fallback; muestra una notificación con el nivel actual o estado de mute.
 
 - **Ruta:** `scripts/hardware/notify_volume_linux.sh`
 - **SO requerido:** Linux (PipeWire o PulseAudio)
-- **Dependencias:** `pactl`, `notify-send`
+- **Dependencias:** `wpctl` o `pactl`, `notify-send`
 
 ______________________________________________________________________
 
@@ -30,6 +30,7 @@ ______________________________________________________________________
 | Variable | Default | Descripción |
 |---|---|---|
 | `VOLUME_STEP` | `5` | Porcentaje de incremento/decremento |
+| `VOLUME_SINK` | `@DEFAULT_AUDIO_SINK@` | Sink de PipeWire usado por `wpctl`. |
 
 ______________________________________________________________________
 
@@ -63,9 +64,17 @@ Las opciones disponibles se describen en la ayuda del script y en los ejemplos d
 
 ## Fallos conocidos
 
-No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
+### `pactl: command not found`
+
+**Causa:** PipeWire está activo, pero solo está disponible `wpctl`.
+**Solución:** la versión actual usa `wpctl` automáticamente; `pactl` queda
+como fallback para sesiones PulseAudio.
 
 ## Changelog
+
+### v1.1.0 — 2026-08-27
+
+**fix:** usar `wpctl` en PipeWire para que funcionen las teclas de volumen.
 
 ### v1.0.0 — 2026-07-22
 

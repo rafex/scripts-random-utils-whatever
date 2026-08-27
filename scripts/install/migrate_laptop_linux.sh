@@ -424,6 +424,7 @@ install_user_helpers() {
     "scripts/display/screen_auto_edge_mirror_linux.sh:screen-auto-edge-mirror.sh"
     "scripts/display/screen_extend_auto_linux.sh:screen-extend-auto.sh"
     "scripts/display/screen_mirror_linux.sh:screen-mirror.sh"
+    "scripts/display/screen_projector_linux.sh:screen-projector.sh"
     "scripts/hardware/usb_mount_perms_linux.sh:usb-mount-perms"
     "scripts/hardware/autorotate_x1_yoga_linux.sh:autorotate-x1-yoga.sh"
   )

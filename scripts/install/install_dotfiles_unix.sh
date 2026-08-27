@@ -43,6 +43,7 @@ SCRIPTS_MAP=(
     "scripts/display/screen_auto_edge_mirror_linux.sh:screen-auto-edge-mirror.sh"
     "scripts/display/screen_extend_auto_linux.sh:screen-extend-auto.sh"
     "scripts/display/screen_mirror_linux.sh:screen-mirror.sh"
+    "scripts/display/screen_projector_linux.sh:screen-projector.sh"
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
