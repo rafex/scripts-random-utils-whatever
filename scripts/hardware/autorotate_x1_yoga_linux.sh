@@ -14,6 +14,8 @@ SCREEN_INTERNAL="${SCREEN_INTERNAL:-}"
 TABLET_MODE_FILE="/sys/devices/platform/thinkpad_acpi/hotkey_tablet_mode"
 LAST_ORIENTATION=""
 LAST_TABLET_MODE=""
+SENSOR_DIR=""
+SENSOR_PID=""
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -158,6 +160,15 @@ notify_failure() {
   log_event "ERROR: $*"
   if [[ -n "${DISPLAY:-}" ]] && command -v notify-send >/dev/null 2>&1; then
     notify-send -u critical "Rotación automática" "$*" >/dev/null 2>&1 || true
+  fi
+}
+
+cleanup_sensor() {
+  if [[ -n "${SENSOR_PID:-}" ]]; then
+    kill "$SENSOR_PID" 2>/dev/null || true
+  fi
+  if [[ -n "${SENSOR_DIR:-}" ]]; then
+    rm -rf "$SENSOR_DIR"
   fi
 }
 
@@ -333,9 +344,7 @@ daemon() {
   exec 9>"$lock_path"
   flock -n 9 || die "ya existe otra instancia de autorrotación"
 
-  local sensor_dir
   local sensor_fifo
-  local sensor_pid
   local line=""
   local sensor_orientation="normal"
   local current_mode
@@ -343,17 +352,17 @@ daemon() {
   local desired_mode
   local orientation_changed=0
 
-  sensor_dir="$(mktemp -d "${TMPDIR:-/tmp}/autorotate-x1-yoga.XXXXXX")"
-  sensor_fifo="$sensor_dir/events"
+  SENSOR_DIR="$(mktemp -d "${TMPDIR:-/tmp}/autorotate-x1-yoga.XXXXXX")"
+  sensor_fifo="$SENSOR_DIR/events"
   mkfifo "$sensor_fifo"
   monitor-sensor --accel > "$sensor_fifo" 2>&1 &
-  sensor_pid="$!"
+  SENSOR_PID="$!"
   exec 8< "$sensor_fifo"
   rm -f "$sensor_fifo"
-  trap 'kill "$sensor_pid" 2>/dev/null || true; rm -rf "$sensor_dir"' EXIT
+  trap cleanup_sensor EXIT
   info "autorrotación activa; sensor-only=$SENSOR_ONLY, disable-inputs=$DISABLE_INPUTS"
 
-  while kill -0 "$sensor_pid" 2>/dev/null; do
+  while kill -0 "$SENSOR_PID" 2>/dev/null; do
     if IFS= read -r -t 0.5 line <&8; then
       case "$line" in
         *"normal"*) sensor_orientation="normal"; orientation_changed=1 ;;
