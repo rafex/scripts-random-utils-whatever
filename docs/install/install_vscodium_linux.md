@@ -125,6 +125,14 @@ del repositorio fue rotada.
 **Solución:** no instales la clave manualmente. Comprueba la documentación
 oficial y actualiza el fingerprint mediante una revisión explícita.
 
+### `gpg: eliminación de armadura fallida: El fichero ya existe`
+
+**Causa:** algunas versiones de GPG no sobrescriben el archivo temporal que
+`mktemp` ya creó para la salida del keyring.
+
+**Solución:** el instalador usa `gpg --batch --yes` y puede repetirse con
+`just install-vscodium --apply`.
+
 ### `codium` no aparece en el menú de i3
 
 **Causa:** i3 puede necesitar recargar sus lanzadores o el menú no ha
@@ -138,3 +146,4 @@ vuelve a abrir el menú de aplicaciones.
 ### [Unreleased]
 
 - **feat:** añadir instalador Debian idempotente para VSCodium DEB oficial.
+- **fix:** permitir que GPG sobrescriba de forma segura el keyring temporal.

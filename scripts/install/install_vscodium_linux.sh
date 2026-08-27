@@ -183,7 +183,7 @@ install_key() {
   if ! key_is_valid "$temporary_ascii"; then
     die "huella de clave VSCodium inesperada; se esperaba $EXPECTED_FINGERPRINT"
   fi
-  if ! gpg --batch --dearmor --output "$temporary_binary" "$temporary_ascii"; then
+  if ! gpg --batch --yes --dearmor --output "$temporary_binary" "$temporary_ascii"; then
     die 'no se pudo convertir la clave VSCodium al formato de keyring'
   fi
 
