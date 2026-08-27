@@ -210,8 +210,8 @@ Paquetes por etapa:
            mesa-va-drivers intel-media-va-driver v4l2loopback-dkms
            v4l2loopback-utils linux-headers-amd64
   laptop:  tlp tlp-rdw upower acpi thermald nvme-cli smartmontools
-  display: xrandr autorandr xinput libinput-tools
-  tablet:  evtest libinput-tools xinput xrandr iio-sensor-proxy
+  display: x11-xserver-utils autorandr xinput libinput-tools
+  tablet:  evtest libinput-tools xinput x11-xserver-utils iio-sensor-proxy
            xserver-xorg-input-wacom xserver-xorg-input-libinput
            libwacom-common libwacom-bin xournalpp krita
 EOF
@@ -530,7 +530,7 @@ stage_laptop() {
 }
 
 stage_display() {
-  apt_install xrandr autorandr xinput libinput-tools
+  apt_install x11-xserver-utils autorandr xinput libinput-tools
   info "El ajuste de pantalla requiere una sesión Xorg activa. Ejecuta después:"
   echo "  xrandr --query"
   echo "  xinput list"
@@ -569,7 +569,7 @@ ensure_tablet_i3_startup() {
 }
 
 stage_tablet() {
-  apt_install evtest libinput-tools xinput xrandr iio-sensor-proxy \
+  apt_install evtest libinput-tools xinput x11-xserver-utils iio-sensor-proxy \
     xserver-xorg-input-wacom xserver-xorg-input-libinput \
     libwacom-common libwacom-bin xournalpp krita
   install_user_helpers
