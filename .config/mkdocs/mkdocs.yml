@@ -119,6 +119,7 @@ nav:
       - flight_mode_toggle_linux: network/flight_mode_toggle_linux.md
       - Reglas polkit: network/wifi_polkit_rules.md
   - Sistema:
+      - 9menu_linux: system/9menu_linux.md
       - rofi_search_linux: system/rofi_search_linux.md
       - i3_settings_menu_linux: system/i3_settings_menu_linux.md
   - macOS:
