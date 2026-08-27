@@ -45,23 +45,39 @@ centro de control completo; `XF86WakeUp` abre solo energía y sesión.
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `--check` | — | Muestra el modo de uso sin cambios. |
+| `--check` | — | Comprueba paquetes y archivos sin cambios persistentes. |
 | `--plan` | `--dry-run` | Muestra paquetes y archivos que cambiarían. |
-| `--apply` | — | Instala paquetes, helpers y el bloque i3. |
+| `--apply` | — | Instala paquetes, helpers y el bloque i3; guarda un log. |
+| `--log-file <archivo>` | — | Guarda la salida en el archivo indicado. Puede combinarse con cualquier modo. |
 
 ## Variables de entorno
 
 | Variable | Default | Descripción |
 |---|---|---|
 | `I3_CONTROLS_CONFIG` | `~/.config/i3/config` | Configuración i3 a modificar. |
+| `I3_CONTROLS_LOG_FILE` | vacío | Archivo de log. Si se omite en `--apply`, se crea uno fechado en `~/.local/state/scripts-random-utils-whatever/logs/`. |
+| `I3_CONTROLS_LOG_DIR` | `~/.local/state/scripts-random-utils-whatever/logs/` | Directorio de logs automáticos. |
 
 ## Ejemplos
 
 ```sh
 just install-i3-laptop-controls --apply
+just install-i3-laptop-controls --apply --log-file "$HOME/control-i3.log"
 I3_CONTROLS_CONFIG="$HOME/.config/i3/config" \
   just install-i3-laptop-controls --plan
 ```
+
+En `--apply`, la salida de `sudo apt-get`, la instalación y la configuración
+se muestra en pantalla y se conserva en un log fechado. Si la ejecución falla,
+el script imprime la ruta del log para facilitar el diagnóstico:
+
+```sh
+ls -lt "$HOME/.local/state/scripts-random-utils-whatever/logs/"
+tail -n 80 "$HOME/.local/state/scripts-random-utils-whatever/logs/"*.log
+```
+
+`--check` y `--plan` no crean logs persistentes por defecto. Para registrar
+explícitamente uno de esos modos, usa `--log-file`.
 
 ## Protecciones de seguridad
 
@@ -77,8 +93,19 @@ I3_CONTROLS_CONFIG="$HOME/.config/i3/config" \
 **Causa:** el repositorio de la ThinkPad no se ha actualizado con esta versión.
 **Solución:** ejecutar `git pull --ff-only` después de sincronizar el commit.
 
+### `El paquete «network-manager-gnome» no tiene un candidato` / `No se ha podido localizar el paquete xev`
+
+**Causa:** en Debian Forky el paquete del applet se llama
+`network-manager-applet` y `xev` es un ejecutable proporcionado por
+`x11-utils`; ninguno debe instalarse con esos nombres antiguos.
+**Solución:** actualizar el repositorio y repetir `--apply`; el instalador ya
+usa los nombres correctos.
+
 ## Changelog
 
 ### [Unreleased]
 
 **feat:** instalador de controles multimedia y utilidades de i3.
+
+**fix:** corregir nombres de paquetes para Debian Forky y registrar las
+ejecuciones de aplicación con logs fechados.

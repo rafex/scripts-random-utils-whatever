@@ -10,6 +10,8 @@ ACTION="check"
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 BACKUP_STAMP="$(date +%Y%m%d_%H%M%S)"
 I3_CONFIG="${I3_CONTROLS_CONFIG:-$HOME/.config/i3/config}"
+LOG_FILE="${I3_CONTROLS_LOG_FILE:-}"
+LOG_DIR="${I3_CONTROLS_LOG_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/scripts-random-utils-whatever/logs}"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
@@ -24,6 +26,7 @@ Uso:
   install_i3_laptop_controls_linux.sh --check
   install_i3_laptop_controls_linux.sh --plan
   install_i3_laptop_controls_linux.sh --apply
+  install_i3_laptop_controls_linux.sh --apply --log-file <archivo>
 
 Instala toggles de micrófono, Wi‑Fi y modo avión, búsqueda Rofi y un menú
 de configuraciones para i3. No acepta ni guarda contraseñas.
@@ -36,6 +39,11 @@ parse_args() {
       --check) ACTION=check; shift ;;
       --plan|--dry-run) ACTION=plan; shift ;;
       --apply) ACTION=apply; shift ;;
+      --log-file)
+        [[ $# -ge 2 ]] || die "--log-file requiere un archivo"
+        LOG_FILE="$2"
+        shift 2
+        ;;
       -h|--help) usage; exit 0 ;;
       *) die "argumento desconocido: $1" ;;
     esac
@@ -52,12 +60,47 @@ require_linux() {
   fi
 }
 
-packages=(rofi pavucontrol network-manager network-manager-gnome nm-connection-editor
-  blueman bluez arandr xev xinput libnotify-bin brightnessctl rfkill gnome-disk-utility
+packages=(rofi pavucontrol network-manager network-manager-applet nm-connection-editor
+  blueman bluez arandr x11-utils xinput libnotify-bin brightnessctl rfkill gnome-disk-utility
   thunar xdg-utils)
+
+init_logging() {
+  [[ "$ACTION" == apply || -n "$LOG_FILE" ]] || return 0
+  if [[ -z "$LOG_FILE" ]]; then
+    LOG_FILE="$LOG_DIR/install_i3_laptop_controls_${BACKUP_STAMP}.log"
+  fi
+  mkdir -p "$(dirname "$LOG_FILE")"
+  exec > >(tee -a "$LOG_FILE") 2>&1
+  info "log: $LOG_FILE"
+}
+
+report_failure() {
+  local status="$?"
+  if [[ "$status" -ne 0 && -n "$LOG_FILE" ]]; then
+    echo "✗ ejecución fallida; log: $LOG_FILE" >&2
+  fi
+  exit "$status"
+}
+
+trap report_failure EXIT
 
 install_packages() {
   info "Paquetes: ${packages[*]}"
+  if [[ "$ACTION" == check ]]; then
+    local missing=()
+    local package
+    for package in "${packages[@]}"; do
+      if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -Fq 'install ok installed'; then
+        missing+=("$package")
+      fi
+    done
+    if ((${#missing[@]} > 0)); then
+      warn "paquetes pendientes: ${missing[*]}"
+    else
+      ok "paquetes instalados"
+    fi
+    return 0
+  fi
   [[ "$ACTION" == plan ]] && { info "[plan] sudo apt-get update"; info "[plan] sudo apt-get install -y ${packages[*]}"; return; }
   if [[ "$ACTION" != apply ]]; then
     return 0
@@ -120,6 +163,7 @@ $end"
 
 main() {
   parse_args "$@"
+  init_logging
   require_linux
   echo "═══ Controles i3 para laptop ═══"
   install_packages
