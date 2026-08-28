@@ -83,7 +83,7 @@ legible, fecha ISO, información Git, encabezado y directorios primero; si
 | `--check` | — | Diagnostica sin modificar nada |
 | `--plan` | `--dry-run` | Muestra las acciones previstas |
 | `--apply` | — | Instala paquetes y escribe configuración |
-| `--stage <etapa>` | — | `terminal`, `editor`, `runtimes`, `build-runtimes`, `containers`, `opencode` o `all` |
+| `--stage <etapa>` | — | `terminal`, `terminal-config`, `editor`, `runtimes`, `build-runtimes`, `containers`, `opencode` o `all` |
 | `--help` | `-h` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -107,6 +107,9 @@ just install-terminal-workstation --apply --stage all
 
 ```sh
 just install-terminal-workstation --apply --stage terminal
+
+# Actualizar aliases y configuraciones de usuario sin repetir APT
+just install-terminal-workstation --apply --stage terminal-config
 ```
 
 ### Editor y runtimes

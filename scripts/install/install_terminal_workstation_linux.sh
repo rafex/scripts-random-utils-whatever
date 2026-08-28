@@ -46,6 +46,7 @@ Uso:
 
 Etapas:
   terminal       Bash, Alacritty, tmux y herramientas interactivas
+  terminal-config Actualizar solo la configuración de usuario del terminal
   editor         Neovim y LazyVim con respaldo de la configuración anterior
   runtimes       mise, Node.js LTS y Java Temurin 21
   build-runtimes Maven, Gradle y GraalVM mediante mise (opcional)
@@ -87,7 +88,7 @@ require_linux_user() {
   [[ "$EUID" -ne 0 ]] || die "ejecuta el script como rafex, no como root"
   command -v sudo >/dev/null 2>&1 || die "sudo no está instalado; ejecuta configure_sudo_linux.sh como root"
   case "$STAGE" in
-    terminal|editor|runtimes|build-runtimes|containers|opencode|all) ;;
+    terminal|terminal-config|editor|runtimes|build-runtimes|containers|opencode|all) ;;
     *) die "etapa no válida: $STAGE" ;;
   esac
 }
@@ -614,8 +615,7 @@ EOF
   ok "tamaño de fuente Alacritty ajustado a 7"
 }
 
-configure_terminal() {
-  install_apt_stage terminal
+configure_terminal_user() {
   if [[ "$ACTION" == plan ]]; then
     bash "$SCRIPT_DIR/install_bash_reload_linux.sh" --plan
   else
@@ -642,6 +642,11 @@ configure_terminal() {
   install_tpm_plugins
   write_starship_config
   update_alacritty
+}
+
+configure_terminal() {
+  install_apt_stage terminal
+  configure_terminal_user
 }
 
 configure_editor() {
@@ -797,6 +802,7 @@ check_commands() {
 run_stage() {
   case "$1" in
     terminal) configure_terminal ;;
+    terminal-config) configure_terminal_user ;;
     editor) configure_editor ;;
     runtimes) configure_mise ;;
     build-runtimes) configure_build_runtimes ;;
