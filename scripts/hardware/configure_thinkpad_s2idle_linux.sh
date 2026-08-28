@@ -11,7 +11,11 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 TEMPORARY_FILE=""
 
 cleanup() {
-  [[ -n "$TEMPORARY_FILE" ]] && rm -f -- "$TEMPORARY_FILE"
+  if [[ -n "$TEMPORARY_FILE" ]]; then
+    rm -f -- "$TEMPORARY_FILE"
+  fi
+  # El trap EXIT nunca debe convertir una ejecución exitosa en código 1.
+  return 0
 }
 trap cleanup EXIT
 
@@ -78,6 +82,8 @@ show_status() {
   else
     warn "no se puede leer $GRUB_FILE"
   fi
+  # Un estado pendiente es un diagnóstico, no un error de ejecución.
+  return 0
 }
 
 render_grub() {
@@ -158,6 +164,7 @@ main() {
       info "[plan] añadir o reemplazar mem_sleep_default=s2idle en GRUB_CMDLINE_LINUX_DEFAULT"
       info "[plan] ejecutar sudo update-grub"
       warn "no se reiniciará automáticamente"
+      return 0
       ;;
     apply)
       apply_mode

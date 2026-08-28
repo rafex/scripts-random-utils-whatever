@@ -70,8 +70,8 @@ La salida esperada después del reinicio es:
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `--check` | — | Muestra el modo actual, el parámetro del kernel y el contenido relevante de GRUB. |
-| `--plan` | `--dry-run` | Muestra cambios previstos sin usar `sudo` ni modificar archivos. |
+| `--check` | — | Muestra el modo actual, el parámetro del kernel y el contenido relevante de GRUB; un parámetro pendiente se informa como aviso y no produce fallo. |
+| `--plan` | `--dry-run` | Muestra cambios previstos sin usar `sudo` ni modificar archivos; termina correctamente aunque falte aplicar la configuración. |
 | `--apply` | — | Respalda GRUB, configura `mem_sleep_default=s2idle` y ejecuta `update-grub`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
@@ -146,5 +146,5 @@ recopila `sudo journalctl -b -1 -k` antes de probar otro modo.
 ### [Unreleased]
 
 - **feat:** configura de forma idempotente `mem_sleep_default=s2idle` para la ThinkPad.
+- **fix:** `--check` y `--plan` ya no terminan con error cuando la configuración aún está pendiente.
 - **docs:** documenta verificación, respaldo y reversión del parámetro de suspensión.
-
