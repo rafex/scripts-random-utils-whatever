@@ -59,8 +59,9 @@ directorio real versionado, por ejemplo:
 ```
 
 Después de cambiar la versión, ejecuta `reload-bash` o `eval "$(mise
-hook-env)"`. `mise current java` puede mostrar la versión correcta mientras
-una shell existente todavía conserva el `JAVA_HOME` anterior.
+hook-env)"`. El helper también consulta `mise where java` para sincronizar
+explícitamente `JAVA_HOME`. `mise current java` puede mostrar la versión
+correcta mientras una shell existente todavía conserva el `JAVA_HOME` anterior.
 
 ## Opciones
 

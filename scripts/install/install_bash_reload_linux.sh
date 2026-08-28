@@ -51,17 +51,30 @@ reload_script() {
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+sync_mise_java() {
+  local mise_java_home
+  command -v mise >/dev/null 2>&1 || return 0
+  export MISE_ACTIVATE_AGGRESSIVE=1
+  eval "$(mise activate bash)"
+  eval "$(mise hook-env)"
+  mise_java_home="$(mise where java 2>/dev/null || true)"
+  if [[ -n "$mise_java_home" && -x "$mise_java_home/bin/java" ]]; then
+    if command -v readlink >/dev/null 2>&1; then
+      mise_java_home="$(readlink -f -- "$mise_java_home")"
+    fi
+    export JAVA_HOME="$mise_java_home"
+    export PATH="$JAVA_HOME/bin:$PATH"
+    hash -r
+  fi
+}
+
 reload_bash() {
   local bashrc="${BASHRC:-$HOME/.bashrc}"
   [[ -r "$bashrc" ]] || return 0
   # shellcheck disable=SC1090
   source "$bashrc"
-  if command -v mise >/dev/null 2>&1; then
-    # Actualiza JAVA_HOME y PATH en la shell que llamó a reload-bash.
-    export MISE_ACTIVATE_AGGRESSIVE=1
-    eval "$(mise activate bash)"
-    eval "$(mise hook-env)"
-  fi
+  # Actualiza JAVA_HOME y PATH en la shell que llamó a reload-bash.
+  sync_mise_java
 }
 
 if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
@@ -78,6 +91,22 @@ bashrc_block() {
 reload-bash() {
   source "$HOME/.local/bin/reload-bash"
 }
+EOF
+}
+
+mise_bashrc_block() {
+  cat <<'EOF'
+# Sincronización final de Java con la versión activa de mise.
+if command -v mise >/dev/null 2>&1; then
+  _rafex_mise_java_home="$(mise where java 2>/dev/null || true)"
+  if [[ -n "$_rafex_mise_java_home" && -x "$_rafex_mise_java_home/bin/java" ]]; then
+    _rafex_mise_java_home="$(readlink -f -- "$_rafex_mise_java_home")"
+    export JAVA_HOME="$_rafex_mise_java_home"
+    export PATH="$JAVA_HOME/bin:$PATH"
+    hash -r
+  fi
+  unset _rafex_mise_java_home
+fi
 EOF
 }
 
@@ -114,6 +143,26 @@ append_bashrc_block() {
   ok "función reload-bash instalada en $BASHRC"
 }
 
+append_mise_block() {
+  local begin='# BEGIN rafex reload-bash mise-java' end='# END rafex reload-bash mise-java' temporary
+  if [[ -f "$BASHRC" ]] && grep -Fq "$begin" "$BASHRC"; then
+    ok "bloque Java de mise ya presente en $BASHRC"
+    return 0
+  fi
+  if [[ "$ACTION" == plan ]]; then
+    info "[plan] agregar sincronización Java de mise a $BASHRC"
+    return 0
+  fi
+  mkdir -p "$(dirname "$BASHRC")"
+  backup_path "$BASHRC"
+  temporary="$(mktemp)"
+  [[ -f "$BASHRC" ]] && cp -a -- "$BASHRC" "$temporary"
+  printf '\n%s\n%s\n%s\n' "$begin" "$(mise_bashrc_block)" "$end" >> "$temporary"
+  mv -- "$temporary" "$BASHRC"
+  chmod 600 "$BASHRC"
+  ok "sincronización Java de mise instalada en $BASHRC"
+}
+
 main() {
   parse_args "$@"
   [[ "$(uname -s)" == Linux ]] || die "este instalador requiere Linux"
@@ -134,6 +183,7 @@ main() {
   if [[ "$ACTION" == plan ]]; then
     info "[plan] instalar $RELOAD_BIN"
     append_bashrc_block
+    append_mise_block
     return 0
   fi
   mkdir -p "$(dirname "$RELOAD_BIN")"
@@ -142,6 +192,7 @@ main() {
   chmod 700 "$RELOAD_BIN"
   ok "comando instalado: $RELOAD_BIN"
   append_bashrc_block
+  append_mise_block
   info "abre una nueva shell o ejecuta: reload-bash"
 }
 
