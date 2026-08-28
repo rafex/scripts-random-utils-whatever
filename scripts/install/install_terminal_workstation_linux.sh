@@ -10,6 +10,7 @@ umask 077
 ACTION="check"
 STAGE="all"
 BODA_VERSION="${BODA_VERSION:-0.2616.0}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MISE_BIN="${HOME}/.local/bin/mise"
 OPENCODE_BIN="${HOME}/.local/bin/opencode"
 TMUX_CONFIG="${HOME}/.tmux.conf"
@@ -565,6 +566,11 @@ EOF
 
 configure_terminal() {
   install_apt_stage terminal
+  if [[ "$ACTION" == plan ]]; then
+    bash "$SCRIPT_DIR/install_bash_reload_linux.sh" --plan
+  else
+    bash "$SCRIPT_DIR/install_bash_reload_linux.sh" --apply
+  fi
   install_boda
   install_tpm
   install_user_executable "$HOME/.local/bin/start-thinkpad-tmux" "$(tmux_launcher)"

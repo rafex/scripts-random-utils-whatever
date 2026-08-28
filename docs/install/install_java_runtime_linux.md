@@ -7,7 +7,7 @@ tags:
 
 # install_java_runtime_linux.sh
 
-Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema ni la configuración de `mise`.
+Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema. Al instalar Temurin JDK, configura automáticamente `mise` con la ruta versionada directa.
 
 - **Ruta:** `scripts/install/install_java_runtime_linux.sh`
 - **SO requerido:** Linux
@@ -45,10 +45,10 @@ El enlace activo queda como `current-<proveedor>-<imagen>`.
 ## Uso
 
 ```bash
-just install-java-runtime --provider temurin --version 21 --image jdk --apply
+just install-java-runtime --provider temurin --version 25 --image jdk --apply
 ```
 
-Después de instalar, exporta las líneas que el script imprime para activar ese runtime en la sesión actual. Para Java gestionado por proyecto, continúa usando `mise`; este script es útil para conservar varias distribuciones oficiales independientes.
+Después de instalar, el script registra automáticamente Temurin JDK en `mise` si está disponible. La selección apunta al directorio versionado real, no al enlace `current-temurin-jdk`. Para omitir esta configuración usa `--no-mise`.
 
 ## Opciones
 
@@ -61,6 +61,7 @@ Después de instalar, exporta las líneas que el script imprime para activar ese
 | `--version VERSION` | — | `latest`, versión mayor o exacta según proveedor |
 | `--image jdk\|jre` | — | Imagen a instalar; GraalVM solo admite `jdk` |
 | `--root DIRECTORIO` | — | Cambia la raíz local; debe ser absoluta y segura |
+| `--no-mise` | — | No registra automáticamente Temurin JDK en `mise` |
 | `--help` | `-h` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -81,8 +82,8 @@ just install-java-runtime --provider temurin --version 21 --check
 # Ver el plan, sin descargar
 just install-java-runtime --provider temurin --version 17 --plan
 
-# Instalar Temurin 21
-just install-java-runtime --provider temurin --version 21 --image jdk --apply
+# Instalar Temurin 25 y seleccionarlo en mise mediante su ruta directa
+just install-java-runtime --provider temurin --version 25 --image jdk --apply
 
 # Instalar GraalVM Community actual
 just install-java-runtime --provider graalvm-community --version latest --apply
@@ -97,7 +98,7 @@ just install-java-runtime --provider graalvm-oracle --version latest --apply
 Activación de ejemplo:
 
 ```bash
-export JAVA_HOME="$HOME/.local/share/java-runtimes/current-temurin-jdk"
+export JAVA_HOME="$HOME/.local/share/java-runtimes/temurin/jdk-25.0.4.1+1-jdk"
 export PATH="$JAVA_HOME/bin:$PATH"
 java -version
 ```

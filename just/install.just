@@ -67,10 +67,20 @@ install-eclipse-ide *args:
 scrape-java-runtimes *args:
     python3 scripts/install/scrape_java_runtimes.py {{args}}
 
-# Descargar y seleccionar un runtime Java local sin modificar mise ni /usr/lib
-# Uso: just install-java-runtime --provider temurin --version 21 --apply
+# Descargar y seleccionar un runtime Java local; registra Temurin automáticamente en mise
+# Uso: just install-java-runtime --provider temurin --version 25 --apply
 install-java-runtime *args:
     bash scripts/install/install_java_runtime_linux.sh {{args}}
+
+# Registrar un JDK Temurin ya instalado en mise usando su ruta versionada directa
+# Uso: just configure-java-mise --version 25 --apply
+configure-java-mise *args:
+    bash scripts/install/configure_java_mise_linux.sh {{args}}
+
+# Instalar el comando reload-bash y su función en ~/.bashrc
+# Uso: just install-bash-reload --apply
+install-bash-reload *args:
+    bash scripts/install/install_bash_reload_linux.sh {{args}}
 
 # Instalar y configurar el MCP oficial Ether-rules para clientes detectados
 # Uso: just install-ether-rules-mcp --apply

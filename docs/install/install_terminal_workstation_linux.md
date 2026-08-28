@@ -65,6 +65,10 @@ del perfil developer. Si una descarga falla, la configuración sigue siendo
 usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
 `Ctrl-b I` para instalarlos o actualizarlos.
 
+También instala `~/.local/bin/reload-bash` y la función `reload-bash` en
+`~/.bashrc`, para recargar la configuración de la shell después de cambiar
+Java, mise o aliases.
+
 ## Opciones
 
 | Opción | Alias | Descripción |

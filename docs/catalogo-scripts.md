@@ -53,6 +53,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/create_usb_unix.sh` | macOS/Linux | create-usb | sí | sí | alto | [doc](install/create_usb_unix.md) |
 | `scripts/install/enable_debian_repositories_linux.sh` | Linux | enable-debian-repositories | sí | sí | alto | [doc](install/enable_debian_repositories_linux.md) |
 | `scripts/install/format_usb_unix.sh` | macOS/Linux | format-usb | sí | sí | alto | [doc](install/format_usb_unix.md) |
+| `scripts/install/configure_java_mise_linux.sh` | Linux | configure-java-mise | no | sí | medio | [doc](install/configure_java_mise_linux.md) |
+| `scripts/install/install_bash_reload_linux.sh` | Linux | install-bash-reload | no | sí | bajo | [doc](install/install_bash_reload_linux.md) |
 | `scripts/install/install_dotfiles_unix.sh` | macOS/Linux | install-dotfiles | no | sí | medio | [doc](install/install_dotfiles_unix.md) |
 | `scripts/install/install_eclipse_ide_linux.sh` | Linux | install-eclipse-ide | no | sí | medio | [doc](install/install_eclipse_ide_linux.md) |
 | `scripts/install/install_ether_rules_mcp_unix.sh` | macOS/Linux | install-ether-rules-mcp | no | sí | medio | [doc](install/install_ether_rules_mcp_unix.md) |

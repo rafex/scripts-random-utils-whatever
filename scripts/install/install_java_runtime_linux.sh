@@ -8,16 +8,19 @@ ACTION="check"
 PROVIDER="temurin"
 VERSION="21"
 IMAGE="jdk"
+AUTO_MISE=1
 RUNTIME_ROOT="${HOME}/.local/share/java-runtimes"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SCRAPER="${SCRIPT_DIR}/scrape_java_runtimes.py"
+MISE_CONFIGURATOR="${SCRIPT_DIR}/configure_java_mise_linux.sh"
 TEMP_DIR=""
 
 usage() {
     cat <<'EOF'
 Uso: install_java_runtime_linux.sh [opción]
 
-Descarga un runtime Java oficial en ~/.local/share/java-runtimes.
+Descarga un runtime Java oficial en ~/.local/share/java-runtimes y, si mise
+está disponible, lo registra automáticamente usando la ruta real instalada.
 
 Opciones:
   --check                         Muestra el estado local (predeterminado)
@@ -27,9 +30,11 @@ Opciones:
   --version VERSION               latest, mayor o versión exacta según proveedor
   --image jdk|jre                 Imagen a instalar (GraalVM solo admite jdk)
   --root DIRECTORIO               Raíz local alternativa y absoluta
+  --no-mise                       No registrar automáticamente Temurin en mise
   --help                          Muestra esta ayuda
 
-No usa sudo, no instala en /usr/lib y no cambia la versión global de Java.
+No usa sudo ni instala en /usr/lib. La configuración automática de mise solo
+afecta al usuario actual y apunta directamente al directorio de la versión.
 EOF
 }
 
@@ -73,6 +78,7 @@ parse_args() {
                 RUNTIME_ROOT="$2"
                 shift
                 ;;
+            --no-mise) AUTO_MISE=0 ;;
             --help|-h) usage; exit 0 ;;
             *) die "opción desconocida: $1" ;;
         esac
@@ -98,6 +104,9 @@ require_tools() {
     command -v sha256sum >/dev/null 2>&1 || die 'falta sha256sum'
     command -v tar >/dev/null 2>&1 || die 'falta tar'
     [[ -r "$SCRAPER" ]] || die "no se encuentra $SCRAPER"
+    if [[ "$AUTO_MISE" -eq 1 && "$PROVIDER" == temurin && "$IMAGE" == jdk && ! -r "$MISE_CONFIGURATOR" ]]; then
+        die "no se encuentra $MISE_CONFIGURATOR"
+    fi
 }
 
 metadata_field() {
@@ -191,10 +200,30 @@ install_runtime() {
         mv -- "$topdir" "$target"
     fi
     ln -sfn -- "$target" "$current"
-    printf '✓ activo: %s\n' "$current"
+    printf '✓ activo (ruta directa): %s\n' "$target"
     printf 'Para usarlo en la sesión actual:\n'
-    printf '  export JAVA_HOME=%q\n' "$current"
+    printf '  export JAVA_HOME=%q\n' "$target"
     printf '  export PATH="$%s/bin:$%s"\n' 'JAVA_HOME' 'PATH'
+}
+
+configure_mise_after_install() {
+    local target="$1" resolved_version="$2" mise_version
+    [[ "$AUTO_MISE" -eq 1 ]] || return 0
+    [[ "$PROVIDER" == temurin && "$IMAGE" == jdk ]] || {
+        warn "mise automático solo se aplica a Temurin JDK; usa --no-mise para omitir este aviso"
+        return 0
+    }
+    if [[ "$ACTION" == plan ]]; then
+        info "[plan] registrar java@temurin-<mayor> en mise apuntando directamente a $target"
+        return 0
+    fi
+    if ! command -v "$HOME/.local/bin/mise" >/dev/null 2>&1 && ! command -v mise >/dev/null 2>&1; then
+        warn "mise no está instalado; Temurin quedó disponible mediante JAVA_HOME"
+        return 0
+    fi
+    mise_version="$(printf '%s' "$resolved_version" | sed -E 's/^[^0-9]*([0-9]+).*/\1/')"
+    [[ "$mise_version" =~ ^[0-9]+$ ]] || die "no se pudo determinar la versión mayor para mise"
+    bash "$MISE_CONFIGURATOR" --provider temurin --version "$mise_version" --path "$target" --apply
 }
 
 main() {
@@ -217,8 +246,14 @@ main() {
     printf 'origen=%s\n' "$(metadata_field "$metadata_file" source_url)"
     if [[ "$ACTION" == plan ]]; then
         printf '[plan] instalar en %s\n' "$RUNTIME_ROOT"
+        configure_mise_after_install "${RUNTIME_ROOT}/${PROVIDER}/<versión>-<imagen>" '<versión>'
     else
+        local resolved_version
+        resolved_version="$(metadata_field "$metadata_file" version)"
         install_runtime "$metadata_file"
+        configure_mise_after_install \
+            "${RUNTIME_ROOT}/${PROVIDER}/${resolved_version}-${IMAGE}" \
+            "$resolved_version"
         check_installation
     fi
 }
