@@ -56,3 +56,8 @@ myip *args:
 # Uso: just connect-nas
 connect-nas *args:
     bash scripts/network/connect_nas_linux.sh {{args}}
+
+# Entregar las interfaces físicas a NetworkManager y apartar ifupdown/dhcpcd.
+# Uso: just reconcile-networkmanager --check | --plan | --apply
+reconcile-networkmanager *args:
+    bash scripts/network/reconcile_networkmanager_linux.sh {{args}}

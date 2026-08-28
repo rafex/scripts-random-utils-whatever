@@ -108,6 +108,7 @@ nav:
       - install_wifi_polkit_linux: network/install_wifi_polkit_linux.md
       - myip_linux: network/myip_linux.md
       - nm_force_ip_linux: network/nm_force_ip_linux.md
+      - reconcile_networkmanager_linux: network/reconcile_networkmanager_linux.md
       - wifi_connect_interactive_linux: network/wifi_connect_interactive_linux.md
       - wifi_connect_linux: network/wifi_connect_linux.md
       - wifi_off_linux: network/wifi_off_linux.md

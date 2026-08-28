@@ -75,6 +75,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/network/install_wifi_polkit_linux.sh` | Linux | — | sí | — | alto | [doc](network/install_wifi_polkit_linux.md) |
 | `scripts/network/myip_linux.sh` | Linux | myip | no | — | bajo | [doc](network/myip_linux.md) |
 | `scripts/network/nm_force_ip_linux.sh` | Linux | nm-force-ip | opcional | sí | alto | [doc](network/nm_force_ip_linux.md) |
+| `scripts/network/reconcile_networkmanager_linux.sh` | Linux | reconcile-networkmanager | sí | sí | alto | [doc](network/reconcile_networkmanager_linux.md) |
 | `scripts/network/wifi_connect_interactive_linux.sh` | Linux | wifi-connect-interactive | opcional | — | medio | [doc](network/wifi_connect_interactive_linux.md) |
 | `scripts/network/wifi_connect_linux.sh` | Linux | wifi-connect | opcional | — | medio | [doc](network/wifi_connect_linux.md) |
 | `scripts/network/wifi_off_linux.sh` | Linux | wifi-off | opcional | — | medio | [doc](network/wifi_off_linux.md) |
