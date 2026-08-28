@@ -21,3 +21,8 @@ test-wacom-pen *args:
 # Uso: just power-control --check | just power-control --apply
 power-control *args:
     bash scripts/hardware/power_control_linux.sh {{args}}
+
+# Hacer permanente s2idle para mejorar la reanudación de la ThinkPad X1 Yoga
+# Uso: just configure-thinkpad-s2idle --check | --plan | --apply
+configure-thinkpad-s2idle *args:
+    bash scripts/hardware/configure_thinkpad_s2idle_linux.sh {{args}}

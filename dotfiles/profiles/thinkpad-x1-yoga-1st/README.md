@@ -37,6 +37,9 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - `.Xresources` sin un DPI fijo.
 - La autorrotación y las pruebas Wacom se activan con la etapa `tablet` de la
   migración; no se inician desde `.bashrc`.
+- La suspensión se probó con el modo `s2idle`; para hacerlo
+  permanente en GRUB ejecuta `just configure-thinkpad-s2idle --apply` y
+  reinicia cuando puedas.
 - Incluye un tema claro inicial y un tema oscuro de alto contraste para i3,
   tmux, Alacritty, Rofi y Dunst. Se alternan con `Mod+Shift+T` o desde el
   centro de control.
