@@ -77,6 +77,11 @@ install-java-runtime *args:
 configure-java-mise *args:
     bash scripts/install/configure_java_mise_linux.sh {{args}}
 
+# Instalar runtime-use y mantener JAVA_HOME en current-java
+# Uso: just install-runtime-switcher --apply
+install-runtime-switcher *args:
+    bash scripts/install/install_runtime_switcher_linux.sh {{args}}
+
 # Instalar el comando reload-bash y su función en ~/.bashrc
 # Uso: just install-bash-reload --apply
 install-bash-reload *args:

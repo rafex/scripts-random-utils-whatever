@@ -13,6 +13,8 @@ RUNTIME_ROOT="${HOME}/.local/share/java-runtimes"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SCRAPER="${SCRIPT_DIR}/scrape_java_runtimes.py"
 MISE_CONFIGURATOR="${SCRIPT_DIR}/configure_java_mise_linux.sh"
+RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
+JAVA_HOME_LINK="${HOME}/.local/share/java-runtimes/current-java"
 TEMP_DIR=""
 
 usage() {
@@ -21,6 +23,7 @@ Uso: install_java_runtime_linux.sh [opción]
 
 Descarga un runtime Java oficial en ~/.local/share/java-runtimes y, si mise
 está disponible, lo registra automáticamente usando la ruta real instalada.
+JAVA_HOME se mantiene en ~/.local/share/java-runtimes/current-java.
 
 Opciones:
   --check                         Muestra el estado local (predeterminado)
@@ -160,6 +163,11 @@ check_installation() {
     else
         printf 'instalaciones=%s\n' 'missing'
     fi
+    if [[ -L "$JAVA_HOME_LINK" ]]; then
+        printf 'JAVA_HOME_link=%s\n' "$(readlink -f -- "$JAVA_HOME_LINK" 2>/dev/null || readlink -- "$JAVA_HOME_LINK")"
+    else
+        printf 'JAVA_HOME_link=%s\n' 'missing'
+    fi
 }
 
 install_runtime() {
@@ -200,10 +208,33 @@ install_runtime() {
         mv -- "$topdir" "$target"
     fi
     ln -sfn -- "$target" "$current"
-    printf '✓ activo (ruta directa): %s\n' "$target"
+    printf '✓ runtime seleccionado: %s\n' "$target"
+    if [[ -e "$JAVA_HOME_LINK" && ! -L "$JAVA_HOME_LINK" ]]; then
+        die "$JAVA_HOME_LINK existe pero no es un enlace simbólico"
+    fi
+    mkdir -p "$(dirname -- "$JAVA_HOME_LINK")"
+    local target_real current_real temporary_link
+    target_real="$(readlink -f -- "$target" 2>/dev/null || printf '%s' "$target")"
+    current_real="$(readlink -f -- "$JAVA_HOME_LINK" 2>/dev/null || true)"
+    if [[ "$current_real" != "$target_real" ]]; then
+        temporary_link="${JAVA_HOME_LINK}.tmp.$$"
+        rm -f -- "$temporary_link"
+        ln -s -- "$target_real" "$temporary_link"
+        mv -Tf -- "$temporary_link" "$JAVA_HOME_LINK"
+    fi
+    printf '✓ JAVA_HOME estable: %s\n' "$JAVA_HOME_LINK"
     printf 'Para usarlo en la sesión actual:\n'
-    printf '  export JAVA_HOME=%q\n' "$target"
+    printf '  export JAVA_HOME=%q\n' "$JAVA_HOME_LINK"
     printf '  export PATH="$%s/bin:$%s"\n' 'JAVA_HOME' 'PATH'
+}
+
+install_runtime_switcher() {
+    [[ -r "$RUNTIME_SWITCHER" ]] || die "no se encuentra $RUNTIME_SWITCHER"
+    if [[ "$ACTION" == plan ]]; then
+        info "[plan] instalar runtime-use en $HOME/.bashrc"
+        return 0
+    fi
+    bash "$RUNTIME_SWITCHER" --apply
 }
 
 configure_mise_after_install() {
@@ -247,6 +278,7 @@ main() {
     if [[ "$ACTION" == plan ]]; then
         printf '[plan] instalar en %s\n' "$RUNTIME_ROOT"
         configure_mise_after_install "${RUNTIME_ROOT}/${PROVIDER}/<versión>-<imagen>" '<versión>'
+        install_runtime_switcher
     else
         local resolved_version
         resolved_version="$(metadata_field "$metadata_file" version)"
@@ -254,6 +286,7 @@ main() {
         configure_mise_after_install \
             "${RUNTIME_ROOT}/${PROVIDER}/${resolved_version}-${IMAGE}" \
             "$resolved_version"
+        install_runtime_switcher
         check_installation
     fi
 }

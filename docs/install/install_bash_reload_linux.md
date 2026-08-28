@@ -11,8 +11,9 @@ tags:
 
 Instala `reload-bash` en `~/.local/bin` y añade una función administrada a
 `~/.bashrc` para recargar la configuración sin cerrar la terminal. También
-agrega una sincronización final de Java con `mise` para corregir un
-`JAVA_HOME` heredado de otra distribución, como GraalVM.
+agrega una sincronización final de Java con `mise` para mantener `JAVA_HOME` en
+el enlace estable `~/.local/share/java-runtimes/current-java`, incluso si una
+configuración anterior usaba otra distribución, como GraalVM.
 
 - **Ruta:** `scripts/install/install_bash_reload_linux.sh`
 - **SO requerido:** Linux
@@ -53,8 +54,9 @@ reload-bash
 ```
 
 Cuando `mise` está activo, `reload-bash` ejecuta `mise hook-env` después de
-leer `.bashrc` y consulta `mise where java`; de esta forma actualiza
-explícitamente `JAVA_HOME`, `PATH` y la caché de comandos en la shell actual.
+leer `.bashrc`, consulta `mise where java` y repunta `current-java`; de esta
+forma `JAVA_HOME` conserva una ruta estable y se actualizan `PATH` y la caché
+de comandos en la shell actual.
 
 También puedes ejecutar directamente `~/.local/bin/reload-bash`; en ese caso
 creará una nueva shell login porque un proceso hijo no puede cambiar el entorno
@@ -131,3 +133,4 @@ repite `reload-bash`.
 ### [Unreleased]
 
 - **feat:** añade recarga idempotente de Bash para la sesión actual.
+- **fix:** conservar `JAVA_HOME` estable al recargar Bash.

@@ -12,6 +12,7 @@ STAGE="all"
 BODA_VERSION="${BODA_VERSION:-0.2616.0}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MISE_BIN="${HOME}/.local/bin/mise"
+RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
 OPENCODE_BIN="${HOME}/.local/bin/opencode"
 TMUX_CONFIG="${HOME}/.tmux.conf"
 TPM_DIR="${HOME}/.tmux/plugins/tpm"
@@ -672,10 +673,12 @@ configure_mise() {
   install_mise
   if [[ "$ACTION" == "plan" ]]; then
     info "[plan] mise use --global node@lts java@temurin-21"
+    bash "$RUNTIME_SWITCHER" --plan
     return 0
   fi
   mkdir -p "$(dirname "$MISE_CONFIG")"
   "$MISE_BIN" use --global node@lts java@temurin-21
+  bash "$RUNTIME_SWITCHER" --apply
   ok "Node.js LTS y Java Temurin 21 configurados mediante mise"
 }
 

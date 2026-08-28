@@ -98,6 +98,7 @@ nav:
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_mosh_tmux_kitty_unix: install/install_mosh_tmux_kitty_unix.md
+      - install_runtime_switcher_linux: install/install_runtime_switcher_linux.md
       - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
       - install_ufw_linux: install/install_ufw_linux.md
       - install_vscodium_linux: install/install_vscodium_linux.md

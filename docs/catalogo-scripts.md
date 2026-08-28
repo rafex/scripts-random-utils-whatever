@@ -63,6 +63,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_github_cli_linux.sh` | Linux | install-github-cli | sí | sí | medio | [doc](install/install_github_cli_linux.md) |
 | `scripts/install/install_java_runtime_linux.sh` | Linux | install-java-runtime | no | sí | medio | [doc](install/install_java_runtime_linux.md) |
 | `scripts/install/install_mosh_tmux_kitty_unix.sh` | macOS/Linux | install-mosh-tmux-kitty | opcional | sí | medio | [doc](install/install_mosh_tmux_kitty_unix.md) |
+| `scripts/install/install_runtime_switcher_linux.sh` | Linux | install-runtime-switcher | no | sí | bajo | [doc](install/install_runtime_switcher_linux.md) |
 | `scripts/install/install_terminal_workstation_linux.sh` | Linux | install-terminal-workstation | sí | sí | medio | [doc](install/install_terminal_workstation_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |

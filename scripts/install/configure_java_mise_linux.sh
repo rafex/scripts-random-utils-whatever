@@ -11,6 +11,8 @@ RUNTIME_ROOT="${HOME}/.local/share/java-runtimes"
 RUNTIME_PATH=""
 MISE_BIN="${HOME}/.local/bin/mise"
 MISE_CONFIG="${HOME}/.config/mise/config.toml"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 
 RED='\033[0;31m'
@@ -41,8 +43,8 @@ Opciones:
   --path DIRECTORIO       Ruta exacta del JDK instalado; evita usar current
   --help                   Mostrar esta ayuda
 
-La configuración apunta directamente al directorio versionado del JDK; no
-usa ~/.local/share/java-runtimes/current-temurin-jdk.
+La configuración de mise apunta directamente al directorio versionado del JDK;
+JAVA_HOME usa ~/.local/share/java-runtimes/current-java.
 EOF
 }
 
@@ -143,6 +145,7 @@ plan_mode() {
   info "[plan] respaldar $MISE_CONFIG si existe"
   info "[plan] mise use --global java@temurin-${VERSION}"
   info "[plan] mise reshim"
+  info "[plan] sincronizar JAVA_HOME mediante ~/.local/share/java-runtimes/current-java"
 }
 
 apply_mode() {
@@ -158,6 +161,11 @@ apply_mode() {
   ok "mise usa directamente: $runtime_path"
   "$runtime_path/bin/java" -version 2>&1 | head -n 1
   "$mise_path" current java || true
+  if [[ -r "$RUNTIME_SWITCHER" ]]; then
+    bash "$RUNTIME_SWITCHER" --apply
+  else
+    warn "no se encuentra $RUNTIME_SWITCHER; current-java no se sincronizó"
+  fi
 }
 
 main() {

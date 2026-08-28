@@ -52,17 +52,29 @@ reload_script() {
 set -Eeuo pipefail
 
 sync_mise_java() {
-  local mise_java_home
+  local mise_java_home stable_java_home current_java_home temporary_link
   command -v mise >/dev/null 2>&1 || return 0
   export MISE_ACTIVATE_AGGRESSIVE=1
   eval "$(mise activate bash)"
   eval "$(mise hook-env)"
   mise_java_home="$(mise where java 2>/dev/null || true)"
   if [[ -n "$mise_java_home" && -x "$mise_java_home/bin/java" ]]; then
-    if command -v readlink >/dev/null 2>&1; then
-      mise_java_home="$(readlink -f -- "$mise_java_home")"
+    stable_java_home="$HOME/.local/share/java-runtimes/current-java"
+    if [[ -e "$stable_java_home" && ! -L "$stable_java_home" ]]; then
+      printf 'reload-bash: no se reemplaza %s porque no es un enlace simbólico\n' \
+        "$stable_java_home" >&2
+      return 1
     fi
-    export JAVA_HOME="$mise_java_home"
+    mkdir -p "$(dirname -- "$stable_java_home")"
+    current_java_home="$(readlink -f -- "$stable_java_home" 2>/dev/null || true)"
+    mise_java_home="$(readlink -f -- "$mise_java_home" 2>/dev/null || printf '%s' "$mise_java_home")"
+    if [[ "$current_java_home" != "$mise_java_home" ]]; then
+      temporary_link="${stable_java_home}.tmp.$$"
+      rm -f -- "$temporary_link"
+      ln -s -- "$mise_java_home" "$temporary_link"
+      mv -Tf -- "$temporary_link" "$stable_java_home"
+    fi
+    export JAVA_HOME="$stable_java_home"
     export PATH="$JAVA_HOME/bin:$PATH"
     hash -r
   fi
@@ -96,16 +108,9 @@ EOF
 
 mise_bashrc_block() {
   cat <<'EOF'
-# Sincronización final de Java con la versión activa de mise.
+# JAVA_HOME estable; runtime-use actualiza el enlace current-java.
 if command -v mise >/dev/null 2>&1; then
-  _rafex_mise_java_home="$(mise where java 2>/dev/null || true)"
-  if [[ -n "$_rafex_mise_java_home" && -x "$_rafex_mise_java_home/bin/java" ]]; then
-    _rafex_mise_java_home="$(readlink -f -- "$_rafex_mise_java_home")"
-    export JAVA_HOME="$_rafex_mise_java_home"
-    export PATH="$JAVA_HOME/bin:$PATH"
-    hash -r
-  fi
-  unset _rafex_mise_java_home
+  export JAVA_HOME="$HOME/.local/share/java-runtimes/current-java"
 fi
 EOF
 }
@@ -144,19 +149,38 @@ append_bashrc_block() {
 }
 
 append_mise_block() {
-  local begin='# BEGIN rafex reload-bash mise-java' end='# END rafex reload-bash mise-java' temporary
+  local begin='# BEGIN rafex reload-bash mise-java' end='# END rafex reload-bash mise-java'
+  local legacy_export="export JAVA_HOME=\"\$_rafex_mise_java_home\""
+  local temporary has_block=0 needs_replace=0
   if [[ -f "$BASHRC" ]] && grep -Fq "$begin" "$BASHRC"; then
-    ok "bloque Java de mise ya presente en $BASHRC"
-    return 0
+    has_block=1
+    if grep -Fq "$legacy_export" "$BASHRC"; then
+      needs_replace=1
+    else
+      ok "bloque Java de mise ya presente en $BASHRC"
+      return 0
+    fi
   fi
   if [[ "$ACTION" == plan ]]; then
-    info "[plan] agregar sincronización Java de mise a $BASHRC"
+    if [[ "$needs_replace" -eq 1 ]]; then
+      info "[plan] actualizar sincronización Java de mise en $BASHRC"
+    else
+      info "[plan] agregar sincronización Java de mise a $BASHRC"
+    fi
     return 0
   fi
   mkdir -p "$(dirname "$BASHRC")"
   backup_path "$BASHRC"
   temporary="$(mktemp)"
-  [[ -f "$BASHRC" ]] && cp -a -- "$BASHRC" "$temporary"
+  if [[ "$has_block" -eq 1 ]]; then
+    awk -v begin="$begin" -v end="$end" '
+      $0 == begin { inside=1; next }
+      $0 == end { inside=0; next }
+      !inside { print }
+    ' "$BASHRC" > "$temporary"
+  elif [[ -f "$BASHRC" ]]; then
+    cp -a -- "$BASHRC" "$temporary"
+  fi
   printf '\n%s\n%s\n%s\n' "$begin" "$(mise_bashrc_block)" "$end" >> "$temporary"
   mv -- "$temporary" "$BASHRC"
   chmod 600 "$BASHRC"

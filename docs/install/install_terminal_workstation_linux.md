@@ -68,7 +68,9 @@ usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
 También instala `~/.local/bin/reload-bash` y la función `reload-bash` en
 `~/.bashrc`, para recargar la configuración de la shell después de cambiar
 Java, mise o aliases. La activación de mise se ejecuta al final y llama a
-`mise hook-env`, por lo que `JAVA_HOME` y `PATH` siguen la versión Java activa.
+`mise hook-env`. El selector `runtime-use` mantiene `JAVA_HOME` en
+`~/.local/share/java-runtimes/current-java`, cuyo destino sigue la versión Java
+activa.
 
 ## Opciones
 
@@ -192,3 +194,4 @@ configuración no descarga plugins mediante `sudo`.
   Podman rootless para ThinkPad Debian.
 - **fix:** ajustar Alacritty a tamaño de fuente 7 y evitar que el instalador
   lo restaure a 9 o 10.
+- **feat:** instalar el selector `runtime-use` junto con la etapa de runtimes.

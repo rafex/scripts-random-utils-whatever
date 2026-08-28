@@ -7,7 +7,7 @@ tags:
 
 # install_java_runtime_linux.sh
 
-Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema. Al instalar Temurin JDK, configura automáticamente `mise` con la ruta versionada directa.
+Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema. Al instalar un runtime Java, mantiene `JAVA_HOME` mediante el enlace estable `~/.local/share/java-runtimes/current-java` y, para Temurin JDK, configura automáticamente `mise` con la ruta versionada real.
 
 - **Ruta:** `scripts/install/install_java_runtime_linux.sh`
 - **SO requerido:** Linux
@@ -48,7 +48,7 @@ El enlace activo queda como `current-<proveedor>-<imagen>`.
 just install-java-runtime --provider temurin --version 25 --image jdk --apply
 ```
 
-Después de instalar, el script registra automáticamente Temurin JDK en `mise` si está disponible. La selección apunta al directorio versionado real, no al enlace `current-temurin-jdk`. Para omitir esta configuración usa `--no-mise`.
+Después de instalar, el script registra automáticamente Temurin JDK en `mise` si está disponible y actualiza `current-java` para apuntar al runtime seleccionado. Para omitir el registro automático de Temurin usa `--no-mise`.
 
 ## Opciones
 
@@ -82,7 +82,7 @@ just install-java-runtime --provider temurin --version 21 --check
 # Ver el plan, sin descargar
 just install-java-runtime --provider temurin --version 17 --plan
 
-# Instalar Temurin 25 y seleccionarlo en mise mediante su ruta directa
+# Instalar Temurin 25 y dejarlo como Java activo mediante current-java
 just install-java-runtime --provider temurin --version 25 --image jdk --apply
 
 # Instalar GraalVM Community actual
@@ -95,11 +95,12 @@ just install-java-runtime --provider semeru --version latest --image jdk --apply
 just install-java-runtime --provider graalvm-oracle --version latest --apply
 ```
 
-Activación de ejemplo:
+Verificación de la ruta estable:
 
 ```bash
-export JAVA_HOME="$HOME/.local/share/java-runtimes/temurin/jdk-25.0.4.1+1-jdk"
+export JAVA_HOME="$HOME/.local/share/java-runtimes/current-java"
 export PATH="$JAVA_HOME/bin:$PATH"
+readlink -f "$JAVA_HOME"
 java -version
 ```
 
@@ -131,3 +132,5 @@ java -version
 ### [Unreleased]
 
 - **feat:** instalar localmente Temurin, GraalVM Community/Oracle e IBM Semeru con verificación SHA-256.
+- **fix:** mantener `JAVA_HOME` en el enlace estable `current-java` y
+  provisionar `runtime-use` después de una instalación exitosa.
