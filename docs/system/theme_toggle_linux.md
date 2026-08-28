@@ -46,7 +46,9 @@ estado, pero la recarga de i3, tmux y Dunst requiere la sesión gráfica local.
 
 El estado se guarda en `~/.config/rafex/theme` y el selector apunta
 `~/.config/rafex/themes/current` a la paleta activa. El valor inicial es
-`light`.
+`light`. Los colores de i3 se sincronizan en un bloque administrado dentro de
+`~/.config/i3/config`; esto evita depender de la expansión de `~` en la
+directiva `include` de algunas versiones de i3.
 
 ## Opciones
 
@@ -131,6 +133,17 @@ sesión gráfica.
 
 **Solución:** reinicia esa aplicación; el selector solo recarga i3, tmux y
 Dunst de forma controlada.
+
+### `i3bar muestra texto invisible o colores como $theme_bar_fg`
+
+**Causa:** una configuración anterior usaba `include
+~/.config/rafex/themes/current/i3.conf`; algunas versiones de i3 no expanden
+esa ruta y dejan las variables sin resolver.
+
+**Solución:** instala la versión actual del selector y ejecuta
+`theme-toggle.sh --set light` o `theme-toggle.sh --set dark`. El script migra la
+línea antigua al bloque administrado y recarga i3 cuando se ejecuta dentro de
+la sesión gráfica.
 
 ## Changelog
 

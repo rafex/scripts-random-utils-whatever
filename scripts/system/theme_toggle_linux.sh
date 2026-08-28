@@ -13,6 +13,10 @@ CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 THEME_HOME="$CONFIG_HOME/rafex/themes"
 CURRENT_LINK="$THEME_HOME/current"
 STATE_FILE="$CONFIG_HOME/rafex/theme"
+I3_CONFIG="$CONFIG_HOME/i3/config"
+I3_THEME_BEGIN='# BEGIN rafex theme'
+I3_THEME_END='# END rafex theme'
+I3_THEME_LEGACY='include ~/.config/rafex/themes/current/i3.conf'
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -101,6 +105,11 @@ show_status() {
   else
     printf 'current=missing\n'
   fi
+  if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_THEME_BEGIN" "$I3_CONFIG"; then
+    printf 'i3-theme-block=present\n'
+  else
+    printf 'i3-theme-block=missing\n'
+  fi
   for command_name in i3-msg tmux dunstctl; do
     if command -v "$command_name" >/dev/null 2>&1; then
       printf '%s=available\n' "$command_name"
@@ -108,6 +117,64 @@ show_status() {
       printf '%s=missing\n' "$command_name"
     fi
   done
+}
+
+sync_i3_theme() {
+  local block_file temporary mode
+  [[ -f "$I3_CONFIG" ]] || {
+    warn "no existe $I3_CONFIG; se actualizó el tema, pero i3 deberá configurarse manualmente"
+    return 0
+  }
+  block_file="$(mktemp)"
+  cat "$CURRENT_LINK/i3.conf" > "$block_file"
+  temporary="$(mktemp)"
+  awk -v begin="$I3_THEME_BEGIN" -v end="$I3_THEME_END" \
+      -v legacy="$I3_THEME_LEGACY" -v block_file="$block_file" '
+    function emit_block( line) {
+      while ((getline line < block_file) > 0) print line
+      close(block_file)
+    }
+    $0 == begin {
+      print begin
+      emit_block()
+      in_block = 1
+      found = 1
+      next
+    }
+    in_block && $0 == end {
+      print end
+      in_block = 0
+      next
+    }
+    $0 == legacy {
+      print begin
+      emit_block()
+      print end
+      found = 1
+      next
+    }
+    { print }
+    END {
+      if (!found) {
+        print ""
+        print begin
+        emit_block()
+        print end
+      }
+    }
+  ' "$I3_CONFIG" > "$temporary"
+  rm -f -- "$block_file"
+  if cmp -s "$I3_CONFIG" "$temporary"; then
+    rm -f -- "$temporary"
+    return 0
+  fi
+  backup_file "$I3_CONFIG"
+  if mode="$(stat -c '%a' "$I3_CONFIG" 2>/dev/null)"; then
+    chmod "$mode" "$temporary"
+  elif mode="$(stat -f '%Lp' "$I3_CONFIG" 2>/dev/null)"; then
+    chmod "$mode" "$temporary"
+  fi
+  mv -- "$temporary" "$I3_CONFIG"
 }
 
 backup_file() {
@@ -162,10 +229,12 @@ apply_mode() {
   validate_mode "$mode"
   if [[ "$ACTION" == plan ]]; then
     info "[plan] activar tema $mode mediante $CURRENT_LINK"
+    info "[plan] sincronizar bloque de colores en $I3_CONFIG"
     info '[plan] recargar i3, tmux y dunst si están activos'
     return 0
   fi
   apply_link "$mode"
+  sync_i3_theme
   reload_desktop
   ok "tema activo: $mode"
 }

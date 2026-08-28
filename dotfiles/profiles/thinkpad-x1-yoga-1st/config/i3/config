@@ -3,7 +3,18 @@ set $mod Mod4
 set $term alacritty
 set $menu rofi -show drun -show-icons
 set $laptop_menu 9menu -popup -label "ThinkPad" -file ~/.config/9menu/laptop.menu
-include ~/.config/rafex/themes/current/i3.conf
+
+# BEGIN rafex theme
+set $theme_bar_bg #f6f8fa
+set $theme_bar_fg #24292f
+set $theme_separator #8c959f
+set $theme_active_bg #0969da
+set $theme_active_fg #ffffff
+set $theme_inactive_bg #eaeef2
+set $theme_inactive_fg #57606a
+set $theme_urgent_bg #cf222e
+set $theme_urgent_fg #ffffff
+# END rafex theme
 
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
