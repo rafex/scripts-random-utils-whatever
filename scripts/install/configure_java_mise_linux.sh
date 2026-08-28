@@ -11,6 +11,7 @@ RUNTIME_ROOT="${HOME}/.local/share/java-runtimes"
 RUNTIME_PATH=""
 MISE_BIN="${HOME}/.local/bin/mise"
 MISE_CONFIG="${HOME}/.config/mise/config.toml"
+JAVA_SELECTION_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-selection"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -158,6 +159,10 @@ apply_mode() {
   "$mise_path" link --force "java@temurin-${VERSION}" "$runtime_path"
   "$mise_path" use --global "java@temurin-${VERSION}"
   "$mise_path" reshim
+  mkdir -p "$(dirname -- "$JAVA_SELECTION_FILE")"
+  printf '%s\n' "java@temurin-${VERSION}" >"${JAVA_SELECTION_FILE}.tmp.$$"
+  chmod 600 "${JAVA_SELECTION_FILE}.tmp.$$"
+  mv -f -- "${JAVA_SELECTION_FILE}.tmp.$$" "$JAVA_SELECTION_FILE"
   ok "mise usa directamente: $runtime_path"
   "$runtime_path/bin/java" -version 2>&1 | head -n 1
   "$mise_path" current java || true

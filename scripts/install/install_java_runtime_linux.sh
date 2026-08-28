@@ -12,8 +12,8 @@ AUTO_MISE=1
 RUNTIME_ROOT="${HOME}/.local/share/java-runtimes"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SCRAPER="${SCRIPT_DIR}/scrape_java_runtimes.py"
-MISE_CONFIGURATOR="${SCRIPT_DIR}/configure_java_mise_linux.sh"
 RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
+REGISTRY="${SCRIPT_DIR}/runtime_registry_linux.sh"
 JAVA_HOME_LINK="${HOME}/.local/share/java-runtimes/current-java"
 TEMP_DIR=""
 
@@ -33,11 +33,12 @@ Opciones:
   --version VERSION               latest, mayor o versión exacta según proveedor
   --image jdk|jre                 Imagen a instalar (GraalVM solo admite jdk)
   --root DIRECTORIO               Raíz local alternativa y absoluta
-  --no-mise                       No registrar automáticamente Temurin en mise
+  --no-mise                       No registrar automáticamente el runtime en mise
   --help                          Muestra esta ayuda
 
 No usa sudo ni instala en /usr/lib. La configuración automática de mise solo
-afecta al usuario actual y apunta directamente al directorio de la versión.
+afecta al usuario actual y apunta directamente al directorio de la versión;
+mise nunca descarga el runtime.
 EOF
 }
 
@@ -107,8 +108,8 @@ require_tools() {
     command -v sha256sum >/dev/null 2>&1 || die 'falta sha256sum'
     command -v tar >/dev/null 2>&1 || die 'falta tar'
     [[ -r "$SCRAPER" ]] || die "no se encuentra $SCRAPER"
-    if [[ "$AUTO_MISE" -eq 1 && "$PROVIDER" == temurin && "$IMAGE" == jdk && ! -r "$MISE_CONFIGURATOR" ]]; then
-        die "no se encuentra $MISE_CONFIGURATOR"
+    if [[ "$AUTO_MISE" -eq 1 && ! -r "$REGISTRY" ]]; then
+        die "no se encuentra $REGISTRY"
     fi
 }
 
@@ -238,23 +239,46 @@ install_runtime_switcher() {
 }
 
 configure_mise_after_install() {
-    local target="$1" resolved_version="$2" mise_version
+    local target="$1" resolved_version="$2" mise_version mise_tool mise_id selection_file
     [[ "$AUTO_MISE" -eq 1 ]] || return 0
-    [[ "$PROVIDER" == temurin && "$IMAGE" == jdk ]] || {
-        warn "mise automático solo se aplica a Temurin JDK; usa --no-mise para omitir este aviso"
-        return 0
-    }
+    case "$PROVIDER" in
+        temurin|semeru) mise_tool="java"; mise_version="$PROVIDER-${resolved_version%%.*}" ;;
+        graalvm-community|graalvm-oracle)
+            mise_tool="graalvm"
+            mise_version="${resolved_version#graal-}"
+            mise_version="${mise_version#jdk-}"
+            ;;
+    esac
+    mise_id="${mise_tool}@${mise_version}"
     if [[ "$ACTION" == plan ]]; then
-        info "[plan] registrar java@temurin-<mayor> en mise apuntando directamente a $target"
+        info "[plan] registrar $mise_id en mise apuntando directamente a $target"
         return 0
     fi
     if ! command -v "$HOME/.local/bin/mise" >/dev/null 2>&1 && ! command -v mise >/dev/null 2>&1; then
-        warn "mise no está instalado; Temurin quedó disponible mediante JAVA_HOME"
-        return 0
+        die "mise no está instalado; ejecuta primero install-terminal-workstation --stage runtimes"
     fi
-    mise_version="$(printf '%s' "$resolved_version" | sed -E 's/^[^0-9]*([0-9]+).*/\1/')"
-    [[ "$mise_version" =~ ^[0-9]+$ ]] || die "no se pudo determinar la versión mayor para mise"
-    bash "$MISE_CONFIGURATOR" --provider temurin --version "$mise_version" --path "$target" --apply
+    local mise_path
+    mise_path="$(command -v mise 2>/dev/null || printf '%s' "$HOME/.local/bin/mise")"
+    "$mise_path" link --force "$mise_id" "$target"
+    "$mise_path" use --global "$mise_id"
+    "$mise_path" reshim
+    selection_file="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-selection"
+    mkdir -p "$(dirname -- "$selection_file")"
+    printf '%s\n' "$mise_id" >"${selection_file}.tmp.$$"
+    chmod 600 "${selection_file}.tmp.$$"
+    mv -f -- "${selection_file}.tmp.$$" "$selection_file"
+    ok "mise usa directamente: $target"
+}
+
+mise_runtime_version() {
+    local resolved_version="$1"
+    case "$PROVIDER" in
+        temurin|semeru) printf '%s-%s\n' "$PROVIDER" "${resolved_version%%.*}" ;;
+        graalvm-community|graalvm-oracle)
+            resolved_version="${resolved_version#graal-}"
+            printf '%s\n' "${resolved_version#jdk-}"
+            ;;
+    esac
 }
 
 main() {
@@ -286,6 +310,12 @@ main() {
         configure_mise_after_install \
             "${RUNTIME_ROOT}/${PROVIDER}/${resolved_version}-${IMAGE}" \
             "$resolved_version"
+        # shellcheck source=/dev/null
+        source "$REGISTRY"
+        runtime_registry_upsert java "$PROVIDER" "$(mise_runtime_version "$resolved_version")" \
+            "${RUNTIME_ROOT}/${PROVIDER}/${resolved_version}-${IMAGE}" \
+            "$(metadata_field "$metadata_file" checksum)" \
+            "$(metadata_field "$metadata_file" source_url)"
         install_runtime_switcher
         check_installation
     fi

@@ -60,21 +60,41 @@ selector_block() {
 # Mantiene JAVA_HOME estable y apunta el enlace al Java activo de mise.
 _rafex_runtime_java_link="${HOME}/.local/share/java-runtimes/current-java"
 _rafex_runtime_java_selection="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-selection"
+_rafex_runtime_registry="${XDG_DATA_HOME:-$HOME/.local/share}/rafex-runtimes/registry.tsv"
+
+_rafex_runtime_local_java_tool() {
+  local directory="$PWD" candidate
+  while [[ "$directory" != "/" && "$directory" != "." ]]; do
+    candidate="$directory/.mise.toml"
+    if [[ -r "$candidate" ]] && grep -Eq '^[[:space:]]*(java|graalvm)[[:space:]]*=' "$candidate"; then
+      awk -F '=' '/^[[:space:]]*(java|graalvm)[[:space:]]*=/ {
+        gsub(/[[:space:]]/, "", $1); print $1; exit
+      }' "$candidate"
+      return 0
+    fi
+    directory="$(dirname -- "$directory")"
+  done
+  return 1
+}
 
 _rafex_runtime_sync_java_home() {
-  local selection resolved canonical current temporary
+  local selection local_tool resolved canonical current temporary
   command -v mise >/dev/null 2>&1 || return 0
+  local_tool="$(_rafex_runtime_local_java_tool || true)"
   selection=""
   if [[ -r "$_rafex_runtime_java_selection" ]]; then
     selection="$(awk 'NF { print; exit }' "$_rafex_runtime_java_selection")"
   fi
-  if [[ -n "$selection" ]]; then
+  if [[ -n "$local_tool" ]]; then
+    resolved="$(mise where "$local_tool" 2>/dev/null | awk 'NF { print; exit }' || true)"
+  elif [[ -n "$selection" ]]; then
     resolved="$(mise where "$selection" 2>/dev/null | awk 'NF { print; exit }' || true)"
   else
     resolved="$(mise where java 2>/dev/null | awk 'NF { print; exit }' || true)"
   fi
   [[ -n "$resolved" && -x "$resolved/bin/java" ]] || return 0
   canonical="$(readlink -f -- "$resolved" 2>/dev/null || printf '%s' "$resolved")"
+  [[ "$canonical" == "$HOME/.local/share/java-runtimes/"* ]] || return 0
   if [[ -e "$_rafex_runtime_java_link" && ! -L "$_rafex_runtime_java_link" ]]; then
     printf 'runtime-use: no se reemplaza %s porque no es un enlace simbólico\n' \
       "$_rafex_runtime_java_link" >&2
@@ -93,6 +113,27 @@ _rafex_runtime_sync_java_home() {
   fi
 }
 
+_rafex_runtime_sync_node_link() {
+  local resolved canonical current temporary link="${HOME}/.local/share/node-runtimes/current-node"
+  command -v mise >/dev/null 2>&1 || return 0
+  resolved="$(mise where node 2>/dev/null | awk 'NF { print; exit }' || true)"
+  [[ -n "$resolved" && -x "$resolved/bin/node" ]] || return 0
+  canonical="$(readlink -f -- "$resolved" 2>/dev/null || printf '%s' "$resolved")"
+  [[ "$canonical" == "$HOME/.local/share/node-runtimes/"* ]] || return 0
+  if [[ -e "$link" && ! -L "$link" ]]; then
+    printf 'runtime-use: no se reemplaza %s porque no es un enlace simbólico\n' "$link" >&2
+    return 1
+  fi
+  current="$(readlink -f -- "$link" 2>/dev/null || true)"
+  if [[ "$current" != "$canonical" ]]; then
+    mkdir -p "$(dirname -- "$link")"
+    temporary="${link}.tmp.$$"
+    rm -f -- "$temporary"
+    ln -s -- "$canonical" "$temporary"
+    mv -Tf -- "$temporary" "$link"
+  fi
+}
+
 _rafex_runtime_set_java_selection() {
   local selection="$1" temporary
   mkdir -p "$(dirname -- "$_rafex_runtime_java_selection")"
@@ -103,8 +144,59 @@ _rafex_runtime_set_java_selection() {
 }
 
 _rafex_runtime_list_java() {
-  mise ls --installed java
-  mise ls --installed graalvm 2>/dev/null | awk 'NF { $1="java"; $2="graalvm-" $2; print }'
+  if [[ -s "$_rafex_runtime_registry" ]]; then
+    awk -F '\t' '$1 == "java" {
+      provider=$2
+      if (provider ~ /^graalvm-/) provider="graalvm"
+      printf "java  %s-%s  %s\n", provider, $3, $4
+    }' "$_rafex_runtime_registry"
+  else
+    mise ls --installed java
+    mise ls --installed graalvm 2>/dev/null | awk 'NF { $1="java"; $2="graalvm-" $2; print }'
+  fi
+}
+
+_rafex_runtime_registry_path() {
+  local tool="$1" version="$2" provider registry_version
+  [[ -s "$_rafex_runtime_registry" ]] || return 1
+  provider=""; registry_version=""
+  case "$tool" in
+    java)
+      case "$version" in
+        temurin-*) provider="temurin"; registry_version="$version" ;;
+        semeru-*) provider="semeru"; registry_version="$version" ;;
+        graalvm-*) provider="graalvm-community"; registry_version="${version#graalvm-}" ;;
+        *) return 1 ;;
+      esac
+      ;;
+    node)
+      provider="nodejs"; registry_version="$version" ;;
+      ;;
+    *) return 1 ;;
+  esac
+  awk -F '\t' -v tool="$tool" -v provider="$provider" -v version="$registry_version" \
+    '$1 == tool && $2 == provider && $3 == version { print $4; exit }' "$_rafex_runtime_registry"
+}
+
+_rafex_runtime_list_node() {
+  if [[ -s "$_rafex_runtime_registry" ]] && grep -q $'^node\t' "$_rafex_runtime_registry"; then
+    awk -F '\t' '$1 == "node" { printf "node  %s  %s\n", $3, $4 }' "$_rafex_runtime_registry"
+  else
+    mise ls --installed node
+  fi
+}
+
+_rafex_runtime_missing_hint() {
+  local tool="$1" version="$2"
+  if [[ "$tool" == java && "$version" == graalvm-* ]]; then
+    printf 'just install-java-runtime --provider graalvm-community --version %s --apply\n' "${version#graalvm-}"
+  elif [[ "$tool" == java && "$version" == semeru-* ]]; then
+    printf 'just install-java-runtime --provider semeru --version %s --image jdk --apply\n' "${version#semeru-}"
+  elif [[ "$tool" == java ]]; then
+    printf 'just install-java-runtime --provider temurin --version %s --image jdk --apply\n' "${version#temurin-}"
+  else
+    printf 'just install-node-runtime --version %s --apply\n' "$version"
+  fi
 }
 
 _rafex_runtime_prompt_sync() {
@@ -112,7 +204,7 @@ _rafex_runtime_prompt_sync() {
 }
 
 runtime-use() {
-  local scope="global" action="${1:-}" tool version identifier answer
+  local scope="global" action="${1:-}" tool version identifier
   if [[ "$action" == "--local" || "$action" == "--global" ]]; then
     [[ $# -ge 2 ]] || { printf 'Uso: runtime-use [--local|--global] java|node versión\n' >&2; return 2; }
     scope="${action#--}"
@@ -129,6 +221,8 @@ runtime-use() {
       command -v mise >/dev/null 2>&1 || { printf 'runtime-use: mise no está instalado\n' >&2; return 1; }
       if [[ $# -ge 2 && "$2" == java ]]; then
         _rafex_runtime_list_java
+      elif [[ $# -ge 2 && "$2" == node ]]; then
+        _rafex_runtime_list_node
       elif [[ $# -ge 2 ]]; then
         mise ls --installed "$2"
       else
@@ -174,13 +268,19 @@ runtime-use() {
     identifier="${tool}@${version}"
   fi
   if ! mise where "$identifier" >/dev/null 2>&1; then
-    printf '%s no está instalado. Ejecutar mise install %s? [y/N] ' \
-      "$identifier" "$identifier" >&2
-    read -r answer
-    case "$answer" in
-      y|Y|yes|YES) mise install "$identifier" || return ;;
-      *) printf 'No se instaló %s\n' "$identifier" >&2; return 1 ;;
-    esac
+    printf '%s no está instalado. Usa el instalador del repositorio:\n' "$identifier" >&2
+    _rafex_runtime_missing_hint "$tool" "$version" >&2
+    return 1
+  fi
+  if [[ -s "$_rafex_runtime_registry" ]]; then
+    local registered_path resolved_path
+    registered_path="$(_rafex_runtime_registry_path "$tool" "$version" || true)"
+    resolved_path="$(mise where "$identifier" 2>/dev/null | awk 'NF { print; exit }' || true)"
+    if [[ -z "$registered_path" || "$(readlink -f -- "$resolved_path" 2>/dev/null || printf '%s' "$resolved_path")" != "$(readlink -f -- "$registered_path" 2>/dev/null || printf '%s' "$registered_path")" ]]; then
+      printf '%s no está registrado por los instaladores propios. Usa:\n' "$identifier" >&2
+      _rafex_runtime_missing_hint "$tool" "$version" >&2
+      return 1
+    fi
   fi
   if [[ "$scope" == local ]]; then
     # mise usa el archivo local del proyecto por defecto.
@@ -191,6 +291,8 @@ runtime-use() {
   eval "$(mise hook-env)"
   if [[ "$tool" == java ]]; then
     _rafex_runtime_set_java_selection "$identifier"
+  else
+    _rafex_runtime_sync_node_link || return
   fi
   _rafex_runtime_sync_java_home || return
   hash -r
@@ -265,14 +367,26 @@ backup_bashrc() {
 }
 
 sync_java_link() {
-  local resolved canonical current temporary
+  local selection resolved canonical current temporary
   command -v mise >/dev/null 2>&1 || return 0
-  resolved="$(mise where java 2>/dev/null | awk 'NF { print; exit }' || true)"
+  selection=""
+  if [[ -r "$JAVA_SELECTION_FILE" ]]; then
+    selection="$(awk 'NF { print; exit }' "$JAVA_SELECTION_FILE")"
+  fi
+  if [[ -n "$selection" ]]; then
+    resolved="$(mise where "$selection" 2>/dev/null | awk 'NF { print; exit }' || true)"
+  else
+    resolved="$(mise where java 2>/dev/null | awk 'NF { print; exit }' || true)"
+  fi
   [[ -n "$resolved" && -x "$resolved/bin/java" ]] || return 0
+  canonical="$(readlink -f -- "$resolved" 2>/dev/null || printf '%s' "$resolved")"
+  [[ "$canonical" == "$HOME/.local/share/java-runtimes/"* ]] || {
+    warn "no se adopta un Java fuera de ~/.local/share/java-runtimes"
+    return 0
+  }
   if [[ -e "$JAVA_HOME_LINK" && ! -L "$JAVA_HOME_LINK" ]]; then
     die "$JAVA_HOME_LINK existe pero no es un enlace simbólico"
   fi
-  canonical="$(readlink -f -- "$resolved" 2>/dev/null || printf '%s' "$resolved")"
   current="$(readlink -f -- "$JAVA_HOME_LINK" 2>/dev/null || true)"
   if [[ "$current" != "$canonical" ]]; then
     mkdir -p "$(dirname -- "$JAVA_HOME_LINK")"

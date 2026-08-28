@@ -62,6 +62,10 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_firefox_mozilla_linux.sh` | Linux | install-firefox-mozilla | sí | sí | medio | [doc](install/install_firefox_mozilla_linux.md) |
 | `scripts/install/install_github_cli_linux.sh` | Linux | install-github-cli | sí | sí | medio | [doc](install/install_github_cli_linux.md) |
 | `scripts/install/install_java_runtime_linux.sh` | Linux | install-java-runtime | no | sí | medio | [doc](install/install_java_runtime_linux.md) |
+| `scripts/install/install_node_runtime_linux.sh` | Linux | install-node-runtime | no | sí | medio | [doc](install/install_node_runtime_linux.md) |
+| `scripts/install/install_build_runtime_linux.sh` | Linux | install-build-runtime | no | sí | medio | [doc](install/install_build_runtime_linux.md) |
+| `scripts/install/reconcile_runtimes_linux.sh` | Linux | reconcile-runtimes | no | sí | alto | [doc](install/reconcile_runtimes_linux.md) |
+| `scripts/install/runtime_registry_linux.sh` | Linux | — | no | — | bajo | [doc](install/runtime_registry_linux.md) |
 | `scripts/install/install_mosh_tmux_kitty_unix.sh` | macOS/Linux | install-mosh-tmux-kitty | opcional | sí | medio | [doc](install/install_mosh_tmux_kitty_unix.md) |
 | `scripts/install/install_runtime_switcher_linux.sh` | Linux | install-runtime-switcher | no | sí | bajo | [doc](install/install_runtime_switcher_linux.md) |
 | `scripts/install/install_terminal_workstation_linux.sh` | Linux | install-terminal-workstation | sí | sí | medio | [doc](install/install_terminal_workstation_linux.md) |
@@ -69,6 +73,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
 | `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
 | `scripts/install/scrape_java_runtimes.py` | Linux | scrape-java-runtimes | no | — | bajo | [doc](install/scrape_java_runtimes.md) |
+| `scripts/install/scrape_node_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_node_runtime.md) |
+| `scripts/install/scrape_build_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_build_runtime.md) |
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/harden_thinkpad_linux.sh` | Linux | harden-thinkpad | sí | sí | alto | [doc](install/harden_thinkpad_linux.md) |

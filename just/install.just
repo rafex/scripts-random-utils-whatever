@@ -67,10 +67,35 @@ install-eclipse-ide *args:
 scrape-java-runtimes *args:
     python3 scripts/install/scrape_java_runtimes.py {{args}}
 
-# Descargar y seleccionar un runtime Java local; registra Temurin automáticamente en mise
+# Consultar descargas oficiales de Node.js
+# Uso: just scrape-node-runtime --version lts
+scrape-node-runtime *args:
+    python3 scripts/install/scrape_node_runtime.py {{args}}
+
+# Consultar descargas oficiales de Maven o Gradle
+# Uso: just scrape-build-runtime --tool maven --version latest
+scrape-build-runtime *args:
+    python3 scripts/install/scrape_build_runtime.py {{args}}
+
+# Descargar y seleccionar un runtime Java local; integra el proveedor en mise
 # Uso: just install-java-runtime --provider temurin --version 25 --apply
 install-java-runtime *args:
     bash scripts/install/install_java_runtime_linux.sh {{args}}
+
+# Instalar Node.js oficial manualmente e integrarlo en mise
+# Uso: just install-node-runtime --version lts --apply
+install-node-runtime *args:
+    bash scripts/install/install_node_runtime_linux.sh {{args}}
+
+# Instalar Maven o Gradle oficiales manualmente e integrarlos en mise
+# Uso: just install-build-runtime --tool maven --version latest --apply
+install-build-runtime *args:
+    bash scripts/install/install_build_runtime_linux.sh {{args}}
+
+# Reconciliar runtimes propios y legacy de mise
+# Uso: just reconcile-runtimes --check|--plan|--apply [--purge-legacy]
+reconcile-runtimes *args:
+    bash scripts/install/reconcile_runtimes_linux.sh {{args}}
 
 # Registrar un JDK Temurin ya instalado en mise usando su ruta versionada directa
 # Uso: just configure-java-mise --version 25 --apply

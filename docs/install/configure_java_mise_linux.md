@@ -10,7 +10,7 @@ tags:
 # configure_java_mise_linux.sh
 
 Registra en `mise` un JDK Temurin que ya existe en el usuario y lo selecciona
-globalmente. `JAVA_HOME` queda apuntando al enlace estable
+globalmente. No descarga runtimes ni ejecuta `mise install`. `JAVA_HOME` queda apuntando al enlace estable
 `~/.local/share/java-runtimes/current-java`.
 
 - **Ruta:** `scripts/install/configure_java_mise_linux.sh`
@@ -61,7 +61,7 @@ directorio real versionado, mientras que `JAVA_HOME` usará siempre:
 
 Después de cambiar la versión, ejecuta `reload-bash` o usa
 `runtime-use java VERSION`. El enlace `current-java` se repunta al directorio
-real reportado por `mise where java`; `JAVA_HOME` conserva la ruta estable.
+real manual reportado por `mise where java`; `JAVA_HOME` conserva la ruta estable.
 
 ## Opciones
 

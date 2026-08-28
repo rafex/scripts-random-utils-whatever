@@ -36,8 +36,9 @@ Instala la función Bash `runtime-use` para seleccionar Java y Node.js mediante
 - Ejecutar como usuario normal, no como `root`.
 - Tener `mise` instalado y activado en Bash.
 - Tener `~/.bashrc` o permitir que el instalador lo cree.
-- Las versiones que se seleccionen deben estar instaladas en `mise` o se
-  solicitará confirmación antes de ejecutar `mise install`.
+- Las versiones seleccionables deben estar registradas en el manifiesto propio
+  por un instalador del repositorio. Si falta una versión, el selector muestra
+  el comando `just install-*-runtime` correspondiente y no ejecuta `mise install`.
 
 ## Uso
 
@@ -183,13 +184,15 @@ valor exportado por una configuración anterior.
 **Solución:** conserva el archivo, muévelo manualmente y vuelve a ejecutar el
 instalador. El script nunca lo reemplaza automáticamente.
 
-### `mise install` solicita o no encuentra una versión
+### La versión no está registrada por los instaladores propios
 
-**Causa:** la versión no está instalada o el identificador no coincide con el
-catálogo del backend de mise.
+**Causa:** la versión puede existir en el directorio interno de `mise`, pero fue
+instalada directamente por `mise` o todavía no figura en
+`~/.local/share/rafex-runtimes/registry.tsv`.
 
-**Solución:** revisa `runtime-use list`, consulta `mise ls-remote` y usa el
-identificador exacto del proveedor.
+**Solución:** usa `runtime-use --list`, instala la versión con el instalador
+propio (`install-java-runtime`, `install-node-runtime` o
+`install-build-runtime`) y vuelve a seleccionarla. No ejecutes `mise install`.
 
 ### GraalVM no aparece en `mise ls --installed java`
 

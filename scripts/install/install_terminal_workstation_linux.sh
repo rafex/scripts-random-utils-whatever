@@ -13,6 +13,9 @@ BODA_VERSION="${BODA_VERSION:-0.2616.0}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MISE_BIN="${HOME}/.local/bin/mise"
 RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
+JAVA_RUNTIME_INSTALLER="${SCRIPT_DIR}/install_java_runtime_linux.sh"
+NODE_RUNTIME_INSTALLER="${SCRIPT_DIR}/install_node_runtime_linux.sh"
+BUILD_RUNTIME_INSTALLER="${SCRIPT_DIR}/install_build_runtime_linux.sh"
 OPENCODE_BIN="${HOME}/.local/bin/opencode"
 TMUX_CONFIG="${HOME}/.tmux.conf"
 TPM_DIR="${HOME}/.tmux/plugins/tpm"
@@ -48,11 +51,11 @@ Etapas:
   terminal       Bash, Alacritty, tmux y herramientas interactivas
   terminal-config Actualizar solo la configuración de usuario del terminal
   editor         Neovim y LazyVim con respaldo de la configuración anterior
-  runtimes       mise, Node.js LTS y Java Temurin 21
-  build-runtimes Maven, Gradle y GraalVM mediante mise (opcional)
+  runtimes       mise, Node.js LTS y Java Temurin 25 mediante instaladores propios
+  build-runtimes Maven, Gradle y GraalVM mediante instaladores propios (opcional)
   containers      Podman rootless, Buildah y herramientas OCI
   opencode        OpenCode local para el usuario
-  all             Todas las etapas recomendadas; build-runtimes es opcional
+  all             Todas las etapas recomendadas, incluidos runtimes de build
 
 Opciones:
   --check                Diagnosticar sin modificar nada (default)
@@ -103,7 +106,7 @@ terminal_packages=(
 
 editor_packages=(neovim git ripgrep fd-find lazygit gcc make unzip)
 
-runtime_packages=(curl wget ca-certificates tar zstd)
+runtime_packages=(curl wget ca-certificates tar zstd xz-utils unzip python3)
 
 build_runtime_packages=(
   build-essential curl wget ca-certificates unzip
@@ -715,25 +718,34 @@ configure_mise() {
   install_apt_stage runtimes
   install_mise
   if [[ "$ACTION" == "plan" ]]; then
-    info "[plan] mise use --global node@lts java@temurin-21"
-    bash "$RUNTIME_SWITCHER" --plan
+    info "[plan] descargar e integrar Temurin 25 mediante install_java_runtime_linux.sh"
+    bash "$JAVA_RUNTIME_INSTALLER" --provider temurin --version 25 --image jdk --plan
+    info "[plan] descargar e integrar Node.js LTS mediante install_node_runtime_linux.sh"
+    bash "$NODE_RUNTIME_INSTALLER" --version lts --plan
     return 0
   fi
-  mkdir -p "$(dirname "$MISE_CONFIG")"
-  "$MISE_BIN" use --global node@lts java@temurin-21
+  bash "$JAVA_RUNTIME_INSTALLER" --provider temurin --version 25 --image jdk --apply
+  bash "$NODE_RUNTIME_INSTALLER" --version lts --apply
   bash "$RUNTIME_SWITCHER" --apply
-  ok "Node.js LTS y Java Temurin 21 configurados mediante mise"
+  ok "Node.js LTS y Java Temurin 25 instalados manualmente e integrados en mise"
 }
 
 configure_build_runtimes() {
   install_apt_stage build-runtimes
   install_mise
   if [[ "$ACTION" == "plan" ]]; then
-    info "[plan] mise use --global maven@latest gradle@latest graalvm@latest"
+    info "[plan] descargar e integrar GraalVM Community 25.0.2 mediante install_java_runtime_linux.sh"
+    bash "$JAVA_RUNTIME_INSTALLER" --provider graalvm-community --version 25.0.2 --image jdk --plan
+    info "[plan] descargar e integrar Maven latest mediante install_build_runtime_linux.sh"
+    bash "$BUILD_RUNTIME_INSTALLER" --tool maven --version latest --plan
+    info "[plan] descargar e integrar Gradle latest mediante install_build_runtime_linux.sh"
+    bash "$BUILD_RUNTIME_INSTALLER" --tool gradle --version latest --plan
     return 0
   fi
-  "$MISE_BIN" use --global maven@latest gradle@latest graalvm@latest
-  ok "Maven, Gradle y GraalVM configurados mediante mise"
+  bash "$JAVA_RUNTIME_INSTALLER" --provider graalvm-community --version 25.0.2 --image jdk --apply
+  bash "$BUILD_RUNTIME_INSTALLER" --tool maven --version latest --apply
+  bash "$BUILD_RUNTIME_INSTALLER" --tool gradle --version latest --apply
+  ok "Maven, Gradle y GraalVM instalados manualmente e integrados en mise"
 }
 
 configure_containers() {
@@ -812,6 +824,7 @@ run_stage() {
       configure_terminal
       configure_editor
       configure_mise
+      configure_build_runtimes
       configure_containers
       install_opencode
       ;;

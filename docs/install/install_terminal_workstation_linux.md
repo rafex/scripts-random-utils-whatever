@@ -8,7 +8,8 @@ tags:
 # install_terminal_workstation_linux.sh
 
 Prepara una estación Debian para terminal, desarrollo, Neovim/LazyVim, runtimes
-gestionados por mise, OpenCode y contenedores rootless con Podman.
+instalados manualmente e integrados en mise, OpenCode y contenedores rootless
+con Podman.
 
 - **Ruta:** `scripts/install/install_terminal_workstation_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -33,7 +34,7 @@ ______________________________________________________________________
   `non-free-firmware` habilitados.
 - Usuario normal con `sudo` configurado. Si es una instalación nueva, ejecuta
   primero `configure_sudo_linux.sh` desde una consola root.
-- Conexión a Internet para APT, LazyVim, mise, Boda y OpenCode.
+- Conexión a Internet para APT, instaladores oficiales, LazyVim, Boda y OpenCode.
 - El script debe ejecutarse como `rafex`, nunca como `root`.
 
 ## Uso
@@ -51,9 +52,9 @@ Aplicación completa:
 just install-terminal-workstation --apply --stage all
 ```
 
-`all` instala las etapas recomendadas, incluyendo Podman, pero omite
-`build-runtimes` porque Maven, Gradle y GraalVM descargan runtimes grandes.
-Esa etapa se ejecuta de forma explícita cuando sea necesaria.
+`all` instala las etapas recomendadas, incluyendo Podman y los runtimes de
+build. Maven, Gradle y GraalVM descargan runtimes grandes; puedes ejecutarlos
+por separado con la etapa `build-runtimes` si prefieres controlar ese paso.
 
 Después de aplicar, cierra y abre Alacritty. Debe conectarse a la sesión tmux
 fija `thinkpad`, usando fuente DejaVu Sans Mono tamaño `7` para la pantalla
@@ -64,6 +65,12 @@ La etapa `terminal` instala TPM en `~/.tmux/plugins/tpm` y declara los plugins
 del perfil developer. Si una descarga falla, la configuración sigue siendo
 usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
 `Ctrl-b I` para instalarlos o actualizarlos.
+
+Los runtimes Java, Node.js, Maven y Gradle se descargan únicamente mediante sus
+instaladores propios. `mise` solo crea enlaces, selecciona versiones y genera
+shims; no debe ejecutarse `mise install`. El manifiesto
+`~/.local/share/rafex-runtimes/registry.tsv` distingue instalaciones propias de
+legacy.
 
 También instala `~/.local/bin/reload-bash` y la función `reload-bash` en
 `~/.bashrc`, para recargar la configuración de la shell después de cambiar
@@ -130,7 +137,8 @@ podman run --rm docker.io/library/alpine:latest uname -a
 
 ```sh
 just install-terminal-workstation --apply --stage build-runtimes
-mise ls
+just reconcile-runtimes --check
+runtime-use --list java
 ```
 
 ## Protecciones de seguridad

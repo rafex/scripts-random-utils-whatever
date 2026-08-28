@@ -97,6 +97,10 @@ nav:
       - install_bash_reload_linux: install/install_bash_reload_linux.md
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
+      - install_node_runtime_linux: install/install_node_runtime_linux.md
+      - install_build_runtime_linux: install/install_build_runtime_linux.md
+      - reconcile_runtimes_linux: install/reconcile_runtimes_linux.md
+      - runtime_registry_linux: install/runtime_registry_linux.md
       - install_mosh_tmux_kitty_unix: install/install_mosh_tmux_kitty_unix.md
       - install_runtime_switcher_linux: install/install_runtime_switcher_linux.md
       - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
@@ -105,6 +109,8 @@ nav:
       - migrate_laptop_linux: install/migrate_laptop_linux.md
       - scrape_eclipse_packages: install/scrape_eclipse_packages.md
       - scrape_java_runtimes: install/scrape_java_runtimes.md
+      - scrape_node_runtime: install/scrape_node_runtime.md
+      - scrape_build_runtime: install/scrape_build_runtime.md
       - setup_ssh_trust_unix: install/setup_ssh_trust_unix.md
   - Red:
       - connect_nas_linux: network/connect_nas_linux.md

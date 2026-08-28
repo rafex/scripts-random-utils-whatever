@@ -7,7 +7,7 @@ tags:
 
 # install_java_runtime_linux.sh
 
-Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema. Al instalar un runtime Java, mantiene `JAVA_HOME` mediante el enlace estable `~/.local/share/java-runtimes/current-java` y, para Temurin JDK, configura automáticamente `mise` con la ruta versionada real.
+Descarga, verifica e instala un JDK o JRE oficial en el espacio del usuario, sin reemplazar el Java del sistema. Al instalar cualquier proveedor Java soportado, mantiene `JAVA_HOME` mediante el enlace estable `~/.local/share/java-runtimes/current-java` y registra la ruta manual en `mise` sin permitir que `mise` descargue runtimes.
 
 - **Ruta:** `scripts/install/install_java_runtime_linux.sh`
 - **SO requerido:** Linux
@@ -48,7 +48,7 @@ El enlace activo queda como `current-<proveedor>-<imagen>`.
 just install-java-runtime --provider temurin --version 25 --image jdk --apply
 ```
 
-Después de instalar, el script registra automáticamente Temurin JDK en `mise` si está disponible y actualiza `current-java` para apuntar al runtime seleccionado. Para omitir el registro automático de Temurin usa `--no-mise`.
+Después de instalar, el script registra automáticamente Temurin, GraalVM Community, Oracle GraalVM o Semeru en el backend correspondiente de `mise` si está disponible, ejecutando únicamente `mise link`, `mise use` y `mise reshim`. También actualiza el manifiesto propio y `current-java`. Para omitir el registro automático usa `--no-mise`; en ese caso el runtime queda instalado localmente, pero no estará disponible para `runtime-use` hasta integrarlo.
 
 ## Opciones
 
@@ -61,7 +61,7 @@ Después de instalar, el script registra automáticamente Temurin JDK en `mise` 
 | `--version VERSION` | — | `latest`, versión mayor o exacta según proveedor |
 | `--image jdk\|jre` | — | Imagen a instalar; GraalVM solo admite `jdk` |
 | `--root DIRECTORIO` | — | Cambia la raíz local; debe ser absoluta y segura |
-| `--no-mise` | — | No registra automáticamente Temurin JDK en `mise` |
+| `--no-mise` | — | No registra automáticamente el proveedor instalado en `mise` |
 | `--help` | `-h` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -109,6 +109,7 @@ java -version
 - Instalación únicamente dentro de una raíz local absoluta; se rechazan `/`, rutas con `..` y rutas terminadas en `/`.
 - Verifica SHA-256 antes de extraer cualquier archivo.
 - No usa `sudo`, no escribe `/usr/lib`, no modifica `update-alternatives`, `fstab`, GRUB ni contraseñas.
+- `mise` solo recibe enlaces hacia instalaciones manuales; nunca se ejecuta `mise install`.
 - Descarga con HTTPS, TLS 1.2 o superior y sin ejecutar contenido remoto.
 - Si ya existe el destino, lo conserva como `.bak.<fecha>` antes de reemplazarlo.
 - El archivo temporal se elimina al terminar.
