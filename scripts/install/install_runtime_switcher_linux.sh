@@ -7,6 +7,7 @@ umask 077
 ACTION="check"
 BASHRC="${BASHRC:-$HOME/.bashrc}"
 JAVA_HOME_LINK="${HOME}/.local/share/java-runtimes/current-java"
+JAVA_SELECTION_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-selection"
 BEGIN_MARKER="# BEGIN rafex runtime-switcher"
 END_MARKER="# END rafex runtime-switcher"
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -58,11 +59,20 @@ selector_block() {
   cat <<'EOF'
 # Mantiene JAVA_HOME estable y apunta el enlace al Java activo de mise.
 _rafex_runtime_java_link="${HOME}/.local/share/java-runtimes/current-java"
+_rafex_runtime_java_selection="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-selection"
 
 _rafex_runtime_sync_java_home() {
-  local resolved canonical current temporary
+  local selection resolved canonical current temporary
   command -v mise >/dev/null 2>&1 || return 0
-  resolved="$(mise where java 2>/dev/null | awk 'NF { print; exit }' || true)"
+  selection=""
+  if [[ -r "$_rafex_runtime_java_selection" ]]; then
+    selection="$(awk 'NF { print; exit }' "$_rafex_runtime_java_selection")"
+  fi
+  if [[ -n "$selection" ]]; then
+    resolved="$(mise where "$selection" 2>/dev/null | awk 'NF { print; exit }' || true)"
+  else
+    resolved="$(mise where java 2>/dev/null | awk 'NF { print; exit }' || true)"
+  fi
   [[ -n "$resolved" && -x "$resolved/bin/java" ]] || return 0
   canonical="$(readlink -f -- "$resolved" 2>/dev/null || printf '%s' "$resolved")"
   if [[ -e "$_rafex_runtime_java_link" && ! -L "$_rafex_runtime_java_link" ]]; then
@@ -81,6 +91,20 @@ _rafex_runtime_sync_java_home() {
   if [[ "${JAVA_HOME:-}" != "$_rafex_runtime_java_link" ]]; then
     export JAVA_HOME="$_rafex_runtime_java_link"
   fi
+}
+
+_rafex_runtime_set_java_selection() {
+  local selection="$1" temporary
+  mkdir -p "$(dirname -- "$_rafex_runtime_java_selection")"
+  temporary="${_rafex_runtime_java_selection}.tmp.$$"
+  printf '%s\n' "$selection" > "$temporary"
+  chmod 600 "$temporary"
+  mv -f -- "$temporary" "$_rafex_runtime_java_selection"
+}
+
+_rafex_runtime_list_java() {
+  mise ls --installed java
+  mise ls --installed graalvm 2>/dev/null | awk 'NF { $1="java"; $2="graalvm-" $2; print }'
 }
 
 _rafex_runtime_prompt_sync() {
@@ -103,7 +127,9 @@ runtime-use() {
   case "$action" in
     list)
       command -v mise >/dev/null 2>&1 || { printf 'runtime-use: mise no está instalado\n' >&2; return 1; }
-      if [[ $# -ge 2 ]]; then
+      if [[ $# -ge 2 && "$2" == java ]]; then
+        _rafex_runtime_list_java
+      elif [[ $# -ge 2 ]]; then
         mise ls --installed "$2"
       else
         mise ls --installed
@@ -142,7 +168,11 @@ runtime-use() {
   if [[ "$tool" == java && "$version" =~ ^[0-9]+$ ]]; then
     version="temurin-${version}"
   fi
-  identifier="${tool}@${version}"
+  if [[ "$tool" == java && "$version" == graalvm-* ]]; then
+    identifier="graalvm@${version#graalvm-}"
+  else
+    identifier="${tool}@${version}"
+  fi
   if ! mise where "$identifier" >/dev/null 2>&1; then
     printf '%s no está instalado. Ejecutar mise install %s? [y/N] ' \
       "$identifier" "$identifier" >&2
@@ -159,6 +189,9 @@ runtime-use() {
     mise use --global "$identifier" || return
   fi
   eval "$(mise hook-env)"
+  if [[ "$tool" == java ]]; then
+    _rafex_runtime_set_java_selection "$identifier"
+  fi
   _rafex_runtime_sync_java_home || return
   hash -r
   printf 'runtime activo: %s (%s)\n' "$identifier" "$scope"
@@ -293,7 +326,8 @@ main() {
       show_status
       info "[plan] respaldar y actualizar el bloque runtime-use en $BASHRC"
       info "[plan] usar $JAVA_HOME_LINK como JAVA_HOME estable"
-      info "[plan] sincronizar current-java con mise where java"
+      info "[plan] sincronizar current-java con el Java seleccionado en mise"
+      info "[plan] guardar la selección Java en $JAVA_SELECTION_FILE"
       ;;
     apply)
       write_bashrc

@@ -72,6 +72,10 @@ Java, mise o aliases. La activación de mise se ejecuta al final y llama a
 `~/.local/share/java-runtimes/current-java`, cuyo destino sigue la versión Java
 activa.
 
+También instala `ll` como función Bash. Con `eza` muestra permisos, tamaño
+legible, fecha ISO, información Git, encabezado y directorios primero; si
+`eza` no está disponible usa `ls` con colores y agrupación de directorios.
+
 ## Opciones
 
 | Opción | Alias | Descripción |

@@ -189,10 +189,44 @@ append_managed_block() {
   local begin="$2"
   local end="$3"
   local block="$4"
-  local temporary
+  local temporary block_file current
 
   if [[ -f "$file" ]] && grep -Fq "$begin" "$file"; then
-    ok "configuración ya presente: $file"
+    current="$(awk -v begin="$begin" -v end="$end" '
+      $0 == begin { inside=1; next }
+      $0 == end { inside=0; next }
+      inside { print }
+    ' "$file")"
+    if [[ "$current" == "$block" ]]; then
+      ok "configuración ya presente: $file"
+      return 0
+    fi
+    if [[ "$ACTION" == "plan" ]]; then
+      info "[plan] actualizar configuración administrada en $file"
+      return 0
+    fi
+    backup_path "$file"
+    temporary="$(mktemp)"
+    block_file="$(mktemp)"
+    printf '%s\n' "$block" > "$block_file"
+    awk -v begin="$begin" -v end="$end" -v replacement="$block_file" '
+      $0 == begin {
+        if (!replaced) {
+          while ((getline line < replacement) > 0) print line
+          close(replacement)
+          replaced=1
+        }
+        inside=1
+        next
+      }
+      $0 == end { inside=0; next }
+      !inside { print }
+    ' "$file" > "$temporary"
+    rm -f "$block_file"
+    chmod --reference="$file" "$temporary"
+    mv "$temporary" "$file"
+    chmod 600 "$file"
+    ok "configuración actualizada: $file"
     return 0
   fi
   if [[ "$ACTION" == "plan" ]]; then
@@ -244,8 +278,12 @@ if [[ $- == *i* ]]; then
   if command -v boda >/dev/null 2>&1; then alias bw='boda'; fi
   if command -v hwatch >/dev/null 2>&1; then alias hw='hwatch'; fi
   if command -v eza >/dev/null 2>&1; then
-    alias ll='eza -lah --group-directories-first'
+    ll() {
+      eza -lah --header --group-directories-first --git --time-style=long-iso "$@"
+    }
     alias la='eza -a --group-directories-first'
+  elif command -v ls >/dev/null 2>&1; then
+    ll() { ls -lah --color=auto --group-directories-first "$@"; }
   fi
   if command -v starship >/dev/null 2>&1; then
     eval "$(starship init bash)"

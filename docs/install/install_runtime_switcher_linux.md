@@ -76,7 +76,7 @@ La función instalada acepta:
 | `runtime-use node VERSION` | Selecciona Node.js globalmente. |
 | `runtime-use --local java VERSION` | Selecciona Java en el `.mise.toml` local. |
 | `runtime-use --local node VERSION` | Selecciona Node.js en el proyecto actual. |
-| `runtime-use --list [java\|node]` | Lista runtimes instalados para elegir una versión. |
+| `runtime-use --list [java\|node]` | Lista runtimes instalados; Java combina los backends `java` y `graalvm`. |
 | `runtime-use list [java\|node]` | Alias compatible para listar runtimes. |
 | `runtime-use current [java\|node]` | Muestra selección y `JAVA_HOME`. |
 
@@ -121,8 +121,13 @@ Después selecciona el identificador mostrado:
 
 ```bash
 runtime-use java temurin-25
+runtime-use java graalvm-25.0.2
 runtime-use node 22
 ```
+
+`mise` conserva cada backend en su propio directorio. Temurin aparece bajo
+`~/.local/share/mise/installs/java/` y GraalVM bajo
+`~/.local/share/mise/installs/graalvm/`; no se deben mover manualmente.
 
 ### Versión por proyecto
 
@@ -185,6 +190,14 @@ catálogo del backend de mise.
 
 **Solución:** revisa `runtime-use list`, consulta `mise ls-remote` y usa el
 identificador exacto del proveedor.
+
+### GraalVM no aparece en `mise ls --installed java`
+
+**Causa:** GraalVM es una herramienta independiente de mise (`graalvm`), no
+una versión del backend `java`.
+
+**Solución:** usa `runtime-use --list java`; el selector combina ambos
+backends. Para activarlo, ejecuta `runtime-use java graalvm-25.0.2`.
 
 ## Changelog
 
