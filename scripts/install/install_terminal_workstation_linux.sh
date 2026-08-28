@@ -256,8 +256,19 @@ if [[ $- == *i* ]]; then
     eval "$(direnv hook bash)"
   fi
   if command -v mise >/dev/null 2>&1; then
+    export MISE_ACTIVATE_AGGRESSIVE=1
     eval "$(mise activate bash)"
+    eval "$(mise hook-env)"
   fi
+fi
+EOF
+}
+
+mise_sync_block() {
+  cat <<'EOF'
+# Sincroniza JAVA_HOME y PATH con la versión Java activa de mise.
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise hook-env)"
 fi
 EOF
 }
@@ -581,6 +592,10 @@ configure_terminal() {
     '# BEGIN terminal-workstation bash' \
     '# END terminal-workstation bash' \
     "$(bash_block)"
+  append_managed_block "$BASHRC" \
+    '# BEGIN terminal-workstation mise-sync' \
+    '# END terminal-workstation mise-sync' \
+    "$(mise_sync_block)"
   append_managed_block "$TMUX_CONFIG" \
     '# BEGIN terminal-workstation tmux' \
     '# END terminal-workstation tmux' \

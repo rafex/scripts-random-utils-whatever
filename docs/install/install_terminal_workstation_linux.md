@@ -67,7 +67,8 @@ usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
 
 También instala `~/.local/bin/reload-bash` y la función `reload-bash` en
 `~/.bashrc`, para recargar la configuración de la shell después de cambiar
-Java, mise o aliases.
+Java, mise o aliases. La activación de mise se ejecuta al final y llama a
+`mise hook-env`, por lo que `JAVA_HOME` y `PATH` siguen la versión Java activa.
 
 ## Opciones
 

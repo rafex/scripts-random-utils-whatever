@@ -56,6 +56,12 @@ reload_bash() {
   [[ -r "$bashrc" ]] || return 0
   # shellcheck disable=SC1090
   source "$bashrc"
+  if command -v mise >/dev/null 2>&1; then
+    # Actualiza JAVA_HOME y PATH en la shell que llamó a reload-bash.
+    export MISE_ACTIVATE_AGGRESSIVE=1
+    eval "$(mise activate bash)"
+    eval "$(mise hook-env)"
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then

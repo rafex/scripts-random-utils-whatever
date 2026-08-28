@@ -50,6 +50,9 @@ source ~/.bashrc
 reload-bash
 ```
 
+Cuando `mise` está activo, `reload-bash` ejecuta `mise hook-env` después de
+leer `.bashrc`; de esta forma actualiza `JAVA_HOME` y `PATH` en la shell actual.
+
 También puedes ejecutar directamente `~/.local/bin/reload-bash`; en ese caso
 creará una nueva shell login porque un proceso hijo no puede cambiar el entorno
 de su shell padre.
@@ -125,4 +128,3 @@ repite `reload-bash`.
 ### [Unreleased]
 
 - **feat:** añade recarga idempotente de Bash para la sesión actual.
-

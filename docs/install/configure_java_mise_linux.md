@@ -58,6 +58,10 @@ directorio real versionado, por ejemplo:
 /home/rafex/.local/share/java-runtimes/temurin/jdk-25.0.4.1+1-jdk
 ```
 
+Después de cambiar la versión, ejecuta `reload-bash` o `eval "$(mise
+hook-env)"`. `mise current java` puede mostrar la versión correcta mientras
+una shell existente todavía conserva el `JAVA_HOME` anterior.
+
 ## Opciones
 
 | Opción | Alias | Descripción |
@@ -140,4 +144,3 @@ y `mise current java`.
 ### [Unreleased]
 
 - **feat:** registrar Temurin en mise usando el directorio versionado real.
-
