@@ -96,6 +96,10 @@ runtime-use() {
     action="$1"
   fi
 
+  if [[ "$action" == "--list" ]]; then
+    action="list"
+  fi
+
   case "$action" in
     list)
       command -v mise >/dev/null 2>&1 || { printf 'runtime-use: mise no está instalado\n' >&2; return 1; }
@@ -127,7 +131,7 @@ runtime-use() {
       ;;
     *)
       printf 'Uso: runtime-use [--local|--global] java|node versión\n' >&2
-      printf '     runtime-use list [java|node]\n' >&2
+      printf '     runtime-use --list [java|node]\n' >&2
       printf '     runtime-use current [java|node]\n' >&2
       return 2
       ;;

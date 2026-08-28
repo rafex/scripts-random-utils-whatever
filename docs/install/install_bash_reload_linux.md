@@ -128,9 +128,21 @@ repite `reload-bash`.
 **Solución:** usa la función instalada, `reload-bash`, o `source
 ~/.local/bin/reload-bash`.
 
+### `reload-bash` cierra el panel de tmux
+
+**Causa:** una versión anterior del helper activaba `set -Eeuo pipefail` incluso
+cuando se cargaba mediante `source`; un fallo opcional de `.bashrc` podía
+terminar la shell del panel.
+
+**Solución:** actualiza el helper con `just install-bash-reload --apply` y usa
+la función `reload-bash`. El modo estricto solo se aplica cuando el archivo se
+ejecuta directamente; la sesión de tmux no debe cerrarse al recargar Bash.
+
 ## Changelog
 
 ### [Unreleased]
 
 - **feat:** añade recarga idempotente de Bash para la sesión actual.
 - **fix:** conservar `JAVA_HOME` estable al recargar Bash.
+- **fix:** evitar heredar `set -e` al cargar el helper desde una shell
+  interactiva.

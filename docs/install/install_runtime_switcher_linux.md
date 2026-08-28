@@ -76,7 +76,8 @@ La función instalada acepta:
 | `runtime-use node VERSION` | Selecciona Node.js globalmente. |
 | `runtime-use --local java VERSION` | Selecciona Java en el `.mise.toml` local. |
 | `runtime-use --local node VERSION` | Selecciona Node.js en el proyecto actual. |
-| `runtime-use list [java\|node]` | Lista runtimes instalados. |
+| `runtime-use --list [java\|node]` | Lista runtimes instalados para elegir una versión. |
+| `runtime-use list [java\|node]` | Alias compatible para listar runtimes. |
 | `runtime-use current [java\|node]` | Muestra selección y `JAVA_HOME`. |
 
 ## Variables de entorno
@@ -106,6 +107,21 @@ Usa el identificador exacto mostrado por `runtime-use list java`:
 ```bash
 runtime-use java graalvm-25.0.2
 readlink -f "$JAVA_HOME"
+```
+
+### Listar versiones para elegir
+
+```bash
+runtime-use --list
+runtime-use --list java
+runtime-use --list node
+```
+
+Después selecciona el identificador mostrado:
+
+```bash
+runtime-use java temurin-25
+runtime-use node 22
 ```
 
 ### Versión por proyecto

@@ -49,7 +49,11 @@ parse_args() {
 reload_script() {
   cat <<'EOF'
 #!/usr/bin/env bash
-set -Eeuo pipefail
+# Al hacer source desde una shell interactiva no heredar opciones estrictas:
+# un fallo opcional de .bashrc no debe cerrar el panel de tmux.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  set -Eeuo pipefail
+fi
 
 sync_mise_java() {
   local mise_java_home stable_java_home current_java_home temporary_link
