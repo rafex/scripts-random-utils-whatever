@@ -54,9 +54,11 @@ reload-bash
 ```
 
 Cuando `mise` está activo, `reload-bash` ejecuta `mise hook-env` después de
-leer `.bashrc`, consulta `mise where java` y repunta `current-java`; de esta
-forma `JAVA_HOME` conserva una ruta estable y se actualizan `PATH` y la caché
-de comandos en la shell actual.
+leer `.bashrc`, adopta únicamente un Java bajo
+`~/.local/share/java-runtimes/`, repunta `current-java` y vuelve a exportar
+`JAVA_HOME` al enlace estable. Las rutas internas de `mise` y los runtimes
+legacy no se convierten en el enlace activo. También limpia la caché de
+comandos en la shell actual.
 
 También puedes ejecutar directamente `~/.local/bin/reload-bash`; en ese caso
 creará una nueva shell login porque un proceso hijo no puede cambiar el entorno
@@ -146,3 +148,5 @@ ejecuta directamente; la sesión de tmux no debe cerrarse al recargar Bash.
 - **fix:** conservar `JAVA_HOME` estable al recargar Bash.
 - **fix:** evitar heredar `set -e` al cargar el helper desde una shell
   interactiva.
+- **fix:** no adoptar instalaciones legacy de mise y restaurar siempre el
+  enlace estable tras `mise hook-env`.

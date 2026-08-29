@@ -57,31 +57,38 @@ fi
 
 sync_mise_java() {
   local mise_java_home stable_java_home current_java_home temporary_link
-  command -v mise >/dev/null 2>&1 || return 0
+  stable_java_home="$HOME/.local/share/java-runtimes/current-java"
+  command -v mise >/dev/null 2>&1 || {
+    export JAVA_HOME="$stable_java_home"
+    return 0
+  }
   export MISE_ACTIVATE_AGGRESSIVE=1
   eval "$(mise activate bash)"
   eval "$(mise hook-env)"
   mise_java_home="$(mise where java 2>/dev/null || true)"
   if [[ -n "$mise_java_home" && -x "$mise_java_home/bin/java" ]]; then
-    stable_java_home="$HOME/.local/share/java-runtimes/current-java"
     if [[ -e "$stable_java_home" && ! -L "$stable_java_home" ]]; then
       printf 'reload-bash: no se reemplaza %s porque no es un enlace simbólico\n' \
         "$stable_java_home" >&2
+      export JAVA_HOME="$stable_java_home"
       return 1
     fi
     mkdir -p "$(dirname -- "$stable_java_home")"
     current_java_home="$(readlink -f -- "$stable_java_home" 2>/dev/null || true)"
     mise_java_home="$(readlink -f -- "$mise_java_home" 2>/dev/null || printf '%s' "$mise_java_home")"
-    if [[ "$current_java_home" != "$mise_java_home" ]]; then
+    if [[ "$mise_java_home" == "$HOME/.local/share/java-runtimes/"* &&
+          "$current_java_home" != "$mise_java_home" ]]; then
       temporary_link="${stable_java_home}.tmp.$$"
       rm -f -- "$temporary_link"
       ln -s -- "$mise_java_home" "$temporary_link"
       mv -Tf -- "$temporary_link" "$stable_java_home"
     fi
-    export JAVA_HOME="$stable_java_home"
-    export PATH="$JAVA_HOME/bin:$PATH"
     hash -r
   fi
+  # mise hook-env puede exportar una ruta versionada o un runtime legacy.
+  # El perfil siempre expone el enlace estable, y solo lo repunta cuando el
+  # destino pertenece a una instalación manual administrada.
+  export JAVA_HOME="$stable_java_home"
 }
 
 reload_bash() {

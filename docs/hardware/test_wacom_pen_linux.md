@@ -78,7 +78,7 @@ Pruebas manuales después de iniciar una aplicación gráfica:
 xsetwacom --list devices
 xsetwacom get "Wacom Pen and multitouch sensor Pen stylus" all
 libinput debug-events
-evtest
+evtest /dev/input/eventX
 ```
 
 Aplicaciones recomendadas:
@@ -92,7 +92,9 @@ Aplicaciones recomendadas:
 - `--check` y `--plan` no escriben archivos ni cambian paquetes.
 - La contraseña nunca se acepta como argumento, se guarda ni se transmite; la
   instalación solo valida permisos mediante `sudo -v`.
-- `evtest` no se ejecuta en modo interactivo automáticamente.
+- El diagnóstico no ejecuta `evtest --list-devices`, porque esa opción no
+  existe en la versión de Debian instalada. Muestra instrucciones y deja la
+  lectura de eventos como operación manual.
 - No crea reglas udev ni permisos amplios para `/dev/input`.
 
 ## Fallos conocidos
@@ -112,6 +114,14 @@ no tiene soporte estándar; esto no implica que la pluma Wacom esté ausente.
 **Solución:** confirma `grep -i Wacom /proc/bus/input/devices` y
 `xsetwacom --list devices`. La ruta experimental del lector de huellas es
 independiente y no se instala automáticamente.
+
+### `evtest: unrecognized option '--list-devices'`
+
+**Causa:** algunas versiones de `evtest` de Debian no implementan esa opción.
+
+**Solución:** enumera los nodos con `ls /dev/input/event*` o
+`/proc/bus/input/devices` y ejecuta `evtest /dev/input/eventX`. Si el nodo
+requiere permisos, usa `sudo evtest /dev/input/eventX` desde la consola local.
 
 ## Changelog
 

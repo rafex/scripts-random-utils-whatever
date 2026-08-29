@@ -81,6 +81,16 @@ Java, mise o aliases. La activación de mise se ejecuta al final y llama a
 `~/.local/share/java-runtimes/current-java`, cuyo destino sigue la versión Java
 activa.
 
+Después de aplicar una actualización del instalador, una shell ya abierta
+puede conservar el entorno anterior. Ejecuta `reload-bash` en la shell
+interactiva; una comprobación SSH no interactiva no representa por sí sola el
+valor efectivo de `JAVA_HOME` de Alacritty.
+
+Si el perfil ThinkPad ya contiene la configuración completa de tmux, el
+instalador elimina el bloque antiguo `terminal-workstation tmux` que se había
+añadido al final y evitaba duplicar plugins y opciones. Se crea un respaldo
+antes de esa limpieza.
+
 También instala `ll` como función Bash. Con `eza` muestra permisos, tamaño
 legible, fecha ISO, información Git, encabezado y directorios primero; si
 `eza` no está disponible usa `ls` con colores y agrupación de directorios.
@@ -179,6 +189,15 @@ configuración anterior y vuelve a ejecutar la etapa `editor`.
 
 **Solución:** abre una nueva shell o ejecuta `source ~/.bashrc`; verifica que
 `~/.local/bin` y `~/.cargo/bin` estén en `PATH`.
+
+### `configure-tlp-battery --check` muestra `tlp=missing`
+
+**Causa:** Debian instala `tlp` y `tlp-stat` en `/usr/sbin`, que puede quedar
+fuera del `PATH` de una orden SSH.
+
+**Solución:** actualiza el repositorio y repite el diagnóstico; el script
+incorpora `/usr/sbin` y `/sbin` sin modificar la configuración global del
+usuario.
 
 ### `Podman rootless` no puede crear un contenedor
 

@@ -11,6 +11,7 @@ JAVA_SELECTION_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-select
 BEGIN_MARKER="# BEGIN rafex runtime-switcher"
 END_MARKER="# END rafex runtime-switcher"
 STAMP="$(date +%Y%m%d_%H%M%S)"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:${PATH:-}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -341,10 +342,22 @@ check_markers() {
 }
 
 show_status() {
+  local shell_context
   echo '═══ Selector de runtimes Bash ═══'
   printf 'bashrc=%s\n' "$BASHRC"
   printf 'java_home_link=%s\n' "$JAVA_HOME_LINK"
   printf 'JAVA_HOME=%s\n' "${JAVA_HOME:-ausente}"
+  if [[ $- == *i* ]]; then
+    shell_context='interactiva'
+  elif [[ -n "${SSH_CONNECTION:-}" ]]; then
+    shell_context='SSH no interactiva'
+  else
+    shell_context='no interactiva'
+  fi
+  printf 'shell_context=%s\n' "$shell_context"
+  if [[ $- != *i* && -z "${JAVA_HOME:-}" ]]; then
+    info 'esta comprobación no hereda .bashrc; JAVA_HOME se aplicará al abrir una shell interactiva o usar reload-bash'
+  fi
   if [[ -f "$BASHRC" ]] && grep -Fq "$BEGIN_MARKER" "$BASHRC"; then
     ok "bloque runtime-use presente"
   else

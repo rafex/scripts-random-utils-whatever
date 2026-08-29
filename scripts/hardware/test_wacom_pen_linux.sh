@@ -111,8 +111,9 @@ check_input_stack() {
     warn "libinput no está instalado"
   fi
   if command -v evtest >/dev/null 2>&1; then
-    echo "evtest --list-devices:"
-    evtest --list-devices || warn "evtest requiere permisos adicionales para algunos nodos"
+    echo "evtest: disponible (la enumeración se hace manualmente)"
+    info "Para probar eventos ejecuta: evtest /dev/input/eventX"
+    info "Si aparece 'Permission denied', repite evtest con sudo desde la consola local"
   else
     warn "evtest no está instalado"
   fi

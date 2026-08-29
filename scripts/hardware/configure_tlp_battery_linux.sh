@@ -4,6 +4,10 @@
 set -Eeuo pipefail
 umask 077
 
+# Debian instala tlp y tlp-stat en /usr/sbin; los shells SSH no siempre
+# incluyen ese directorio en PATH.
+export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH:-}"
+
 ACTION='check'
 START_THRESHOLD=75
 STOP_THRESHOLD=80

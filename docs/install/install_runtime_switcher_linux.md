@@ -58,7 +58,10 @@ El enlace estable es:
 ```
 
 `JAVA_HOME` apunta a ese enlace. El destino cambia cuando se selecciona otro
-Java; `JAVA_HOME` no se convierte en una ruta versionada.
+Java; `JAVA_HOME` no se convierte en una ruta versionada. La activación de
+`mise` puede modificar temporalmente el entorno, por lo que el bloque
+administrado vuelve a sincronizar el enlace después de `mise hook-env` y al
+mostrar cada prompt.
 
 ## Opciones
 
@@ -187,6 +190,12 @@ valor exportado por una configuración anterior.
 **Solución:** ejecuta `reload-bash` o abre una nueva terminal y verifica que
 `JAVA_HOME` termine en `current-java`.
 
+Si la comprobación se ejecuta con `ssh host comando`, es normal que muestre
+`JAVA_HOME=ausente`: una shell SSH no interactiva no carga necesariamente
+`.bashrc`. El instalador identifica ese contexto y revisa el bloque y el
+enlace persistentes; valida el valor efectivo desde Alacritty o con una shell
+interactiva remota.
+
 ### `current-java existe pero no es un enlace simbólico`
 
 **Causa:** un archivo o directorio ocupa la ruta administrada.
@@ -219,5 +228,7 @@ backends. Para activarlo, ejecuta `runtime-use java graalvm-25.0.2`.
 - **feat:** añade `runtime-use` para Java y Node.js con selección global y local.
 - **feat:** mantiene `JAVA_HOME` en `~/.local/share/java-runtimes/current-java`.
 - **fix:** evita exportar rutas versionadas directas de Temurin o GraalVM.
+- **fix:** restaura `JAVA_HOME` después de `mise hook-env` y distingue las
+  comprobaciones SSH no interactivas.
 - **fix:** corrige el `;;` adicional del bloque generado y valida su sintaxis
   antes de modificar `.bashrc`.

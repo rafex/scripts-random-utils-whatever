@@ -302,6 +302,13 @@ if [[ $- == *i* ]]; then
     export MISE_ACTIVATE_AGGRESSIVE=1
     eval "$(mise activate bash)"
     eval "$(mise hook-env)"
+    if declare -F _rafex_runtime_sync_java_home >/dev/null 2>&1; then
+      _rafex_runtime_sync_java_home || true
+    else
+      # mise hook-env puede exportar una ruta versionada. El contrato del
+      # perfil es mantener JAVA_HOME en un enlace estable.
+      export JAVA_HOME="$HOME/.local/share/java-runtimes/current-java"
+    fi
   fi
 fi
 EOF
@@ -312,6 +319,11 @@ mise_sync_block() {
 # Sincroniza JAVA_HOME y PATH con la versión Java activa de mise.
 if command -v mise >/dev/null 2>&1; then
   eval "$(mise hook-env)"
+fi
+if declare -F _rafex_runtime_sync_java_home >/dev/null 2>&1; then
+  _rafex_runtime_sync_java_home || true
+else
+  export JAVA_HOME="$HOME/.local/share/java-runtimes/current-java"
 fi
 EOF
 }
@@ -417,6 +429,46 @@ set -g @plugin 'christoomey/vim-tmux-navigator'
 if-shell '[ -x "$HOME/.tmux/plugins/tpm/tpm" ]' 'run-shell "$HOME/.tmux/plugins/tpm/tpm"'
 # END terminal-workstation tmux
 EOF
+}
+
+normalize_tmux_config() {
+  local temporary
+  [[ -f "$TMUX_CONFIG" ]] || {
+    append_managed_block "$TMUX_CONFIG" \
+      '# BEGIN terminal-workstation tmux' \
+      '# END terminal-workstation tmux' \
+      "$(tmux_block)"
+    return 0
+  }
+
+  # El perfil ThinkPad ya contiene la configuración completa de tmux,
+  # incluidos plugins y OSC52. La versión antigua del instalador añadía
+  # otro bloque al final y duplicaba esas declaraciones; quítalo una vez.
+  if grep -Fq '# tmux / rafex-developer — Perfil ThinkPad para Debian, SSH y Mosh.' "$TMUX_CONFIG" &&
+     grep -Fq '# BEGIN terminal-workstation tmux' "$TMUX_CONFIG"; then
+    if [[ "$ACTION" == "plan" ]]; then
+      info "[plan] eliminar el bloque tmux duplicado del perfil ThinkPad"
+      return 0
+    fi
+    backup_path "$TMUX_CONFIG"
+    temporary="$(mktemp)"
+    awk '
+      $0 == "# BEGIN terminal-workstation tmux" { inside=1; next }
+      $0 == "# END terminal-workstation tmux" { inside=0; next }
+      !inside { print }
+    ' "$TMUX_CONFIG" > "$temporary"
+    chmod --reference="$TMUX_CONFIG" "$temporary"
+    mv -- "$temporary" "$TMUX_CONFIG"
+    ok "bloque tmux duplicado eliminado del perfil ThinkPad"
+    return 0
+  fi
+
+  # Para perfiles que no traen una configuración completa sí se conserva el
+  # bloque administrado del instalador.
+  append_managed_block "$TMUX_CONFIG" \
+    '# BEGIN terminal-workstation tmux' \
+    '# END terminal-workstation tmux' \
+    "$(tmux_block)"
 }
 
 tpm_plugins=(
@@ -638,10 +690,7 @@ configure_terminal_user() {
     '# BEGIN terminal-workstation mise-sync' \
     '# END terminal-workstation mise-sync' \
     "$(mise_sync_block)"
-  append_managed_block "$TMUX_CONFIG" \
-    '# BEGIN terminal-workstation tmux' \
-    '# END terminal-workstation tmux' \
-    "$(tmux_block)"
+  normalize_tmux_config
   install_tpm_plugins
   write_starship_config
   update_alacritty

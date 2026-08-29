@@ -39,6 +39,11 @@ distingue entre el cambio temporal realizado por `tlp setcharge` y la
 configuración persistente mediante `START_CHARGE_THRESH_BAT0` y
 `STOP_CHARGE_THRESH_BAT0`.
 
+El diagnóstico añade `/usr/local/sbin`, `/usr/sbin` y `/sbin` al `PATH` del
+propio script. Esto permite localizar `tlp` y `tlp-stat` cuando se ejecuta
+desde una shell SSH que no es de login; no cambia el `PATH` persistente del
+usuario.
+
 ## Uso
 
 Desde la raíz del repositorio:
@@ -152,3 +157,5 @@ carga termine; no es necesario eliminar la configuración 75/80.
 
 - **feat:** añadir configuración persistente e idempotente de límites TLP 75/80.
 - **feat:** añadir acción explícita `--fullcharge` para viajes.
+- **fix:** detectar `tlp` correctamente desde shells SSH sin `/usr/sbin` en
+  `PATH`.

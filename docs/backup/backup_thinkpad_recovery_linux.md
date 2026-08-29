@@ -161,6 +161,16 @@ reintentar.
 **Solución:** no afecta al backup; corregir el script USB antes de usar ese
 diagnóstico como criterio de aceptación.
 
+### Sesiones tmux activas tras una auditoría
+
+**Causa:** las pruebas de configuración de tmux deben usar un socket aislado;
+detener el servidor del socket predeterminado puede cerrar las sesiones
+interactivas aunque no modifique ningún archivo.
+
+**Solución:** este repositorio no intenta detener el servidor principal.
+Comprueba configuraciones con un socket temporal (`tmux -L nombre-prueba ...`)
+y conserva cualquier texto importante antes de ejecutar diagnósticos.
+
 ## Changelog
 
 ### [Unreleased]
