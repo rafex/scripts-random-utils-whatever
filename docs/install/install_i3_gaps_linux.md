@@ -53,8 +53,8 @@ just install-i3-gaps --apply
 La configuración aplicada es:
 
 ```text
-gaps inner 8px
-gaps outer 10px
+gaps inner 4px
+gaps outer 6px
 smart_gaps on
 ```
 
@@ -143,6 +143,8 @@ No compiles el fork archivado de `i3-gaps`.
 ### [Unreleased]
 
 - **feat:** Añadir instalación y configuración de gaps nativos de i3.
+- **fix:** Reducir los gaps predeterminados a 4 píxeles internos y 6 externos
+  para mejorar el aprovechamiento de la pantalla de la ThinkPad.
 
 ### v1.0.0 — 2026-08-29
 

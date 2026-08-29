@@ -17,8 +17,8 @@ set $theme_urgent_fg #eceff4
 # END rafex theme
 
 # BEGIN rafex i3-gaps
-gaps inner 8px
-gaps outer 10px
+gaps inner 4px
+gaps outer 6px
 smart_gaps on
 # END rafex i3-gaps
 
