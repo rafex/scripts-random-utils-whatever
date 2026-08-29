@@ -135,3 +135,5 @@ java -version
 - **feat:** instalar localmente Temurin, GraalVM Community/Oracle e IBM Semeru con verificación SHA-256.
 - **fix:** mantener `JAVA_HOME` en el enlace estable `current-java` y
   provisionar `runtime-use` después de una instalación exitosa.
+- **fix:** definir los mensajes de salida usados al integrar el runtime con
+  mise desde el instalador Java.

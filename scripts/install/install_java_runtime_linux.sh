@@ -47,6 +47,14 @@ die() {
     exit 1
 }
 
+info() {
+    printf '→ %s\n' "$*"
+}
+
+ok() {
+    printf '✓ %s\n' "$*"
+}
+
 timestamp() {
     date '+%Y%m%d_%H%M%S'
 }
