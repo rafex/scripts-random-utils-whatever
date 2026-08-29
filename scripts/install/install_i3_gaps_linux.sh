@@ -5,8 +5,8 @@ set -Eeuo pipefail
 umask 077
 
 ACTION="check"
-INNER_GAP="4px"
-OUTER_GAP="6px"
+INNER_GAP="2px"
+OUTER_GAP="3px"
 I3_CONFIG="${I3_GAPS_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/i3/config}"
 BACKUP_STAMP="$(date +%Y%m%d_%H%M%S)"
 BEGIN_MARKER="# BEGIN rafex i3-gaps"

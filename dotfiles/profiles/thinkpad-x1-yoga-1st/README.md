@@ -44,7 +44,7 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   Alacritty, rxvt-unicode, Rofi y Dunst. Nord es el tema inicial; se alternan
   con `Mod+Shift+T` o desde el centro de control. El color del texto de i3status
   se adapta a la paleta activa para conservar contraste en i3bar.
-- Los gaps son nativos de i3: 4 píxeles internos, 6 externos y `smart_gaps`.
+- Los gaps son nativos de i3: 2 píxeles internos, 3 externos y `smart_gaps`.
   Se verifican con `just install-i3-gaps --check` y se aplican con
   `just install-i3-gaps --apply`.
 - Incluye `.tmux.conf` basado en el perfil `developer` de
