@@ -82,3 +82,5 @@ just install-build-runtime --tool gradle --version latest --apply
 ### [Unreleased]
 
 - **feat:** instalar Maven y Gradle desde fuentes oficiales.
+- **fix:** evitar `SIGPIPE` (`exit 141`) al detectar el directorio raíz de los
+  archivos comprimidos.

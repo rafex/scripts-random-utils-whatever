@@ -105,7 +105,9 @@ main() {
     archive="${TEMP_DIR}/${filename}"
     curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 -o "$archive" "$url"
     printf '%s  %s\n' "$checksum" "$archive" | sha256sum --check --strict -
-    topdir="$(tar -tf "$archive" | awk -F/ 'NF > 1 { print $1; exit }')"
+    # Leer todo el listado: salir antes de tiempo provoca SIGPIPE en tar con
+    # pipefail y se reporta como un falso error 141.
+    topdir="$(tar -tf "$archive" | awk -F/ 'NF > 1 && first == "" { first=$1 } END { print first }')"
     [[ -n "$topdir" ]] || die 'archivo Node.js vacío'
     tar -xJf "$archive" -C "$TEMP_DIR"
     if [[ -e "$target" || -L "$target" ]]; then

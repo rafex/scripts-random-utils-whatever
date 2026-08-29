@@ -86,3 +86,5 @@ runtime-use node 24.20.0
 ### [Unreleased]
 
 - **feat:** instalar Node.js oficial y enlazarlo en mise.
+- **fix:** leer completamente el archivo comprimido para evitar un falso
+  `SIGPIPE` (`exit 141`) con `pipefail`.

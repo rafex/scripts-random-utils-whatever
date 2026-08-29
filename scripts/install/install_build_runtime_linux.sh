@@ -118,10 +118,11 @@ main() {
       printf '%s  %s\n' "$checksum" "$archive" | sha512sum --check --strict -
     fi
     if [[ "$TOOL" == maven ]]; then
-      topdir="$(tar -tzf "$archive" | awk -F/ 'NF > 1 { print $1; exit }')"
+      # Leer todo el listado evita SIGPIPE en tar cuando pipefail está activo.
+      topdir="$(tar -tzf "$archive" | awk -F/ 'NF > 1 && first == "" { first=$1 } END { print first }')"
       tar -xzf "$archive" -C "$TEMP_DIR"
     else
-      topdir="$(unzip -Z1 "$archive" | awk -F/ 'NF > 1 { print $1; exit }')"
+      topdir="$(unzip -Z1 "$archive" | awk -F/ 'NF > 1 && first == "" { first=$1 } END { print first }')"
       unzip -q "$archive" -d "$TEMP_DIR"
     fi
     [[ -n "$topdir" ]] || die "archivo $TOOL vacío"
