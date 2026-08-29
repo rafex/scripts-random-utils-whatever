@@ -60,7 +60,7 @@ require_linux() {
   fi
 }
 
-packages=(rofi pavucontrol network-manager network-manager-applet nm-connection-editor
+packages=(rofi dunst pavucontrol network-manager network-manager-applet nm-connection-editor
   blueman bluez arandr x11-utils xinput libnotify-bin brightnessctl rfkill gnome-disk-utility
   thunar xdg-utils lxpolkit synaptic)
 
@@ -130,6 +130,7 @@ install_helper() {
 configure_i3() {
   local begin='# >>> i3-laptop-controls managed >>>'
   local end='# <<< i3-laptop-controls managed <<<'
+  local dunst_line='exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start'
   local block
   block="$begin
 bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh toggle
@@ -157,12 +158,23 @@ $end"
   if [[ -f "$I3_CONFIG" ]]; then
     local cleaned
     cleaned="$(mktemp "${I3_CONFIG}.tmp.XXXXXX")"
-    awk -v begin="$begin" -v end="$end" '
+    awk -v begin="$begin" -v end="$end" -v dunst_line="$dunst_line" '
       $0 == begin {inside=1; print; next}
       $0 == end {inside=0; print; next}
+      !inside && $0 == dunst_line {
+        if (!dunst_found) { print; dunst_found=1 }
+        next
+      }
+      !inside && $0 ~ /^[[:space:]]*exec_always[[:space:]]+--no-startup-id[[:space:]]+dunst[[:space:]]+--config[[:space:]]+/ {
+        if (!dunst_found) { print dunst_line; dunst_found=1 }
+        next
+      }
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86(WakeUp|Tools)([[:space:]]|$)/ {removed=1; next}
       {print}
-      END {if (removed) print "# i3-laptop-controls: bindings XF86Tools/XF86WakeUp duplicados eliminados"}
+      END {
+        if (!dunst_found) print dunst_line
+        if (removed) print "# i3-laptop-controls: bindings XF86Tools/XF86WakeUp duplicados eliminados"
+      }
     ' "$I3_CONFIG" > "$cleaned"
     mv "$cleaned" "$I3_CONFIG"
   fi
@@ -190,6 +202,7 @@ main() {
   install_helper scripts/network/flight_mode_toggle_linux.sh flight-mode-toggle.sh
   install_helper scripts/system/rofi_search_linux.sh rofi-search.sh
   install_helper scripts/system/i3_settings_menu_linux.sh i3-settings-menu.sh
+  install_helper scripts/system/dunst_smart_start_linux.sh dunst-smart.sh
   install_helper scripts/hardware/test_wacom_pen_linux.sh test-wacom-pen.sh
   configure_i3
   if [[ "$ACTION" == apply ]]; then

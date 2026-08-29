@@ -322,10 +322,15 @@ reload_desktop() {
   if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
     tmux source-file "$CURRENT_LINK/tmux.conf" 2>/dev/null || warn 'tmux no pudo recargar el tema'
   fi
-  if command -v dunstctl >/dev/null 2>&1 && dunstctl reload >/dev/null 2>&1; then
+  if command -v dunst-smart.sh >/dev/null 2>&1 \
+      && dunst-smart.sh --reload >/dev/null 2>&1; then
+    :
+  elif command -v dunstctl >/dev/null 2>&1 && dunstctl reload >/dev/null 2>&1; then
     :
   elif pgrep -x dunst >/dev/null 2>&1; then
     pkill -HUP -x dunst || warn 'dunst no pudo recargar el tema'
+  else
+    warn 'dunst no pudo recargar el tema'
   fi
 }
 

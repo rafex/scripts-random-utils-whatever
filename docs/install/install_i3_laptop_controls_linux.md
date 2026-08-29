@@ -43,6 +43,9 @@ El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
 centro de control completo; `XF86WakeUp` abre solo energía y sesión. El centro
 incluye `Software — Synaptic`, que se ejecuta mediante `synaptic-pkexec`.
 
+Además, instala `dunst` y registra `dunst-smart.sh`, que detecta si i3bar está
+arriba o abajo y coloca las notificaciones fuera de su área.
+
 ## Opciones
 
 | Opción | Alias | Descripción |

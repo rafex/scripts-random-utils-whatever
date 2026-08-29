@@ -24,7 +24,7 @@ smart_gaps on
 
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
-exec_always --no-startup-id dunst --config ~/.config/rafex/themes/current/dunst.conf
+exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
 exec_always --no-startup-id setxkbmap es
 exec --no-startup-id sh -c 'if [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"; fi'
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'

@@ -58,6 +58,10 @@ sincronizan en `~/.config/i3status/config` para conservar contraste en la barra.
 La paleta X11 se sincroniza en `~/.Xresources` y se aplica con `xrdb` cuando
 existe una sesión gráfica.
 
+Cuando está instalado `dunst-smart.sh`, las notificaciones se regeneran según
+la posición de i3bar y reservan un margen vertical para no empalmarse con la
+barra.
+
 ## Opciones
 
 | Opción | Alias | Descripción |

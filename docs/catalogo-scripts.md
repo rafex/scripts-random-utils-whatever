@@ -103,6 +103,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/rofi_search_linux.sh` | Linux | — | no | — | bajo | [doc](system/rofi_search_linux.md) |
 | `scripts/system/theme_toggle_linux.sh` | Linux | theme-toggle | no | sí | bajo | [doc](system/theme_toggle_linux.md) |
 | `scripts/system/generate_terminal_themes_linux.sh` | Linux | generate-terminal-themes | no | sí | bajo | [doc](system/generate_terminal_themes_linux.md) |
+| `scripts/system/dunst_smart_start_linux.sh` | Linux | dunst-smart | no | sí | bajo | [doc](system/dunst_smart_start_linux.md) |
 
 ## Documentos suplementarios
 

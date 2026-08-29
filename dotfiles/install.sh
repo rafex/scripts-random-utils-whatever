@@ -409,21 +409,27 @@ install_profile_scripts() {
     local scripts_src="$PROFILES_DIR/$PROFILE/scripts"
 
     if [[ ! -d "$scripts_src" ]]; then
-        local direct_theme_script="$SCRIPT_DIR/../scripts/system/theme_toggle_linux.sh"
-        if [[ "$PROFILE" == "thinkpad-x1-yoga-1st" && -f "$direct_theme_script" ]]; then
-            local target="$HOME/.local/bin/theme-toggle.sh"
+        [[ "$PROFILE" == "thinkpad-x1-yoga-1st" ]] || return
+        local direct_script direct_name target
+        local direct_scripts=(
+            "$SCRIPT_DIR/../scripts/system/theme_toggle_linux.sh:theme-toggle.sh"
+            "$SCRIPT_DIR/../scripts/system/dunst_smart_start_linux.sh:dunst-smart.sh"
+        )
+        for direct_script in "${direct_scripts[@]}"; do
+            direct_name="${direct_script##*:}"
+            direct_script="${direct_script%%:*}"
+            [[ -f "$direct_script" ]] || continue
+            target="$HOME/.local/bin/$direct_name"
             if [[ "$DRY_RUN" -eq 1 ]]; then
                 info "[dry-run] instalar script: ${target}"
             else
                 mkdir -p "$(dirname "$target")"
                 backup_existing "$target"
-                cp "$direct_theme_script" "$target"
+                cp "$direct_script" "$target"
                 chmod 755 "$target"
-                success "  theme-toggle.sh"
+                success "  $direct_name"
             fi
-        else
-            return
-        fi
+        done
         return
     fi
 

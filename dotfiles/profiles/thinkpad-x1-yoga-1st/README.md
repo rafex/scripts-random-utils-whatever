@@ -24,7 +24,9 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 
 ## Incluye
 
-- i3, i3status, rofi, 9menu, dunst, alacritty y picom.
+- i3, i3status, rofi, 9menu, dunst, alacritty y picom. Dunst detecta la
+  posición de i3bar y reserva espacio para que las notificaciones no se
+  empalmen con la barra.
 - Inicio de `udiskie` desde i3; `pasystray` y `nm-applet` se gestionan mediante
   los archivos XDG de autostart ejecutados por `dex`.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas.

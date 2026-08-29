@@ -140,6 +140,7 @@ nav:
       - i3_settings_menu_linux: system/i3_settings_menu_linux.md
       - theme_toggle_linux: system/theme_toggle_linux.md
       - generate_terminal_themes_linux: system/generate_terminal_themes_linux.md
+      - dunst_smart_start_linux: system/dunst_smart_start_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

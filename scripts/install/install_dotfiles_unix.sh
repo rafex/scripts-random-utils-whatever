@@ -45,6 +45,7 @@ SCRIPTS_MAP=(
     "scripts/display/screen_mirror_linux.sh:screen-mirror.sh"
     "scripts/display/screen_projector_linux.sh:screen-projector.sh"
     "scripts/system/theme_toggle_linux.sh:theme-toggle.sh"
+    "scripts/system/dunst_smart_start_linux.sh:dunst-smart.sh"
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
