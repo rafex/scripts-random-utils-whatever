@@ -177,17 +177,6 @@ _rafex_runtime_registry_path() {
     '$1 == tool && $2 == provider && $3 == version { print $4; exit }' "$_rafex_runtime_registry"
 }
 
-validate_selector_block() {
-  local temporary
-  temporary="$(mktemp)"
-  selector_block > "$temporary"
-  if ! bash -n "$temporary"; then
-    rm -f -- "$temporary"
-    die 'el bloque runtime-use generado no tiene sintaxis Bash válida'
-  fi
-  rm -f -- "$temporary"
-}
-
 _rafex_runtime_list_node() {
   if [[ -s "$_rafex_runtime_registry" ]] && grep -q $'^node\t' "$_rafex_runtime_registry"; then
     awk -F '\t' '$1 == "node" { printf "node  %s  %s\n", $3, $4 }' "$_rafex_runtime_registry"
@@ -330,6 +319,17 @@ if [[ $- == *i* ]]; then
   fi
 fi
 EOF
+}
+
+validate_selector_block() {
+  local temporary
+  temporary="$(mktemp)"
+  selector_block > "$temporary"
+  if ! bash -n "$temporary"; then
+    rm -f -- "$temporary"
+    die 'el bloque runtime-use generado no tiene sintaxis Bash válida'
+  fi
+  rm -f -- "$temporary"
 }
 
 check_markers() {
