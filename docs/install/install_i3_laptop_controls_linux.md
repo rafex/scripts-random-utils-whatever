@@ -84,6 +84,8 @@ explícitamente uno de esos modos, usa `--log-file`.
 - Solicita autorización mediante `sudo -v`; nunca lee ni guarda la contraseña.
 - Respaldа el archivo i3 y cada helper antes de reemplazarlo.
 - Usa un bloque administrado idempotente y no duplica atajos.
+- Elimina vinculaciones heredadas de `XF86Tools` y `XF86WakeUp` fuera del
+  bloque administrado para reparar perfiles anteriores sin perder el respaldo.
 - No modifica particiones, `fstab`, GRUB ni archivos de contraseñas.
 
 ## Fallos conocidos
@@ -100,6 +102,16 @@ explícitamente uno de esos modos, usa `--log-file`.
 `x11-utils`; ninguno debe instalarse con esos nombres antiguos.
 **Solución:** actualizar el repositorio y repetir `--apply`; el instalador ya
 usa los nombres correctos.
+
+### `ERROR: Duplicate keybinding ... XF86WakeUp` o `XF86Tools`
+
+**Causa:** una versión anterior del perfil ThinkPad definía esas teclas y el
+instalador de controles también las añadía en su bloque administrado.
+
+**Solución:** actualizar el repositorio y ejecutar `just install-i3-laptop-controls
+--apply`. El archivo original se respalda y las vinculaciones duplicadas se
+retiran únicamente fuera del bloque administrado. Después recarga i3 con
+`Mod+Shift+r`.
 
 ## Changelog
 

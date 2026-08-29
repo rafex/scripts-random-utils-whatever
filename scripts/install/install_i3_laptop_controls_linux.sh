@@ -149,6 +149,23 @@ $end"
   fi
   mkdir -p "$(dirname "$I3_CONFIG")"
   if [[ -f "$I3_CONFIG" ]]; then cp -a "$I3_CONFIG" "$I3_CONFIG.bak.$BACKUP_STAMP"; fi
+
+  # El perfil ThinkPad antiguo definía estas teclas fuera del bloque
+  # administrado. Retirarlas evita que el perfil y este instalador compitan
+  # por el mismo keysym y permite reparar instalaciones ya duplicadas.
+  if [[ -f "$I3_CONFIG" ]]; then
+    local cleaned
+    cleaned="$(mktemp "${I3_CONFIG}.tmp.XXXXXX")"
+    awk -v begin="$begin" -v end="$end" '
+      $0 == begin {inside=1; print; next}
+      $0 == end {inside=0; print; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86(WakeUp|Tools)([[:space:]]|$)/ {removed=1; next}
+      {print}
+      END {if (removed) print "# i3-laptop-controls: bindings XF86Tools/XF86WakeUp duplicados eliminados"}
+    ' "$I3_CONFIG" > "$cleaned"
+    mv "$cleaned" "$I3_CONFIG"
+  fi
+
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$begin" "$I3_CONFIG"; then
     awk -v begin="$begin" -v end="$end" -v block="$block" '
       $0 == begin {if (!done) {print block; done=1} skip=1; next}

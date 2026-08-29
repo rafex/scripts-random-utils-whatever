@@ -171,11 +171,21 @@ _rafex_runtime_registry_path() {
       ;;
     node)
       provider="nodejs"; registry_version="$version" ;;
-      ;;
     *) return 1 ;;
   esac
   awk -F '\t' -v tool="$tool" -v provider="$provider" -v version="$registry_version" \
     '$1 == tool && $2 == provider && $3 == version { print $4; exit }' "$_rafex_runtime_registry"
+}
+
+validate_selector_block() {
+  local temporary
+  temporary="$(mktemp)"
+  selector_block > "$temporary"
+  if ! bash -n "$temporary"; then
+    rm -f -- "$temporary"
+    die 'el bloque runtime-use generado no tiene sintaxis Bash válida'
+  fi
+  rm -f -- "$temporary"
 }
 
 _rafex_runtime_list_node() {
@@ -432,6 +442,7 @@ write_bashrc() {
 main() {
   parse_args "$@"
   [[ "$(uname -s)" == Linux ]] || die 'este instalador requiere Linux'
+  validate_selector_block
   case "$ACTION" in
     check)
       show_status

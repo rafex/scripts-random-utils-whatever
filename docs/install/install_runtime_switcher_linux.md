@@ -169,6 +169,16 @@ node --version
 **Solución:** ejecuta `just install-terminal-workstation --apply --stage runtimes`
 y abre una nueva shell.
 
+### `bash: .bashrc: error de sintaxis cerca del elemento inesperado \`;;\``
+
+**Causa:** una versión anterior del bloque generado contenía un `;;` adicional
+en la rama interna que registra Node.js.
+
+**Solución:** actualiza el repositorio y ejecuta de nuevo
+`just install-runtime-switcher --apply`. El instalador valida la sintaxis del
+bloque antes de escribirlo; después comprueba el archivo completo con
+`bash -n ~/.bashrc` y ejecuta `reload-bash`.
+
 ### `JAVA_HOME` conserva una ruta antigua
 
 **Causa:** la shell fue abierta antes de instalar el selector o conserva el
@@ -209,3 +219,5 @@ backends. Para activarlo, ejecuta `runtime-use java graalvm-25.0.2`.
 - **feat:** añade `runtime-use` para Java y Node.js con selección global y local.
 - **feat:** mantiene `JAVA_HOME` en `~/.local/share/java-runtimes/current-java`.
 - **fix:** evita exportar rutas versionadas directas de Temurin o GraalVM.
+- **fix:** corrige el `;;` adicional del bloque generado y valida su sintaxis
+  antes de modificar `.bashrc`.
