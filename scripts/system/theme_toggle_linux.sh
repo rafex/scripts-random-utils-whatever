@@ -15,6 +15,7 @@ THEME_HOME="$CONFIG_HOME/rafex/themes"
 CURRENT_LINK="$THEME_HOME/current"
 STATE_FILE="$CONFIG_HOME/rafex/theme"
 I3_CONFIG="$CONFIG_HOME/i3/config"
+I3STATUS_CONFIG="$CONFIG_HOME/i3status/config"
 XRESOURCES="$HOME/.Xresources"
 I3_THEME_BEGIN='# BEGIN rafex theme'
 I3_THEME_END='# END rafex theme'
@@ -111,7 +112,7 @@ validate_mode() {
   local file
   mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   [[ -d "$THEME_HOME/$mode" ]] || die "no existe la paleta: $THEME_HOME/$mode"
-  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources; do
+  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf; do
     [[ -f "$THEME_HOME/$mode/$file" ]] || die "falta $THEME_HOME/$mode/$file"
   done
 }
@@ -235,6 +236,53 @@ sync_xresources() {
   fi
 }
 
+sync_i3status_theme() {
+  local block_file temporary
+  [[ -f "$I3STATUS_CONFIG" ]] || {
+    warn "no existe $I3STATUS_CONFIG; se conservaron los colores actuales de i3status"
+    return 0
+  }
+  if ! grep -Eq '^[[:space:]]*general[[:space:]]*\{' "$I3STATUS_CONFIG"; then
+    warn "no se encontró el bloque general de i3status; se conservaron los colores actuales"
+    return 0
+  fi
+  block_file="$(mktemp)"
+  cat "$CURRENT_LINK/i3status.conf" > "$block_file"
+  temporary="$(mktemp)"
+  awk -v begin="$I3_THEME_BEGIN" -v end="$I3_THEME_END" \
+      -v block_file="$block_file" '
+    function emit_block(line) {
+      print begin
+      while ((getline line < block_file) > 0) print line
+      close(block_file)
+      print end
+    }
+    {
+      if ($0 == begin) { emit_block(); inside=1; found=1; next }
+      if (inside && $0 == end) { inside=0; next }
+      if (in_general && !found && $0 ~ /^[[:space:]]*}/) {
+        emit_block()
+        found=1
+        in_general=0
+      }
+      if ($0 ~ /^[[:space:]]*general[[:space:]]*\{/) in_general=1
+      print
+    }
+    END { if (!found) { print ""; emit_block() } }
+  ' "$I3STATUS_CONFIG" > "$temporary"
+  rm -f -- "$block_file"
+  if cmp -s "$I3STATUS_CONFIG" "$temporary"; then
+    rm -f -- "$temporary"
+  else
+    backup_file "$I3STATUS_CONFIG"
+    chmod --reference="$I3STATUS_CONFIG" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$I3STATUS_CONFIG"
+  fi
+  if command -v pkill >/dev/null 2>&1; then
+    pkill -USR1 -x i3status 2>/dev/null || true
+  fi
+}
+
 backup_file() {
   local file="$1"
   [[ -e "$file" || -L "$file" ]] || return 0
@@ -293,6 +341,7 @@ apply_mode() {
   fi
   apply_link "$mode"
   sync_i3_theme
+  sync_i3status_theme
   sync_xresources
   reload_desktop
   ok "tema activo: $mode"

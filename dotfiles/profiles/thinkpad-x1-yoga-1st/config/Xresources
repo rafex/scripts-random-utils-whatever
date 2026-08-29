@@ -6,7 +6,7 @@ Xft.lcdfilter: lcddefault
 
 ! BEGIN rafex theme
 ! Nord is the default palette; theme-toggle.sh replaces this block.
-URxvt.font: xft:DejaVu Sans Mono:size=7
+URxvt.font: xft:DejaVu Sans Mono:size=10
 URxvt.termName: rxvt-unicode-256color
 URxvt.scrollBar: false
 URxvt.saveLines: 50000

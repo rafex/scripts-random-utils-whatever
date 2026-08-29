@@ -42,7 +42,8 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   reinicia cuando puedas.
 - Incluye las paletas Paper, Nord, Everforest y Dracula para i3, tmux,
   Alacritty, rxvt-unicode, Rofi y Dunst. Nord es el tema inicial; se alternan
-  con `Mod+Shift+T` o desde el centro de control.
+  con `Mod+Shift+T` o desde el centro de control. El color del texto de i3status
+  se adapta a la paleta activa para conservar contraste en i3bar.
 - Los gaps son nativos de i3: 8 píxeles internos, 10 externos y `smart_gaps`.
   Se verifican con `just install-i3-gaps --check` y se aplican con
   `just install-i3-gaps --apply`.
@@ -95,7 +96,8 @@ just generate-terminal-themes --apply --theme all
 
 `Mod+Shift+T`, la entrada `Tema claro/oscuro` de 9menu y las opciones de tema
 del centro Rofi ejecutan el mismo selector. `light` sigue siendo alias de Nord
-y `dark` de Dracula. La fuente de Alacritty y rxvt conserva el tamaño `7`.
+y `dark` de Dracula. Alacritty conserva el tamaño `7` y rxvt usa tamaño `10`
+para mantener una lectura cómoda en la pantalla de la ThinkPad.
 
 Alacritty continúa siendo la terminal principal. La entrada `Terminal RXVT y
 tmux` de 9menu abre `urxvt` en la sesión `thinkpad`; en ambos casos no se crea

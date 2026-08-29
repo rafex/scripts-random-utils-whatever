@@ -34,8 +34,10 @@ configuración del usuario. No instala paquetes ni requiere `sudo`.
 Ejecuta el comando desde una copia del repositorio en Linux. Las plantillas
 están en `dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes/`.
 
-Cada paleta debe contener `i3.conf`, `tmux.conf`, `alacritty.toml`, `rofi.rasi`,
-`dunst.conf` y `xresources`.
+Cada paleta debe contener `i3.conf`, `i3status.conf`, `tmux.conf`,
+`alacritty.toml`, `rofi.rasi`, `dunst.conf` y `xresources`. El archivo
+`i3status.conf` se sincroniza en `~/.config/i3status/config` para que el texto
+de la barra conserve contraste tanto en temas claros como oscuros.
 
 ## Uso
 
@@ -128,7 +130,8 @@ abierto no siempre relee los recursos automáticamente.
 
 ### [Unreleased]
 
-- **feat:** Añadir Paper, Nord, Everforest y Dracula con soporte para rxvt-unicode.
+- **feat:** Añadir Paper, Nord, Everforest y Dracula con soporte para rxvt-unicode
+  e i3status.
 
 ### v1.0.0 — 2026-08-29
 

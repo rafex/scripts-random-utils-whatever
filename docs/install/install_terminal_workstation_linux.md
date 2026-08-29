@@ -59,7 +59,8 @@ por separado con la etapa `build-runtimes` si prefieres controlar ese paso.
 Después de aplicar, cierra y abre Alacritty. Debe conectarse a la sesión tmux
 fija `thinkpad`, usando fuente DejaVu Sans Mono tamaño `7` para la pantalla
 1920x1080 de la ThinkPad. También se instala `rxvt-unicode` como alternativa;
-el lanzador `urxvt -e ~/.local/bin/start-thinkpad-tmux` usa la misma sesión.
+el lanzador `urxvt -e ~/.local/bin/start-thinkpad-tmux` usa la misma sesión y
+rxvt utiliza DejaVu Sans Mono tamaño `10` para evitar texto demasiado pequeño.
 Las conexiones SSH no se envuelven automáticamente en tmux.
 
 La etapa `terminal` instala TPM en `~/.tmux/plugins/tpm` y declara los plugins

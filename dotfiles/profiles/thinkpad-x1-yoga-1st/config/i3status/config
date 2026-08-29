@@ -1,6 +1,12 @@
 general {
     colors = true
     interval = 5
+
+    # BEGIN rafex theme
+    color_good = "#2e3440"
+    color_degraded = "#8f6b26"
+    color_bad = "#bf616a"
+    # END rafex theme
 }
 
 order += "wireless _first_"

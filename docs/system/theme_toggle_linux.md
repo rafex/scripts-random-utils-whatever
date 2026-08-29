@@ -10,7 +10,8 @@ tags:
 # theme_toggle_linux.sh
 
 Activa las paletas `paper`, `nord`, `everforest` y `dracula` del perfil
-ThinkPad para i3, tmux, Alacritty, rxvt-unicode, Rofi y Dunst sin usar `sudo`.
+ThinkPad para i3, i3status, tmux, Alacritty, rxvt-unicode, Rofi y Dunst sin
+usar `sudo`.
 
 - **Ruta:** `scripts/system/theme_toggle_linux.sh`
 - **SO requerido:** Linux (Xorg/i3)
@@ -52,8 +53,10 @@ El estado se guarda en `~/.config/rafex/theme` y el selector apunta
 `~/.config/rafex/themes/current` a la paleta activa. El valor inicial es
 `nord`. `light` es alias de `nord` y `dark` es alias de `dracula`. Los colores de i3 se sincronizan en un bloque administrado dentro de
 `~/.config/i3/config`; esto evita depender de la expansión de `~` en la
-directiva `include` de algunas versiones de i3. La paleta X11 se sincroniza en
-`~/.Xresources` y se aplica con `xrdb` cuando existe una sesión gráfica.
+directiva `include` de algunas versiones de i3. Los colores de i3status se
+sincronizan en `~/.config/i3status/config` para conservar contraste en la barra.
+La paleta X11 se sincroniza en `~/.Xresources` y se aplica con `xrdb` cuando
+existe una sesión gráfica.
 
 ## Opciones
 
@@ -158,10 +161,12 @@ la sesión gráfica.
 recursos después de `xrdb -merge`.
 
 **Solución:** ejecuta `xrdb -merge ~/.Xresources` y abre una nueva ventana de
-`urxvt`. La fuente definida por el perfil es DejaVu Sans Mono tamaño `7`.
+`urxvt`. La fuente definida por el perfil es DejaVu Sans Mono tamaño `10` para
+mantener una lectura cómoda; Alacritty conserva tamaño `7`.
 
 ## Changelog
 
 ### [Unreleased]
 
-**feat:** añadir cuatro paletas centralizadas y soporte Xresources para ThinkPad.
+**feat:** añadir cuatro paletas centralizadas, colores contrastados de i3status
+y soporte Xresources para ThinkPad.

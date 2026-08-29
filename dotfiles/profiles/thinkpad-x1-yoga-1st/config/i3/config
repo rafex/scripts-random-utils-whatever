@@ -165,7 +165,7 @@ bindsym $mod+r mode "resize"
 
 bar {
         status_command i3status
-        position bottom
+        position top
         tray_output primary
         font pango:DejaVu Sans Mono 10, Font Awesome 7 Free 10
         colors {
