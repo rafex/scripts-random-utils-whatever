@@ -1,4 +1,5 @@
 Terminal y tmux:exec alacritty
+Terminal RXVT y tmux:exec urxvt -e ~/.local/bin/start-thinkpad-tmux
 Navegador:exec firefox
 Archivos:exec thunar
 Audio:exec pavucontrol
@@ -13,6 +14,10 @@ Camara:exec guvcview
 Pluma Wacom:exec ~/.local/bin/test-wacom-pen.sh --check
 Centro de control:exec ~/.local/bin/i3-settings-menu.sh
 Tema claro/oscuro:exec ~/.local/bin/theme-toggle.sh --toggle
+Tema Nord:exec ~/.local/bin/theme-toggle.sh --set nord
+Tema Paper:exec ~/.local/bin/theme-toggle.sh --set paper
+Tema Everforest:exec ~/.local/bin/theme-toggle.sh --set everforest
+Tema Dracula:exec ~/.local/bin/theme-toggle.sh --set dracula
 Estado del sistema:exec alacritty -e btop
 Bloquear sesion:exec loginctl lock-session
 Energia:exec ~/.local/bin/i3-settings-menu.sh power

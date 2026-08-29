@@ -40,9 +40,12 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - La suspensión se probó con el modo `s2idle`; para hacerlo
   permanente en GRUB ejecuta `just configure-thinkpad-s2idle --apply` y
   reinicia cuando puedas.
-- Incluye un tema claro inicial y un tema oscuro de alto contraste para i3,
-  tmux, Alacritty, Rofi y Dunst. Se alternan con `Mod+Shift+T` o desde el
-  centro de control.
+- Incluye las paletas Paper, Nord, Everforest y Dracula para i3, tmux,
+  Alacritty, rxvt-unicode, Rofi y Dunst. Nord es el tema inicial; se alternan
+  con `Mod+Shift+T` o desde el centro de control.
+- Los gaps son nativos de i3: 8 píxeles internos, 10 externos y `smart_gaps`.
+  Se verifican con `just install-i3-gaps --check` y se aplican con
+  `just install-i3-gaps --apply`.
 - Incluye `.tmux.conf` basado en el perfil `developer` de
   `development-environment-rafex`, con navegación tipo Vim, OSC52 y TPM.
 
@@ -58,7 +61,7 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 
 | Escritorio | Uso | Aplicaciones asignadas |
 |---|---|---|
-| `1:term` | Terminal | Alacritty, Kitty, XTerm |
+| `1:term` | Terminal | Alacritty, rxvt-unicode, Kitty, XTerm |
 | `2:code` | Desarrollo | Codium, VSCodium, Eclipse |
 | `3:web` | Web | Firefox, Chromium, Chrome |
 | `4:docs` | Documentos | Zathura, Evince, LibreOffice, Xournal++ |
@@ -73,20 +76,30 @@ Las clases no reconocidas permanecen en el escritorio actual. Para incorporar
 una aplicación nueva, ejecuta `xprop WM_CLASS`, pulsa sobre su ventana y añade
 su clase al bloque de asignaciones de `config/i3`.
 
-## Tema y tmux
+## Tema, terminales y tmux
 
 El instalador de perfiles crea `~/.config/rafex/themes/current` apuntando a
-`light` la primera vez. Para cambiar el tema sin `sudo`:
+`nord` la primera vez. Para materializar las plantillas y cambiar el tema sin
+`sudo`:
 
 ```sh
-~/.local/bin/theme-toggle.sh --set light
-~/.local/bin/theme-toggle.sh --set dark
+just generate-terminal-themes --apply --theme all
+~/.local/bin/theme-toggle.sh --list
+~/.local/bin/theme-toggle.sh --set nord
+~/.local/bin/theme-toggle.sh --set paper
+~/.local/bin/theme-toggle.sh --set everforest
+~/.local/bin/theme-toggle.sh --set dracula
+~/.local/bin/theme-toggle.sh --cycle
 ~/.local/bin/theme-toggle.sh --toggle
 ```
 
-`Mod+Shift+T`, la entrada `Tema claro/oscuro` de 9menu y la opción equivalente
-del centro Rofi ejecutan el mismo selector. La fuente de Alacritty conserva el
-tamaño `7`.
+`Mod+Shift+T`, la entrada `Tema claro/oscuro` de 9menu y las opciones de tema
+del centro Rofi ejecutan el mismo selector. `light` sigue siendo alias de Nord
+y `dark` de Dracula. La fuente de Alacritty y rxvt conserva el tamaño `7`.
+
+Alacritty continúa siendo la terminal principal. La entrada `Terminal RXVT y
+tmux` de 9menu abre `urxvt` en la sesión `thinkpad`; en ambos casos no se crea
+una sesión tmux anidada.
 
 El archivo `~/.tmux.conf` contiene los plugins del perfil developer. TPM se
 instala en `~/.tmux/plugins/tpm`; dentro de tmux usa `Ctrl-b I` para instalar o

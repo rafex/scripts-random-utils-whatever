@@ -1,0 +1,25 @@
+! Rafex Everforest para rxvt-unicode.
+URxvt.font: xft:DejaVu Sans Mono:size=7
+URxvt.termName: rxvt-unicode-256color
+URxvt.scrollBar: false
+URxvt.saveLines: 50000
+URxvt.internalBorder: 8
+URxvt.background: #f3f1dc
+URxvt.foreground: #3c4841
+URxvt.cursorColor: #8da101
+URxvt.color0: #3c4841
+URxvt.color1: #f85552
+URxvt.color2: #8da101
+URxvt.color3: #dfa000
+URxvt.color4: #3a94c5
+URxvt.color5: #df69ba
+URxvt.color6: #35a77c
+URxvt.color7: #9da9a0
+URxvt.color8: #708089
+URxvt.color9: #f57d7a
+URxvt.color10: #a6b83a
+URxvt.color11: #e7b83d
+URxvt.color12: #5daed5
+URxvt.color13: #e28dcc
+URxvt.color14: #5bbf98
+URxvt.color15: #f3f1dc

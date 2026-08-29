@@ -99,7 +99,7 @@ require_linux_user() {
 terminal_packages=(
   bash-completion fzf fd-find bat btop hwatch entr inotify-tools
   ripgrep eza zoxide jq yq tree ncdu duf git-delta lazygit direnv starship
-  just tmux mosh kitty-terminfo urlview xdg-utils git curl wget ca-certificates unzip xclip
+  just tmux mosh kitty-terminfo rxvt-unicode urlview xdg-utils git curl wget ca-certificates unzip xclip
   shellcheck shfmt build-essential fonts-jetbrains-mono python3-venv pipx
   rustc cargo golang-go
 )

@@ -58,8 +58,9 @@ por separado con la etapa `build-runtimes` si prefieres controlar ese paso.
 
 Después de aplicar, cierra y abre Alacritty. Debe conectarse a la sesión tmux
 fija `thinkpad`, usando fuente DejaVu Sans Mono tamaño `7` para la pantalla
-1920x1080 de la ThinkPad. Las conexiones SSH no se envuelven automáticamente
-en tmux.
+1920x1080 de la ThinkPad. También se instala `rxvt-unicode` como alternativa;
+el lanzador `urxvt -e ~/.local/bin/start-thinkpad-tmux` usa la misma sesión.
+Las conexiones SSH no se envuelven automáticamente en tmux.
 
 La etapa `terminal` instala TPM en `~/.tmux/plugins/tpm` y declara los plugins
 del perfil developer. Si una descarga falla, la configuración sigue siendo
@@ -199,7 +200,9 @@ configuración no descarga plugins mediante `sudo`.
 **Causa:** el terminal remoto o el sistema no tiene la entrada terminfo.
 
 **Solución:** conserva `TERM=xterm-256color` en Alacritty, instala
-`kitty-terminfo` y utiliza `infocmp tmux-256color` para diagnosticar.
+`kitty-terminfo` y utiliza `infocmp tmux-256color` para diagnosticar. Para rxvt,
+comprueba `infocmp rxvt-unicode-256color`; el paquete `rxvt-unicode` proporciona
+esa entrada en Debian.
 
 ## Changelog
 

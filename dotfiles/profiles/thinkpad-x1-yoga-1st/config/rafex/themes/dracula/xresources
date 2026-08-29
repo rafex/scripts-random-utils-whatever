@@ -1,0 +1,25 @@
+! Rafex Dracula para rxvt-unicode.
+URxvt.font: xft:DejaVu Sans Mono:size=7
+URxvt.termName: rxvt-unicode-256color
+URxvt.scrollBar: false
+URxvt.saveLines: 50000
+URxvt.internalBorder: 8
+URxvt.background: #282a36
+URxvt.foreground: #f8f8f2
+URxvt.cursorColor: #bd93f9
+URxvt.color0: #282a36
+URxvt.color1: #ff5555
+URxvt.color2: #50fa7b
+URxvt.color3: #f1fa8c
+URxvt.color4: #6272a4
+URxvt.color5: #bd93f9
+URxvt.color6: #8be9fd
+URxvt.color7: #f8f8f2
+URxvt.color8: #6272a4
+URxvt.color9: #ff6e6e
+URxvt.color10: #69ff94
+URxvt.color11: #ffffa5
+URxvt.color12: #8a9ed0
+URxvt.color13: #d6acff
+URxvt.color14: #a4ffff
+URxvt.color15: #ffffff

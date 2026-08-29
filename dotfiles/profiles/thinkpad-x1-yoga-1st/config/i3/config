@@ -5,16 +5,22 @@ set $menu rofi -show drun -show-icons
 set $laptop_menu 9menu -popup -label "ThinkPad" -file ~/.config/9menu/laptop.menu
 
 # BEGIN rafex theme
-set $theme_bar_bg #f6f8fa
-set $theme_bar_fg #24292f
-set $theme_separator #8c959f
-set $theme_active_bg #0969da
-set $theme_active_fg #ffffff
-set $theme_inactive_bg #eaeef2
-set $theme_inactive_fg #57606a
-set $theme_urgent_bg #cf222e
-set $theme_urgent_fg #ffffff
+set $theme_bar_bg #e5e9f0
+set $theme_bar_fg #2e3440
+set $theme_separator #7b88a1
+set $theme_active_bg #5e81ac
+set $theme_active_fg #eceff4
+set $theme_inactive_bg #d8dee9
+set $theme_inactive_fg #4c566a
+set $theme_urgent_bg #bf616a
+set $theme_urgent_fg #eceff4
 # END rafex theme
+
+# BEGIN rafex i3-gaps
+gaps inner 8px
+gaps outer 10px
+smart_gaps on
+# END rafex i3-gaps
 
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
@@ -121,6 +127,7 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 assign [class="(?i)^alacritty$"] $ws1
 assign [class="(?i)^kitty$"] $ws1
 assign [class="(?i)^xterm$"] $ws1
+assign [class="(?i)^(urxvt|rxvt-unicode)$"] $ws1
 assign [class="(?i)^firefox$"] $ws3
 assign [class="(?i)^(google-chrome|chromium|chromium-browser)$"] $ws3
 assign [class="(?i)^(codium|vscodium)$"] $ws2

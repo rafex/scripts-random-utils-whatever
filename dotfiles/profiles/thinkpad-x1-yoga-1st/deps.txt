@@ -4,6 +4,7 @@ rofi
 9menu
 dunst
 alacritty
+rxvt-unicode
 picom
 feh
 maim

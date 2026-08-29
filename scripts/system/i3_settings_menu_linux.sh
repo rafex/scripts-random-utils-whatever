@@ -15,6 +15,10 @@ case "$section" in
       'Modo avión — alternar radios'
       'Audio — pavucontrol'
       'Tema visual — alternar'
+      'Tema — Nord'
+      'Tema — Paper'
+      'Tema — Everforest'
+      'Tema — Dracula'
       'Micrófono — alternar mute'
       'Pantallas — arandr'
       'Proyector — siguiente modo'
@@ -59,6 +63,10 @@ case "$choice" in
   'Modo avión — alternar radios') exec "$HOME/.local/bin/flight-mode-toggle.sh" toggle ;;
   'Audio — pavucontrol') exec pavucontrol ;;
   'Tema visual — alternar') exec "$HOME/.local/bin/theme-toggle.sh" --toggle ;;
+  'Tema — Nord') exec "$HOME/.local/bin/theme-toggle.sh" --set nord ;;
+  'Tema — Paper') exec "$HOME/.local/bin/theme-toggle.sh" --set paper ;;
+  'Tema — Everforest') exec "$HOME/.local/bin/theme-toggle.sh" --set everforest ;;
+  'Tema — Dracula') exec "$HOME/.local/bin/theme-toggle.sh" --set dracula ;;
   'Micrófono — alternar mute') exec "$HOME/.local/bin/microphone-notify.sh" toggle ;;
   'Pantallas — arandr') exec arandr ;;
   'Proyector — siguiente modo') exec "$HOME/.local/bin/screen-projector.sh" --apply --mode next ;;

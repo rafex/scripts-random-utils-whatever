@@ -139,6 +139,11 @@ install-terminal-workstation *args:
 install-i3-laptop-controls *args:
     bash scripts/install/install_i3_laptop_controls_linux.sh {{args}}
 
+# Instalar gaps nativos de i3 (i3 >= 4.22), sin compilar el fork archivado
+# Uso: just install-i3-gaps --apply
+install-i3-gaps *args:
+    bash scripts/install/install_i3_gaps_linux.sh {{args}}
+
 # Instalar y configurar UFW con SSH/Mosh y perfiles opcionales de desarrollo/media
 # Uso: just install-ufw --apply [--profile base|dev|media|all]
 install-ufw *args:

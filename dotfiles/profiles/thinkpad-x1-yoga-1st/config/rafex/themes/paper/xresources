@@ -1,0 +1,25 @@
+! Rafex Paper para rxvt-unicode.
+URxvt.font: xft:DejaVu Sans Mono:size=7
+URxvt.termName: rxvt-unicode-256color
+URxvt.scrollBar: false
+URxvt.saveLines: 50000
+URxvt.internalBorder: 8
+URxvt.background: #f7f1e8
+URxvt.foreground: #2d2a26
+URxvt.cursorColor: #b45f06
+URxvt.color0: #2d2a26
+URxvt.color1: #b3261e
+URxvt.color2: #4d6b3c
+URxvt.color3: #8a4b08
+URxvt.color4: #35658f
+URxvt.color5: #815b8f
+URxvt.color6: #277b78
+URxvt.color7: #a69b8f
+URxvt.color8: #665e56
+URxvt.color9: #d04a40
+URxvt.color10: #668b4f
+URxvt.color11: #b45f06
+URxvt.color12: #4c82b3
+URxvt.color13: #a477b3
+URxvt.color14: #3a9b97
+URxvt.color15: #f7f1e8

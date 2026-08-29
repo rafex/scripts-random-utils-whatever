@@ -100,6 +100,7 @@ nav:
       - configure_java_mise_linux: install/configure_java_mise_linux.md
       - install_bash_reload_linux: install/install_bash_reload_linux.md
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
+      - install_i3_gaps_linux: install/install_i3_gaps_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_node_runtime_linux: install/install_node_runtime_linux.md
       - install_build_runtime_linux: install/install_build_runtime_linux.md
@@ -138,6 +139,7 @@ nav:
       - rofi_search_linux: system/rofi_search_linux.md
       - i3_settings_menu_linux: system/i3_settings_menu_linux.md
       - theme_toggle_linux: system/theme_toggle_linux.md
+      - generate_terminal_themes_linux: system/generate_terminal_themes_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

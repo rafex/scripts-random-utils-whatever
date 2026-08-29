@@ -1,0 +1,14 @@
+* {
+    bg: #f7f1e8;
+    fg: #2d2a26;
+    accent: #b45f06;
+    selected: #f0d8b5;
+}
+
+window { background-color: @bg; border: 2px; border-color: @accent; border-radius: 8px; padding: 12px; }
+mainbox, inputbar, message, listview, element { background-color: transparent; }
+inputbar { text-color: @fg; padding: 4px; }
+prompt, entry { text-color: @fg; }
+element { padding: 8px; text-color: @fg; }
+element selected { background-color: @selected; text-color: @fg; }
+element-text { text-color: inherit; }

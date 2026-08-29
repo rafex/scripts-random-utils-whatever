@@ -239,6 +239,7 @@ copy_user_files() {
   for path in \
     .bashrc \
     .profile \
+    .Xresources \
     .tmux.conf \
     .config/i3 \
     .config/i3status \
@@ -252,6 +253,7 @@ copy_user_files() {
     .config/starship.toml \
     .config/mise/config.toml \
     .config/rafex/theme \
+    .config/rafex/themes \
     .config/rafex/runtime-java-selection \
     .local/bin \
     .tmux \

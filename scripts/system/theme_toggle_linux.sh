@@ -8,15 +8,20 @@ ACTION='check'
 PLAN_ONLY=0
 REQUESTED_MODE=''
 TOGGLE_REQUESTED=0
+CYCLE_REQUESTED=0
 STAMP="$(date +%Y%m%d_%H%M%S)"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 THEME_HOME="$CONFIG_HOME/rafex/themes"
 CURRENT_LINK="$THEME_HOME/current"
 STATE_FILE="$CONFIG_HOME/rafex/theme"
 I3_CONFIG="$CONFIG_HOME/i3/config"
+XRESOURCES="$HOME/.Xresources"
 I3_THEME_BEGIN='# BEGIN rafex theme'
 I3_THEME_END='# END rafex theme'
 I3_THEME_LEGACY='include ~/.config/rafex/themes/current/i3.conf'
+XRES_THEME_BEGIN='! BEGIN rafex theme'
+XRES_THEME_END='! END rafex theme'
+THEME_NAMES=(paper nord everforest dracula)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -34,17 +39,30 @@ usage() {
   cat <<'EOF'
 Uso:
   theme_toggle_linux.sh --check
-  theme_toggle_linux.sh --plan [--set light|dark]
-  theme_toggle_linux.sh --set light|dark
+  theme_toggle_linux.sh --plan [--set TEMA]
+  theme_toggle_linux.sh --list
+  theme_toggle_linux.sh --set paper|nord|everforest|dracula
+  theme_toggle_linux.sh --cycle
   theme_toggle_linux.sh --toggle
 
 Opciones:
   --check             Mostrar el estado sin modificar archivos
   --plan              Mostrar la acción prevista sin aplicarla
-  --set <modo>        Activar light o dark
-  --toggle            Alternar entre light y dark
+  --list              Listar las paletas disponibles y la activa
+  --set <tema>        Activar paper, nord, everforest o dracula
+  --cycle             Activar la siguiente de las cuatro paletas
+  --toggle            Alternar entre Nord y Dracula
   -h, --help          Mostrar esta ayuda
 EOF
+}
+
+canonical_theme() {
+  case "$1" in
+    light) printf '%s\n' nord ;;
+    dark) printf '%s\n' dracula ;;
+    paper|nord|everforest|dracula) printf '%s\n' "$1" ;;
+    *) return 1 ;;
+  esac
 }
 
 parse_args() {
@@ -52,11 +70,17 @@ parse_args() {
     case "$1" in
       --check) ACTION='check'; PLAN_ONLY=0; shift ;;
       --plan|--dry-run) ACTION='plan'; PLAN_ONLY=1; shift ;;
+      --list) ACTION='list'; PLAN_ONLY=0; shift ;;
       --set)
-        [[ $# -ge 2 ]] || die '--set requiere light o dark'
+        [[ $# -ge 2 ]] || die '--set requiere un tema'
         REQUESTED_MODE="$2"
         [[ "$PLAN_ONLY" -eq 1 ]] || ACTION='set'
         shift 2
+        ;;
+      --cycle)
+        CYCLE_REQUESTED=1
+        [[ "$PLAN_ONLY" -eq 1 ]] || ACTION='cycle'
+        shift
         ;;
       --toggle)
         TOGGLE_REQUESTED=1
@@ -67,31 +91,27 @@ parse_args() {
       *) die "argumento desconocido: $1" ;;
     esac
   done
-  if [[ -n "$REQUESTED_MODE" && "$REQUESTED_MODE" != light && "$REQUESTED_MODE" != dark ]]; then
-    die "modo desconocido: $REQUESTED_MODE (usa light o dark)"
+  if [[ -n "$REQUESTED_MODE" ]] && ! canonical_theme "$REQUESTED_MODE" >/dev/null; then
+    die "tema desconocido: $REQUESTED_MODE (usa paper, nord, everforest o dracula)"
   fi
 }
 
 current_mode() {
-  local mode='light'
+  local mode='nord'
   if [[ -f "$STATE_FILE" ]]; then
     mode="$(head -n 1 "$STATE_FILE")"
   elif [[ -L "$CURRENT_LINK" ]]; then
     mode="$(readlink "$CURRENT_LINK")"
   fi
-  if [[ "$mode" == light || "$mode" == dark ]]; then
-    printf '%s\n' "$mode"
-  else
-    printf '%s\n' light
-  fi
+  canonical_theme "$mode" 2>/dev/null || printf '%s\n' nord
 }
 
 validate_mode() {
-  local mode="$1"
+  local mode
   local file
-  [[ "$mode" == light || "$mode" == dark ]] || die "modo inválido: $mode"
+  mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   [[ -d "$THEME_HOME/$mode" ]] || die "no existe la paleta: $THEME_HOME/$mode"
-  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf; do
+  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources; do
     [[ -f "$THEME_HOME/$mode/$file" ]] || die "falta $THEME_HOME/$mode/$file"
   done
 }
@@ -105,6 +125,7 @@ show_status() {
   else
     printf 'current=missing\n'
   fi
+  printf 'available=%s\n' "${THEME_NAMES[*]}"
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_THEME_BEGIN" "$I3_CONFIG"; then
     printf 'i3-theme-block=present\n'
   else
@@ -177,6 +198,43 @@ sync_i3_theme() {
   mv -- "$temporary" "$I3_CONFIG"
 }
 
+sync_xresources() {
+  local block_file temporary mode
+  [[ -f "$XRESOURCES" ]] || {
+    warn "no existe $XRESOURCES; rxvt usará sus valores predeterminados"
+    return 0
+  }
+  block_file="$(mktemp)"
+  cat "$CURRENT_LINK/xresources" > "$block_file"
+  temporary="$(mktemp)"
+  awk -v begin="$XRES_THEME_BEGIN" -v end="$XRES_THEME_END" \
+      -v block_file="$block_file" '
+    function emit_block(line) {
+      print begin
+      while ((getline line < block_file) > 0) print line
+      close(block_file)
+      print end
+    }
+    $0 == begin { emit_block(); inside=1; found=1; next }
+    inside && $0 == end { inside=0; next }
+    !inside { print }
+    END { if (!found) { print ""; emit_block() } }
+  ' "$XRESOURCES" > "$temporary"
+  rm -f -- "$block_file"
+  if cmp -s "$XRESOURCES" "$temporary"; then
+    rm -f -- "$temporary"
+  else
+    backup_file "$XRESOURCES"
+    if mode="$(stat -c '%a' "$XRESOURCES" 2>/dev/null)"; then
+      chmod "$mode" "$temporary"
+    fi
+    mv -- "$temporary" "$XRESOURCES"
+  fi
+  if command -v xrdb >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+    xrdb -merge "$XRESOURCES" || warn 'xrdb no pudo recargar ~/.Xresources'
+  fi
+}
+
 backup_file() {
   local file="$1"
   [[ -e "$file" || -L "$file" ]] || return 0
@@ -185,8 +243,9 @@ backup_file() {
 }
 
 apply_link() {
-  local mode="$1"
+  local mode
   local temporary
+  mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   mkdir -p "$THEME_HOME"
   if [[ -e "$CURRENT_LINK" && ! -L "$CURRENT_LINK" ]]; then
     backup_file "$CURRENT_LINK"
@@ -195,12 +254,10 @@ apply_link() {
   temporary="$THEME_HOME/.current.$$"
   rm -f -- "$temporary"
   ln -s "$mode" "$temporary"
-  if [[ -L "$CURRENT_LINK" ]]; then
-    rm -- "$CURRENT_LINK"
-  fi
   if [[ "$(uname -s)" == Linux ]]; then
     mv -Tf -- "$temporary" "$CURRENT_LINK"
   else
+    rm -f -- "$CURRENT_LINK"
     mv -f -- "$temporary" "$CURRENT_LINK"
   fi
   if [[ -f "$STATE_FILE" ]] && [[ "$(cat "$STATE_FILE")" != "$mode" ]]; then
@@ -225,7 +282,8 @@ reload_desktop() {
 }
 
 apply_mode() {
-  local mode="$1"
+  local mode
+  mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   validate_mode "$mode"
   if [[ "$ACTION" == plan ]]; then
     info "[plan] activar tema $mode mediante $CURRENT_LINK"
@@ -235,8 +293,36 @@ apply_mode() {
   fi
   apply_link "$mode"
   sync_i3_theme
+  sync_xresources
   reload_desktop
   ok "tema activo: $mode"
+}
+
+cycle_mode() {
+  local current index next
+  current="$(current_mode)"
+  for index in "${!THEME_NAMES[@]}"; do
+    if [[ "${THEME_NAMES[$index]}" == "$current" ]]; then
+      next=$(( (index + 1) % ${#THEME_NAMES[@]} ))
+      printf '%s\n' "${THEME_NAMES[$next]}"
+      return 0
+    fi
+  done
+  printf '%s\n' "${THEME_NAMES[0]}"
+}
+
+list_themes() {
+  local theme current
+  current="$(current_mode)"
+  printf 'paletas=%s\n' "${THEME_NAMES[*]}"
+  for theme in "${THEME_NAMES[@]}"; do
+    if [[ "$theme" == "$current" ]]; then
+      printf '* %s\n' "$theme"
+    else
+      printf '  %s\n' "$theme"
+    fi
+  done
+  printf 'aliases: light=nord dark=dracula\n'
 }
 
 main() {
@@ -247,27 +333,37 @@ main() {
   case "$ACTION" in
     check)
       echo '═══ Tema ThinkPad ═══'
-      validate_mode light
-      validate_mode dark
+      local theme
+      for theme in "${THEME_NAMES[@]}"; do
+        validate_mode "$theme"
+      done
       show_status
+      ;;
+    list)
+      echo '═══ Paletas ThinkPad ═══'
+      list_themes
       ;;
     plan)
       echo '═══ Plan de tema ThinkPad ═══'
       if [[ "$TOGGLE_REQUESTED" -eq 1 ]]; then
-        if [[ "$(current_mode)" == light ]]; then
-          REQUESTED_MODE=dark
+        if [[ "$(current_mode)" == dracula ]]; then
+          REQUESTED_MODE=nord
         else
-          REQUESTED_MODE=light
+          REQUESTED_MODE=dracula
         fi
+      fi
+      if [[ "$CYCLE_REQUESTED" -eq 1 ]]; then
+        REQUESTED_MODE="$(cycle_mode)"
       fi
       apply_mode "${REQUESTED_MODE:-$(current_mode)}"
       ;;
     set) apply_mode "$REQUESTED_MODE" ;;
+    cycle) apply_mode "$(cycle_mode)" ;;
     toggle)
-      if [[ "$(current_mode)" == light ]]; then
-        apply_mode dark
+      if [[ "$(current_mode)" == dracula ]]; then
+        apply_mode nord
       else
-        apply_mode light
+        apply_mode dracula
       fi
       ;;
   esac

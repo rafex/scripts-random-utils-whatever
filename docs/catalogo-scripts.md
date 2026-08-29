@@ -79,6 +79,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/scrape_node_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_node_runtime.md) |
 | `scripts/install/scrape_build_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_build_runtime.md) |
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
+| `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/harden_thinkpad_linux.sh` | Linux | harden-thinkpad | sí | sí | alto | [doc](install/harden_thinkpad_linux.md) |
 | `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
@@ -101,6 +102,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/i3_settings_menu_linux.sh` | Linux | — | no | — | bajo | [doc](system/i3_settings_menu_linux.md) |
 | `scripts/system/rofi_search_linux.sh` | Linux | — | no | — | bajo | [doc](system/rofi_search_linux.md) |
 | `scripts/system/theme_toggle_linux.sh` | Linux | theme-toggle | no | sí | bajo | [doc](system/theme_toggle_linux.md) |
+| `scripts/system/generate_terminal_themes_linux.sh` | Linux | generate-terminal-themes | no | sí | bajo | [doc](system/generate_terminal_themes_linux.md) |
 
 ## Documentos suplementarios
 

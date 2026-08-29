@@ -301,7 +301,7 @@ install_theme_configs() {
         cp "$source_file" "$target_file"
         chmod 644 "$target_file"
     done < <(find "$source_root" -type f -print0)
-    success "  paletas light/dark"
+    success "  paletas paper/nord/everforest/dracula y alias legacy"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -327,13 +327,13 @@ install_tmux_config() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6c. Inicializar la paleta clara como tema por defecto
+# 6c. Inicializar Nord como tema por defecto
 # ─────────────────────────────────────────────────────────────────────────────
 initialize_theme() {
     local theme_root="$HOME/.config/rafex/themes"
     local current="$theme_root/current"
 
-    if [[ ! -d "$theme_root/light" ]]; then
+    if [[ ! -d "$theme_root/nord" ]]; then
         return
     fi
     if [[ -L "$current" ]]; then
@@ -348,12 +348,12 @@ initialize_theme() {
         fi
     fi
     if [[ "$DRY_RUN" -eq 1 ]]; then
-        info "[dry-run] enlazar tema light → $current"
+        info "[dry-run] enlazar tema nord → $current"
     else
-        ln -s light "$current"
-        printf '%s\n' light > "$HOME/.config/rafex/theme"
+        ln -s nord "$current"
+        printf '%s\n' nord > "$HOME/.config/rafex/theme"
         chmod 600 "$HOME/.config/rafex/theme"
-        success "  tema inicial: light"
+        success "  tema inicial: nord"
     fi
 }
 

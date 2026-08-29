@@ -1,6 +1,6 @@
 ---
 title: theme_toggle_linux.sh
-description: Selector de tema claro y oscuro para la sesión i3 de ThinkPad
+description: Selector de cuatro paletas para i3, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
 tags:
   - i3
   - temas
@@ -9,8 +9,8 @@ tags:
 
 # theme_toggle_linux.sh
 
-Activa las paletas `light` y `dark` del perfil ThinkPad para i3, tmux,
-Alacritty, Rofi y Dunst sin usar `sudo`.
+Activa las paletas `paper`, `nord`, `everforest` y `dracula` del perfil
+ThinkPad para i3, tmux, Alacritty, rxvt-unicode, Rofi y Dunst sin usar `sudo`.
 
 - **Ruta:** `scripts/system/theme_toggle_linux.sh`
 - **SO requerido:** Linux (Xorg/i3)
@@ -31,7 +31,7 @@ Alacritty, Rofi y Dunst sin usar `sudo`.
 
 ## Requisitos
 
-Instala el perfil `thinkpad-x1-yoga-1st` para crear las paletas en
+Instala el perfil `thinkpad-x1-yoga-1st` y ejecuta el generador para crear las paletas en
 `~/.config/rafex/themes`. El script puede ejecutarse desde SSH para revisar el
 estado, pero la recarga de i3, tmux y Dunst requiere la sesión gráfica local.
 
@@ -39,16 +39,21 @@ estado, pero la recarga de i3, tmux y Dunst requiere la sesión gráfica local.
 
 ```sh
 ~/.local/bin/theme-toggle.sh --check
-~/.local/bin/theme-toggle.sh --set light
-~/.local/bin/theme-toggle.sh --set dark
+~/.local/bin/theme-toggle.sh --list
+~/.local/bin/theme-toggle.sh --set nord
+~/.local/bin/theme-toggle.sh --set paper
+~/.local/bin/theme-toggle.sh --set everforest
+~/.local/bin/theme-toggle.sh --set dracula
+~/.local/bin/theme-toggle.sh --cycle
 ~/.local/bin/theme-toggle.sh --toggle
 ```
 
 El estado se guarda en `~/.config/rafex/theme` y el selector apunta
 `~/.config/rafex/themes/current` a la paleta activa. El valor inicial es
-`light`. Los colores de i3 se sincronizan en un bloque administrado dentro de
+`nord`. `light` es alias de `nord` y `dark` es alias de `dracula`. Los colores de i3 se sincronizan en un bloque administrado dentro de
 `~/.config/i3/config`; esto evita depender de la expansión de `~` en la
-directiva `include` de algunas versiones de i3.
+directiva `include` de algunas versiones de i3. La paleta X11 se sincroniza en
+`~/.Xresources` y se aplica con `xrdb` cuando existe una sesión gráfica.
 
 ## Opciones
 
@@ -56,8 +61,10 @@ directiva `include` de algunas versiones de i3.
 |---|---|---|
 | `--check` | — | Comprueba paletas, estado y herramientas disponibles. |
 | `--plan` | `--dry-run` | Muestra la paleta que se activaría sin modificar archivos. |
-| `--set <modo>` | — | Activa `light` o `dark`. |
-| `--toggle` | — | Alterna entre `light` y `dark`. |
+| `--list` | — | Lista las cuatro paletas y marca la activa. |
+| `--set <modo>` | — | Activa `paper`, `nord`, `everforest` o `dracula`; acepta `light`/`dark` como alias. |
+| `--cycle` | — | Activa la siguiente paleta en orden Paper, Nord, Everforest, Dracula. |
+| `--toggle` | — | Alterna entre `nord` y `dracula`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -73,18 +80,18 @@ No se aceptan credenciales ni se usa `.env`.
 ### Forma explícita recomendada
 
 ```sh
-~/.local/bin/theme-toggle.sh --set light
+~/.local/bin/theme-toggle.sh --set nord
 ```
 
 ### Alternar desde i3
 
-Pulsa `Mod+Shift+T`, elige `Tema claro/oscuro` en 9menu o abre el centro Rofi
-y selecciona `Tema visual — alternar`.
+Pulsa `Mod+Shift+T`, elige `Tema claro/oscuro` o una paleta concreta en 9menu,
+o abre el centro Rofi y selecciona la paleta deseada.
 
 ### Simular una activación
 
 ```sh
-~/.local/bin/theme-toggle.sh --plan --set dark
+~/.local/bin/theme-toggle.sh --plan --set dracula
 ```
 
 ### Diagnóstico remoto
@@ -141,12 +148,20 @@ Dunst de forma controlada.
 esa ruta y dejan las variables sin resolver.
 
 **Solución:** instala la versión actual del selector y ejecuta
-`theme-toggle.sh --set light` o `theme-toggle.sh --set dark`. El script migra la
+`theme-toggle.sh --set nord` o `theme-toggle.sh --set dracula`. El script migra la
 línea antigua al bloque administrado y recarga i3 cuando se ejecuta dentro de
 la sesión gráfica.
+
+### `La terminal rxvt no usa la paleta nueva`
+
+**Causa:** `urxvt` lee Xresources al iniciar y no todas las ventanas releen
+recursos después de `xrdb -merge`.
+
+**Solución:** ejecuta `xrdb -merge ~/.Xresources` y abre una nueva ventana de
+`urxvt`. La fuente definida por el perfil es DejaVu Sans Mono tamaño `7`.
 
 ## Changelog
 
 ### [Unreleased]
 
-**feat:** añadir paletas claras y oscuras centralizadas para ThinkPad.
+**feat:** añadir cuatro paletas centralizadas y soporte Xresources para ThinkPad.

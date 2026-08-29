@@ -1,11 +1,4 @@
-Xft.antialias: true
-Xft.hinting: true
-Xft.hintstyle: hintslight
-Xft.rgba: rgb
-Xft.lcdfilter: lcddefault
-
-! BEGIN rafex theme
-! Nord is the default palette; theme-toggle.sh replaces this block.
+! Rafex Nord para rxvt-unicode.
 URxvt.font: xft:DejaVu Sans Mono:size=7
 URxvt.termName: rxvt-unicode-256color
 URxvt.scrollBar: false
@@ -30,4 +23,3 @@ URxvt.color12: #81a1c1
 URxvt.color13: #c39dbd
 URxvt.color14: #8fcbda
 URxvt.color15: #eceff4
-! END rafex theme
