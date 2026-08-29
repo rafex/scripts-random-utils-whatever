@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Los comandos polkit/udev suelen vivir en /usr/sbin o /sbin y no siempre
+# aparecen en el PATH de una sesión SSH no interactiva.
+SYSTEM_PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+export PATH="$SYSTEM_PATH${PATH:+:$PATH}"
+
 # ─────────────────────────────────────────────────────────────────────────────
 # usb_mount_perms_linux.sh
 # Diagnostica y corrige permisos para montar/desmontar USB sin sudo en Linux.
@@ -119,6 +124,16 @@ backup_user_file() {
   destination="${file}.bak.$(date +%Y%m%d_%H%M%S)"
   cp -a "$file" "$destination"
   info "Respaldo de configuración: ${BOLD}$destination${RESET}"
+}
+
+backup_root_file() {
+  local file="$1"
+  local backup
+
+  [[ -e "$file" ]] || return 0
+  backup="${file}.bak.$(date +%Y%m%d_%H%M%S)"
+  sudo cp -a -- "$file" "$backup"
+  info "Respaldo de configuración del sistema: ${BOLD}$backup${RESET}"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -262,6 +277,7 @@ fix_polkit_rule() {
 });'
 
   info "Creando regla polkit: ${BOLD}$POLKIT_RULE${RESET}"
+  [[ "$DRY_RUN" -eq 1 ]] || backup_root_file "$POLKIT_RULE"
   write_file_dry "$POLKIT_RULE" "$content" "regla polkit"
   sudo_cmd chmod 644 "$POLKIT_RULE"
   success "Regla polkit creada."
@@ -277,6 +293,8 @@ fix_polkit_rule() {
 # Verificar udev
 # ─────────────────────────────────────────────────────────────────────────────
 check_udev() {
+  local -a block_devices rules_file
+
   echo -e "\n${BOLD}${CYAN}═══ Reglas udev para USB ═══${RESET}"
 
   if [[ -f "$UDEV_RULE" ]]; then
@@ -288,13 +306,12 @@ check_udev() {
 
   echo
   info "Permisos de nodos de dispositivo (discos USB):"
-  if ls /dev/sd? 2>/dev/null | head -1 > /dev/null; then
-    ls -l /dev/sd? 2>/dev/null | while read -r line; do
-      local perms owner group dev
-      perms="$(echo "$line" | awk '{print $1}')"
-      owner="$(echo "$line" | awk '{print $3}')"
-      group="$(echo "$line" | awk '{print $4}')"
-      dev="$(echo "$line" | awk '{print $NF}')"
+  shopt -s nullglob
+  block_devices=(/dev/sd?)
+  if ((${#block_devices[@]} > 0)); then
+    for dev in "${block_devices[@]}"; do
+      local perms owner group
+      read -r perms owner group _ < <(stat -c '%A %U %G %n' "$dev")
       if [[ "$group" == "$USB_PERMS_GROUP" ]]; then
         info "  ${BOLD}$dev${RESET}  $perms  $owner:${BOLD}$group${RESET}"
       else
@@ -307,8 +324,9 @@ check_udev() {
 
   echo
   info "Reglas en /etc/udev/rules.d/:"
-  if ls /etc/udev/rules.d/*.rules 2>/dev/null | head -1 > /dev/null; then
-    ls -1 /etc/udev/rules.d/*.rules 2>/dev/null | while read -r f; do
+  rules_file=(/etc/udev/rules.d/*.rules)
+  if ((${#rules_file[@]} > 0)); then
+    for f in "${rules_file[@]}"; do
       info "  - $(basename "$f")"
     done
   else
@@ -332,6 +350,7 @@ SUBSYSTEM=="block", ENV{ID_BUS}=="usb", GROUP="'"$USB_PERMS_GROUP"'", MODE="0660
 '
 
   info "Creando regla udev: ${BOLD}$UDEV_RULE${RESET}"
+  [[ "$DRY_RUN" -eq 1 ]] || backup_root_file "$UDEV_RULE"
   write_file_dry "$UDEV_RULE" "$content" "regla udev"
   sudo_cmd chmod 644 "$UDEV_RULE"
 
@@ -585,9 +604,14 @@ check_usb_devices() {
   if command -v udisksctl &>/dev/null; then
     echo
     info "Dispositivos vía udisksctl:"
-    udisksctl dump 2>/dev/null | grep -E "Device:|IdLabel:|IdType:|Size:|HintAuto:|HintSystem:|HintIgnore:|ConnectionBus:" | head -40 | while read -r line; do
+    local dump line count=0
+    dump="$(udisksctl dump 2>/dev/null | grep -E "Device:|IdLabel:|IdType:|Size:|HintAuto:|HintSystem:|HintIgnore:|ConnectionBus:" || true)"
+    while IFS= read -r line; do
+      [[ -n "$line" ]] || continue
       info "  $line"
-    done
+      count=$((count + 1))
+      ((count >= 40)) && break
+    done <<< "$dump"
   fi
 }
 

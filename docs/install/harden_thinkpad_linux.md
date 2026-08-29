@@ -170,6 +170,15 @@ y no reinicia automáticamente.
 Sysctl aplica ajustes defensivos compatibles con movilidad y Podman rootless.
 No desactiva user namespaces, no toca i915, GRUB, `fstab` ni forwarding.
 
+El estado también comprueba que existan los archivos administrados de Fail2ban
+y auditd. Que el servicio `auditd` esté activo no implica que estas reglas
+personalizadas estén instaladas.
+
+```text
+/etc/fail2ban/jail.d/sshd-thinkpad.local
+/etc/audit/rules.d/99-thinkpad-hardening.rules
+```
+
 USBGuard queda en auditoría con dispositivos no reconocidos autorizados:
 
 ```text
@@ -187,6 +196,19 @@ adaptadores USB.
 ```sh
 just harden-thinkpad --status
 just harden-thinkpad --audit
+```
+
+Si se ejecuta por SSH sin una caché vigente de `sudo`, el estado privilegiado
+se mostrará como pendiente. En ese caso ejecuta `sudo -v` en la ThinkPad y
+repite el comando, o valida directamente:
+
+```sh
+sudo ufw status verbose
+sudo fail2ban-client status sshd
+sudo aa-status
+sudo auditctl -s
+sudo usbguard list-devices
+sudo sshd -T
 ```
 
 Los respaldos de archivos del sistema se guardan en:

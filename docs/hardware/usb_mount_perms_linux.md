@@ -66,6 +66,15 @@ ______________________________________________________________________
 ./scripts/hardware/usb_mount_perms_linux.sh --fix
 ```
 
+La corrección recomendada no instala la regla udev legacy:
+
+```sh
+./scripts/hardware/usb_mount_perms_linux.sh --fix --no-legacy-udev --yes
+```
+
+Si ya existía una regla Polkit o udev, el script crea un respaldo fechado
+antes de reemplazarla.
+
 ### Simular cambios
 
 ```sh

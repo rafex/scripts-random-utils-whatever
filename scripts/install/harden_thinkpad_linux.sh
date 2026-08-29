@@ -4,6 +4,11 @@
 set -Eeuo pipefail
 umask 077
 
+# Las sesiones SSH no siempre heredan /usr/sbin y /sbin. Los comandos de
+# administración deben poder detectarse sin depender del shell del usuario.
+SYSTEM_PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+export PATH="$SYSTEM_PATH${PATH:+:$PATH}"
+
 ACTION='check'
 STAGE='all'
 ALLOW_LOCAL_CONSOLE=0
@@ -327,6 +332,15 @@ check_service() {
   fi
 }
 
+check_managed_file() {
+  local path="$1" label="$2"
+  if file_exists_root "$path"; then
+    ok "$label presente: $path"
+  else
+    warn "$label ausente: $path"
+  fi
+}
+
 check_local() {
   echo '--- hardening local ---'
   check_packages ufw fail2ban apparmor-utils apparmor-profiles apparmor-profiles-extra \
@@ -336,6 +350,8 @@ check_local() {
   check_service auditd.service
   check_service usbguard.service
   check_service fstrim.timer
+  check_managed_file "$FAIL2BAN_JAIL" 'jail SSH de Fail2ban'
+  check_managed_file "$AUDIT_RULES" 'reglas personalizadas de auditd'
   if command -v ufw >/dev/null 2>&1; then
     sudo -n ufw status verbose 2>/dev/null || warn 'UFW requiere sudo para consultar su estado'
   else
