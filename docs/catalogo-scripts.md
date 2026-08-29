@@ -42,6 +42,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/autorotate_x1_yoga_linux.sh` | Linux | — | no | sí | medio | [doc](hardware/autorotate_x1_yoga_linux.md) |
 | `scripts/hardware/configure_thinkpad_s2idle_linux.sh` | Linux | configure-thinkpad-s2idle | sí | sí | alto | [doc](hardware/configure_thinkpad_s2idle_linux.md) |
 | `scripts/hardware/configure_fstrim_linux.sh` | Linux | configure-fstrim | sí | sí | medio | [doc](hardware/configure_fstrim_linux.md) |
+| `scripts/hardware/configure_tlp_battery_linux.sh` | Linux | configure-tlp-battery | sí | sí | medio | [doc](hardware/configure_tlp_battery_linux.md) |
 | `scripts/hardware/notify_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_brightness_linux.md) |
 | `scripts/hardware/notify_kbd_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_kbd_brightness_linux.md) |
 | `scripts/hardware/notify_microphone_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_microphone_linux.md) |
