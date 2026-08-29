@@ -41,6 +41,10 @@ El SSD debe estar montado previamente en:
 El script comprueba que el dispositivo montado tenga exactamente la etiqueta
 `ssd_rafex_1`. No monta discos automáticamente.
 
+También funciona si el SSD está en exFAT. En ese caso copia el contenido sin
+propietario ni permisos Unix, porque exFAT no puede conservarlos; al restaurar
+en Linux se deben volver a aplicar los permisos.
+
 ## Uso
 
 Desde la raíz del repositorio:
@@ -111,6 +115,7 @@ autorandr.
 - `--check` y `--plan` no escriben archivos persistentes.
 - El destino debe estar montado y tener la etiqueta exacta `ssd_rafex_1`.
 - Se usa un staging temporal y solo se publica después de completar el inventario.
+- En exFAT el contenido es portable, pero no conserva propietario ni permisos Unix.
 - Se excluyen `.ssh`, perfiles Wi‑Fi, credenciales Git, tokens, cookies,
   keyrings privados, caches, logs privados y `mise/installs`.
 - Los archivos de texto pasan por una redacción de patrones sensibles y luego se

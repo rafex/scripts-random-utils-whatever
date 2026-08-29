@@ -142,6 +142,16 @@ copy_text_sanitized() {
     "$source" > "$destination"
 }
 
+# exFAT no soporta propietario ni permisos Unix. El contenido del respaldo
+# debe seguir siendo portable; la restauración en Linux reaplicará permisos.
+copy_portable() {
+  cp -L --no-preserve=mode,ownership -- "$@"
+}
+
+copy_portable_tree() {
+  cp -RL --no-preserve=mode,ownership -- "$@"
+}
+
 is_sensitive_path() {
   local path="$1"
   case "$path" in
@@ -180,7 +190,7 @@ copy_user_path() {
         if file --brief --mime-type "$item" 2>/dev/null | grep -q '^text/'; then
           copy_text_sanitized "$item" "$item_destination"
         else
-          cp -aL -- "$item" "$item_destination"
+          copy_portable "$item" "$item_destination"
         fi
       fi
     done < <(find "$source" -mindepth 1 -print0)
@@ -189,7 +199,7 @@ copy_user_path() {
       copy_text_sanitized "$source" "$destination"
     else
       mkdir -p "$(dirname "$destination")"
-      cp -aL -- "$source" "$destination"
+      copy_portable "$source" "$destination"
     fi
   else
     record_exclusion "OMITIDO (tipo no soportado): $source"
@@ -203,7 +213,7 @@ copy_system_path() {
     return 0
   fi
   mkdir -p "$(dirname "$destination")"
-  sudo cp -aL -- "$source" "$destination"
+  sudo cp -L --no-preserve=mode,ownership -- "$source" "$destination"
 }
 
 write_inventory() {
@@ -424,7 +434,7 @@ create_backup() {
   info "generando inventarios"
   write_inventories
   info "copiando perfil curado ThinkPad"
-  cp -aL -- "$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st" "$STAGE/curated-profile/"
+  copy_portable_tree "$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st" "$STAGE/curated-profile/"
   write_migration_report
   write_readme
   verify_no_secrets
@@ -432,7 +442,7 @@ create_backup() {
 
   final_tmp="$DESTINATION_BASE/.${basename}.final.XXXXXX"
   final_tmp="$(mktemp -d "$final_tmp")"
-  cp -aL -- "$STAGE/." "$final_tmp/"
+  copy_portable_tree "$STAGE/." "$final_tmp/"
   mv -- "$final_tmp" "$FINAL_DIR"
   STAGE=""
 
