@@ -11,6 +11,7 @@ import 'just/dev.just'
 import 'just/network.just'
 import 'just/display.just'
 import 'just/system.just'
+import 'just/backup.just'
 
 # Listar todas las tareas disponibles
 default:

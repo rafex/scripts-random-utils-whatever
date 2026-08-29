@@ -50,6 +50,8 @@ nav:
   - Inicio: index.md
   - Catálogo de scripts: catalogo-scripts.md
   - Comandos útiles: comandos-utiles.md
+  - Respaldos:
+      - backup_thinkpad_recovery_linux: backup/backup_thinkpad_recovery_linux.md
   - Desarrollo:
       - commons_deploy_verify_unix: dev/commons_deploy_verify_unix.md
       - deploy_configs_unix: dev/deploy_configs_unix.md

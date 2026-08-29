@@ -21,6 +21,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 
 | Script | Plataforma | Tarea Just | sudo | Seguro | Riesgo | Documentación |
 |---|---|---|---|---|---|---|
+| `scripts/backup/backup_thinkpad_recovery_linux.sh` | Linux | backup-thinkpad | sí | sí | alto | [doc](backup/backup_thinkpad_recovery_linux.md) |
 | `scripts/dev/commons_deploy_verify_unix.sh` | macOS/Linux | — | no | — | medio | [doc](dev/commons_deploy_verify_unix.md) |
 | `scripts/dev/deploy_configs_unix.sh` | macOS/Linux | deploy-configs | opcional | sí | alto | [doc](dev/deploy_configs_unix.md) |
 | `scripts/dev/deploy_verify_unix.sh` | macOS/Linux | deploy-verify | no | sí | medio | [doc](dev/deploy_verify_unix.md) |
