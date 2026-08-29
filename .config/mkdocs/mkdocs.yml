@@ -72,6 +72,7 @@ nav:
       - screen_projector_linux: display/screen_projector_linux.md
   - Hardware:
       - autorotate_x1_yoga_linux: hardware/autorotate_x1_yoga_linux.md
+      - configure_fstrim_linux: hardware/configure_fstrim_linux.md
       - configure_thinkpad_s2idle_linux: hardware/configure_thinkpad_s2idle_linux.md
       - notify_brightness_linux: hardware/notify_brightness_linux.md
       - notify_kbd_brightness_linux: hardware/notify_kbd_brightness_linux.md

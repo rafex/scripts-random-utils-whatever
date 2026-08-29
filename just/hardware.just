@@ -26,3 +26,8 @@ power-control *args:
 # Uso: just configure-thinkpad-s2idle --check | --plan | --apply
 configure-thinkpad-s2idle *args:
     bash scripts/hardware/configure_thinkpad_s2idle_linux.sh {{args}}
+
+# Activar TRIM periódico para SSD/NVMe mediante systemd
+# Uso: just configure-fstrim --check | --plan | --apply | --status
+configure-fstrim *args:
+    bash scripts/hardware/configure_fstrim_linux.sh {{args}}
