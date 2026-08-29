@@ -11,6 +11,7 @@ case "$section" in
     menu_prompt='Centro de control'
     menu_items=(
       'Red — NetworkManager'
+      'Software — Synaptic'
       'Wi‑Fi — alternar'
       'Modo avión — alternar radios'
       'Audio — pavucontrol'
@@ -59,6 +60,7 @@ confirm() {
 
 case "$choice" in
   'Red — NetworkManager') exec nm-connection-editor ;;
+  'Software — Synaptic') exec synaptic-pkexec ;;
   'Wi‑Fi — alternar') exec "$HOME/.local/bin/wifi-toggle.sh" toggle ;;
   'Modo avión — alternar radios') exec "$HOME/.local/bin/flight-mode-toggle.sh" toggle ;;
   'Audio — pavucontrol') exec pavucontrol ;;

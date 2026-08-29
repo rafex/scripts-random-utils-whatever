@@ -4,6 +4,7 @@ Navegador:exec firefox
 Archivos:exec thunar
 Audio:exec pavucontrol
 Red:exec nm-connection-editor
+Software:exec synaptic-pkexec
 Wi-Fi:exec ~/.local/bin/wifi-toggle.sh toggle
 Modo avion:exec ~/.local/bin/flight-mode-toggle.sh toggle
 Bluetooth:exec blueman-manager

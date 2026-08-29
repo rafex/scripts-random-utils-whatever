@@ -62,7 +62,7 @@ require_linux() {
 
 packages=(rofi pavucontrol network-manager network-manager-applet nm-connection-editor
   blueman bluez arandr x11-utils xinput libnotify-bin brightnessctl rfkill gnome-disk-utility
-  thunar xdg-utils)
+  thunar xdg-utils lxpolkit synaptic)
 
 init_logging() {
   [[ "$ACTION" == apply || -n "$LOG_FILE" ]] || return 0
@@ -139,6 +139,7 @@ bindsym XF86Search exec --no-startup-id ~/.local/bin/rofi-search.sh apps
 bindsym XF86Explorer exec --no-startup-id ~/.local/bin/rofi-search.sh browser
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
 bindsym XF86Tools exec --no-startup-id ~/.local/bin/i3-settings-menu.sh
+exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 $end"
   if [[ "$ACTION" == plan ]]; then
     info "[plan] actualizar bloque administrado en $I3_CONFIG"

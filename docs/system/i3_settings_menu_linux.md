@@ -9,11 +9,12 @@ tags:
 # i3_settings_menu_linux.sh
 
 Ofrece un menú Rofi para abrir las herramientas de red, audio, pantallas,
-Bluetooth, cámara, i3 y estado del sistema.
+Bluetooth, cámara, Synaptic, i3 y estado del sistema.
 
 - **Ruta:** `scripts/system/i3_settings_menu_linux.sh`
 - **SO requerido:** Linux (Xorg/i3)
-- **Dependencias:** `rofi`; herramientas de cada opción son opcionales
+- **Dependencias:** `rofi`; `synaptic-pkexec` y las herramientas de cada opción
+  son opcionales
 
 ## Índice
 ## Requisitos
@@ -33,6 +34,10 @@ Debe existir una sesión gráfica i3 y `rofi`.
 ```sh
 ~/.local/bin/i3-settings-menu.sh
 ```
+
+La opción `Software — Synaptic` ejecuta `synaptic-pkexec`. Synaptic debe
+instalarse previamente y `lxpolkit` debe estar activo para mostrar el diálogo
+gráfico de autenticación.
 
 ## Opciones
 
@@ -57,6 +62,14 @@ Este script no requiere variables de entorno.
 
 **Causa:** la herramienta asociada no está instalada.
 **Solución:** instalar el paquete indicado o usar otra opción del menú.
+
+### `Authorization is required` sin diálogo gráfico
+
+**Causa:** no hay un agente de PolicyKit activo en la sesión i3.
+
+**Solución:** ejecuta `just install-i3-laptop-controls --apply`, cierra y vuelve
+a iniciar la sesión gráfica, y comprueba `pgrep -x lxpolkit`. Para Synaptic usa
+`synaptic-pkexec`, no `/usr/sbin/synaptic` directamente.
 
 ## Changelog
 

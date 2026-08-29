@@ -9,7 +9,8 @@ tags:
 # install_i3_laptop_controls_linux.sh
 
 Instala utilidades y configura atajos para volumen, micrófono, Wi‑Fi, modo
-avión, búsqueda Rofi y un centro de control completo para i3.
+avión, búsqueda Rofi, Synaptic y un centro de control completo para i3. También
+instala `lxpolkit` para mostrar gráficamente las solicitudes de autenticación.
 
 - **Ruta:** `scripts/install/install_i3_laptop_controls_linux.sh`
 - **SO requerido:** Linux (Debian/Ubuntu con APT)
@@ -39,7 +40,8 @@ just install-i3-laptop-controls --apply
 
 El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
 `XF86Search`, `XF86Explorer`, `XF86WakeUp` y `XF86Tools`. `XF86Tools` abre el
-centro de control completo; `XF86WakeUp` abre solo energía y sesión.
+centro de control completo; `XF86WakeUp` abre solo energía y sesión. El centro
+incluye `Software — Synaptic`, que se ejecuta mediante `synaptic-pkexec`.
 
 ## Opciones
 
@@ -121,3 +123,6 @@ retiran únicamente fuera del bloque administrado. Después recarga i3 con
 
 **fix:** corregir nombres de paquetes para Debian Forky y registrar las
 ejecuciones de aplicación con logs fechados.
+
+**feat:** instalar `lxpolkit` y Synaptic para autenticación y administración
+gráfica desde i3.

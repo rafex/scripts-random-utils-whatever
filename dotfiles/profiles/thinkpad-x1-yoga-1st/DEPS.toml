@@ -16,6 +16,8 @@ apt = [
     "brightnessctl",
     "pavucontrol",
     "pasystray",
+    "lxpolkit",
+    "synaptic",
     "fonts-font-awesome",
     "fonts-noto-color-emoji",
     "x11-xserver-utils",

@@ -29,7 +29,7 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   los archivos XDG de autostart ejecutados por `dex`.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas.
 - Menú 9menu en `Mod+F9` y `XF86Tools` con accesos a las herramientas de la
-  ThinkPad.
+  ThinkPad, incluido Synaptic mediante `synaptic-pkexec`.
 - Diez escritorios con nombres y reglas para colocar automáticamente las
   aplicaciones habituales: terminal, código, web, documentos, configuración,
   multimedia, comunicaciones, operaciones, monitorización y scratch.
