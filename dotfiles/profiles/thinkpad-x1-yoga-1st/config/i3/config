@@ -29,6 +29,7 @@ exec_always --no-startup-id setxkbmap es
 exec --no-startup-id sh -c 'if [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"; fi'
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'
 exec --no-startup-id dex --autostart --environment i3
+exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 exec --no-startup-id udiskie --tray
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 exec --no-startup-id nm-applet
