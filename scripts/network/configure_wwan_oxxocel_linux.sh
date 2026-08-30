@@ -297,7 +297,7 @@ configure_profile() {
     gsm.pin-flags not-required \
     connection.autoconnect no \
     connection.autoconnect-priority -100 \
-    connection.permissions "user:${TARGET_USER}:" \
+    connection.permissions "user:${TARGET_USER}" \
     connection.metered yes \
     ipv4.method auto \
     ipv4.never-default no \

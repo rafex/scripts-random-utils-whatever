@@ -170,6 +170,14 @@ política polkit de NetworkManager.
 configuración de permisos antes de usar `--apply`. No ejecutes todo el script con
 `sudo`.
 
+### `failed to modify connection.permissions: permiso no válido «user:rafex:»`
+
+**Causa:** algunas versiones de NetworkManager rechazan el campo reservado vacío
+que se expresa como `user:rafex:`.
+
+**Solución:** el instalador usa la forma compatible `user:rafex` y puede volver a
+ejecutarse para completar el perfil creado parcialmente.
+
 ### `ModemManager no detecta ningún módem WWAN`
 
 **Causa:** el módem está deshabilitado, falta el driver, el dispositivo no está
@@ -195,3 +203,5 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 
 - Añadir perfil NetworkManager con APN `internet.mvne1.com`.
 - Detectar dinámicamente el módem y documentar la ausencia de voz de la EM7455.
+
+**fix:** aceptar la sintaxis de permisos de conexión de NetworkManager en Debian.
