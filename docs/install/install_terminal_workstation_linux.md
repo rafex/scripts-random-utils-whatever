@@ -75,6 +75,11 @@ del perfil developer. Si una descarga falla, la configuración sigue siendo
 usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
 `Ctrl-b I` para instalarlos o actualizarlos.
 
+Cuando ya existe un servidor tmux, el instalador recarga su configuración y
+prepara `TMUX_PLUGIN_MANAGER_PATH` antes de sincronizar TPM. Esto evita que un
+servidor creado con una configuración anterior produzca un error de ruta; las
+sesiones existentes no se cierran.
+
 Los runtimes Java, Node.js, Maven y Gradle se descargan únicamente mediante sus
 instaladores propios. `mise` solo crea enlaces, selecciona versiones y genera
 shims; no debe ejecutarse `mise install`. El manifiesto

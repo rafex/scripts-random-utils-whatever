@@ -539,6 +539,7 @@ report_tpm_plugins() {
 }
 
 install_tpm_plugins() {
+  local tmux_server_available=0
   if [[ "$ACTION" == "plan" ]]; then
     info "[plan] instalar plugins declarados mediante TPM"
     return 0
@@ -551,8 +552,29 @@ install_tpm_plugins() {
     warn "$TMUX_CONFIG no declara plugins TPM; instala primero el perfil ThinkPad"
     return 0
   fi
+
+  # TPM obtiene la lista de plugins y su ruta desde el entorno del servidor
+  # tmux. Si ya había un servidor activo antes de instalar el perfil, todavía
+  # puede tener cargada la configuración antigua y carecer de esa variable.
+  # Sincronizamos solo la configuración; nunca cerramos sesiones existentes.
+  if tmux list-sessions >/dev/null 2>&1; then
+    tmux_server_available=1
+    tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$TPM_DIR/" || true
+    if ! tmux source-file "$TMUX_CONFIG"; then
+      warn "no se pudo recargar $TMUX_CONFIG antes de sincronizar TPM"
+    fi
+  else
+    # En una instalación nueva no hay sesiones que preservar. Arrancar el
+    # servidor con el archivo objetivo permite que TPM lea @plugin y evita el
+    # error de TMUX_PLUGIN_MANAGER_PATH ausente.
+    tmux -f "$TMUX_CONFIG" start-server >/dev/null 2>&1 || true
+    tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$TPM_DIR/" || true
+  fi
   if ! "$TPM_DIR/bin/install_plugins"; then
     warn "TPM no pudo descargar todos los plugins; revisa la red y usa Ctrl-b I"
+  fi
+  if (( tmux_server_available == 1 )); then
+    tmux refresh-client -S >/dev/null 2>&1 || true
   fi
   report_tpm_plugins
 }
