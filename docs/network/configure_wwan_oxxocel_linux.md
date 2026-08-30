@@ -76,6 +76,13 @@ El script clasifica explícitamente la SIM como ausente, detectada, bloqueada
 por PIN/PIN2 o desconocida. También distingue un módem deshabilitado, uno
 registrado sin datos y una conexión de datos activa.
 
+`--connect` solo intenta establecer una sesión de datos. Si ModemManager
+reporta `sim-pin2`, el script lo muestra como advertencia y continúa con el
+intento de NetworkManager; no utiliza funciones especiales de la SIM, no envía
+PIN2/PUK2 y no ejecuta comandos AT. Si NetworkManager solicita PIN2, cancela la
+petición: no se puede omitir ni adivinar ese código. Que el intento funcione
+depende del firmware de la EM7455 y de cómo exponga el bloqueo de la SIM.
+
 Para consultar los SMS almacenados por ModemManager:
 
 ```bash
@@ -216,8 +223,11 @@ separada y no la ejecuta `--connect`.
 **Causa:** ModemManager reporta explícitamente `sim-pin2`; el PIN2 no es el PIN
 normal de datos.
 
-**Solución:** desbloquéala por un procedimiento del operador o del dispositivo.
-No adivines, pases ni guardes el PIN2 en el perfil.
+**Solución:** `--connect` intenta primero una conexión de datos sin enviar PIN2.
+Si la EM7455 permite datos en ese estado, la conexión puede funcionar. Si
+NetworkManager solicita PIN2 o el módem permanece `disabled`, cancela la
+petición y será necesario obtener PIN2/PUK2 del operador o corregir el estado
+del firmware. No adivines, pases ni guardes el PIN2 en el perfil.
 
 ### `módem registrado en la red, pero todavía sin conexión de datos`
 
@@ -280,3 +290,6 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 
 **fix:** conectar como usuario normal, esperar el estado del módem y clasificar
 SIM, registro y conexión de datos sin usar sudo.
+
+**fix:** permitir el intento de datos cuando la SIM reporta `sim-pin2`, sin
+enviar códigos PIN/PUK ni comandos AT.

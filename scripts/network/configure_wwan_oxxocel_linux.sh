@@ -215,7 +215,9 @@ wait_for_modem_ready() {
         missing)
           die "la SIM está ausente o no es detectada por la EM7455" ;;
         pin2-locked)
-          die "la SIM está bloqueada por PIN2; desbloquéala manualmente, sin guardar el PIN2" ;;
+          warn "la SIM reporta PIN2; se intentará únicamente la conexión de datos"
+          info "si nmcli solicita PIN2, cancela: no se puede omitir ni adivinar ese código"
+          return 0 ;;
         pin-locked)
           info "la SIM está protegida por PIN; se continuará para que nmcli --ask pueda solicitarlo"
           return 0 ;;
@@ -492,7 +494,8 @@ action_connect() {
   nmcli radio wwan on || die "NetworkManager no permitió activar WWAN para el usuario actual"
   info "esperando a que ModemManager actualice el estado"
   wait_for_modem_ready
-  info "conectando ${PROFILE_NAME} por UUID; nmcli puede solicitar el PIN de la SIM"
+  info "conectando ${PROFILE_NAME} por UUID; solo se solicitará autenticación necesaria para datos"
+  warn "no se enviará PIN2, PUK2 ni ningún comando AT"
   if ! nmcli --ask connection up uuid "$profile_ref"; then
     modem_id="$(find_modem_id || true)"
     if [[ -n "$modem_id" ]]; then
