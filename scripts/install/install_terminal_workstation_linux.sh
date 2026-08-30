@@ -540,6 +540,8 @@ report_tpm_plugins() {
 
 install_tpm_plugins() {
   local tmux_server_available=0
+  local tmux_plugin_path
+  tmux_plugin_path="$(dirname "$TPM_DIR")/"
   if [[ "$ACTION" == "plan" ]]; then
     info "[plan] instalar plugins declarados mediante TPM"
     return 0
@@ -559,7 +561,7 @@ install_tpm_plugins() {
   # Sincronizamos solo la configuración; nunca cerramos sesiones existentes.
   if tmux list-sessions >/dev/null 2>&1; then
     tmux_server_available=1
-    tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$TPM_DIR/" || true
+    tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$tmux_plugin_path" || true
     if ! tmux source-file "$TMUX_CONFIG"; then
       warn "no se pudo recargar $TMUX_CONFIG antes de sincronizar TPM"
     fi
@@ -568,7 +570,7 @@ install_tpm_plugins() {
     # servidor con el archivo objetivo permite que TPM lea @plugin y evita el
     # error de TMUX_PLUGIN_MANAGER_PATH ausente.
     tmux -f "$TMUX_CONFIG" start-server >/dev/null 2>&1 || true
-    tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$TPM_DIR/" || true
+    tmux set-environment -g TMUX_PLUGIN_MANAGER_PATH "$tmux_plugin_path" || true
   fi
   if ! "$TPM_DIR/bin/install_plugins"; then
     warn "TPM no pudo descargar todos los plugins; revisa la red y usa Ctrl-b I"
