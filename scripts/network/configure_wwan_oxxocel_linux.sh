@@ -117,7 +117,7 @@ find_modem_id() {
 }
 
 profile_exists() {
-  nmcli -g NAME connection show 2>/dev/null \
+  nmcli -g connection.id connection show 2>/dev/null \
     | awk -v wanted="$PROFILE_NAME" '$0 == wanted { found = 1 } END { exit !found }'
 }
 
@@ -199,7 +199,10 @@ show_profile_status() {
   fi
 
   success "perfil NetworkManager presente: ${PROFILE_NAME}"
-  nmcli -f NAME,TYPE,AUTOCONNECT,DEVICE connection show "$PROFILE_NAME"
+  printf '  id: %s\n' "$(nmcli -g connection.id connection show "$PROFILE_NAME")"
+  printf '  tipo: %s\n' "$(nmcli -g connection.type connection show "$PROFILE_NAME")"
+  printf '  autoconnect: %s\n' "$(nmcli -g connection.autoconnect connection show "$PROFILE_NAME")"
+  printf '  interfaz: %s\n' "$(nmcli -g connection.interface-name connection show "$PROFILE_NAME")"
   nmcli -g gsm.apn,gsm.auto-config,gsm.home-only,connection.autoconnect,\
     connection.autoconnect-priority,ipv4.route-metric,ipv6.route-metric \
     connection show "$PROFILE_NAME" 2>/dev/null || true
@@ -267,9 +270,14 @@ ensure_packages() {
     return 0
   fi
 
-  sudo -v
   sudo apt-get update
   sudo apt-get install -y "${MISSING_PACKAGES[@]}"
+}
+
+validate_sudo() {
+  if ! sudo -v; then
+    die "no se pudo validar sudo; ejecuta --apply desde una terminal interactiva y vuelve a intentarlo"
+  fi
 }
 
 configure_profile() {
@@ -277,7 +285,7 @@ configure_profile() {
   require_command nmcli
 
   if profile_exists; then
-    profile_type="$(nmcli -g TYPE connection show "$PROFILE_NAME" 2>/dev/null | sed -n '1p')"
+    profile_type="$(nmcli -g connection.type connection show "$PROFILE_NAME" 2>/dev/null | sed -n '1p')"
     [[ "$profile_type" == "gsm" ]] \
       || die "ya existe '${PROFILE_NAME}' con tipo '${profile_type}', no se sobrescribirá"
     info "actualizando perfil GSM ${PROFILE_NAME}"
@@ -310,9 +318,11 @@ configure_profile() {
 
 action_apply() {
   require_command sudo
-  sudo -v
+  validate_sudo
   ensure_packages
-  sudo systemctl enable --now NetworkManager ModemManager
+  if ! sudo systemctl enable --now NetworkManager.service ModemManager.service; then
+    die "no se pudieron activar NetworkManager y ModemManager; revisa systemctl status NetworkManager ModemManager"
+  fi
   configure_profile
   if ! find_modem_id >/dev/null 2>&1; then
     warn "perfil creado, pero ModemManager todavía no detecta el módem"

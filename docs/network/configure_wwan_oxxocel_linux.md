@@ -178,6 +178,15 @@ que se expresa como `user:rafex:`.
 **Solución:** el instalador usa la forma compatible `user:rafex` y puede volver a
 ejecutarse para completar el perfil creado parcialmente.
 
+### `campo «NAME» no válido` al consultar el perfil
+
+**Causa:** algunas versiones recientes de NetworkManager ya no aceptan los
+alias abreviados `NAME`, `TYPE`, `AUTOCONNECT` o `DEVICE` en `nmcli -f` para
+perfiles de conexión.
+
+**Solución:** el instalador consulta los nombres completos de propiedades,
+como `connection.id`, `connection.type` y `connection.autoconnect`.
+
 ### `ModemManager no detecta ningún módem WWAN`
 
 **Causa:** el módem está deshabilitado, falta el driver, el dispositivo no está
@@ -205,3 +214,5 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 - Detectar dinámicamente el módem y documentar la ausencia de voz de la EM7455.
 
 **fix:** aceptar la sintaxis de permisos de conexión de NetworkManager en Debian.
+
+**fix:** usar propiedades completas de `nmcli` y reportar claramente fallos de `sudo` o `systemctl`.
