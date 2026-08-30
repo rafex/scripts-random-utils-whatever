@@ -187,6 +187,16 @@ perfiles de conexión.
 **Solución:** el instalador consulta los nombres completos de propiedades,
 como `connection.id`, `connection.type` y `connection.autoconnect`.
 
+### `hay otra conexión con el nombre «OXXO Cel»`
+
+**Causa:** NetworkManager permite perfiles con nombres repetidos y puede
+seleccionar uno distinto de forma ambigua si se modifica por nombre.
+
+**Solución:** el instalador localiza el perfil GSM por nombre y tipo, obtiene su
+UUID y realiza las modificaciones usando ese UUID. Los duplicados antiguos se
+deben revisar y eliminar manualmente por UUID después de confirmar que no están
+en uso.
+
 ### `ModemManager no detecta ningún módem WWAN`
 
 **Causa:** el módem está deshabilitado, falta el driver, el dispositivo no está
@@ -216,3 +226,5 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 **fix:** aceptar la sintaxis de permisos de conexión de NetworkManager en Debian.
 
 **fix:** usar propiedades completas de `nmcli` y reportar claramente fallos de `sudo` o `systemctl`.
+
+**fix:** seleccionar y modificar el perfil WWAN por UUID para evitar duplicados.

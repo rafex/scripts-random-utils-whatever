@@ -117,8 +117,13 @@ find_modem_id() {
 }
 
 profile_exists() {
-  nmcli -g connection.id connection show 2>/dev/null \
-    | awk -v wanted="$PROFILE_NAME" '$0 == wanted { found = 1 } END { exit !found }'
+  [[ -n "$(profile_uuid)" ]]
+}
+
+profile_uuid() {
+  nmcli -t -f NAME,UUID,TYPE connection show 2>/dev/null \
+    | awk -F: -v wanted="$PROFILE_NAME" \
+      '$1 == wanted && $3 == "gsm" { print $2; exit }'
 }
 
 show_packages() {
@@ -199,13 +204,15 @@ show_profile_status() {
   fi
 
   success "perfil NetworkManager presente: ${PROFILE_NAME}"
-  printf '  id: %s\n' "$(nmcli -g connection.id connection show "$PROFILE_NAME")"
-  printf '  tipo: %s\n' "$(nmcli -g connection.type connection show "$PROFILE_NAME")"
-  printf '  autoconnect: %s\n' "$(nmcli -g connection.autoconnect connection show "$PROFILE_NAME")"
-  printf '  interfaz: %s\n' "$(nmcli -g connection.interface-name connection show "$PROFILE_NAME")"
+  local uuid
+  uuid="$(profile_uuid)"
+  printf '  uuid: %s\n' "$uuid"
+  printf '  tipo: %s\n' "$(nmcli -g connection.type connection show uuid "$uuid")"
+  printf '  autoconnect: %s\n' "$(nmcli -g connection.autoconnect connection show uuid "$uuid")"
+  printf '  interfaz: %s\n' "$(nmcli -g connection.interface-name connection show uuid "$uuid")"
   nmcli -g gsm.apn,gsm.auto-config,gsm.home-only,connection.autoconnect,\
     connection.autoconnect-priority,ipv4.route-metric,ipv6.route-metric \
-    connection show "$PROFILE_NAME" 2>/dev/null || true
+    connection show uuid "$uuid" 2>/dev/null || true
 }
 
 action_check() {
@@ -281,20 +288,22 @@ validate_sudo() {
 }
 
 configure_profile() {
-  local profile_type
+  local profile_type profile_ref
   require_command nmcli
 
   if profile_exists; then
-    profile_type="$(nmcli -g connection.type connection show "$PROFILE_NAME" 2>/dev/null | sed -n '1p')"
+    profile_ref="$(profile_uuid)"
+    profile_type="$(nmcli -g connection.type connection show uuid "$profile_ref" 2>/dev/null | sed -n '1p')"
     [[ "$profile_type" == "gsm" ]] \
       || die "ya existe '${PROFILE_NAME}' con tipo '${profile_type}', no se sobrescribirá"
-    info "actualizando perfil GSM ${PROFILE_NAME}"
+    info "actualizando perfil GSM ${PROFILE_NAME} (${profile_ref})"
   else
     info "creando perfil GSM ${PROFILE_NAME}"
     nmcli connection add type gsm ifname '*' con-name "$PROFILE_NAME" apn "$APN" >/dev/null
+    profile_ref="$(profile_uuid)"
   fi
 
-  nmcli connection modify "$PROFILE_NAME" \
+  nmcli connection modify uuid "$profile_ref" \
     gsm.apn "$APN" \
     gsm.auto-config no \
     gsm.home-only yes \
