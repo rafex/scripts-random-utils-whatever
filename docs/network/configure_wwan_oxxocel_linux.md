@@ -63,6 +63,19 @@ just configure-wwan-oxxocel --connect
 just configure-wwan-oxxocel --disconnect
 ```
 
+`--connect` debe ejecutarse desde una terminal interactiva del usuario normal.
+Activa el radio WWAN con NetworkManager, espera a que ModemManager termine la
+transición del módem y sube el perfil por su UUID. No ejecuta `sudo`,
+`mmcli --enable` ni comandos AT. Si se invoca por SSH, usa una pseudo-terminal:
+
+```bash
+ssh -tt thinkpad 'cd /opt/repository/github/rafex/scripts-random-utils-whatever && just configure-wwan-oxxocel --connect'
+```
+
+El script clasifica explícitamente la SIM como ausente, detectada, bloqueada
+por PIN/PIN2 o desconocida. También distingue un módem deshabilitado, uno
+registrado sin datos y una conexión de datos activa.
+
 Para consultar los SMS almacenados por ModemManager:
 
 ```bash
@@ -170,13 +183,49 @@ política polkit de NetworkManager.
 configuración de permisos antes de usar `--apply`. No ejecutes todo el script con
 `sudo`.
 
-### `failed to modify connection.permissions: permiso no válido «user:rafex:»`
+### `failed to modify connection.permissions`
 
 **Causa:** algunas versiones de NetworkManager rechazan el campo reservado vacío
-que se expresa como `user:rafex:`.
+que se expresa como `user:rafex:` o no aceptan permisos restringidos al usuario.
 
-**Solución:** el instalador usa la forma compatible `user:rafex` y puede volver a
-ejecutarse para completar el perfil creado parcialmente.
+**Solución:** el instalador deja `connection.permissions` vacío, que es la forma
+compatible para que NetworkManager permita administrar el perfil al usuario
+normal mediante Polkit. Vuelve a ejecutar `--apply` para normalizar un perfil
+creado parcialmente.
+
+### `--connect requiere una terminal interactiva`
+
+**Causa:** `nmcli --ask` necesita una entrada de usuario para PIN o secretos y
+no debe ejecutarse desde una tubería sin TTY.
+
+**Solución:** ejecútalo desde Alacritty/tmux o usa `ssh -tt`. El PIN, si se
+solicita, se escribe interactivamente y no se guarda.
+
+### `el módem permanece deshabilitado`
+
+**Causa:** el firmware, BIOS, `rfkill` o ModemManager mantienen WWAN apagado;
+también puede estar ocurriendo una transición lenta después de activar el
+radio.
+
+**Solución:** revisa `nmcli radio`, `rfkill list`, WWAN en BIOS y
+`mmcli -m <índice>`. Reiniciar ModemManager es una acción administrativa
+separada y no la ejecuta `--connect`.
+
+### `la SIM está bloqueada por PIN2`
+
+**Causa:** ModemManager reporta explícitamente `sim-pin2`; el PIN2 no es el PIN
+normal de datos.
+
+**Solución:** desbloquéala por un procedimiento del operador o del dispositivo.
+No adivines, pases ni guardes el PIN2 en el perfil.
+
+### `módem registrado en la red, pero todavía sin conexión de datos`
+
+**Causa:** la SIM ya está registrada, pero el perfil GSM aún no fue activado o
+NetworkManager no obtuvo una dirección IP.
+
+**Solución:** ejecuta `--connect`, revisa `nmcli device status` y consulta el
+journal de NetworkManager usando el UUID que muestra `--status`.
 
 ### `campo «NAME» no válido` al consultar el perfil
 
@@ -228,3 +277,6 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 **fix:** usar propiedades completas de `nmcli` y reportar claramente fallos de `sudo` o `systemctl`.
 
 **fix:** seleccionar y modificar el perfil WWAN por UUID para evitar duplicados.
+
+**fix:** conectar como usuario normal, esperar el estado del módem y clasificar
+SIM, registro y conexión de datos sin usar sudo.

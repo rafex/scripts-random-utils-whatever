@@ -52,7 +52,7 @@ Acciones:
   --plan        Muestra paquetes y configuración prevista sin modificar.
   --apply       Instala dependencias y crea/actualiza el perfil OXXO Cel.
   --status      Muestra el estado actual sin modificar ni revelar IMEI.
-  --connect     Activa WWAN y conecta el perfil usando nmcli --ask.
+  --connect     Activa WWAN y conecta por UUID como usuario normal; requiere TTY.
   --disconnect  Desconecta el perfil OXXO Cel.
   --sms-list    Lista los SMS expuestos por ModemManager.
   -h, --help    Muestra esta ayuda.
@@ -116,6 +116,124 @@ find_modem_id() {
   basename "$modem_path"
 }
 
+modem_field() {
+  local raw="$1"
+  local field="$2"
+  sed -nE "s/^[[:space:]]*${field}:[[:space:]]*//Ip" <<< "$raw" | sed -n '1p'
+}
+
+modem_sim_status() {
+  local raw="$1"
+  local state lock sim_path failed_reason
+  state="$(modem_field "$raw" "state" | tr '[:upper:]' '[:lower:]')"
+  lock="$(modem_field "$raw" "lock" | tr '[:upper:]' '[:lower:]')"
+  if [[ -z "$lock" ]]; then
+    lock="$(modem_field "$raw" "sim lock" | tr '[:upper:]' '[:lower:]')"
+  fi
+  sim_path="$(modem_field "$raw" "primary sim path" | tr '[:upper:]' '[:lower:]')"
+  if [[ -z "$sim_path" ]]; then
+    sim_path="$(modem_field "$raw" "sim" | tr '[:upper:]' '[:lower:]')"
+  fi
+  failed_reason="$(modem_field "$raw" "failed reason" | tr '[:upper:]' '[:lower:]')"
+
+  if grep -qi 'sim-missing' <<< "$raw" \
+    || [[ "$sim_path" == *sim-missing* || "$sim_path" == none ]]; then
+    printf '%s\n' 'missing'
+  elif [[ "$lock" == *sim-pin2* || "$failed_reason" == *sim-pin2* ]]; then
+    printf '%s\n' 'pin2-locked'
+  elif [[ "$state" == locked* || "$lock" == *sim-pin* || "$failed_reason" == *sim-pin* ]]; then
+    printf '%s\n' 'pin-locked'
+  elif [[ -n "$sim_path" && "$sim_path" != *unknown* ]]; then
+    printf '%s\n' 'detected'
+  else
+    printf '%s\n' 'unknown'
+  fi
+}
+
+report_modem_state() {
+  local raw="$1"
+  local state power sim_status failed_reason
+  state="$(modem_field "$raw" "state")"
+  power="$(modem_field "$raw" "power state")"
+  failed_reason="$(modem_field "$raw" "failed reason")"
+  sim_status="$(modem_sim_status "$raw")"
+
+  printf '  estado módem: %s\n' "${state:-desconocido}"
+  printf '  estado energía: %s\n' "${power:-desconocido}"
+  case "$sim_status" in
+    missing)
+      warn "SIM ausente o no detectada" ;;
+    pin2-locked)
+      warn "SIM bloqueada por PIN2; no se intentará adivinar ni guardar el PIN2" ;;
+    pin-locked)
+      warn "SIM bloqueada por PIN; desbloquéala de forma interactiva antes de conectar" ;;
+    detected)
+      success "SIM detectada" ;;
+    *)
+      warn "no se pudo determinar el estado de la SIM" ;;
+  esac
+
+  if [[ "$state" == disabled* || "$power" == off* ]]; then
+    warn "módem deshabilitado o apagado; revisa WWAN en BIOS y el estado de rfkill"
+  elif [[ "$state" == registered* ]]; then
+    warn "módem registrado en la red, pero todavía sin conexión de datos"
+  elif [[ "$state" == connected* ]]; then
+    success "módem registrado y con conexión de datos"
+  elif [[ "$state" == failed* ]]; then
+    warn "ModemManager reporta fallo${failed_reason:+: $failed_reason}"
+  elif [[ -n "$state" ]]; then
+    info "módem habilitado; estado de red: $state"
+  fi
+}
+
+active_gsm_profile() {
+  local uuid="$1"
+  nmcli -t -f connection.uuid,connection.type connection show --active 2>/dev/null \
+    | awk -F: -v wanted="$uuid" '$1 == wanted && $2 == "gsm" { found = 1 } END { exit !found }'
+}
+
+require_interactive_terminal() {
+  [[ -t 0 && -t 1 ]] || die "--connect requiere una terminal interactiva; ejecútalo desde la sesión local o usa ssh -tt"
+}
+
+wait_for_modem_ready() {
+  local attempts=15
+  local attempt raw modem_id state sim_status
+
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    modem_id="$(find_modem_id || true)"
+    if [[ -n "$modem_id" ]]; then
+      raw="$(mmcli -m "$modem_id" 2>&1 || true)"
+      sim_status="$(modem_sim_status "$raw")"
+      case "$sim_status" in
+        missing)
+          die "la SIM está ausente o no es detectada por la EM7455" ;;
+        pin2-locked)
+          die "la SIM está bloqueada por PIN2; desbloquéala manualmente, sin guardar el PIN2" ;;
+        pin-locked)
+          info "la SIM está protegida por PIN; se continuará para que nmcli --ask pueda solicitarlo"
+          return 0 ;;
+      esac
+      state="$(modem_field "$raw" "state" | tr '[:upper:]' '[:lower:]')"
+      if [[ "$state" != disabled* && "$state" != failed* && -n "$state" ]]; then
+        return 0
+      fi
+    fi
+    sleep 1
+  done
+
+  modem_id="$(find_modem_id || true)"
+  if [[ -n "$modem_id" ]]; then
+    raw="$(mmcli -m "$modem_id" 2>&1 || true)"
+    report_modem_state "$raw"
+    state="$(modem_field "$raw" "state" | tr '[:upper:]' '[:lower:]')"
+    if [[ "$state" == disabled* ]]; then
+      die "el módem permanece deshabilitado; revisa WWAN en BIOS, rfkill y ModemManager como acción administrativa separada"
+    fi
+  fi
+  die "ModemManager no dejó listo ningún módem después de ${attempts} segundos"
+}
+
 profile_exists() {
   [[ -n "$(profile_uuid)" ]]
 }
@@ -167,15 +285,16 @@ show_modem_summary() {
   fi
 
   info "módem detectado: índice ${modem_id}"
-  if raw="$(mmcli -m "$modem_id" 2>&1)"; then
+  raw="$(mmcli -m "$modem_id" 2>&1 || true)"
+  if [[ -n "$raw" ]]; then
     while IFS= read -r line; do
       if [[ "$line" =~ (manufacturer|model|firmware\ revision|drivers|plugin|primary\ port|ports|state|failed\ reason|power\ state|supported|current|sim\ slot\ paths): ]]; then
         printf '  %s\n' "$line"
       fi
     done <<< "$raw"
+    report_modem_state "$raw"
   else
     warn "no se pudo consultar el módem ${modem_id}"
-    printf '%s\n' "$raw" | sed -E '/imei:|equipment id:|device id:/d' >&2
   fi
 
   voice_output="$(mmcli -m "$modem_id" --voice-list-calls 2>&1 || true)"
@@ -187,9 +306,6 @@ show_modem_summary() {
     info "ModemManager expone una interfaz de voz; no se configurará automáticamente"
   fi
 
-  if grep -qi 'sim-missing' <<< "${raw:-}"; then
-    warn "SIM no detectada; inserta la tarjeta antes de conectar o consultar SMS"
-  fi
 }
 
 show_profile_status() {
@@ -210,6 +326,11 @@ show_profile_status() {
   printf '  tipo: %s\n' "$(nmcli -g connection.type connection show uuid "$uuid")"
   printf '  autoconnect: %s\n' "$(nmcli -g connection.autoconnect connection show uuid "$uuid")"
   printf '  interfaz: %s\n' "$(nmcli -g connection.interface-name connection show uuid "$uuid")"
+  if active_gsm_profile "$uuid"; then
+    success "perfil OXXO Cel activo: conexión de datos en curso"
+  else
+    info "perfil OXXO Cel no está activo; no hay conexión de datos mediante este perfil"
+  fi
   nmcli -g gsm.apn,gsm.auto-config,gsm.home-only,connection.autoconnect,\
     connection.autoconnect-priority,ipv4.route-metric,ipv6.route-metric \
     connection show uuid "$uuid" 2>/dev/null || true
@@ -314,7 +435,7 @@ configure_profile() {
     gsm.pin-flags not-required \
     connection.autoconnect no \
     connection.autoconnect-priority -100 \
-    connection.permissions "user:${TARGET_USER}" \
+    connection.permissions '' \
     connection.metered yes \
     ipv4.method auto \
     ipv4.never-default no \
@@ -354,16 +475,25 @@ action_status() {
 }
 
 action_connect() {
-  local modem_id
+  local modem_id profile_ref
+  require_interactive_terminal
   require_command nmcli
+  require_command mmcli
   profile_exists || die "falta el perfil '${PROFILE_NAME}'; ejecuta primero --apply"
   modem_id="$(find_modem_id)" || die "ModemManager no detecta ningún módem"
-  if mmcli -m "$modem_id" 2>&1 | grep -qi 'sim-missing'; then
-    die "la SIM no está insertada o no es detectada por la EM7455"
+  profile_ref="$(profile_uuid)"
+  info "activando radio WWAN como ${TARGET_USER}"
+  nmcli radio wwan on || die "NetworkManager no permitió activar WWAN para el usuario actual"
+  info "esperando a que ModemManager actualice el estado"
+  wait_for_modem_ready
+  info "conectando ${PROFILE_NAME} por UUID; nmcli puede solicitar el PIN de la SIM"
+  if ! nmcli --ask connection up uuid "$profile_ref"; then
+    modem_id="$(find_modem_id || true)"
+    if [[ -n "$modem_id" ]]; then
+      report_modem_state "$(mmcli -m "$modem_id" 2>&1 || true)"
+    fi
+    die "NetworkManager no pudo activar el perfil; revisa el estado anterior y el journal de NetworkManager"
   fi
-  nmcli radio wwan on
-  info "conectando ${PROFILE_NAME}; nmcli puede solicitar el PIN de la SIM"
-  nmcli --ask connection up id "$PROFILE_NAME"
   success "conexión WWAN activa"
 }
 
@@ -376,12 +506,16 @@ action_disconnect() {
 }
 
 action_sms_list() {
-  local modem_id
+  local modem_id raw sim_status
   require_command mmcli
   modem_id="$(find_modem_id)" || die "ModemManager no detecta ningún módem"
-  if mmcli -m "$modem_id" 2>&1 | grep -qi 'sim-missing'; then
-    die "la SIM no está insertada o no es detectada por la EM7455"
-  fi
+  raw="$(mmcli -m "$modem_id" 2>&1 || true)"
+  sim_status="$(modem_sim_status "$raw")"
+  case "$sim_status" in
+    missing) die "la SIM está ausente o no es detectada por la EM7455" ;;
+    pin2-locked) die "la SIM está bloqueada por PIN2; desbloquéala manualmente, sin guardar el PIN2" ;;
+    pin-locked) die "la SIM está bloqueada por PIN; desbloquéala de forma interactiva" ;;
+  esac
   mmcli -m "$modem_id" --messaging-list-sms
 }
 
