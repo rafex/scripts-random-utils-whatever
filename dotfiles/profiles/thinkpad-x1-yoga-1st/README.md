@@ -112,3 +112,8 @@ actualizar plugins. Una sesión existente puede recargar la configuración con:
 ```sh
 tmux source-file ~/.tmux.conf
 ```
+
+El perfil declara compatibilidad RGB/TrueColor para Alacritty
+(`xterm-256color`), Kitty (`xterm-kitty`) y rxvt-unicode. Si una sesión remota
+desde Kitty conserva colores amarillos o con poco contraste, desconecta y vuelve
+a conectar el cliente después de instalar el perfil.

@@ -103,6 +103,8 @@ append_managed_block() {
 tmux_block() {
   cat <<'EOF'
 # Copiar selección de tmux al portapapeles del terminal mediante OSC 52.
+set -ag terminal-features ",xterm-kitty:RGB"
+set -ga terminal-overrides ",xterm-kitty:Tc"
 set -g set-clipboard on
 set -g history-limit 100000
 set -g mouse on

@@ -63,6 +63,13 @@ el lanzador `urxvt -e ~/.local/bin/start-thinkpad-tmux` usa la misma sesión y
 rxvt utiliza DejaVu Sans Mono tamaño `10` para evitar texto demasiado pequeño.
 Las conexiones SSH no se envuelven automáticamente en tmux.
 
+Alacritty exporta `COLORTERM=truecolor` y el perfil de tmux declara RGB/TrueColor
+para `xterm-256color`, `xterm-kitty` y `rxvt-unicode-256color`. Esto conserva
+los colores del tema cuando la sesión se abre desde Alacritty, Kitty en macOS o
+rxvt-unicode. Si ya existe un `.tmux.conf` completo del perfil ThinkPad, el
+instalador solo añade la compatibilidad que falte y no crea un bloque mínimo
+duplicado.
+
 La etapa `terminal` instala TPM en `~/.tmux/plugins/tpm` y declara los plugins
 del perfil developer. Si una descarga falla, la configuración sigue siendo
 usable y tmux muestra los plugins pendientes; dentro de una sesión ejecuta
@@ -224,6 +231,22 @@ configuración no descarga plugins mediante `sudo`.
 comprueba `infocmp rxvt-unicode-256color`; el paquete `rxvt-unicode` proporciona
 esa entrada en Debian.
 
+### `tmux muestra amarillo o colores con poco contraste desde Kitty`
+
+**Causa:** la sesión remota llega como `xterm-kitty`, pero tmux no conoce que
+ese cliente admite RGB/TrueColor. Las secuencias ANSI amarillas del prompt y
+de los diagnósticos tienen poco contraste sobre el tema claro Nord.
+
+**Solución:** actualiza el perfil y ejecuta `just install-profile
+thinkpad-x1-yoga-1st`; después desconecta y vuelve a conectar el cliente Kitty.
+El perfil declara `xterm-kitty:RGB` y `xterm-kitty:Tc`. Para una sesión ya
+abierta puede recargarse con:
+
+```sh
+tmux source-file ~/.tmux.conf
+tmux refresh-client -S
+```
+
 ## Changelog
 
 ### [Unreleased]
@@ -232,4 +255,6 @@ esa entrada en Debian.
   Podman rootless para ThinkPad Debian.
 - **fix:** ajustar Alacritty a tamaño de fuente 7 y evitar que el instalador
   lo restaure a 9 o 10.
+- **fix:** declarar RGB/TrueColor para clientes `xterm-kitty` y conservar la
+  configuración completa de tmux al actualizar el instalador.
 - **feat:** instalar el selector `runtime-use` junto con la etapa de runtimes.

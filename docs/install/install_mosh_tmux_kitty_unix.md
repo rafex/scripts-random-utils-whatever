@@ -50,7 +50,9 @@ just install-mosh-tmux-kitty --apply
 
 En Debian, `--apply` solicita la contraseña solamente mediante `sudo -v` e
 instala `kitty-terminfo`, que proporciona la entrada `xterm-kitty` para el
-servidor remoto.
+servidor remoto. La configuración de tmux también declara RGB/TrueColor para
+`xterm-kitty`, de modo que los temas con colores hexadecimales se rendericen
+correctamente desde Kitty.
 En macOS, Homebrew gestiona la instalación de Mosh, tmux y Kitty.
 
 Conecta desde Kitty en macOS:
@@ -186,6 +188,20 @@ Como solución temporal, puedes iniciar tmux con un terminal genérico:
 TERM=xterm-256color tmux new -s thinkpad
 ```
 
+### `tmux funciona pero los colores desde Kitty tienen poco contraste`
+
+**Causa:** `xterm-kitty` está instalado, pero la configuración activa de tmux
+no declara sus capacidades RGB/TrueColor.
+
+**Solución:** instala el perfil ThinkPad o ejecuta el instalador actualizado y
+vuelve a conectar el cliente:
+
+```sh
+just install-profile thinkpad-x1-yoga-1st
+tmux source-file ~/.tmux.conf
+tmux refresh-client -S
+```
+
 ## Changelog
 
 ### [Unreleased]
@@ -193,3 +209,4 @@ TERM=xterm-256color tmux new -s thinkpad
 - **feat:** instalación multiplataforma de Mosh, tmux y Kitty con OSC 52.
 - **fix:** instalar y verificar `kitty-terminfo` para sesiones remotas desde
   Kitty.
+- **fix:** declarar RGB/TrueColor para clientes `xterm-kitty`.

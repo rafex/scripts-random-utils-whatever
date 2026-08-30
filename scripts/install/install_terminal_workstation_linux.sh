@@ -415,6 +415,11 @@ tmux_block() {
 # BEGIN terminal-workstation tmux
 set -g default-terminal "tmux-256color"
 set -ag terminal-features ",xterm-256color:RGB"
+set -ga terminal-overrides ",xterm-256color:Tc"
+set -ag terminal-features ",xterm-kitty:RGB"
+set -ga terminal-overrides ",xterm-kitty:Tc"
+set -ag terminal-features ",rxvt-unicode-256color:RGB"
+set -ga terminal-overrides ",rxvt-unicode-256color:Tc"
 set -g set-clipboard on
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-sensible'
@@ -431,6 +436,21 @@ if-shell '[ -x "$HOME/.tmux/plugins/tpm/tpm" ]' 'run-shell "$HOME/.tmux/plugins/
 EOF
 }
 
+ensure_tmux_terminal_compatibility() {
+  if ! grep -Fq 'xterm-kitty:RGB' "$TMUX_CONFIG"; then
+    append_managed_block "$TMUX_CONFIG" \
+      '# BEGIN terminal-workstation xterm-kitty-rgb' \
+      '# END terminal-workstation xterm-kitty-rgb' \
+      'set -ag terminal-features ",xterm-kitty:RGB"'
+  fi
+  if ! grep -Fq 'xterm-kitty:Tc' "$TMUX_CONFIG"; then
+    append_managed_block "$TMUX_CONFIG" \
+      '# BEGIN terminal-workstation xterm-kitty-tc' \
+      '# END terminal-workstation xterm-kitty-tc' \
+      'set -ga terminal-overrides ",xterm-kitty:Tc"'
+  fi
+}
+
 normalize_tmux_config() {
   local temporary
   [[ -f "$TMUX_CONFIG" ]] || {
@@ -438,28 +458,31 @@ normalize_tmux_config() {
       '# BEGIN terminal-workstation tmux' \
       '# END terminal-workstation tmux' \
       "$(tmux_block)"
+    ensure_tmux_terminal_compatibility
     return 0
   }
 
   # El perfil ThinkPad ya contiene la configuración completa de tmux,
   # incluidos plugins y OSC52. La versión antigua del instalador añadía
   # otro bloque al final y duplicaba esas declaraciones; quítalo una vez.
-  if grep -Fq '# tmux / rafex-developer — Perfil ThinkPad para Debian, SSH y Mosh.' "$TMUX_CONFIG" &&
-     grep -Fq '# BEGIN terminal-workstation tmux' "$TMUX_CONFIG"; then
-    if [[ "$ACTION" == "plan" ]]; then
-      info "[plan] eliminar el bloque tmux duplicado del perfil ThinkPad"
-      return 0
+  if grep -Fq '# tmux / rafex-developer — Perfil ThinkPad para Debian, SSH y Mosh.' "$TMUX_CONFIG"; then
+    if grep -Fq '# BEGIN terminal-workstation tmux' "$TMUX_CONFIG"; then
+      if [[ "$ACTION" == "plan" ]]; then
+        info "[plan] eliminar el bloque tmux duplicado del perfil ThinkPad"
+      else
+        backup_path "$TMUX_CONFIG"
+        temporary="$(mktemp)"
+        awk '
+          $0 == "# BEGIN terminal-workstation tmux" { inside=1; next }
+          $0 == "# END terminal-workstation tmux" { inside=0; next }
+          !inside { print }
+        ' "$TMUX_CONFIG" > "$temporary"
+        chmod --reference="$TMUX_CONFIG" "$temporary"
+        mv -- "$temporary" "$TMUX_CONFIG"
+        ok "bloque tmux duplicado eliminado del perfil ThinkPad"
+      fi
     fi
-    backup_path "$TMUX_CONFIG"
-    temporary="$(mktemp)"
-    awk '
-      $0 == "# BEGIN terminal-workstation tmux" { inside=1; next }
-      $0 == "# END terminal-workstation tmux" { inside=0; next }
-      !inside { print }
-    ' "$TMUX_CONFIG" > "$temporary"
-    chmod --reference="$TMUX_CONFIG" "$temporary"
-    mv -- "$temporary" "$TMUX_CONFIG"
-    ok "bloque tmux duplicado eliminado del perfil ThinkPad"
+    ensure_tmux_terminal_compatibility
     return 0
   fi
 
@@ -469,6 +492,7 @@ normalize_tmux_config() {
     '# BEGIN terminal-workstation tmux' \
     '# END terminal-workstation tmux' \
     "$(tmux_block)"
+  ensure_tmux_terminal_compatibility
 }
 
 tpm_plugins=(
