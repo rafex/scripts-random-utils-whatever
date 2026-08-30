@@ -4,7 +4,9 @@
 set -Eeuo pipefail
 umask 077
 
-ACTION="check"
+# Sin argumentos se aplica el perfil, como define la tarea Just. Usa
+# --check o --dry-run para inspeccionar sin modificar el sistema.
+ACTION="apply"
 PROFILE="openbox-thinkpad-x1-yoga-1st"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
@@ -26,6 +28,7 @@ Uso:
   install_openbox_profile_linux.sh --apply
   install_openbox_profile_linux.sh --dry-run
 
+Sin opciones equivale a --apply. Usa --check para auditar sin cambios.
 Instala Openbox y tint2 junto con el perfil paralelo de ThinkPad. No cambia
 la sesión predeterminada de LightDM ni modifica el perfil i3.
 EOF

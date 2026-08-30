@@ -45,6 +45,9 @@ just install-openbox-profile
 Tras aplicar, cierra sesión y selecciona **Openbox** en LightDM. Para volver a
 i3, selecciónalo nuevamente en el mismo menú.
 
+Sin opciones, la tarea ejecuta la aplicación del perfil. Usa `--check` o
+`--dry-run` cuando solo quieras inspeccionar.
+
 ## Opciones
 
 | Opción | Alias | Descripción |
