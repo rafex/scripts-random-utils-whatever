@@ -61,3 +61,8 @@ connect-nas *args:
 # Uso: just reconcile-networkmanager --check | --plan | --apply
 reconcile-networkmanager *args:
     bash scripts/network/reconcile_networkmanager_linux.sh {{args}}
+
+# Configurar datos móviles OXXO Cel mediante la EM7455 y consultar SMS.
+# Uso: just configure-wwan-oxxocel --check | --plan | --apply | --status
+configure-wwan-oxxocel *args:
+    bash scripts/network/configure_wwan_oxxocel_linux.sh {{args}}

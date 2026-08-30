@@ -120,6 +120,7 @@ nav:
       - setup_ssh_trust_unix: install/setup_ssh_trust_unix.md
   - Red:
       - connect_nas_linux: network/connect_nas_linux.md
+      - configure_wwan_oxxocel_linux: network/configure_wwan_oxxocel_linux.md
       - diag_iface_linux: network/diag_iface_linux.md
       - install_wifi_polkit_linux: network/install_wifi_polkit_linux.md
       - myip_linux: network/myip_linux.md
