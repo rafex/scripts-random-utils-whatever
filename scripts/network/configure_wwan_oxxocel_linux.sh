@@ -119,7 +119,7 @@ find_modem_id() {
 modem_field() {
   local raw="$1"
   local field="$2"
-  sed -nE "s/^[[:space:]]*${field}:[[:space:]]*//Ip" <<< "$raw" | sed -n '1p'
+  sed -nE "s/^[[:space:]|]*${field}:[[:space:]]*//Ip" <<< "$raw" | sed -n '1p'
 }
 
 modem_sim_status() {
@@ -133,6 +133,9 @@ modem_sim_status() {
   sim_path="$(modem_field "$raw" "primary sim path" | tr '[:upper:]' '[:lower:]')"
   if [[ -z "$sim_path" ]]; then
     sim_path="$(modem_field "$raw" "sim" | tr '[:upper:]' '[:lower:]')"
+  fi
+  if [[ -z "$sim_path" ]]; then
+    sim_path="$(modem_field "$raw" "sim slot paths" | tr '[:upper:]' '[:lower:]')"
   fi
   failed_reason="$(modem_field "$raw" "failed reason" | tr '[:upper:]' '[:lower:]')"
 
