@@ -119,7 +119,10 @@ find_modem_id() {
 modem_field() {
   local raw="$1"
   local field="$2"
-  sed -nE "s/^[[:space:]|]*${field}:[[:space:]]*//Ip" <<< "$raw" | sed -n '1p'
+  sed -nE \
+    -e "s/.*\\|[[:space:]]*${field}:[[:space:]]*//Ip" \
+    -e "s/^[[:space:]]*${field}:[[:space:]]*//Ip" \
+    <<< "$raw" | sed -n '1p'
 }
 
 modem_sim_status() {
