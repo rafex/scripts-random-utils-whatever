@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.6/rc"
+                xmlns:xi="http://www.w3.org/2001/XInclude">
+  <resistance>
+    <strength>10</strength>
+    <screen_edge_strength>20</screen_edge_strength>
+  </resistance>
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>no</followMouse>
+    <focusLast>yes</focusLast>
+    <underMouse>no</underMouse>
+    <focusDelay>200</focusDelay>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+  <placement>
+    <policy>Smart</policy>
+    <center>yes</center>
+    <monitor>Primary</monitor>
+    <primaryMonitor>1</primaryMonitor>
+  </placement>
+  <theme>
+    <!-- BEGIN rafex theme -->
+    <name>Rafex-Nord</name>
+    <!-- END rafex theme -->
+    <titleLayout>NLIMC</titleLayout>
+    <keepBorder>yes</keepBorder>
+    <animateIconify>no</animateIconify>
+    <font>
+      <name>DejaVu Sans</name>
+      <size>9</size>
+      <weight>Normal</weight>
+      <slant>Normal</slant>
+    </font>
+  </theme>
+  <desktops>
+    <number>10</number>
+    <firstdesk>1</firstdesk>
+    <names>
+      <name>1:term</name>
+      <name>2:code</name>
+      <name>3:web</name>
+      <name>4:docs</name>
+      <name>5:misc</name>
+      <name>6:media</name>
+      <name>7:comms</name>
+      <name>8:ops</name>
+      <name>9:monitor</name>
+      <name>10:scratch</name>
+    </names>
+  </desktops>
+  <resize>
+    <drawContents>yes</drawContents>
+    <popupShow>Nonpixel</popupShow>
+    <popupPosition>Center</popupPosition>
+    <popupFixedPosition>
+      <x>0</x>
+      <y>0</y>
+    </popupFixedPosition>
+  </resize>
+  <margins>
+    <top>0</top>
+    <bottom>0</bottom>
+    <left>0</left>
+    <right>0</right>
+  </margins>
+  <dock>
+    <position>TopRight</position>
+    <floatingX>0</floatingX>
+    <floatingY>0</floatingY>
+    <noStrut>yes</noStrut>
+    <stacking>Above</stacking>
+    <direction>Vertical</direction>
+    <autoHide>no</autoHide>
+    <hideDelay>300</hideDelay>
+    <showDelay>300</showDelay>
+    <moveButton>Middle</moveButton>
+  </dock>
+  <keyboard>
+    <keybind key="W-Return"><action name="Execute"><command>alacritty</command></action></keybind>
+    <keybind key="W-space"><action name="Execute"><command>rofi -show drun -show-icons</command></action></keybind>
+    <keybind key="W-Tab"><action name="Execute"><command>rofi -show window -show-icons</command></action></keybind>
+    <keybind key="W-F9"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></keybind>
+    <keybind key="W-Shift-t"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></keybind>
+    <keybind key="W-Shift-p"><action name="Execute"><command>~/.local/bin/picom-toggle.sh</command></action></keybind>
+    <keybind key="W-p"><action name="Execute"><command>sh -c 'mkdir -p "$HOME/Imágenes/CapturasDePantalla"; maim "$HOME/Imágenes/CapturasDePantalla/screenshot-$(date +%F_%H-%M-%S).png" &amp;&amp; notify-send "Screenshot" "Pantalla completa guardada"'</command></action></keybind>
+    <keybind key="W-f"><action name="ToggleFullscreen"/></keybind>
+    <keybind key="W-q"><action name="Close"/></keybind>
+    <keybind key="W-Left"><action name="DirectionalFocusWest"/></keybind>
+    <keybind key="W-Right"><action name="DirectionalFocusEast"/></keybind>
+    <keybind key="W-Up"><action name="DirectionalFocusNorth"/></keybind>
+    <keybind key="W-Down"><action name="DirectionalFocusSouth"/></keybind>
+    <keybind key="W-Shift-Left"><action name="MoveToEdgeWest"/></keybind>
+    <keybind key="W-Shift-Right"><action name="MoveToEdgeEast"/></keybind>
+    <keybind key="W-Shift-Up"><action name="MoveToEdgeNorth"/></keybind>
+    <keybind key="W-Shift-Down"><action name="MoveToEdgeSouth"/></keybind>
+    <keybind key="W-Shift-c"><action name="Reconfigure"/></keybind>
+    <keybind key="W-Shift-r"><action name="Restart"/></keybind>
+
+    <keybind key="XF86AudioRaiseVolume"><action name="Execute"><command>~/.local/bin/volume-notify.sh up</command></action></keybind>
+    <keybind key="XF86AudioLowerVolume"><action name="Execute"><command>~/.local/bin/volume-notify.sh down</command></action></keybind>
+    <keybind key="XF86AudioMute"><action name="Execute"><command>~/.local/bin/volume-notify.sh mute</command></action></keybind>
+    <keybind key="XF86AudioMicMute"><action name="Execute"><command>~/.local/bin/microphone-notify.sh toggle</command></action></keybind>
+    <keybind key="XF86MonBrightnessUp"><action name="Execute"><command>~/.local/bin/brightness-notify.sh up</command></action></keybind>
+    <keybind key="XF86MonBrightnessDown"><action name="Execute"><command>~/.local/bin/brightness-notify.sh down</command></action></keybind>
+    <keybind key="XF86KbdBrightnessUp"><action name="Execute"><command>~/.local/bin/kbd-brightness-notify.sh up</command></action></keybind>
+    <keybind key="XF86KbdBrightnessDown"><action name="Execute"><command>~/.local/bin/kbd-brightness-notify.sh down</command></action></keybind>
+    <keybind key="XF86WLAN"><action name="Execute"><command>~/.local/bin/wifi-toggle.sh toggle</command></action></keybind>
+    <keybind key="XF86RFKill"><action name="Execute"><command>~/.local/bin/flight-mode-toggle.sh toggle</command></action></keybind>
+    <keybind key="XF86Display"><action name="Execute"><command>~/.local/bin/screen-projector.sh --apply --mode next</command></action></keybind>
+    <keybind key="XF86Tools"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></keybind>
+    <keybind key="XF86WakeUp"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh power</command></action></keybind>
+
+    <keybind key="W-1"><action name="GoToDesktop"><to>1</to></action></keybind>
+    <keybind key="W-2"><action name="GoToDesktop"><to>2</to></action></keybind>
+    <keybind key="W-3"><action name="GoToDesktop"><to>3</to></action></keybind>
+    <keybind key="W-4"><action name="GoToDesktop"><to>4</to></action></keybind>
+    <keybind key="W-5"><action name="GoToDesktop"><to>5</to></action></keybind>
+    <keybind key="W-6"><action name="GoToDesktop"><to>6</to></action></keybind>
+    <keybind key="W-7"><action name="GoToDesktop"><to>7</to></action></keybind>
+    <keybind key="W-8"><action name="GoToDesktop"><to>8</to></action></keybind>
+    <keybind key="W-9"><action name="GoToDesktop"><to>9</to></action></keybind>
+    <keybind key="W-0"><action name="GoToDesktop"><to>10</to></action></keybind>
+    <keybind key="W-Shift-1"><action name="SendToDesktop"><to>1</to></action></keybind>
+    <keybind key="W-Shift-2"><action name="SendToDesktop"><to>2</to></action></keybind>
+    <keybind key="W-Shift-3"><action name="SendToDesktop"><to>3</to></action></keybind>
+    <keybind key="W-Shift-4"><action name="SendToDesktop"><to>4</to></action></keybind>
+    <keybind key="W-Shift-5"><action name="SendToDesktop"><to>5</to></action></keybind>
+    <keybind key="W-Shift-6"><action name="SendToDesktop"><to>6</to></action></keybind>
+    <keybind key="W-Shift-7"><action name="SendToDesktop"><to>7</to></action></keybind>
+    <keybind key="W-Shift-8"><action name="SendToDesktop"><to>8</to></action></keybind>
+    <keybind key="W-Shift-9"><action name="SendToDesktop"><to>9</to></action></keybind>
+    <keybind key="W-Shift-0"><action name="SendToDesktop"><to>10</to></action></keybind>
+  </keyboard>
+
+  <mouse>
+    <context name="Root">
+      <mousebind button="Right" action="Press">
+        <action name="ShowMenu"><menu>root-menu</menu></action>
+      </mousebind>
+    </context>
+    <context name="Frame">
+      <mousebind button="A-Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="A-Right" action="Drag"><action name="Resize"/></mousebind>
+      <mousebind button="A-Middle" action="Click"><action name="Lower"/><action name="FocusToBottom"/><action name="Unfocus"/></mousebind>
+    </context>
+    <context name="Titlebar">
+      <mousebind button="Left" action="DoubleClick"><action name="ToggleMaximizeFull"/></mousebind>
+    </context>
+  </mouse>
+
+  <applications>
+    <application class="Alacritty"><desktop>1</desktop></application>
+    <application class="Kitty"><desktop>1</desktop></application>
+    <application class="URxvt"><desktop>1</desktop></application>
+    <application class="Firefox"><desktop>3</desktop></application>
+    <application class="Chromium"><desktop>3</desktop></application>
+    <application class="Codium"><desktop>2</desktop></application>
+    <application class="VSCodium"><desktop>2</desktop></application>
+    <application class="Eclipse"><desktop>2</desktop></application>
+    <application class="Zathura"><desktop>4</desktop></application>
+    <application class="Evince"><desktop>4</desktop></application>
+    <application class="Xournalpp"><desktop>4</desktop></application>
+    <application class="Thunar"><desktop>5</desktop><maximized>no</maximized><decor>yes</decor><position force="yes"><x>center</x><y>center</y></position><size><width>800</width><height>600</height></size></application>
+    <application class="Pavucontrol"><desktop>5</desktop></application>
+    <application class="Nm-connection-editor"><desktop>5</desktop></application>
+    <application class="Blueman-manager"><desktop>5</desktop></application>
+    <application class="Arandr"><desktop>5</desktop></application>
+    <application class="Obs"><desktop>6</desktop></application>
+    <application class="Guvcview"><desktop>6</desktop></application>
+    <application class="Krita"><desktop>6</desktop></application>
+    <application class="Mpv"><desktop>6</desktop></application>
+    <application class="Virt-manager"><desktop>8</desktop></application>
+    <application type="dialog"><desktop>all</desktop><position force="yes"><x>center</x><y>center</y></position></application>
+    <application type="utility"><desktop>all</desktop></application>
+    <application type="toolbar"><desktop>all</desktop></application>
+  </applications>
+</openbox_config>

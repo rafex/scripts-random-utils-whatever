@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# Materializa las paletas del perfil ThinkPad en la configuración del usuario.
+# Materializa las paletas del perfil ThinkPad para i3 y Openbox.
 set -Eeuo pipefail
 umask 077
 
@@ -86,7 +86,7 @@ validate_sources() {
   local theme file
   while IFS= read -r theme; do
     [[ -d "$SOURCE_ROOT/$theme" ]] || die "falta la plantilla de tema: $SOURCE_ROOT/$theme"
-    for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf; do
+    for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf; do
       [[ -f "$SOURCE_ROOT/$theme/$file" ]] || die "falta $SOURCE_ROOT/$theme/$file"
     done
   done < <(selected_themes)
@@ -119,7 +119,7 @@ show_status() {
   while IFS= read -r theme; do
     printf '%s=' "$theme"
     if [[ -d "$TARGET_ROOT/$theme" ]]; then
-      for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf; do
+      for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf; do
         [[ -f "$TARGET_ROOT/$theme/$file" ]] || {
           printf 'incomplete\n'
           continue 2
@@ -143,17 +143,17 @@ main() {
       show_status
       ;;
     plan)
-      echo '═══ Plan de paletas de terminal e i3 ═══'
+      echo '═══ Plan de paletas de terminal, i3 y Openbox ═══'
       while IFS= read -r theme; do
         info "[plan] materializar $theme en $TARGET_ROOT/$theme"
       done < <(selected_themes)
       info '[plan] conservar el tema actual; usa theme-toggle.sh --set <tema> para seleccionarlo'
       ;;
     apply)
-      echo '═══ Generación de paletas de terminal e i3 ═══'
+      echo '═══ Generación de paletas de terminal, i3 y Openbox ═══'
       local theme file
       while IFS= read -r theme; do
-        for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf; do
+        for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf; do
           install_theme_file "$SOURCE_ROOT/$theme/$file" "$TARGET_ROOT/$theme/$file"
         done
         ok "paleta instalada: $theme"

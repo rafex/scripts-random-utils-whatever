@@ -1,0 +1,25 @@
+# Rafex Dracula para Openbox.
+window.active.title.bg: Flat Solid
+window.active.title.bg.color: #bd93f9
+window.active.label.text.color: #282a36
+window.active.button.unpressed.bg: Flat Solid
+window.active.button.unpressed.bg.color: #44475a
+window.active.button.unpressed.image.color: #f8f8f2
+window.inactive.title.bg: Flat Solid
+window.inactive.title.bg.color: #44475a
+window.inactive.label.text.color: #bdc3e6
+window.inactive.button.unpressed.bg: Flat Solid
+window.inactive.button.unpressed.bg.color: #282a36
+window.inactive.button.unpressed.image.color: #bdc3e6
+menu.title.bg: Flat Solid
+menu.title.bg.color: #bd93f9
+menu.title.text.color: #282a36
+menu.items.bg: Flat Solid
+menu.items.bg.color: #282a36
+menu.items.text.color: #f8f8f2
+menu.items.active.bg: Flat Solid
+menu.items.active.bg.color: #44475a
+menu.items.active.text.color: #f8f8f2
+osd.bg: Flat Solid
+osd.bg.color: #282a36
+osd.label.text.color: #f8f8f2

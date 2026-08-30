@@ -144,6 +144,11 @@ install-i3-laptop-controls *args:
 install-i3-gaps *args:
     bash scripts/install/install_i3_gaps_linux.sh {{args}}
 
+# Instalar el perfil Openbox paralelo con tint2 sin reemplazar i3
+# Uso: just install-openbox-profile --dry-run | just install-openbox-profile
+install-openbox-profile *args:
+    bash scripts/install/install_openbox_profile_linux.sh {{args}}
+
 # Instalar y configurar UFW con SSH/Mosh y perfiles opcionales de desarrollo/media
 # Uso: just install-ufw --apply [--profile base|dev|media|all]
 install-ufw *args:

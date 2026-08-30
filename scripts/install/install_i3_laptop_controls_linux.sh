@@ -201,6 +201,8 @@ main() {
   install_helper scripts/network/wifi_toggle_linux.sh wifi-toggle.sh
   install_helper scripts/network/flight_mode_toggle_linux.sh flight-mode-toggle.sh
   install_helper scripts/system/rofi_search_linux.sh rofi-search.sh
+  install_helper scripts/system/desktop_settings_menu_linux.sh desktop-settings-menu.sh
+  install_helper scripts/system/picom_toggle_linux.sh picom-toggle.sh
   install_helper scripts/system/i3_settings_menu_linux.sh i3-settings-menu.sh
   install_helper scripts/system/dunst_smart_start_linux.sh dunst-smart.sh
   install_helper scripts/hardware/test_wacom_pen_linux.sh test-wacom-pen.sh

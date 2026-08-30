@@ -1,0 +1,17 @@
+Xft.antialias: true
+Xft.hinting: true
+Xft.hintstyle: hintslight
+Xft.rgba: rgb
+Xft.lcdfilter: lcddefault
+
+! BEGIN rafex theme
+! El selector de temas actualiza este bloque.
+URxvt.font: xft:DejaVu Sans Mono:size=7
+URxvt.termName: rxvt-unicode-256color
+URxvt.scrollBar: false
+URxvt.saveLines: 50000
+URxvt.internalBorder: 8
+URxvt.background: #e5e9f0
+URxvt.foreground: #2e3440
+URxvt.cursorColor: #5e81ac
+! END rafex theme

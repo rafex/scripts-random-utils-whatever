@@ -1,0 +1,53 @@
+# ThinkPad X1 Yoga 1st generation — Debian + Openbox/Xorg.
+# El perfil es paralelo y no instala configuraciones Xorg, DPI ni autorandr.
+
+[packages]
+apt = [
+    "openbox",
+    "tint2",
+    "rofi",
+    "9menu",
+    "dunst",
+    "alacritty",
+    "rxvt-unicode",
+    "tmux",
+    "feh",
+    "maim",
+    "picom",
+    "brightnessctl",
+    "pavucontrol",
+    "pasystray",
+    "lxpolkit",
+    "libnotify-bin",
+    "network-manager-applet",
+    "udiskie",
+    "xdg-utils",
+    "x11-xserver-utils",
+    "x11-xkb-utils",
+    "xss-lock",
+    "i3lock",
+    "fonts-font-awesome",
+    "fonts-noto-color-emoji",
+]
+
+[files]
+portable = [
+    "config/openbox",
+    "config/tint2",
+    "config/rofi",
+    "config/9menu",
+    "config/dunst",
+    "config/alacritty",
+    "config/picom",
+    "config/udiskie",
+    "config/Xresources",
+    "config/rafex",
+    "config/tmux.conf",
+]
+
+[excluded]
+hardware_specific = [
+    "config/X11/xorg.conf.d/20-intel.conf",
+    "config/X11/xorg.conf.d/40-libinput.conf",
+    "config/autorandr/mirror",
+]

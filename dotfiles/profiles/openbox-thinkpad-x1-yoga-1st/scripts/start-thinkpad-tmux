@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Alacritty y rxvt llaman este lanzador. Si ya estamos en tmux, evita anidar
+# otra sesión y conserva una shell de login normal.
+if [[ -n "${TMUX:-}" ]]; then
+    exec "${SHELL:-/bin/bash}" -l
+fi
+
+exec tmux new-session -A -s thinkpad

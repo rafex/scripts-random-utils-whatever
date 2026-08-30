@@ -1,0 +1,6 @@
+configuration {
+    modi: "drun,run,window";
+    show-icons: true;
+    font: "DejaVu Sans 10";
+}
+@theme "~/.config/rafex/themes/current/rofi.rasi"

@@ -1,0 +1,25 @@
+# Rafex Paper para Openbox.
+window.active.title.bg: Flat Solid
+window.active.title.bg.color: #b45f06
+window.active.label.text.color: #fffaf2
+window.active.button.unpressed.bg: Flat Solid
+window.active.button.unpressed.bg.color: #f0d8b5
+window.active.button.unpressed.image.color: #2d2a26
+window.inactive.title.bg: Flat Solid
+window.inactive.title.bg.color: #e8ddd0
+window.inactive.label.text.color: #665e56
+window.inactive.button.unpressed.bg: Flat Solid
+window.inactive.button.unpressed.bg.color: #f7f1e8
+window.inactive.button.unpressed.image.color: #665e56
+menu.title.bg: Flat Solid
+menu.title.bg.color: #b45f06
+menu.title.text.color: #fffaf2
+menu.items.bg: Flat Solid
+menu.items.bg.color: #f7f1e8
+menu.items.text.color: #2d2a26
+menu.items.active.bg: Flat Solid
+menu.items.active.bg.color: #f0d8b5
+menu.items.active.text.color: #2d2a26
+osd.bg: Flat Solid
+osd.bg.color: #f7f1e8
+osd.label.text.color: #2d2a26

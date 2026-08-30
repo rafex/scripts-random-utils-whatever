@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# Sesión Openbox paralela: no usa dex para evitar duplicar los applets.
+if command -v xrdb >/dev/null 2>&1 && [ -f "$HOME/.Xresources" ]; then
+    xrdb -merge "$HOME/.Xresources"
+fi
+
+if command -v setxkbmap >/dev/null 2>&1; then
+    setxkbmap es
+fi
+
+if command -v feh >/dev/null 2>&1 && [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then
+    feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"
+fi
+
+if [ -x "$HOME/.local/bin/dunst-smart.sh" ]; then
+    DUNST_BAR_POSITION=top "$HOME/.local/bin/dunst-smart.sh" --start &
+fi
+
+if command -v nm-applet >/dev/null 2>&1 && ! pgrep -x nm-applet >/dev/null 2>&1; then
+    nm-applet &
+fi
+
+if command -v pasystray >/dev/null 2>&1 && ! pgrep -x pasystray >/dev/null 2>&1; then
+    pasystray &
+fi
+
+if command -v udiskie >/dev/null 2>&1 && ! pgrep -x udiskie >/dev/null 2>&1; then
+    udiskie --tray &
+fi
+
+if command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1; then
+    lxpolkit &
+fi
+
+if command -v xss-lock >/dev/null 2>&1 && command -v i3lock >/dev/null 2>&1; then
+    xss-lock --transfer-sleep-lock -- i3lock --nofork &
+fi
+
+if [ -x "$HOME/.local/bin/autorotate-x1-yoga.sh" ] && [ -n "${DISPLAY:-}" ]; then
+    "$HOME/.local/bin/autorotate-x1-yoga.sh" --daemon &
+fi
+
+if command -v tint2 >/dev/null 2>&1; then
+    tint2 -c "$HOME/.config/tint2/tint2rc" &
+fi
+
+# Picom permanece apagado por defecto. Usa picom-toggle.sh o el centro de control.
+if [ -f "$HOME/.config/rafex/openbox-picom-enabled" ] && command -v picom >/dev/null 2>&1; then
+    picom &
+fi

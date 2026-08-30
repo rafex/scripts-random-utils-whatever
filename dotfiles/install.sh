@@ -285,6 +285,11 @@ install_theme_configs() {
     local target_root="$HOME/.config/rafex/themes"
     local source_file target_file
 
+    # El perfil Openbox comparte las paletas portables del perfil ThinkPad de
+    # i3; no se duplican archivos de temas solo para cambiar de WM.
+    if [[ ! -d "$source_root" && "$PROFILE" == "openbox-thinkpad-x1-yoga-1st" ]]; then
+        source_root="$PROFILES_DIR/thinkpad-x1-yoga-1st/config/rafex/themes"
+    fi
     [[ -d "$source_root" ]] || return
     info "Instalando paletas de tema en ${BOLD}${target_root}${RESET}..."
     while IFS= read -r -d '' source_file; do
@@ -479,6 +484,14 @@ inject_env_vars() {
     local marker_end="# <<< i3-dotfiles <<<"
     local rc="$RC_FILE"
 
+    # Un perfil paralelo no puede imponer XDG_CURRENT_DESKTOP=openbox en el
+    # shell: el usuario puede seguir entrando a i3 desde LightDM. La sesión
+    # Openbox se identifica por su .desktop y no por .bashrc.
+    if [[ "$PROFILE" == "openbox-thinkpad-x1-yoga-1st" ]]; then
+        info "Perfil paralelo: no se cambia el entorno global de $rc"
+        return
+    fi
+
     info "Inyectando variables de entorno en ${BOLD}${rc#"$HOME"/}${RESET}..."
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -601,8 +614,13 @@ main() {
         echo -e "  ${BOLD}Post-instalación:${RESET} revisa ${CYAN}$PROFILES_DIR/$PROFILE/README.md${RESET}"
     fi
     echo -e "  ${BOLD}Para aplicar los cambios:${RESET}"
-    echo -e "  1. Reinicia la sesión: ${CYAN}i3-msg restart${RESET}"
-    echo -e "     o cierra sesión y vuelve a entrar"
+    if [[ "$PROFILE" == "openbox-thinkpad-x1-yoga-1st" ]]; then
+        echo -e "  1. Cierra sesión y selecciona ${CYAN}Openbox${RESET} en LightDM"
+        echo -e "     i3 permanece disponible como sesión de recuperación"
+    else
+        echo -e "  1. Reinicia la sesión: ${CYAN}i3-msg restart${RESET}"
+        echo -e "     o cierra sesión y vuelve a entrar"
+    fi
     echo
 
     show_profile_deps

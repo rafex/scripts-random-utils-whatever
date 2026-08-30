@@ -1,0 +1,25 @@
+# Rafex Nord para Openbox.
+window.active.title.bg: Flat Solid
+window.active.title.bg.color: #5e81ac
+window.active.label.text.color: #eceff4
+window.active.button.unpressed.bg: Flat Solid
+window.active.button.unpressed.bg.color: #d8dee9
+window.active.button.unpressed.image.color: #2e3440
+window.inactive.title.bg: Flat Solid
+window.inactive.title.bg.color: #d8dee9
+window.inactive.label.text.color: #4c566a
+window.inactive.button.unpressed.bg: Flat Solid
+window.inactive.button.unpressed.bg.color: #e5e9f0
+window.inactive.button.unpressed.image.color: #4c566a
+menu.title.bg: Flat Solid
+menu.title.bg.color: #5e81ac
+menu.title.text.color: #eceff4
+menu.items.bg: Flat Solid
+menu.items.bg.color: #e5e9f0
+menu.items.text.color: #2e3440
+menu.items.active.bg: Flat Solid
+menu.items.active.bg.color: #d8dee9
+menu.items.active.text.color: #2e3440
+osd.bg: Flat Solid
+osd.bg.color: #e5e9f0
+osd.label.text.color: #2e3440

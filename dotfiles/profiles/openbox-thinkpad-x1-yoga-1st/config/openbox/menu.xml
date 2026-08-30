@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_menu xmlns="http://openbox.org/3.6/menu">
+  <menu id="root-menu" label="ThinkPad">
+    <item label="Terminal y tmux"><action name="Execute"><command>alacritty</command></action></item>
+    <item label="Terminal RXVT y tmux"><action name="Execute"><command>urxvt -e ~/.local/bin/start-thinkpad-tmux</command></action></item>
+    <item label="Aplicaciones"><action name="Execute"><command>rofi -show drun -show-icons</command></action></item>
+    <item label="Navegador"><action name="Execute"><command>firefox</command></action></item>
+    <item label="Archivos"><action name="Execute"><command>thunar</command></action></item>
+    <item label="Audio"><action name="Execute"><command>pavucontrol</command></action></item>
+    <item label="Red"><action name="Execute"><command>nm-connection-editor</command></action></item>
+    <item label="Wi-Fi"><action name="Execute"><command>~/.local/bin/wifi-toggle.sh toggle</command></action></item>
+    <item label="Modo avion"><action name="Execute"><command>~/.local/bin/flight-mode-toggle.sh toggle</command></action></item>
+    <item label="Bluetooth"><action name="Execute"><command>blueman-manager</command></action></item>
+    <item label="Microfono"><action name="Execute"><command>~/.local/bin/microphone-notify.sh toggle</command></action></item>
+    <item label="Pantallas"><action name="Execute"><command>arandr</command></action></item>
+    <item label="Proyector"><action name="Execute"><command>~/.local/bin/screen-projector.sh --apply --mode next</command></action></item>
+    <item label="Camara"><action name="Execute"><command>guvcview</command></action></item>
+    <item label="Pluma Wacom"><action name="Execute"><command>~/.local/bin/test-wacom-pen.sh --check</command></action></item>
+    <item label="Configuracion y acciones"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></item>
+    <item label="Tema claro/oscuro"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></item>
+    <item label="Estado del sistema"><action name="Execute"><command>alacritty -e btop</command></action></item>
+    <item label="Bloquear sesion"><action name="Execute"><command>loginctl lock-session</command></action></item>
+    <item label="Energia"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh power</command></action></item>
+    <separator />
+    <menu id="client-list-menu" label="Ventanas" />
+  </menu>
+</openbox_menu>

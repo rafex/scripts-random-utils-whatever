@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# Cambia el tema claro/oscuro del perfil i3 ThinkPad sin sudo.
+# Cambia el tema del perfil ThinkPad para i3 u Openbox sin sudo.
 set -Eeuo pipefail
 umask 077
 
@@ -16,12 +16,18 @@ CURRENT_LINK="$THEME_HOME/current"
 STATE_FILE="$CONFIG_HOME/rafex/theme"
 I3_CONFIG="$CONFIG_HOME/i3/config"
 I3STATUS_CONFIG="$CONFIG_HOME/i3status/config"
+OPENBOX_CONFIG="$CONFIG_HOME/openbox/rc.xml"
+TINT2_CONFIG="$CONFIG_HOME/tint2/tint2rc"
 XRESOURCES="$HOME/.Xresources"
 I3_THEME_BEGIN='# BEGIN rafex theme'
 I3_THEME_END='# END rafex theme'
 I3_THEME_LEGACY='include ~/.config/rafex/themes/current/i3.conf'
 XRES_THEME_BEGIN='! BEGIN rafex theme'
 XRES_THEME_END='! END rafex theme'
+OPENBOX_THEME_BEGIN='    <!-- BEGIN rafex theme -->'
+OPENBOX_THEME_END='    <!-- END rafex theme -->'
+TINT2_THEME_BEGIN='# BEGIN rafex theme'
+TINT2_THEME_END='# END rafex theme'
 THEME_NAMES=(paper nord everforest dracula)
 
 RED='\033[0;31m'
@@ -115,6 +121,12 @@ validate_mode() {
   for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf; do
     [[ -f "$THEME_HOME/$mode/$file" ]] || die "falta $THEME_HOME/$mode/$file"
   done
+  if [[ -f "$OPENBOX_CONFIG" ]]; then
+    [[ -f "$THEME_HOME/$mode/openbox.themerc" ]] || die "falta $THEME_HOME/$mode/openbox.themerc"
+  fi
+  if [[ -f "$TINT2_CONFIG" ]]; then
+    [[ -f "$THEME_HOME/$mode/tint2.conf" ]] || die "falta $THEME_HOME/$mode/tint2.conf"
+  fi
 }
 
 show_status() {
@@ -131,6 +143,16 @@ show_status() {
     printf 'i3-theme-block=present\n'
   else
     printf 'i3-theme-block=missing\n'
+  fi
+  if [[ -f "$OPENBOX_CONFIG" ]] && grep -Fq 'Rafex-' "$OPENBOX_CONFIG"; then
+    printf 'openbox-theme-block=present\n'
+  else
+    printf 'openbox-theme-block=missing-or-inactive\n'
+  fi
+  if [[ -f "$TINT2_CONFIG" ]]; then
+    printf 'tint2-config=present\n'
+  else
+    printf 'tint2-config=missing-or-inactive\n'
   fi
   for command_name in i3-msg tmux dunstctl; do
     if command -v "$command_name" >/dev/null 2>&1; then
@@ -236,6 +258,83 @@ sync_xresources() {
   fi
 }
 
+sync_openbox_theme() {
+  local block_file temporary theme_name mode theme_label
+  [[ -f "$OPENBOX_CONFIG" ]] || return 0
+  mode="$(current_mode)"
+  block_file="$CURRENT_LINK/openbox.themerc"
+  [[ -f "$block_file" ]] || {
+    warn "no existe la plantilla Openbox del tema: $block_file"
+    return 0
+  }
+  case "$mode" in
+    paper) theme_label='Paper' ;;
+    nord) theme_label='Nord' ;;
+    everforest) theme_label='Everforest' ;;
+    dracula) theme_label='Dracula' ;;
+    *) die "tema inválido: $mode" ;;
+  esac
+  theme_name="Rafex-$theme_label"
+  mkdir -p "$HOME/.themes/$theme_name/openbox-3"
+  if [[ ! -f "$HOME/.themes/$theme_name/openbox-3/themerc" ]] || \
+      ! cmp -s "$block_file" "$HOME/.themes/$theme_name/openbox-3/themerc"; then
+    backup_file "$HOME/.themes/$theme_name/openbox-3/themerc"
+    install -m 0644 "$block_file" "$HOME/.themes/$theme_name/openbox-3/themerc"
+  fi
+  temporary="$(mktemp)"
+  awk -v begin="$OPENBOX_THEME_BEGIN" -v end="$OPENBOX_THEME_END" \
+      -v theme_name="$theme_name" '
+    $0 == begin { print; print "    <name>" theme_name "</name>"; inside=1; found=1; next }
+    inside && $0 == end { print; inside=0; next }
+    !inside { print }
+    END {
+      if (!found) {
+        print "    <!-- BEGIN rafex theme -->"
+        print "    <name>" theme_name "</name>"
+        print "    <!-- END rafex theme -->"
+      }
+    }
+  ' "$OPENBOX_CONFIG" > "$temporary"
+  if cmp -s "$OPENBOX_CONFIG" "$temporary"; then
+    rm -f -- "$temporary"
+  else
+    backup_file "$OPENBOX_CONFIG"
+    chmod --reference="$OPENBOX_CONFIG" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$OPENBOX_CONFIG"
+  fi
+}
+
+sync_tint2_theme() {
+  local temporary source_file
+  [[ -f "$TINT2_CONFIG" ]] || return 0
+  source_file="$CURRENT_LINK/tint2.conf"
+  [[ -f "$source_file" ]] || {
+    warn "no existe la plantilla tint2 del tema: $source_file"
+    return 0
+  }
+  temporary="$(mktemp)"
+  awk -v begin="$TINT2_THEME_BEGIN" -v end="$TINT2_THEME_END" -v source_file="$source_file" '
+    function emit_theme(line) {
+      while ((getline line < source_file) > 0) print line
+      close(source_file)
+    }
+    $0 == begin { emit_theme(); inside=1; found=1; next }
+    inside && $0 == end { inside=0; next }
+    !inside { print }
+    END { if (!found) { print ""; emit_theme() } }
+  ' "$TINT2_CONFIG" > "$temporary"
+  if cmp -s "$TINT2_CONFIG" "$temporary"; then
+    rm -f -- "$temporary"
+  else
+    backup_file "$TINT2_CONFIG"
+    chmod --reference="$TINT2_CONFIG" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$TINT2_CONFIG"
+  fi
+  if command -v pkill >/dev/null 2>&1 && pgrep -x tint2 >/dev/null 2>&1; then
+    pkill -USR1 -x tint2 2>/dev/null || warn 'tint2 no pudo recargar el tema'
+  fi
+}
+
 sync_i3status_theme() {
   local block_file temporary
   [[ -f "$I3STATUS_CONFIG" ]] || {
@@ -316,7 +415,9 @@ apply_link() {
 }
 
 reload_desktop() {
-  if command -v i3-msg >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+  if command -v openbox >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]] && pgrep -x openbox >/dev/null 2>&1; then
+    openbox --reconfigure >/dev/null 2>&1 || warn 'Openbox no pudo recargar su configuración'
+  elif command -v i3-msg >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
     i3-msg reload >/dev/null 2>&1 || warn 'i3 no pudo recargar su configuración'
   fi
   if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
@@ -341,13 +442,16 @@ apply_mode() {
   if [[ "$ACTION" == plan ]]; then
     info "[plan] activar tema $mode mediante $CURRENT_LINK"
     info "[plan] sincronizar bloque de colores en $I3_CONFIG"
-    info '[plan] recargar i3, tmux y dunst si están activos'
+    info "[plan] sincronizar Openbox/tint2 si están instalados"
+    info '[plan] recargar i3/Openbox, tmux, tint2 y dunst si están activos'
     return 0
   fi
   apply_link "$mode"
   sync_i3_theme
   sync_i3status_theme
   sync_xresources
+  sync_openbox_theme
+  sync_tint2_theme
   reload_desktop
   ok "tema activo: $mode"
 }

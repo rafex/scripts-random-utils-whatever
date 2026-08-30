@@ -101,6 +101,7 @@ nav:
       - install_bash_reload_linux: install/install_bash_reload_linux.md
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_i3_gaps_linux: install/install_i3_gaps_linux.md
+      - install_openbox_profile_linux: install/install_openbox_profile_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_node_runtime_linux: install/install_node_runtime_linux.md
       - install_build_runtime_linux: install/install_build_runtime_linux.md
@@ -141,6 +142,9 @@ nav:
       - theme_toggle_linux: system/theme_toggle_linux.md
       - generate_terminal_themes_linux: system/generate_terminal_themes_linux.md
       - dunst_smart_start_linux: system/dunst_smart_start_linux.md
+      - desktop_settings_menu_linux: system/desktop_settings_menu_linux.md
+      - picom_toggle_linux: system/picom_toggle_linux.md
+      - tint2_status_linux: system/tint2_status_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

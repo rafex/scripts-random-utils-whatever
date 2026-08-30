@@ -1,6 +1,6 @@
 ---
 title: theme_toggle_linux.sh
-description: Selector de cuatro paletas para i3, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
+description: Selector de cuatro paletas para i3, Openbox, tint2, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
 tags:
   - i3
   - temas
@@ -10,12 +10,12 @@ tags:
 # theme_toggle_linux.sh
 
 Activa las paletas `paper`, `nord`, `everforest` y `dracula` del perfil
-ThinkPad para i3, i3status, tmux, Alacritty, rxvt-unicode, Rofi y Dunst sin
-usar `sudo`.
+ThinkPad para i3, Openbox, tint2, i3status, tmux, Alacritty, rxvt-unicode,
+Rofi y Dunst sin usar `sudo`.
 
 - **Ruta:** `scripts/system/theme_toggle_linux.sh`
-- **SO requerido:** Linux (Xorg/i3)
-- **Dependencias:** `bash`; opcionales `i3-msg`, `tmux`, `dunstctl`, `pgrep`
+- **SO requerido:** Linux (Xorg/i3 u Openbox)
+- **Dependencias:** `bash`; opcionales `i3-msg`, `openbox`, `tmux`, `tint2`, `dunstctl`, `pgrep`
 
 ---
 
@@ -56,7 +56,11 @@ El estado se guarda en `~/.config/rafex/theme` y el selector apunta
 directiva `include` de algunas versiones de i3. Los colores de i3status se
 sincronizan en `~/.config/i3status/config` para conservar contraste en la barra.
 La paleta X11 se sincroniza en `~/.Xresources` y se aplica con `xrdb` cuando
-existe una sesión gráfica.
+existe una sesión gráfica. Si la sesión activa es Openbox, también actualiza
+su tema `~/.themes/Rafex-*/openbox-3/themerc`, el bloque administrado de
+`~/.config/openbox/rc.xml` y el bloque de colores de `~/.config/tint2/tint2rc`.
+Si la sesión activa es i3, solo recarga i3; no intenta conectarse a un socket
+de i3 inexistente desde Openbox.
 
 Cuando está instalado `dunst-smart.sh`, las notificaciones se regeneran según
 la posición de i3bar y reservan un margen vertical para no empalmarse con la
@@ -127,12 +131,13 @@ movidos.
 **Solución:** ejecuta `just install-profile thinkpad-x1-yoga-1st` y repite el
 diagnóstico.
 
-### `i3 no pudo recargar su configuración`
+### `Openbox o i3 no pudo recargar su configuración`
 
-**Causa:** el script se ejecutó por SSH o fuera de la sesión Xorg local.
+**Causa:** el script se ejecutó por SSH, fuera de la sesión Xorg local o el
+gestor de ventanas no está activo todavía.
 
-**Solución:** inicia el selector desde i3 o ejecuta `i3-msg reload` dentro de la
-sesión gráfica.
+**Solución:** inicia el selector desde el entorno gráfico. En i3 puedes
+ejecutar `i3-msg reload`; en Openbox, `openbox --reconfigure`.
 
 ### `tmux no pudo recargar el tema`
 
@@ -165,8 +170,9 @@ la sesión gráfica.
 recursos después de `xrdb -merge`.
 
 **Solución:** ejecuta `xrdb -merge ~/.Xresources` y abre una nueva ventana de
-`urxvt`. La fuente definida por el perfil es DejaVu Sans Mono tamaño `10` para
-mantener una lectura cómoda; Alacritty conserva tamaño `7`.
+`urxvt`. La fuente definida por el perfil es DejaVu Sans Mono tamaño `7`, igual
+que Alacritty. Si resulta demasiado pequeña, ajusta `URxvt.font` en la
+configuración local después de probar la nueva ventana.
 
 ## Changelog
 

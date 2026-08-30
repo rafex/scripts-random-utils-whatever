@@ -16,3 +16,18 @@ generate-terminal-themes *args:
 # Uso: just dunst-smart --check | just dunst-smart --start
 dunst-smart *args:
     bash scripts/system/dunst_smart_start_linux.sh {{args}}
+
+# Abrir el centro de control común para sesiones i3 y Openbox
+# Uso: just desktop-settings-menu
+desktop-settings-menu *args:
+    bash scripts/system/desktop_settings_menu_linux.sh {{args}}
+
+# Activar o desactivar picom sin sudo
+# Uso: just picom-toggle --check | just picom-toggle --toggle
+picom-toggle *args:
+    bash scripts/system/picom_toggle_linux.sh {{args}}
+
+# Mostrar el estado compacto usado por tint2
+# Uso: just tint2-status
+tint2-status *args:
+    bash scripts/system/tint2_status_linux.sh {{args}}

@@ -80,6 +80,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/scrape_build_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_build_runtime.md) |
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
 | `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
+| `scripts/install/install_openbox_profile_linux.sh` | Linux | install-openbox-profile | sí | sí | medio | [doc](install/install_openbox_profile_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/harden_thinkpad_linux.sh` | Linux | harden-thinkpad | sí | sí | alto | [doc](install/harden_thinkpad_linux.md) |
 | `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
@@ -104,6 +105,9 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/theme_toggle_linux.sh` | Linux | theme-toggle | no | sí | bajo | [doc](system/theme_toggle_linux.md) |
 | `scripts/system/generate_terminal_themes_linux.sh` | Linux | generate-terminal-themes | no | sí | bajo | [doc](system/generate_terminal_themes_linux.md) |
 | `scripts/system/dunst_smart_start_linux.sh` | Linux | dunst-smart | no | sí | bajo | [doc](system/dunst_smart_start_linux.md) |
+| `scripts/system/desktop_settings_menu_linux.sh` | Linux | desktop-settings-menu | no | — | bajo | [doc](system/desktop_settings_menu_linux.md) |
+| `scripts/system/picom_toggle_linux.sh` | Linux | picom-toggle | no | sí | bajo | [doc](system/picom_toggle_linux.md) |
+| `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 
 ## Documentos suplementarios
 

@@ -1,0 +1,26 @@
+# Perfil Openbox paralelo para ThinkPad X1 Yoga — Xorg.
+openbox
+tint2
+rofi
+9menu
+dunst
+alacritty
+rxvt-unicode
+tmux
+feh
+maim
+picom
+brightnessctl
+pavucontrol
+pasystray
+lxpolkit
+libnotify-bin
+network-manager-applet
+udiskie
+xdg-utils
+x11-xserver-utils
+x11-xkb-utils
+xss-lock
+i3lock
+fonts-font-awesome
+fonts-noto-color-emoji

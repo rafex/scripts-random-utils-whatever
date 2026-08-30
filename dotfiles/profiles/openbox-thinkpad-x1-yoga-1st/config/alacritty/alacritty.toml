@@ -1,0 +1,14 @@
+import = ["~/.config/rafex/themes/current/alacritty.toml"]
+
+[env]
+TERM = "xterm-256color"
+
+[font]
+size = 7
+
+[font.normal]
+family = "DejaVu Sans Mono"
+style = "Regular"
+
+[terminal]
+shell = { program = "/bin/bash", args = ["-lc", "exec \"$HOME/.local/bin/start-thinkpad-tmux\""] }
