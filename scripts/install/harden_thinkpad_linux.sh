@@ -354,6 +354,13 @@ check_local() {
   check_managed_file "$FAIL2BAN_JAIL" 'jail SSH de Fail2ban'
   check_managed_file "$AUDIT_RULES" 'reglas personalizadas de auditd'
   check_managed_file "$USBGUARD_CONFIG" 'configuración de USBGuard'
+  if [[ -e "$USBGUARD_CONFIG" ]]; then
+    if [[ "$(sudo -n stat -c '%a' "$USBGUARD_CONFIG" 2>/dev/null || true)" == 600 ]]; then
+      ok 'configuración de USBGuard tiene permisos 0600'
+    else
+      warn 'la configuración de USBGuard debe tener permisos 0600'
+    fi
+  fi
   if command -v ufw >/dev/null 2>&1; then
     sudo -n ufw status verbose 2>/dev/null || warn 'UFW requiere sudo para consultar su estado'
   else
@@ -508,7 +515,7 @@ apply_usbguard() {
     return 0
   fi
   sudo install -d -m 0755 /var/log/usbguard
-  install_root_content "$USBGUARD_CONFIG" 0644 "$(usbguard_content)"
+  install_root_content "$USBGUARD_CONFIG" 0600 "$(usbguard_content)"
   sudo systemctl enable usbguard.service usbguard-dbus.service
   sudo systemctl reset-failed usbguard.service usbguard-dbus.service 2>/dev/null || true
   if ! sudo systemctl restart usbguard.service; then

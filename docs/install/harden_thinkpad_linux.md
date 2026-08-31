@@ -183,6 +183,9 @@ USBGuard queda en auditoría con dispositivos no reconocidos autorizados. El
 instalador valida y arranca tanto usbguard.service como usbguard-dbus.service;
 si alguno falla, muestra el journal y no declara el hardening completo:
 
+El archivo `/etc/usbguard/usbguard-daemon.conf` se instala con permisos
+`0600`, exigidos por el daemon para no exponer la política a otros usuarios.
+
 ```text
 ImplicitPolicyTarget=allow
 PresentDevicePolicy=keep
