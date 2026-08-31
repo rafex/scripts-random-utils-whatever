@@ -119,6 +119,7 @@ pool_active() {
     awk -F': ' '
       /^(State|Active):/ {
         value=tolower($2)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
         if (value == "running" || value == "active" || value == "yes") {
           found=1
         }
