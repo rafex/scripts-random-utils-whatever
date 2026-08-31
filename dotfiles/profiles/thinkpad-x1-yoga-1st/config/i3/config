@@ -66,6 +66,7 @@ bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 bindsym $mod+b split h
+bindsym $mod+Shift+b exec --no-startup-id ~/.local/bin/rofi-search.sh browser
 bindsym $mod+v split v
 bindsym $mod+f fullscreen toggle
 bindsym $mod+s layout stacking
@@ -87,7 +88,6 @@ for_window [window_type="dialog"] resize set 900 600
 bindsym $mod+a focus parent
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
-bindsym XF86LaunchA move scratchpad
 bindsym XF86LaunchB scratchpad show
 bindsym $mod+p exec --no-startup-id maim "$HOME/Imágenes/CapturasDePantalla/screenshot-$(date +%F_%H-%M-%S).png" && notify-send "Screenshot" "Pantalla completa guardada"
 bindsym $mod+Shift+p exec --no-startup-id sh -c 'pgrep picom && pkill picom && notify-send "Picom" "Desactivado" || (picom & notify-send "Picom" "Activado")'
@@ -149,6 +149,8 @@ bindsym XF86MonBrightnessUp exec --no-startup-id ~/.local/bin/brightness-notify.
 bindsym XF86MonBrightnessDown exec --no-startup-id ~/.local/bin/brightness-notify.sh down
 bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym $mod+Shift+s exec --no-startup-id ~/.local/bin/screensaver-toggle toggle
 
 mode "resize" {

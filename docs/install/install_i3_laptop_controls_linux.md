@@ -8,9 +8,10 @@ tags:
 
 # install_i3_laptop_controls_linux.sh
 
-Instala utilidades y configura atajos para volumen, micrófono, Wi‑Fi, modo
-avión, búsqueda Rofi, Synaptic y un centro de control completo para i3. También
-instala `lxpolkit` para mostrar gráficamente las solicitudes de autenticación.
+Instala utilidades y configura atajos para volumen, brillo de pantalla, brillo
+del teclado, micrófono, Wi‑Fi, modo avión, búsqueda Rofi, Synaptic y un centro
+de control completo para i3. También instala `lxpolkit` para mostrar
+gráficamente las solicitudes de autenticación.
 
 - **Ruta:** `scripts/install/install_i3_laptop_controls_linux.sh`
 - **SO requerido:** Linux (Debian/Ubuntu con APT)
@@ -39,11 +40,19 @@ just install-i3-laptop-controls --apply
 ```
 
 El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
-`XF86Search`, `XF86Explorer`, `XF86WakeUp` y `XF86Tools`. `XF86Tools` abre el
-centro de control completo; `XF86WakeUp` abre solo energía y sesión. El centro
-incluye `Software — Synaptic`, que se ejecuta mediante `synaptic-pkexec`.
+`XF86Search`, `XF86LaunchA`, `XF86Explorer`,
+`XF86WakeUp` y `XF86Tools`. `XF86LaunchA` baja y
+`XF86Explorer` sube el brillo del teclado. `XF86Tools` abre
+el centro de control completo; `XF86WakeUp` abre solo energía y sesión.
+El navegador conserva un atajo alternativo en `Mod+Shift+b` y también
+está disponible en Rofi. El centro incluye `Software — Synaptic`, que
+se ejecuta mediante `synaptic-pkexec`.
 
-Además, instala `dunst` y registra `dunst-smart.sh`, que detecta si i3bar está
+F5/F6 siguen controlando el brillo de pantalla mediante `brightnessctl`.
+Fn+Space continúa siendo el control nativo del firmware para la
+retroiluminación del teclado.
+
+Además, instala los helpers de brillo, `dunst` y registra `dunst-smart.sh`, que detecta si i3bar está
 arriba o abajo y coloca las notificaciones fuera de su área.
 
 ## Opciones
@@ -89,8 +98,13 @@ explícitamente uno de esos modos, usa `--log-file`.
 - Solicita autorización mediante `sudo -v`; nunca lee ni guarda la contraseña.
 - Respaldа el archivo i3 y cada helper antes de reemplazarlo.
 - Usa un bloque administrado idempotente y no duplica atajos.
-- Elimina vinculaciones heredadas de `XF86Tools` y `XF86WakeUp` fuera del
-  bloque administrado para reparar perfiles anteriores sin perder el respaldo.
+- Elimina vinculaciones heredadas conflictivas de `XF86Tools`,
+  `XF86WakeUp`, `XF86Explorer`, `XF86LaunchA` y
+  el navegador alternativo fuera del bloque administrado para reparar perfiles
+  anteriores sin perder el respaldo.
+- Las acciones de energía del centro de control siempre piden confirmación;
+  hibernar se comprueba con `loginctl can-hibernate` antes de ejecutarse.
+- Los helpers de brillo no usan `sudo`.
 - No modifica particiones, `fstab`, GRUB ni archivos de contraseñas.
 
 ## Fallos conocidos
@@ -117,6 +131,15 @@ instalador de controles también las añadía en su bloque administrado.
 --apply`. El archivo original se respalda y las vinculaciones duplicadas se
 retiran únicamente fuera del bloque administrado. Después recarga i3 con
 `Mod+Shift+r`.
+
+### `F11` o `F12` no cambia el brillo del teclado
+
+**Causa:** X11 puede reportar otro keysym, o el equipo puede no exponer un LED
+de teclado escribible.
+
+**Solución:** ejecuta `xev` y comprueba `brightnessctl -l`. Fn+Space
+sigue siendo la alternativa del firmware. Si se reutiliza el perfil, vuelve a
+ejecutar el instalador para reparar el bloque administrado.
 
 ## Changelog
 

@@ -137,7 +137,9 @@ bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh 
 bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
 bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
 bindsym XF86Search exec --no-startup-id ~/.local/bin/rofi-search.sh apps
-bindsym XF86Explorer exec --no-startup-id ~/.local/bin/rofi-search.sh browser
+bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
+bindsym \$mod+Shift+b exec --no-startup-id ~/.local/bin/rofi-search.sh browser
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
 bindsym XF86Tools exec --no-startup-id ~/.local/bin/i3-settings-menu.sh
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
@@ -169,11 +171,17 @@ $end"
         if (!dunst_found) { print dunst_line; dunst_found=1 }
         next
       }
-      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86(WakeUp|Tools)([[:space:]]|$)/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86WakeUp[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/i3-settings-menu\.sh[[:space:]]+power[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Tools[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/i3-settings-menu\.sh[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Explorer[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/rofi-search\.sh[[:space:]]+browser[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86LaunchA[[:space:]]+move[[:space:]]+scratchpad[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86LaunchA[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+down[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Explorer[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+up[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+\$mod\+Shift\+b[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/rofi-search\.sh[[:space:]]+browser[[:space:]]*$/ {removed=1; next}
       {print}
       END {
         if (!dunst_found) print dunst_line
-        if (removed) print "# i3-laptop-controls: bindings XF86Tools/XF86WakeUp duplicados eliminados"
+        if (removed) print "# i3-laptop-controls: bindings legacy conflictivos eliminados"
       }
     ' "$I3_CONFIG" > "$cleaned"
     mv "$cleaned" "$I3_CONFIG"
@@ -198,6 +206,8 @@ main() {
   echo "═══ Controles i3 para laptop ═══"
   install_packages
   install_helper scripts/hardware/notify_microphone_linux.sh microphone-notify.sh
+  install_helper scripts/hardware/notify_brightness_linux.sh brightness-notify.sh
+  install_helper scripts/hardware/notify_kbd_brightness_linux.sh kbd-brightness-notify.sh
   install_helper scripts/network/wifi_toggle_linux.sh wifi-toggle.sh
   install_helper scripts/network/flight_mode_toggle_linux.sh flight-mode-toggle.sh
   install_helper scripts/system/rofi_search_linux.sh rofi-search.sh

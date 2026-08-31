@@ -21,6 +21,11 @@
     <item label="Estado del sistema"><action name="Execute"><command>alacritty -e btop</command></action></item>
     <item label="Bloquear sesion"><action name="Execute"><command>loginctl lock-session</command></action></item>
     <item label="Energia"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh power</command></action></item>
+    <item label="Cerrar sesion"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh logout</command></action></item>
+    <item label="Suspender"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh suspend</command></action></item>
+    <item label="Hibernar"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh hibernate</command></action></item>
+    <item label="Reiniciar"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh reboot</command></action></item>
+    <item label="Apagar"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh poweroff</command></action></item>
     <separator />
     <menu id="client-list-menu" label="Ventanas" />
   </menu>

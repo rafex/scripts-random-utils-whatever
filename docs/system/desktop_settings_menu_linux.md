@@ -37,6 +37,11 @@ Debe ejecutarse dentro de una sesión gráfica Xorg con `rofi` disponible.
 ```bash
 desktop-settings-menu.sh
 desktop-settings-menu.sh power
+desktop-settings-menu.sh logout
+desktop-settings-menu.sh suspend
+desktop-settings-menu.sh hibernate
+desktop-settings-menu.sh reboot
+desktop-settings-menu.sh poweroff
 ```
 
 ## Opciones
@@ -44,7 +49,12 @@ desktop-settings-menu.sh power
 | Opción | Alias | Descripción |
 |---|---|---|
 | `all` | — | Abre el centro de control completo. |
-| `power` | — | Muestra solo bloqueo, suspensión, reinicio y apagado. |
+| `power` | — | Muestra bloqueo, cerrar sesión, suspensión, hibernación, reinicio y apagado. |
+| `logout` | — | Pide confirmación y termina la sesión gráfica actual. |
+| `suspend` | — | Pide confirmación y suspende el equipo. |
+| `hibernate` | — | Pide confirmación y comprueba `loginctl can-hibernate` antes de hibernar. |
+| `reboot` | — | Pide confirmación y reinicia el equipo. |
+| `poweroff` | — | Pide confirmación y apaga el equipo. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -62,8 +72,11 @@ just desktop-settings-menu
 ## Protecciones de seguridad
 
 - No requiere `sudo` para abrir el menú.
-- Las acciones de suspensión, reinicio y apagado piden confirmación dentro de
-  Rofi antes de ejecutarse.
+- Cerrar sesión, suspensión, hibernación, reinicio y apagado piden confirmación
+  dentro de Rofi antes de ejecutarse.
+- No se usa sudo desde el menú. systemd/logind aplica la política de la sesión.
+- Si `loginctl can-hibernate` devuelve `no`, hibernar solo muestra una
+  notificación y no ejecuta cambios.
 - Synaptic se lanza mediante `synaptic-pkexec`, que delega la autenticación al
   agente Polkit de la sesión gráfica.
 
@@ -74,6 +87,14 @@ just desktop-settings-menu
 **Causa:** Rofi no está instalado o no está en el `PATH`.
 
 **Solución:** instala el perfil ThinkPad o `rofi` desde Debian.
+
+### `No se pudo terminar la sesión gráfica actual.`
+
+**Causa:** la sesión no tiene un identificador logind utilizable y el window
+manager no aceptó la orden de salida.
+
+**Solución:** inicia el menú dentro de la sesión gráfica correcta y comprueba
+`echo "$XDG_SESSION_ID"` y `loginctl session-status`.
 
 ## Changelog
 

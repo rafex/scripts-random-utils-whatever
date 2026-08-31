@@ -13,13 +13,17 @@ Pantallas:exec arandr
 Proyector:exec ~/.local/bin/screen-projector.sh --apply --mode next
 Camara:exec guvcview
 Pluma Wacom:exec ~/.local/bin/test-wacom-pen.sh --check
-Centro de control:exec ~/.local/bin/i3-settings-menu.sh
+Centro de control:exec ~/.local/bin/desktop-settings-menu.sh
 Tema claro/oscuro:exec ~/.local/bin/theme-toggle.sh --toggle
 Tema Nord:exec ~/.local/bin/theme-toggle.sh --set nord
 Tema Paper:exec ~/.local/bin/theme-toggle.sh --set paper
 Tema Everforest:exec ~/.local/bin/theme-toggle.sh --set everforest
 Tema Dracula:exec ~/.local/bin/theme-toggle.sh --set dracula
 Estado del sistema:exec alacritty -e btop
-Bloquear sesion:exec loginctl lock-session
-Energia:exec ~/.local/bin/i3-settings-menu.sh power
-exit
+Bloquear sesión:exec loginctl lock-session
+Cerrar menú:exit
+Cerrar sesión:exec ~/.local/bin/desktop-settings-menu.sh logout
+Suspender:exec ~/.local/bin/desktop-settings-menu.sh suspend
+Hibernar:exec ~/.local/bin/desktop-settings-menu.sh hibernate
+Reiniciar:exec ~/.local/bin/desktop-settings-menu.sh reboot
+Apagar:exec ~/.local/bin/desktop-settings-menu.sh poweroff

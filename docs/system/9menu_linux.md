@@ -59,8 +59,9 @@ Mod+F9
 ```
 
 Se selecciona con clic izquierdo o derecho, o con las flechas y `Enter`.
-`exit` cierra el menú. La opción seleccionada ejecuta el comando asociado y el
-menú desaparece porque se usa `-popup`.
+`Cerrar menú:exit` cierra el menú de forma visible. Las entradas de cerrar
+sesión, suspender, hibernar, reiniciar y apagar llaman al centro de control,
+que pide confirmación antes de ejecutar la acción.
 
 ## Opciones
 
@@ -71,7 +72,7 @@ menú desaparece porque se usa `-popup`.
 | `-file <archivo>` | — | Lee las entradas desde un archivo de menú. |
 | `XF86Tools` | — | Abre el menú desde la tecla de herramientas si X11 la reporta. |
 | `Mod+F9` | — | Atajo alternativo independiente del teclado multimedia. |
-| `XF86WakeUp` | — | Suspende mediante `loginctl suspend`; el firmware gestiona el despertar. |
+| `XF86WakeUp` | — | Abre energía y sesión; las acciones requieren confirmación. |
 
 ## Variables de entorno
 
@@ -83,7 +84,7 @@ encontrar los scripts instalados en `~/.local/bin/`.
 Probar una entrada mínima:
 
 ```sh
-9menu -popup -label "Prueba" "Terminal:exec alacritty" "Audio:exec pavucontrol" exit
+9menu -popup -label "Prueba" "Terminal:exec alacritty" "Audio:exec pavucontrol" "Cerrar menú:exit"
 ```
 
 Probar el menú completo del perfil:
@@ -102,10 +103,13 @@ Mod+Shift+R
 
 - El archivo contiene únicamente comandos locales conocidos.
 - No se usa `sudo` desde el menú.
-- No se incluyen comandos destructivos ni apagado directo; la opción de energía
-  abre el centro de control existente, que confirma las acciones sensibles.
-- `XF86WakeUp` solo solicita suspensión mediante `loginctl`; el despertar lo
-  gestiona el firmware y no requiere un comando adicional.
+- Las acciones sensibles del menú llaman a
+  `desktop-settings-menu.sh` y siempre muestran Confirmar/Cancelar en Rofi.
+- La hibernación se comprueba con `loginctl can-hibernate` y no cambia nada si
+  el sistema no la soporta.
+- `XF86WakeUp` abre energía y sesión; la acción elegida pide confirmación.
+  El despertar tras suspensión lo gestiona el firmware y no requiere un
+  comando adicional.
 - No añadir entradas provenientes de archivos no confiables: 9menu ejecuta el
   comando asociado mediante un shell.
 
@@ -127,7 +131,7 @@ binding solo si se identifica una tecla diferente.
 
 **Causa:** el firmware o Xorg no expone esa tecla con ese keysym.
 **Solución:** comprobar el keysym real con `xev`; como alternativa, usar el
-atajo de i3 configurado para suspensión desde el centro de control.
+atajo del centro de control. La acción elegida pedirá confirmación.
 
 ### El menú aparece sin iconos
 

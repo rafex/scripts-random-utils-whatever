@@ -13,6 +13,10 @@ Ajusta el brillo de pantalla con `brightnessctl` y muestra una notificación con
 - **SO requerido:** Linux
 - **Dependencias:** `brightnessctl`, `notify-send`
 
+En el perfil ThinkPad, F5 (`XF86MonBrightnessDown`) baja y F6
+(`XF86MonBrightnessUp`) sube el brillo de pantalla. El helper funciona
+como usuario normal y no requiere `sudo`.
+
 ______________________________________________________________________
 
 ## Uso
@@ -53,7 +57,8 @@ ______________________________________________________________________
 
 ## Requisitos
 
-Revisa las dependencias declaradas al inicio del documento antes de ejecutar el script.
+Debe existir al menos un dispositivo de brillo administrado por
+`brightnessctl`. Compruébalo con `brightnessctl -l`.
 
 ## Opciones
 
@@ -61,7 +66,13 @@ Las opciones disponibles se describen en la ayuda del script y en los ejemplos d
 
 ## Fallos conocidos
 
-No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
+### `No se encontró dispositivo de brillo`
+
+**Causa:** el kernel no expone un backlight compatible o `brightnessctl`
+no puede acceder a él.
+
+**Solución:** ejecuta `brightnessctl -l`, revisa el controlador gráfico
+y usa el control de brillo del firmware mientras se diagnostica el hardware.
 
 ## Changelog
 

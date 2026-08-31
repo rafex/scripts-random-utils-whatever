@@ -80,6 +80,7 @@
     <keybind key="W-Return"><action name="Execute"><command>alacritty</command></action></keybind>
     <keybind key="W-space"><action name="Execute"><command>rofi -show drun -show-icons</command></action></keybind>
     <keybind key="W-Tab"><action name="Execute"><command>rofi -show window -show-icons</command></action></keybind>
+    <keybind key="W-Shift-b"><action name="Execute"><command>~/.local/bin/rofi-search.sh browser</command></action></keybind>
     <keybind key="W-F9"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></keybind>
     <keybind key="W-Shift-t"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></keybind>
     <keybind key="W-Shift-p"><action name="Execute"><command>~/.local/bin/picom-toggle.sh</command></action></keybind>
@@ -105,6 +106,8 @@
     <keybind key="XF86MonBrightnessDown"><action name="Execute"><command>~/.local/bin/brightness-notify.sh down</command></action></keybind>
     <keybind key="XF86KbdBrightnessUp"><action name="Execute"><command>~/.local/bin/kbd-brightness-notify.sh up</command></action></keybind>
     <keybind key="XF86KbdBrightnessDown"><action name="Execute"><command>~/.local/bin/kbd-brightness-notify.sh down</command></action></keybind>
+    <keybind key="XF86LaunchA"><action name="Execute"><command>~/.local/bin/kbd-brightness-notify.sh down</command></action></keybind>
+    <keybind key="XF86Explorer"><action name="Execute"><command>~/.local/bin/kbd-brightness-notify.sh up</command></action></keybind>
     <keybind key="XF86WLAN"><action name="Execute"><command>~/.local/bin/wifi-toggle.sh toggle</command></action></keybind>
     <keybind key="XF86RFKill"><action name="Execute"><command>~/.local/bin/flight-mode-toggle.sh toggle</command></action></keybind>
     <keybind key="XF86Display"><action name="Execute"><command>~/.local/bin/screen-projector.sh --apply --mode next</command></action></keybind>
