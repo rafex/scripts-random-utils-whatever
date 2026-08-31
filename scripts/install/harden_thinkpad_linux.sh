@@ -349,9 +349,11 @@ check_local() {
   check_service fail2ban.service
   check_service auditd.service
   check_service usbguard.service
+  check_service usbguard-dbus.service
   check_service fstrim.timer
   check_managed_file "$FAIL2BAN_JAIL" 'jail SSH de Fail2ban'
   check_managed_file "$AUDIT_RULES" 'reglas personalizadas de auditd'
+  check_managed_file "$USBGUARD_CONFIG" 'configuración de USBGuard'
   if command -v ufw >/dev/null 2>&1; then
     sudo -n ufw status verbose 2>/dev/null || warn 'UFW requiere sudo para consultar su estado'
   else
@@ -501,13 +503,28 @@ apply_sysctl() {
 apply_usbguard() {
   if [[ "$ACTION" == plan ]]; then
     info "[plan] escribir $USBGUARD_CONFIG con política de auditoría sin bloqueo"
-    info '[plan] sudo systemctl enable --now usbguard'
+    info '[plan] sudo systemctl enable usbguard usbguard-dbus'
+    info '[plan] reiniciar usbguard y usbguard-dbus en ese orden'
     return 0
   fi
   sudo install -d -m 0755 /var/log/usbguard
   install_root_content "$USBGUARD_CONFIG" 0644 "$(usbguard_content)"
-  sudo systemctl enable --now usbguard
-  sudo usbguard list-devices || true
+  sudo systemctl enable usbguard.service usbguard-dbus.service
+  sudo systemctl reset-failed usbguard.service usbguard-dbus.service 2>/dev/null || true
+  if ! sudo systemctl restart usbguard.service; then
+    warn 'USBGuard no pudo iniciar; se conserva la configuración para diagnóstico'
+    sudo journalctl -u usbguard.service -u usbguard-dbus.service -b --no-pager -n 60 || true
+    die 'usbguard.service no está operativo'
+  fi
+  if ! sudo systemctl restart usbguard-dbus.service; then
+    warn 'el servicio D-Bus de USBGuard no pudo iniciar'
+    sudo journalctl -u usbguard.service -u usbguard-dbus.service -b --no-pager -n 60 || true
+    die 'usbguard-dbus.service no está operativo'
+  fi
+  sudo systemctl is-active --quiet usbguard.service || die 'usbguard.service quedó inactivo'
+  sudo systemctl is-active --quiet usbguard-dbus.service || die 'usbguard-dbus.service quedó inactivo'
+  sudo usbguard list-devices
+  ok 'USBGuard activo en modo de auditoría sin bloqueo'
 }
 
 apply_local() {

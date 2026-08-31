@@ -64,7 +64,7 @@ just install-security-lab --apply --stage virtualization
 
 | Etapa | Paquetes principales | Propósito |
 |---|---|---|
-| `base` | `nmap`, `ncat`, `ndiff`, `tcpdump`, `tshark`, `wireshark`, `mtr-tiny`, `bind9-dnsutils`, `whois`, `arp-scan`, `ethtool`, `iw`, `socat`, `lsof`, `strace`, `usbutils` | Diagnóstico de red, sistema y tráfico propio |
+| `base` | `nmap`, `ncat`, `ndiff`, `tcpdump`, `tshark`, `wireshark`, `mtr-tiny`, `bind9-dnsutils`, `whois`, `arp-scan`, `ethtool`, `iw`, `socat`, `lsof`, `strace`, `usbutils`, `libcap2-bin` | Diagnóstico de red, sistema y tráfico propio |
 | `wireless` | `aircrack-ng`, `hcxdumptool`, `hcxtools`, `macchanger`, `wireless-tools` | Laboratorios inalámbricos autorizados |
 | `web` | `ffuf`, `gobuster`, `nikto`, `whatweb`, `mitmproxy`, `dirb` | Pruebas web en aplicaciones propias o autorizadas |
 | `forensics` | `sleuthkit`, `testdisk`, `yara`, `hashdeep`, `ssdeep`, `rkhunter` | Análisis de copias e imágenes forenses |
@@ -118,7 +118,13 @@ El Wi-Fi interno continúa administrado por NetworkManager. Para modo monitor o 
 
 ### Captura de tráfico propio
 
-La política del perfil no añade `rafex` al grupo `wireshark`, no configura SUID ni capacidades persistentes en `dumpcap` y no ejecuta la interfaz gráfica como root.
+La política del perfil no añade `rafex` al grupo `wireshark`, no configura SUID
+ni capacidades persistentes en `dumpcap` y no ejecuta la interfaz gráfica como
+root. Durante `--apply --stage base` o `--stage all`, el instalador elimina
+capacidades o SUID heredados de una instalación anterior; `libcap2-bin` aporta
+`getcap` y `setcap` para poder
+verificar la política. Si el paquete no está instalado, el instalador detiene
+la aplicación antes de declarar el control completo.
 
 ```bash
 sudo dumpcap -D

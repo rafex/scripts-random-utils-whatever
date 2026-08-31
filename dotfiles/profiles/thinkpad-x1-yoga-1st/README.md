@@ -82,6 +82,27 @@ instala las dependencias y `just configure-kvm --apply` prepara
 puertos nuevos. Consulta [configure_kvm_linux](../../../docs/install/configure_kvm_linux.md)
 si el repositorio se está usando desde su copia de trabajo.
 
+## Auditoría final de preparación
+
+Antes de salir a una red pública o impartir un curso, ejecuta:
+
+```sh
+sudo -v
+just audit-thinkpad --status
+```
+
+El auditor verifica USBGuard, UFW, Fail2ban, AppArmor, auditd, SSH efectivo,
+OXXO Cel, dumpcap, cifrado, TRIM, TLP, KVM, runtimes y la disponibilidad de
+los laboratorios sin mostrar secretos. Un proyector debe probarse físicamente:
+
+```sh
+just screen-projector --check
+```
+
+El SSD externo debe montarse manualmente antes de generar el respaldo final.
+Secure Boot continúa siendo una decisión pendiente; LUKS protege los datos
+apagados, pero no sustituye la protección de la cadena de arranque.
+
 ## Fondos de marca
 
 El perfil incluye cinco fondos raster en

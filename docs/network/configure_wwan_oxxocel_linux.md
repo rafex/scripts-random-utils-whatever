@@ -56,7 +56,11 @@ just configure-wwan-oxxocel --apply
 just configure-wwan-oxxocel --status
 ```
 
-`--apply` crea el perfil `OXXO Cel`, pero no enciende una conexión de datos.
+`--apply` crea o actualiza el perfil `OXXO Cel`, pero no enciende una conexión
+de datos. La operación es idempotente: si existen varios perfiles GSM con ese
+nombre, reutiliza primero el que está activo y elimina únicamente los
+duplicados inactivos del mismo tipo. No toca perfiles Wi-Fi, VPN ni conexiones
+con otro nombre.
 Después de insertar la SIM, activa la conexión de forma explícita:
 
 ```bash

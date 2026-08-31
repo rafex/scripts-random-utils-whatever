@@ -179,7 +179,9 @@ personalizadas estén instaladas.
 /etc/audit/rules.d/99-thinkpad-hardening.rules
 ```
 
-USBGuard queda en auditoría con dispositivos no reconocidos autorizados:
+USBGuard queda en auditoría con dispositivos no reconocidos autorizados. El
+instalador valida y arranca tanto usbguard.service como usbguard-dbus.service;
+si alguno falla, muestra el journal y no declara el hardening completo:
 
 ```text
 ImplicitPolicyTarget=allow
@@ -190,6 +192,14 @@ IPCAllowedUsers=root
 
 No se crea una allowlist ni se bloquean cámaras, lápiz, teclado, memorias o
 adaptadores USB.
+
+El montaje de unidades es independiente de USBGuard. Para montaje y expulsión
+sin sudo debe existir además la regla Polkit administrada por usb-perms:
+
+```bash
+just usb-perms --fix --no-legacy-udev --yes
+just usb-perms --check
+```
 
 ## Estado y auditoría
 

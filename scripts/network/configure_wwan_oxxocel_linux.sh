@@ -392,6 +392,17 @@ nmcli_active_profile_rows() {
 profile_uuid() {
   local uuid rows
 
+  # Si hay más de un perfil con el mismo nombre, conservar primero el que
+  # está conectado. Así --apply no puede elegir un duplicado inactivo y
+  # desmontar accidentalmente el perfil de datos funcional.
+  rows="$(nmcli_active_profile_rows "${1:-}")"
+  uuid="$(awk -F: -v wanted="$PROFILE_NAME" \
+    '$1 == wanted && $3 == "gsm" { print $2; exit }' <<< "$rows")"
+  if [[ -n "$uuid" ]]; then
+    printf '%s\n' "$uuid"
+    return 0
+  fi
+
   rows="$(nmcli_profile_rows "${1:-}")"
   uuid="$(awk -F: -v wanted="$PROFILE_NAME" \
     '$1 == wanted && $3 == "gsm" { print $2; exit }' <<< "$rows")"
@@ -412,6 +423,27 @@ profile_count() {
   rows="$(nmcli_profile_rows "${1:-}")"
   awk -F: -v wanted="$PROFILE_NAME" \
     '$1 == wanted && $3 == "gsm" { count++ } END { print count + 0 }' <<< "$rows"
+}
+
+deduplicate_profiles() {
+  local keep_uuid="$1" scope="${2:-}" rows name uuid type
+  local -a nmcli_cmd=(nmcli)
+  [[ "$scope" == root ]] && nmcli_cmd=(sudo nmcli)
+  rows="$(nmcli_profile_rows "$scope")"
+
+  while IFS=: read -r name uuid type; do
+    [[ "$name" == "$PROFILE_NAME" && "$type" == gsm ]] || continue
+    [[ -n "$uuid" && "$uuid" != "$keep_uuid" ]] || continue
+    if awk -F: -v wanted="$uuid" \
+      '$1 == wanted && $2 == "gsm" { found = 1 } END { exit !found }' \
+      <<< "$(nmcli_active_profile_rows "$scope")"; then
+      warn "se conserva el duplicado activo ${uuid}; no se eliminará automáticamente"
+      continue
+    fi
+    info "eliminando perfil OXXO Cel duplicado e inactivo (${uuid})"
+    "${nmcli_cmd[@]}" connection delete uuid "$uuid" >/dev/null \
+      || die "no se pudo eliminar el perfil duplicado ${uuid}"
+  done <<< "$rows"
 }
 
 show_packages() {
@@ -641,6 +673,11 @@ configure_profile() {
     ipv6.method auto \
     ipv6.never-default no \
     ipv6.route-metric "$ROUTE_METRIC"
+  deduplicate_profiles "$profile_ref" "$profile_scope"
+  profile_count_value="$(profile_count "$profile_scope")"
+  if ((profile_count_value > 1)); then
+    warn "quedan ${profile_count_value} perfiles GSM llamados '${PROFILE_NAME}'; revisa los duplicados activos"
+  fi
   success "perfil ${PROFILE_NAME} configurado; conexión manual y Wi-Fi preferida"
 }
 

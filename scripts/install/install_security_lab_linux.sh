@@ -18,7 +18,7 @@ ASSUME_YES=0
 readonly -a BASE_PACKAGES=(
     nmap ncat ndiff tcpdump tshark wireshark
     mtr-tiny bind9-dnsutils whois arp-scan
-    ethtool iw socat lsof strace usbutils
+    ethtool iw socat lsof strace usbutils libcap2-bin
 )
 readonly -a WIRELESS_PACKAGES=(
     aircrack-ng hcxdumptool hcxtools macchanger wireless-tools
@@ -220,7 +220,7 @@ show_stage_sizes() {
 }
 
 show_dumpcap_status() {
-    local dumpcap_path permissions capabilities groups
+    local dumpcap_path permissions mode_bits capabilities groups getcap_path
     dumpcap_path="$(command -v dumpcap || true)"
     permissions=''
     capabilities=''
@@ -231,8 +231,11 @@ show_dumpcap_status() {
         return 0
     fi
     permissions="$(stat -c '%A %U:%G' "$dumpcap_path" 2>/dev/null || true)"
-    if command -v getcap >/dev/null 2>&1; then
-        capabilities="$(getcap "$dumpcap_path" 2>/dev/null || true)"
+    getcap_path="$(command -v getcap 2>/dev/null || true)"
+    if [[ -n "$getcap_path" ]]; then
+        capabilities="$($getcap_path "$dumpcap_path" 2>/dev/null || true)"
+    else
+        capabilities='no verificada: falta getcap'
     fi
     printf 'dumpcap=%s\n' "$dumpcap_path"
     printf 'permisos=%s\n' "${permissions:-desconocidos}"
@@ -242,11 +245,41 @@ show_dumpcap_status() {
     else
         success "el usuario no pertenece al grupo wireshark"
     fi
-    if [[ "$permissions" == *s* || "$capabilities" == *cap_net_* ]]; then
+    mode_bits="$(stat -c '%A' "$dumpcap_path" 2>/dev/null || true)"
+    if [[ "$mode_bits" == *s* || "$capabilities" == *cap_net_* ]]; then
         warn "dumpcap tiene privilegios persistentes; revísalos y no ejecutes Wireshark como root"
+    elif [[ "$capabilities" == no\ verificada* ]]; then
+        warn 'no se pudo verificar la ausencia de capacidades de dumpcap'
     else
         success "no se detectó SUID ni capacidad persistente en dumpcap"
     fi
+}
+
+normalize_dumpcap_privileges() {
+    local dumpcap_path getcap_path setcap_path mode_bits capabilities
+    dumpcap_path="$(command -v dumpcap 2>/dev/null || true)"
+    [[ -n "$dumpcap_path" ]] || return 0
+    getcap_path="$(command -v getcap 2>/dev/null || true)"
+    setcap_path="$(command -v setcap 2>/dev/null || true)"
+    [[ -n "$getcap_path" && -n "$setcap_path" ]] ||
+        die 'no se puede normalizar dumpcap: instala libcap2-bin y repite --apply'
+
+    capabilities="$($getcap_path "$dumpcap_path" 2>/dev/null || true)"
+    mode_bits="$(stat -c '%A' "$dumpcap_path" 2>/dev/null || true)"
+    if [[ "$capabilities" == *cap_net_* ]]; then
+        info 'eliminando capacidades persistentes de dumpcap'
+        sudo "$setcap_path" -r "$dumpcap_path"
+    fi
+    if [[ "$mode_bits" == *s* ]]; then
+        info 'eliminando SUID de dumpcap'
+        sudo chmod u-s "$dumpcap_path"
+    fi
+
+    capabilities="$($getcap_path "$dumpcap_path" 2>/dev/null || true)"
+    mode_bits="$(stat -c '%A' "$dumpcap_path" 2>/dev/null || true)"
+    [[ "$mode_bits" != *s* && "$capabilities" != *cap_net_* ]] ||
+        die 'dumpcap conserva privilegios persistentes después de la normalización'
+    success 'dumpcap quedó reservado para capturas explícitas con sudo'
 }
 
 show_wireless_status() {
@@ -427,6 +460,9 @@ apply_stage() {
     validate_candidates
     info "instalando paquetes de la etapa '$STAGE'"
     install_selected_packages
+    if [[ "$STAGE" == base || "$STAGE" == all ]]; then
+        normalize_dumpcap_privileges
+    fi
     if [[ "$STAGE" == virtualization || "$STAGE" == all ]]; then
         configure_kvm_access
     fi

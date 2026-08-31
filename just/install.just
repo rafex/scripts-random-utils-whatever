@@ -169,6 +169,11 @@ install-security-lab *args:
 configure-kvm *args:
     bash scripts/install/configure_kvm_linux.sh {{args}}
 
+# Auditar de forma integral la preparación de la ThinkPad; no modifica el sistema
+# Uso: just audit-thinkpad --check
+audit-thinkpad *args:
+    bash scripts/install/audit_thinkpad_readiness_linux.sh {{args}}
+
 # Instalar los fondos del perfil ThinkPad en i3, GRUB y LightDM por etapas
 # Uso: just install-thinkpad-backgrounds --apply --stage desktop|grub|login|all
 install-thinkpad-backgrounds *args:

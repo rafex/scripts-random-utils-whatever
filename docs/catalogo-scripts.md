@@ -74,6 +74,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_terminal_workstation_linux.sh` | Linux | install-terminal-workstation | sí | sí | medio | [doc](install/install_terminal_workstation_linux.md) |
 | `scripts/install/install_security_lab_linux.sh` | Linux | install-security-lab | sí | sí | medio | [doc](install/install_security_lab_linux.md) |
 | `scripts/install/configure_kvm_linux.sh` | Linux | configure-kvm | sí | sí | medio | [doc](install/configure_kvm_linux.md) |
+| `scripts/install/audit_thinkpad_readiness_linux.sh` | Linux | audit-thinkpad | no | sí | bajo | [doc](install/audit_thinkpad_readiness_linux.md) |
 | `scripts/install/install_thinkpad_backgrounds_linux.sh` | Linux | install-thinkpad-backgrounds | sí | sí | alto | [doc](install/install_thinkpad_backgrounds_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
