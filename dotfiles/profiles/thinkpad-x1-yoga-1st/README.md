@@ -52,6 +52,29 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - Incluye `.tmux.conf` basado en el perfil `developer` de
   `development-environment-rafex`, con navegación tipo Vim, OSC52 y TPM.
 
+## Laboratorio de seguridad opcional
+
+Las herramientas de auditoría no forman parte de `install-profile`, para
+mantener el escritorio y la instalación base ligeros. Se instalan por etapas
+desde Debian:
+
+```sh
+just install-security-lab --check
+just install-security-lab --plan --stage base
+just install-security-lab --apply --stage base
+just install-security-lab --status
+```
+
+Las etapas `wireless`, `web`, `forensics`, `credentials` y `virtualization`
+son explícitas; `all` instala todas. Las herramientas no ejecutan acciones
+automáticamente. El Wi-Fi interno sigue bajo NetworkManager y para prácticas
+de modo monitor se recomienda un adaptador USB externo compatible.
+
+Las capturas en vivo requieren `sudo dumpcap` o `sudo tshark`; el usuario no
+se añade al grupo `wireshark` y Wireshark se abre como usuario normal. Las
+máquinas virtuales usan preferentemente `qemu:///session`: el instalador solo
+añade el grupo `kvm`, sin crear bridges ni abrir puertos.
+
 ## No incluye
 
 - `20-intel.conf` de la MacBook.

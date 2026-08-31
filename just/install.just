@@ -158,3 +158,8 @@ install-ufw *args:
 # Uso: just harden-thinkpad --apply --stage ssh|local|all
 harden-thinkpad *args:
     bash scripts/install/harden_thinkpad_linux.sh {{args}}
+
+# Instalar herramientas de auditoría y laboratorio de seguridad por fases
+# Uso: just install-security-lab --apply --stage base|wireless|web|forensics|credentials|virtualization|all
+install-security-lab *args:
+    bash scripts/install/install_security_lab_linux.sh {{args}}
