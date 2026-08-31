@@ -6,6 +6,10 @@ set -Eeuo pipefail
 readonly APN="internet.mvne1.com"
 readonly PROFILE_NAME="${WWAN_OXXOCEL_PROFILE:-OXXO Cel}"
 readonly ROUTE_METRIC=700
+readonly FCC_USB_ID="1199:9079"
+readonly FCC_CONFIG_DIR="/etc/ModemManager/fcc-unlock.d"
+readonly FCC_AVAILABLE_DIR="/usr/share/ModemManager/fcc-unlock.available.d"
+readonly FCC_LINK="${FCC_CONFIG_DIR}/${FCC_USB_ID}"
 TARGET_USER="$(id -un)"
 readonly TARGET_USER
 readonly REQUIRED_PACKAGES=(
@@ -116,18 +120,122 @@ find_modem_id() {
   basename "$modem_path"
 }
 
+fcc_module_present() {
+  local device vendor product
+  for device in /sys/bus/usb/devices/*; do
+    [[ -r "$device/idVendor" && -r "$device/idProduct" ]] || continue
+    vendor="$(<"$device/idVendor")"
+    product="$(<"$device/idProduct")"
+    if [[ "$vendor:$product" == "$FCC_USB_ID" ]]; then
+      return 0
+    fi
+  done
+
+  command -v lsusb >/dev/null 2>&1 \
+    && lsusb -d "$FCC_USB_ID" 2>/dev/null | grep -q .
+}
+
+fcc_available_script() {
+  local candidate
+  for candidate in \
+    "${FCC_AVAILABLE_DIR}/${FCC_USB_ID}" \
+    "${FCC_AVAILABLE_DIR}/${FCC_USB_ID%:*}"; do
+    if [[ -f "$candidate" || -L "$candidate" ]] && [[ -r "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+show_fcc_status() {
+  local target available
+  printf '  FCC USB ID esperado: %s\n' "$FCC_USB_ID"
+  if fcc_module_present; then
+    success "EM7455 ${FCC_USB_ID} detectada"
+  else
+    info "EM7455 ${FCC_USB_ID} no está visible por USB en este momento"
+  fi
+
+  available="$(fcc_available_script || true)"
+  if [[ -z "$available" ]]; then
+    warn "no se encontró el script FCC disponible en ${FCC_AVAILABLE_DIR}"
+    return 0
+  fi
+
+  if [[ -L "$FCC_LINK" ]]; then
+    target="$(readlink -f "$FCC_LINK" 2>/dev/null || true)"
+    if [[ -n "$target" && "$target" == "$(readlink -f "$available")" ]]; then
+      success "desbloqueo FCC persistente configurado: ${FCC_LINK}"
+    else
+      warn "existe ${FCC_LINK}, pero no apunta al script FCC disponible esperado"
+    fi
+  elif [[ -e "$FCC_LINK" ]]; then
+    warn "${FCC_LINK} existe y no es un enlace simbólico; no se sobrescribirá"
+  else
+    warn "desbloqueo FCC no habilitado: falta ${FCC_LINK}"
+  fi
+}
+
+ensure_fcc_unlock() {
+  local available current backup_root backup_path=""
+
+  if ! fcc_module_present; then
+    warn "no se habilitará FCC todavía: la EM7455 ${FCC_USB_ID} no está visible por USB"
+    return 0
+  fi
+
+  available="$(fcc_available_script || true)"
+  if [[ -z "$available" ]]; then
+    warn "Debian no instaló un script FCC para ${FCC_USB_ID}; revisa el paquete ModemManager"
+    return 0
+  fi
+
+  sudo install -d -m 0755 "$FCC_CONFIG_DIR"
+  if [[ -L "$FCC_LINK" ]]; then
+    current="$(readlink -f "$FCC_LINK" 2>/dev/null || true)"
+    if [[ -n "$current" && "$current" == "$(readlink -f "$available")" ]]; then
+      success "desbloqueo FCC ya estaba configurado: ${FCC_LINK}"
+      return 0
+    fi
+  elif [[ -e "$FCC_LINK" ]]; then
+    die "${FCC_LINK} existe y no es un enlace; no se modificará automáticamente"
+  fi
+
+  backup_root="/var/backups/rafex-wwan-oxxocel"
+  if [[ -e "$FCC_LINK" || -L "$FCC_LINK" ]]; then
+    sudo install -d -m 0700 "$backup_root"
+    backup_path="${backup_root}/1199:9079.bak.$(date +%Y%m%d_%H%M%S)"
+    sudo mv "$FCC_LINK" "$backup_path"
+    info "enlace FCC anterior respaldado en ${backup_path}"
+  fi
+
+  sudo ln -s "$available" "$FCC_LINK"
+  success "desbloqueo FCC habilitado: ${FCC_LINK} -> ${available}"
+
+  if ! sudo systemctl restart ModemManager.service; then
+    sudo rm -f "$FCC_LINK"
+    if [[ -n "$backup_path" ]]; then
+      sudo mv "$backup_path" "$FCC_LINK"
+    fi
+    die "no se pudo reiniciar ModemManager después de habilitar FCC; se restauró el estado anterior"
+  fi
+  success "ModemManager reiniciado para aplicar el desbloqueo FCC"
+}
+
 modem_field() {
   local raw="$1"
   local field="$2"
   sed -nE \
     -e "s/.*\\|[[:space:]]*${field}:[[:space:]]*//Ip" \
     -e "s/^[[:space:]]*${field}:[[:space:]]*//Ip" \
-    <<< "$raw" | sed -n '1p'
+    <<< "$raw" | sed -n '1p' | sed -E "s/^'//; s/'$//"
 }
 
 modem_sim_status() {
   local raw="$1"
   local state lock sim_path failed_reason
+  local unlock_retries enabled_locks
   state="$(modem_field "$raw" "state" | tr '[:upper:]' '[:lower:]')"
   lock="$(modem_field "$raw" "lock" | tr '[:upper:]' '[:lower:]')"
   if [[ -z "$lock" ]]; then
@@ -141,14 +249,18 @@ modem_sim_status() {
     sim_path="$(modem_field "$raw" "sim slot paths" | tr '[:upper:]' '[:lower:]')"
   fi
   failed_reason="$(modem_field "$raw" "failed reason" | tr '[:upper:]' '[:lower:]')"
+  unlock_retries="$(modem_field "$raw" "unlock retries" | tr '[:upper:]' '[:lower:]')"
+  enabled_locks="$(modem_field "$raw" "enabled locks" | tr '[:upper:]' '[:lower:]')"
 
   if grep -qi 'sim-missing' <<< "$raw" \
     || [[ "$sim_path" == *sim-missing* || "$sim_path" == none ]]; then
     printf '%s\n' 'missing'
-  elif [[ "$lock" == *sim-pin2* || "$failed_reason" == *sim-pin2* ]]; then
+  elif [[ "$state" == locked* && ("$lock" == *sim-pin2* || "$failed_reason" == *sim-pin2*) ]]; then
     printf '%s\n' 'pin2-locked'
-  elif [[ "$state" == locked* || "$lock" == *sim-pin* || "$failed_reason" == *sim-pin* ]]; then
+  elif [[ "$state" == locked* && ("$lock" == *sim-pin* || "$failed_reason" == *sim-pin*) ]]; then
     printf '%s\n' 'pin-locked'
+  elif [[ "$lock" == *sim-pin2* || "$unlock_retries" == *sim-pin2* || "$enabled_locks" == *fixed-dialing* ]]; then
+    printf '%s\n' 'pin2-capability'
   elif [[ -n "$sim_path" && "$sim_path" != *unknown* ]]; then
     printf '%s\n' 'detected'
   else
@@ -171,6 +283,8 @@ report_modem_state() {
       warn "SIM ausente o no detectada" ;;
     pin2-locked)
       warn "SIM bloqueada por PIN2; no se intentará adivinar ni guardar el PIN2" ;;
+    pin2-capability)
+      warn "ModemManager reporta PIN2/fixed-dialing como función de la SIM; no bloquea necesariamente los datos" ;;
     pin-locked)
       warn "SIM bloqueada por PIN; desbloquéala de forma interactiva antes de conectar" ;;
     detected)
@@ -194,8 +308,16 @@ report_modem_state() {
 
 active_gsm_profile() {
   local uuid="$1"
-  nmcli -t -f connection.uuid,connection.type connection show --active 2>/dev/null \
-    | awk -F: -v wanted="$uuid" '$1 == wanted && $2 == "gsm" { found = 1 } END { exit !found }'
+  local active
+
+  active="$(nmcli -t -g connection.uuid,connection.type connection show --active 2>/dev/null || true)"
+  if awk -F: -v wanted="$uuid" '$1 == wanted && $2 == "gsm" { found = 1 } END { exit !found }' <<< "$active"; then
+    return 0
+  fi
+
+  # Compatibilidad con versiones que solo aceptan los alias cortos en este contexto.
+  active="$(nmcli -t -g UUID,TYPE connection show --active 2>/dev/null || true)"
+  awk -F: -v wanted="$uuid" '$1 == wanted && $2 == "gsm" { found = 1 } END { exit !found }' <<< "$active"
 }
 
 require_interactive_terminal() {
@@ -217,6 +339,9 @@ wait_for_modem_ready() {
         pin2-locked)
           warn "la SIM reporta PIN2; se intentará únicamente la conexión de datos"
           info "si nmcli solicita PIN2, cancela: no se puede omitir ni adivinar ese código"
+          return 0 ;;
+        pin2-capability)
+          warn "la SIM reporta PIN2/fixed-dialing como capacidad; se intentará únicamente la conexión de datos"
           return 0 ;;
         pin-locked)
           info "la SIM está protegida por PIN; se continuará para que nmcli --ask pueda solicitarlo"
@@ -247,7 +372,7 @@ profile_exists() {
 }
 
 profile_uuid() {
-  nmcli -t -f NAME,UUID,TYPE connection show 2>/dev/null \
+  nmcli -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null \
     | awk -F: -v wanted="$PROFILE_NAME" \
       '$1 == wanted && $3 == "gsm" { print $2; exit }'
 }
@@ -296,7 +421,7 @@ show_modem_summary() {
   raw="$(mmcli -m "$modem_id" 2>&1 || true)"
   if [[ -n "$raw" ]]; then
     while IFS= read -r line; do
-      if [[ "$line" =~ (manufacturer|model|firmware\ revision|drivers|plugin|primary\ port|ports|state|failed\ reason|power\ state|supported|current|sim\ slot\ paths): ]]; then
+      if [[ "$line" =~ (manufacturer|model|firmware\ revision|drivers|plugin|primary\ port|ports|state|failed\ reason|power\ state|lock|unlock\ retries|enabled\ locks|registration|packet\ service\ state|access\ tech|supported|current|sim\ slot\ paths): ]]; then
         printf '  %s\n' "$line"
       fi
     done <<< "$raw"
@@ -355,6 +480,7 @@ action_check() {
   done
 
   show_packages
+  show_fcc_status
   show_driver_state
   if command -v systemctl >/dev/null 2>&1; then
     if systemctl is-active --quiet NetworkManager; then
@@ -392,6 +518,16 @@ action_plan() {
     success "[plan] no faltan paquetes WWAN"
   fi
   info "[plan] habilitar NetworkManager y ModemManager"
+  if fcc_module_present && [[ -n "$(fcc_available_script || true)" ]]; then
+    if [[ -L "$FCC_LINK" ]]; then
+      info "[plan] conservar o validar el enlace FCC ${FCC_LINK}"
+    else
+      info "[plan] crear ${FCC_LINK} apuntando al script FCC oficial de Debian"
+      info "[plan] reiniciar ModemManager para aplicar el desbloqueo FCC"
+    fi
+  else
+    info "[plan] revisar FCC después de insertar/detectar la EM7455 ${FCC_USB_ID}"
+  fi
   info "[plan] crear o actualizar el perfil GSM ${PROFILE_NAME}"
   info "[plan] APN ${APN}, IPv4/IPv6 automático, métrica 700"
   info "[plan] autoconnect desactivado y roaming desactivado"
@@ -461,6 +597,7 @@ action_apply() {
   if ! sudo systemctl enable --now NetworkManager.service ModemManager.service; then
     die "no se pudieron activar NetworkManager y ModemManager; revisa systemctl status NetworkManager ModemManager"
   fi
+  ensure_fcc_unlock
   configure_profile
   if ! find_modem_id >/dev/null 2>&1; then
     warn "perfil creado, pero ModemManager todavía no detecta el módem"
@@ -475,6 +612,7 @@ action_status() {
   printf '%b\n' "${BOLD}═══ Estado WWAN OXXO Cel ═══${RESET}"
   if command -v nmcli >/dev/null 2>&1; then
     show_driver_state
+    show_fcc_status
     show_profile_status
   fi
   if command -v mmcli >/dev/null 2>&1; then

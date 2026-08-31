@@ -21,6 +21,7 @@ listar los SMS que el módem expone al sistema.
 
 - [Requisitos](#requisitos)
 - [Uso](#uso)
+- [Incidente real: EM7455 en `disabled / low`](#incidente-real-em7455-en-disabled-low)
 - [Opciones](#opciones)
 - [Variables de entorno](#variables-de-entorno)
 - [Ejemplos](#ejemplos)
@@ -88,6 +89,162 @@ Para consultar los SMS almacenados por ModemManager:
 ```bash
 just configure-wwan-oxxocel --sms-list
 ```
+
+## Incidente real: EM7455 en `disabled / low`
+
+Esta sección conserva el diagnóstico de la ThinkPad X1 Yoga y explica por qué
+la conexión terminó funcionando aunque ModemManager mostrara referencias a
+PIN2 y `fixed-dialing`. No contiene PIN, PUK, IMEI, IMSI ni credenciales.
+
+### Línea de tiempo
+
+| Observación | Interpretación | Acción segura |
+|---|---|---|
+| La EM7455 aparecía como `state: disabled` y `power state: low`. | El módem no estaba en una transición operativa para crear una sesión de datos. | Revisar radio WWAN, `rfkill`, firmware y el procedimiento FCC antes de cambiar el APN. |
+| `mmcli -m 0 --enable` devolvía `Invalid transition`. | El comando se estaba ejecutando mientras el firmware mantenía el módem en un estado incompatible con esa transición. | No repetir comandos de habilitación a ciegas ni enviar comandos AT. |
+| `lsusb` identificó el módulo como `1199:9079`. | Ese identificador corresponde a la Sierra Wireless EM7455 instalada en esta ThinkPad. | Buscar el procedimiento FCC disponible para ese ID. |
+| Debian tenía un script FCC disponible, pero no habilitado automáticamente. | Desde ModemManager 1.18.4 los procedimientos FCC disponibles pueden requerir activación explícita por el usuario. | Crear el enlace persistente bajo `/etc/ModemManager/fcc-unlock.d/`. |
+| Se activó `/etc/ModemManager/fcc-unlock.d/1199:9079`. | ModemManager pudo ejecutar el procedimiento oficial asociado al módulo al volver a inicializarlo. | Reiniciar únicamente `ModemManager`, sin cambiar firmware ni composición USB. |
+| La EM7455 pasó a `state: enabled` y `power state: on`. | El bloqueo de estado FCC/firmware quedó resuelto. | Volver a intentar la conexión con NetworkManager. |
+| `--connect` funcionó desde `think:0`, sin sudo, PIN2, PUK2 ni comandos AT. | El problema principal no era el APN `internet.mvne1.com`; era el estado FCC/firmware del módem. | Mantener la conexión de datos bajo NetworkManager y no almacenar secretos. |
+
+### Qué hace el enlace FCC
+
+El paquete de ModemManager puede instalar procedimientos oficiales en:
+
+```text
+/usr/share/ModemManager/fcc-unlock.available.d/
+```
+
+Esos archivos están disponibles, pero no necesariamente activos. Para la
+EM7455 se habilita el procedimiento creando un enlace con el identificador USB
+del dispositivo:
+
+```text
+/etc/ModemManager/fcc-unlock.d/1199:9079
+```
+
+El enlace debe apuntar al archivo disponible de Debian; no se debe copiar,
+editar ni reemplazar el script oficial. La activación administrada por este
+repositorio se realiza con:
+
+```bash
+just configure-wwan-oxxocel --apply
+```
+
+Cuando la EM7455 `1199:9079` está conectada y Debian ofrece el procedimiento,
+`--apply` crea el directorio, conserva un enlace correcto si ya existe y
+reinicia ModemManager para aplicarlo. Si el módulo no está visible por USB,
+el script no inventa el enlace: informa que debe repetirse `--apply` después de
+insertar o habilitar el módem.
+
+Para comprobarlo sin exponer identificadores de la SIM:
+
+```bash
+lsusb -d 1199:9079
+test -L /etc/ModemManager/fcc-unlock.d/1199:9079
+readlink -f /etc/ModemManager/fcc-unlock.d/1199:9079
+systemctl is-active ModemManager
+mmcli -L
+mmcli -m <índice> | grep -E 'state:|power state:|registration:|packet service state:|lock:|unlock retries:|enabled locks:'
+```
+
+La última orden filtra solamente estado operativo y capacidades relevantes; no
+se debe guardar una salida completa de `mmcli` porque puede incluir IMEI u otros
+identificadores del módem.
+
+La referencia oficial explica que los procedimientos FCC dejaron de habilitarse
+por defecto y que las distribuciones pueden instalarlos como archivos
+disponibles para que el usuario los active explícitamente: [FCC unlock de
+ModemManager](https://mobile-broadband.pages.freedesktop.org/docs/modemmanager/fcc-unlock/).
+
+### PIN normal, PIN2, PUK2 y `fixed-dialing`
+
+| Elemento | Para qué sirve | Relación con los datos LTE |
+|---|---|---|
+| PIN normal | Desbloquea el uso general de la SIM cuando está protegida. | Puede ser necesario antes de registrar el módem y crear datos. NetworkManager puede solicitarlo mediante `nmcli --ask`. |
+| PIN2 | Protege funciones especiales de la SIM, habitualmente relacionadas con marcación fija o servicios suplementarios. | No es el APN ni el PIN normal; su presencia no demuestra por sí sola que los datos estén bloqueados. |
+| PUK2 | Código de recuperación del PIN2 después de intentos fallidos. | No debe adivinarse ni probarse en el módem. Un error puede bloquear permanentemente una función de la SIM. |
+| `fixed-dialing` | Función de marcación fija que el módem puede anunciar dentro de las capacidades de la SIM. | Puede aparecer junto a `sim-pin2` aunque una sesión de datos LTE funcione correctamente. |
+| APN | Nombre del punto de acceso de datos del operador. | Para OXXO Cel es `internet.mvne1.com`; no desbloquea FCC, PIN normal, PIN2 ni PUK2. |
+
+En este caso, `sim-pin2` y `fixed-dialing` fueron señales de una función
+especial reportada por el firmware, no una solicitud activa de PIN2 para la
+conexión de datos. La evidencia decisiva fue que el módem quedó `enabled / on`,
+se registró en LTE, NetworkManager activó el perfil y recibió una dirección IP.
+
+NetworkManager documenta el campo `gsm.pin` como el PIN de la SIM que puede
+necesitarse para operar el dispositivo; no define un parámetro de APN para PIN2:
+[configuración GSM de NetworkManager](https://networkmanager.dev/docs/api/1.30/settings-gsm.html).
+
+### Diagnóstico reproducible
+
+Usa esta secuencia en la sesión gráfica local o en una terminal SSH con TTY:
+
+```bash
+just configure-wwan-oxxocel --check
+just configure-wwan-oxxocel --status
+just configure-wwan-oxxocel --connect
+nmcli device status
+nmcli connection show 'OXXO Cel'
+```
+
+Interpreta el resultado en este orden:
+
+```text
+disabled / low
+  -> revisar FCC 1199:9079, WWAN, rfkill y ModemManager;
+     no cambiar el APN como primer intento.
+
+sim-missing
+  -> revisar inserción, orientación, slot y detección física de la SIM.
+
+sim-pin
+  -> usar únicamente la solicitud interactiva de nmcli para el PIN normal;
+     no ponerlo en argumentos, scripts, logs ni documentación.
+
+sim-pin2 o fixed-dialing, con módem enabled/registered/connected
+  -> tratarlo como advertencia no bloqueante para datos;
+     no enviar PIN2, PUK2 ni comandos AT.
+
+registered, sin bearer o sin dirección IP
+  -> el módem ve la red, pero el perfil GSM todavía no está conectado o
+     NetworkManager no obtuvo una sesión de datos.
+
+connected, packet service attached y dirección IP
+  -> datos LTE operativos; el warning de PIN2 no impide esta conexión.
+```
+
+El caso histórico de Red Hat muestra una EM7455 con `disabled`, `power state:
+low`, `unlock retries: sim-pin2` y `enabled locks: fixed-dialing`, una
+combinación que puede desorientar el diagnóstico si se interpreta como una
+petición de PIN2 de datos: [caso documentado de EM7455 en Red Hat
+Bugzilla](https://bugzilla.redhat.com/show_bug.cgi?id=1379406). El protocolo
+MBIM que utiliza `cdc_mbim` define las operaciones de estado, sesión de datos y
+mensajería del módem: [documentación de libmbim](https://mobile-broadband.pages.freedesktop.org/docs/libmbim/mbim-protocol/).
+
+### Reconstrucción después de reinstalar Debian
+
+El enlace FCC no contiene secretos y debe volver a generarse como parte de la
+reconstrucción del equipo. La secuencia recomendada es:
+
+```bash
+cd /opt/repository/github/rafex/scripts-random-utils-whatever
+just configure-wwan-oxxocel --check
+just configure-wwan-oxxocel --apply
+just configure-wwan-oxxocel --status
+just configure-wwan-oxxocel --connect
+```
+
+`--apply` puede solicitar sudo para paquetes, servicios y el enlace FCC.
+`--connect` debe ejecutarse como `rafex`, no requiere sudo y puede solicitar
+interactivamente el PIN normal si la SIM lo necesita. No se almacena el PIN y
+no se ejecutan operaciones de voz, PIN2, PUK2 ni AT.
+
+Si `--apply` informa que la EM7455 no está visible, habilita WWAN, inserta la
+SIM y repite el comando. No crees un enlace a mano hacia una ruta que no exista:
+primero debe estar instalado el paquete de ModemManager que proporciona el
+archivo bajo `fcc-unlock.available.d`.
 
 ## Opciones
 
@@ -293,3 +450,10 @@ SIM, registro y conexión de datos sin usar sudo.
 
 **fix:** permitir el intento de datos cuando la SIM reporta `sim-pin2`, sin
 enviar códigos PIN/PUK ni comandos AT.
+
+**docs:** documentar el incidente FCC de la EM7455 `1199:9079` y diferenciar
+PIN2/fixed-dialing de un bloqueo real de datos.
+
+**fix:** habilitar el procedimiento FCC oficial de Debian durante `--apply`
+cuando la EM7455 está presente y hacer compatible la detección del perfil GSM
+activo con distintas versiones de `nmcli`.
