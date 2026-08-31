@@ -132,12 +132,22 @@ La captura requiere autorización sobre la red y el equipo observados. Wireshark
 
 ```bash
 just install-security-lab --apply --stage virtualization
-newgrp kvm
+just configure-kvm --apply
+```
+
+La etapa instala las dependencias de QEMU/libvirt y el configurador prepara la
+sesión de usuario, las pools privadas de imágenes/ISOs y la URI
+`qemu:///session`. Si se añadió el grupo `kvm`, cierra y abre sesión o ejecuta
+`newgrp kvm`. Después:
+
+```bash
 virsh -c qemu:///session list --all
 virt-manager --connect qemu:///session
 ```
 
-El instalador añade solo el grupo `kvm`. No añade `libvirt`, no crea bridges físicos, no habilita exposición de servicios ni abre puertos en UFW.
+El configurador no añade `libvirt`, no crea bridges físicos, no habilita
+exposición de servicios ni abre puertos en UFW. Consulta la [configuración
+completa de QEMU/KVM](configure_kvm_linux.md).
 
 ### Etapa sensible con confirmación explícita
 

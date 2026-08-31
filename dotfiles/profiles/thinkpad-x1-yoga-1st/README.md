@@ -75,9 +75,12 @@ automáticamente. El Wi-Fi interno sigue bajo NetworkManager y para prácticas
 de modo monitor se recomienda un adaptador USB externo compatible.
 
 Las capturas en vivo requieren `sudo dumpcap` o `sudo tshark`; el usuario no
-se añade al grupo `wireshark` y Wireshark se abre como usuario normal. Las
-máquinas virtuales usan preferentemente `qemu:///session`: el instalador solo
-añade el grupo `kvm`, sin crear bridges ni abrir puertos.
+se añade al grupo `wireshark` y Wireshark se abre como usuario normal. Para
+virtualización, `just install-security-lab --apply --stage virtualization`
+instala las dependencias y `just configure-kvm --apply` prepara
+`qemu:///session`, pools privadas en el usuario y red user-mode sin bridges ni
+puertos nuevos. Consulta [configure_kvm_linux](../../../docs/install/configure_kvm_linux.md)
+si el repositorio se está usando desde su copia de trabajo.
 
 ## Fondos de marca
 

@@ -164,6 +164,11 @@ harden-thinkpad *args:
 install-security-lab *args:
     bash scripts/install/install_security_lab_linux.sh {{args}}
 
+# Configurar QEMU/KVM para virtualización de usuario sin bridges físicos
+# Uso: just configure-kvm --check|--plan|--apply|--status
+configure-kvm *args:
+    bash scripts/install/configure_kvm_linux.sh {{args}}
+
 # Instalar los fondos del perfil ThinkPad en i3, GRUB y LightDM por etapas
 # Uso: just install-thinkpad-backgrounds --apply --stage desktop|grub|login|all
 install-thinkpad-backgrounds *args:
