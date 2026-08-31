@@ -372,7 +372,12 @@ profile_exists() {
 }
 
 profile_uuid() {
-  nmcli -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null \
+  local -a nmcli_cmd=(nmcli)
+  if [[ "${1:-}" == root ]]; then
+    nmcli_cmd=(sudo nmcli)
+  fi
+
+  "${nmcli_cmd[@]}" -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null \
     | awk -F: -v wanted="$PROFILE_NAME" \
       '$1 == wanted && $3 == "gsm" { print $2; exit }'
 }
@@ -554,21 +559,33 @@ validate_sudo() {
 
 configure_profile() {
   local profile_type profile_ref
+  local -a nmcli_cmd=(nmcli)
   require_command nmcli
+
+  # NetworkManager puede reservar la creación de perfiles del sistema para
+  # root aunque el usuario tenga permitido administrarlos después. --connect
+  # nunca usa esta ruta privilegiada; solo --apply llega aquí con sudo validado.
+  if [[ "$ACTION" == apply ]]; then
+    nmcli_cmd=(sudo nmcli)
+  fi
 
   if profile_exists; then
     profile_ref="$(profile_uuid)"
-    profile_type="$(nmcli -g connection.type connection show uuid "$profile_ref" 2>/dev/null | sed -n '1p')"
+    profile_type="$("${nmcli_cmd[@]}" -g connection.type connection show uuid "$profile_ref" 2>/dev/null | sed -n '1p')"
     [[ "$profile_type" == "gsm" ]] \
       || die "ya existe '${PROFILE_NAME}' con tipo '${profile_type}', no se sobrescribirá"
     info "actualizando perfil GSM ${PROFILE_NAME} (${profile_ref})"
   else
     info "creando perfil GSM ${PROFILE_NAME}"
-    nmcli connection add type gsm ifname '*' con-name "$PROFILE_NAME" apn "$APN" >/dev/null
-    profile_ref="$(profile_uuid)"
+    "${nmcli_cmd[@]}" connection add type gsm ifname '*' con-name "$PROFILE_NAME" apn "$APN" >/dev/null \
+      || die "NetworkManager no permitió crear el perfil '${PROFILE_NAME}'; revisa sudo y Polkit"
+    profile_ref="$(profile_uuid root)"
   fi
 
-  nmcli connection modify uuid "$profile_ref" \
+  [[ -n "$profile_ref" ]] \
+    || die "NetworkManager no devolvió el UUID del perfil '${PROFILE_NAME}'; revisa el servicio y los permisos"
+
+  "${nmcli_cmd[@]}" connection modify uuid "$profile_ref" \
     gsm.apn "$APN" \
     gsm.auto-config no \
     gsm.home-only yes \

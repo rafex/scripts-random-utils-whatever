@@ -357,6 +357,29 @@ compatible para que NetworkManager permita administrar el perfil al usuario
 normal mediante Polkit. Vuelve a ejecutar `--apply` para normalizar un perfil
 creado parcialmente.
 
+### `Insufficient privileges` al crear `OXXO Cel`
+
+**Causa:** en Debian, NetworkManager puede reservar la creación o modificación
+de perfiles persistentes del sistema para root, aunque el usuario pueda activar
+una conexión existente mediante D-Bus/Polkit. Por eso un `nmcli connection add`
+ejecutado directamente como `rafex` puede fallar antes de la etapa de conexión.
+
+**Solución:** ejecuta `just configure-wwan-oxxocel --apply` como `rafex`. Esa
+acción valida sudo y usa `sudo nmcli` únicamente para crear o normalizar el
+perfil `OXXO Cel`; no ejecutes el script completo como root. Después, las
+operaciones diarias funcionan sin sudo:
+
+```bash
+just configure-wwan-oxxocel --status
+just configure-wwan-oxxocel --connect
+just configure-wwan-oxxocel --disconnect
+```
+
+El script comprueba el UUID devuelto por NetworkManager y modifica el perfil
+por UUID, evitando duplicados o cambios ambiguos por nombre. No se instala una
+regla Polkit amplia para modificar perfiles globales, porque permitiría alterar
+DNS, rutas, proxies y otras conexiones del sistema desde una sesión de usuario.
+
 ### `--connect requiere una terminal interactiva`
 
 **Causa:** `nmcli --ask` necesita una entrada de usuario para PIN o secretos y
@@ -440,6 +463,10 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 - Detectar dinámicamente el módem y documentar la ausencia de voz de la EM7455.
 
 **fix:** aceptar la sintaxis de permisos de conexión de NetworkManager en Debian.
+
+**fix:** crear y modificar el perfil persistente con `sudo nmcli` solo durante
+`--apply`, validando el UUID antes de continuar; mantener `--connect`,
+`--disconnect`, `--status` y `--sms-list` sin sudo.
 
 **fix:** usar propiedades completas de `nmcli` y reportar claramente fallos de `sudo` o `systemctl`.
 
