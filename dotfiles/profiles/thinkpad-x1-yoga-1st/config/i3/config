@@ -26,7 +26,9 @@ exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
 exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
 exec_always --no-startup-id setxkbmap es
-exec --no-startup-id sh -c 'if [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"; fi'
+# BEGIN rafex thinkpad backgrounds
+exec_always --no-startup-id sh -c 'if command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
+# END rafex thinkpad backgrounds
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'
 exec --no-startup-id dex --autostart --environment i3
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'

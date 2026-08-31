@@ -163,3 +163,8 @@ harden-thinkpad *args:
 # Uso: just install-security-lab --apply --stage base|wireless|web|forensics|credentials|virtualization|all
 install-security-lab *args:
     bash scripts/install/install_security_lab_linux.sh {{args}}
+
+# Instalar los fondos del perfil ThinkPad en i3, GRUB y LightDM por etapas
+# Uso: just install-thinkpad-backgrounds --apply --stage desktop|grub|login|all
+install-thinkpad-backgrounds *args:
+    bash scripts/install/install_thinkpad_backgrounds_linux.sh {{args}}

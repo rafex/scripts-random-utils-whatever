@@ -97,6 +97,18 @@ ambos son configuraciones del sistema y requieren una decisión explícita. El
 SVG original de Rafex permanece fuera del perfil como fuente de identidad; las
 imágenes raster son fondos derivados y no sustituyen la marca vectorial.
 
+Para aplicarlos explícitamente después de instalar el perfil:
+
+```sh
+just install-thinkpad-backgrounds --plan --stage all
+just install-thinkpad-backgrounds --apply --stage desktop
+just install-thinkpad-backgrounds --apply --stage grub
+just install-thinkpad-backgrounds --apply --stage login
+```
+
+`desktop` no requiere sudo. Las etapas `grub` y `login` solicitan sudo,
+respaldan los archivos del sistema y no reinician LightDM automáticamente.
+
 ## No incluye
 
 - `20-intel.conf` de la MacBook.
