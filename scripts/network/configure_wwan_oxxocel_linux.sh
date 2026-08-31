@@ -371,15 +371,47 @@ profile_exists() {
   [[ -n "$(profile_uuid)" ]]
 }
 
-profile_uuid() {
+nmcli_profile_rows() {
   local -a nmcli_cmd=(nmcli)
   if [[ "${1:-}" == root ]]; then
     nmcli_cmd=(sudo nmcli)
   fi
 
-  "${nmcli_cmd[@]}" -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null \
-    | awk -F: -v wanted="$PROFILE_NAME" \
-      '$1 == wanted && $3 == "gsm" { print $2; exit }'
+  "${nmcli_cmd[@]}" -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null || true
+}
+
+nmcli_active_profile_rows() {
+  local -a nmcli_cmd=(nmcli)
+  if [[ "${1:-}" == root ]]; then
+    nmcli_cmd=(sudo nmcli)
+  fi
+
+  "${nmcli_cmd[@]}" -t -g connection.id,connection.uuid,connection.type connection show --active 2>/dev/null || true
+}
+
+profile_uuid() {
+  local uuid rows
+
+  rows="$(nmcli_profile_rows "${1:-}")"
+  uuid="$(awk -F: -v wanted="$PROFILE_NAME" \
+    '$1 == wanted && $3 == "gsm" { print $2; exit }' <<< "$rows")"
+  if [[ -n "$uuid" ]]; then
+    printf '%s\n' "$uuid"
+    return 0
+  fi
+
+  # Algunas versiones o políticas de NetworkManager ocultan perfiles de
+  # sistema en la lista general, aunque dejan visible la conexión activa.
+  rows="$(nmcli_active_profile_rows "${1:-}")"
+  awk -F: -v wanted="$PROFILE_NAME" \
+    '$1 == wanted && $3 == "gsm" { print $2; exit }' <<< "$rows"
+}
+
+profile_count() {
+  local rows
+  rows="$(nmcli_profile_rows "${1:-}")"
+  awk -F: -v wanted="$PROFILE_NAME" \
+    '$1 == wanted && $3 == "gsm" { count++ } END { print count + 0 }' <<< "$rows"
 }
 
 show_packages() {
@@ -558,7 +590,7 @@ validate_sudo() {
 }
 
 configure_profile() {
-  local profile_type profile_ref
+  local profile_count_value profile_type profile_ref profile_scope
   local -a nmcli_cmd=(nmcli)
   require_command nmcli
 
@@ -567,14 +599,19 @@ configure_profile() {
   # nunca usa esta ruta privilegiada; solo --apply llega aquí con sudo validado.
   if [[ "$ACTION" == apply ]]; then
     nmcli_cmd=(sudo nmcli)
+    profile_scope=root
   fi
 
-  if profile_exists; then
-    profile_ref="$(profile_uuid)"
+  profile_ref="$(profile_uuid "$profile_scope")"
+  if [[ -n "$profile_ref" ]]; then
     profile_type="$("${nmcli_cmd[@]}" -g connection.type connection show uuid "$profile_ref" 2>/dev/null | sed -n '1p')"
     [[ "$profile_type" == "gsm" ]] \
       || die "ya existe '${PROFILE_NAME}' con tipo '${profile_type}', no se sobrescribirá"
     info "actualizando perfil GSM ${PROFILE_NAME} (${profile_ref})"
+    profile_count_value="$(profile_count "$profile_scope")"
+    if ((profile_count_value > 1)); then
+      warn "hay ${profile_count_value} perfiles GSM llamados '${PROFILE_NAME}'; se reutiliza ${profile_ref} y no se creará otro"
+    fi
   else
     info "creando perfil GSM ${PROFILE_NAME}"
     "${nmcli_cmd[@]}" connection add type gsm ifname '*' con-name "$PROFILE_NAME" apn "$APN" >/dev/null \

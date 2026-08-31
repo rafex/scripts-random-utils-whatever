@@ -432,9 +432,11 @@ como `connection.id`, `connection.type` y `connection.autoconnect`.
 seleccionar uno distinto de forma ambigua si se modifica por nombre.
 
 **Solución:** el instalador localiza el perfil GSM por nombre y tipo, obtiene su
-UUID y realiza las modificaciones usando ese UUID. Los duplicados antiguos se
-deben revisar y eliminar manualmente por UUID después de confirmar que no están
-en uso.
+UUID y realiza las modificaciones usando ese UUID. Durante `--apply` consulta
+con privilegios para encontrar también un perfil de sistema que no sea visible
+en la lista del usuario. Si ya existen duplicados, reutiliza uno y no crea otro;
+los duplicados antiguos se deben revisar y eliminar manualmente por UUID después
+de confirmar que no están en uso.
 
 ### `ModemManager no detecta ningún módem WWAN`
 
