@@ -75,6 +75,28 @@ se añade al grupo `wireshark` y Wireshark se abre como usuario normal. Las
 máquinas virtuales usan preferentemente `qemu:///session`: el instalador solo
 añade el grupo `kvm`, sin crear bridges ni abrir puertos.
 
+## Fondos de marca
+
+El perfil incluye cinco fondos raster en
+`assets/backgrounds/`, instalados por `dotfiles/install.sh` en:
+
+```text
+~/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/
+```
+
+| Archivo | Uso previsto |
+|---|---|
+| `rafex-thinkpad-boot.png` | GRUB o pantalla de arranque; oscuro y con espacio para texto a la izquierda |
+| `rafex-thinkpad-login.png` | LightDM; centro despejado para el diálogo de inicio |
+| `rafex-thinkpad-desktop.png` | Fondo diario de i3; baja interferencia con i3bar y terminales |
+| `rafex-thinkpad-tablet.png` | Pantalla vertical al rotar la Yoga |
+| `rafex-thinkpad-projector.png` | Proyección y pantalla de recuperación; contraste sobrio |
+
+La instalación del perfil no modifica automáticamente GRUB ni LightDM, porque
+ambos son configuraciones del sistema y requieren una decisión explícita. El
+SVG original de Rafex permanece fuera del perfil como fuente de identidad; las
+imágenes raster son fondos derivados y no sustituyen la marca vectorial.
+
 ## No incluye
 
 - `20-intel.conf` de la MacBook.

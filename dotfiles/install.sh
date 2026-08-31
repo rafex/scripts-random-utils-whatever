@@ -477,6 +477,39 @@ create_image_dirs() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 9b. Instalar assets portables del perfil
+# ─────────────────────────────────────────────────────────────────────────────
+install_profile_assets() {
+    local assets_src="$PROFILES_DIR/$PROFILE/assets"
+    local assets_dest="$HOME/.local/share/rafex/profiles/$PROFILE/assets"
+    local source_file target_file relative_path
+
+    [[ -d "$assets_src" ]] || return
+    info "Instalando assets del perfil en ${BOLD}${assets_dest}${RESET}..."
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        while IFS= read -r -d '' source_file; do
+            relative_path="${source_file#"$assets_src"/}"
+            info "[dry-run] asset: ${relative_path} → ${assets_dest}/${relative_path}"
+        done < <(find "$assets_src" -type f -print0)
+        return
+    fi
+
+    while IFS= read -r -d '' source_file; do
+        relative_path="${source_file#"$assets_src"/}"
+        target_file="$assets_dest/$relative_path"
+        mkdir -p "$(dirname "$target_file")"
+        if [[ -f "$target_file" ]] && cmp -s "$source_file" "$target_file"; then
+            continue
+        fi
+        backup_existing "$target_file"
+        cp "$source_file" "$target_file"
+        chmod 644 "$target_file"
+    done < <(find "$assets_src" -type f -print0)
+    success "  assets del perfil instalados"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # 10. Inyectar variables de entorno en el RC file
 # ─────────────────────────────────────────────────────────────────────────────
 inject_env_vars() {
@@ -602,6 +635,9 @@ main() {
     echo
 
     create_image_dirs
+    echo
+
+    install_profile_assets
     echo
 
     inject_env_vars
