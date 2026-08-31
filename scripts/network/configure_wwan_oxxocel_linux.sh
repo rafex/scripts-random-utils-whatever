@@ -61,8 +61,9 @@ Acciones:
   --sms-list    Lista los SMS expuestos por ModemManager.
   -h, --help    Muestra esta ayuda.
 
-El perfil usa el APN ${APN}, no guarda PIN, usuario ni contraseña y no se
-conecta automáticamente. Para cambiar el nombre del perfil usa:
+El perfil usa el APN ${APN}, no guarda PIN, usuario ni contraseña y se conecta
+automáticamente cuando la SIM y la red están disponibles. Para cambiar el
+nombre del perfil usa:
   WWAN_OXXOCEL_PROFILE='Otro nombre' $0 --apply
 EOF
 }
@@ -599,8 +600,8 @@ action_plan() {
   fi
   info "[plan] crear o actualizar el perfil GSM ${PROFILE_NAME}"
   info "[plan] APN ${APN}, IPv4/IPv6 automático, métrica 700"
-  info "[plan] autoconnect desactivado y roaming desactivado"
-  info "[plan] no activar la conexión ni almacenar PIN o credenciales"
+  info "[plan] autoconnect habilitado, métrica 700 y roaming desactivado"
+  info "[plan] no ejecutar una conexión directa; dejar autoconexión sin almacenar PIN o credenciales"
   success "plan terminado; no se modificó el sistema"
 }
 
@@ -663,7 +664,7 @@ configure_profile() {
     gsm.password-flags not-required \
     gsm.pin '' \
     gsm.pin-flags not-required \
-    connection.autoconnect no \
+    connection.autoconnect yes \
     connection.autoconnect-priority -100 \
     connection.permissions '' \
     connection.metered yes \
@@ -678,7 +679,7 @@ configure_profile() {
   if ((profile_count_value > 1)); then
     warn "quedan ${profile_count_value} perfiles GSM llamados '${PROFILE_NAME}'; revisa los duplicados activos"
   fi
-  success "perfil ${PROFILE_NAME} configurado; conexión manual y Wi-Fi preferida"
+  success "perfil ${PROFILE_NAME} configurado; autoconexión habilitada y Wi-Fi preferida"
 }
 
 action_apply() {
@@ -696,7 +697,7 @@ action_apply() {
   if ! compgen -G '/dev/cdc-wdm*' >/dev/null; then
     warn "no se detecta /dev/cdc-wdm*; inserta la SIM y revisa el estado del módem"
   fi
-  info "usa --connect únicamente después de insertar la SIM"
+  info "NetworkManager intentará conectar WWAN automáticamente; usa --connect para forzar la conexión"
 }
 
 action_status() {

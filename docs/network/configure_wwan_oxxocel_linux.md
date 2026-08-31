@@ -56,12 +56,13 @@ just configure-wwan-oxxocel --apply
 just configure-wwan-oxxocel --status
 ```
 
-`--apply` crea o actualiza el perfil `OXXO Cel`, pero no enciende una conexión
-de datos. La operación es idempotente: si existen varios perfiles GSM con ese
-nombre, reutiliza primero el que está activo y elimina únicamente los
-duplicados inactivos del mismo tipo. No toca perfiles Wi-Fi, VPN ni conexiones
-con otro nombre.
-Después de insertar la SIM, activa la conexión de forma explícita:
+`--apply` crea o actualiza el perfil `OXXO Cel` y deja habilitada su
+autoconexión, pero no ejecuta directamente una orden de conexión. NetworkManager
+intentará activarlo cuando la SIM y la red estén disponibles. La operación es
+idempotente: si existen varios perfiles GSM con ese nombre, reutiliza primero
+el que está activo y elimina únicamente los duplicados inactivos del mismo
+tipo. No toca perfiles Wi-Fi, VPN ni conexiones con otro nombre.
+Después de insertar la SIM, puede forzarse la conexión explícitamente:
 
 ```bash
 just configure-wwan-oxxocel --connect
@@ -287,8 +288,9 @@ Instalación del soporte y creación del perfil:
 just configure-wwan-oxxocel --apply
 ```
 
-Conectar manualmente después de insertar la SIM. Si NetworkManager solicita el
-PIN, se introduce de forma interactiva y no se guarda en el perfil:
+Después de `--apply`, NetworkManager intentará conectar automáticamente la WWAN
+cuando la SIM esté disponible. Si solicita el PIN, se introduce de forma
+interactiva y no se guarda en el perfil. Para forzar la conexión manualmente:
 
 ```bash
 just configure-wwan-oxxocel --connect
@@ -312,8 +314,12 @@ just configure-wwan-oxxocel --sms-list
 - `--check`, `--plan`, `--status` y `--sms-list` no modifican el sistema.
 - `--apply` solicita la contraseña únicamente mediante `sudo -v`.
 - No se guardan PIN, usuarios, contraseñas, IMEI ni identificadores del módem.
-- El perfil no tiene autoconexión y usa una métrica de ruta alta (`700`) para
-  conservar Wi-Fi como conexión preferida.
+- El perfil tiene autoconexión habilitada y usa una métrica de ruta alta (`700`)
+  para conservar Wi-Fi como conexión preferida (`600`). Ambas interfaces pueden
+  permanecer conectadas; la ruta por Wi-Fi se elige por tener la métrica menor.
+- `connection.metered yes` identifica la WWAN como datos medidos y la prioridad
+  de ruta evita el uso normal errático. Esto no garantiza consumo cero durante
+  una transición de red ni sustituye revisar el saldo del operador.
 - El roaming queda desactivado inicialmente (`gsm.home-only yes`).
 - No se modifican firmware, composición USB, BIOS, GRUB, particiones, `fstab` ni
   configuraciones de NetworkManager ajenas al perfil administrado.
@@ -473,6 +479,9 @@ comando. La recepción de SMS depende de la SIM, firmware y operador.
 **fix:** crear y modificar el perfil persistente con `sudo nmcli` solo durante
 `--apply`, validando el UUID antes de continuar; mantener `--connect`,
 `--disconnect`, `--status` y `--sms-list` sin sudo.
+
+**fix:** habilitar la autoconexión WWAN manteniendo Wi-Fi como ruta preferida
+mediante métricas 600/700.
 
 **fix:** usar propiedades completas de `nmcli` y reportar claramente fallos de `sudo` o `systemctl`.
 
