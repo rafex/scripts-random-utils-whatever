@@ -140,9 +140,9 @@ check_network() {
   printf 'wifi_conectado=%s wwan_conectado=%s\n' "$wifi" "$wwan"
   ((wifi > 0)) && ok 'Wi-Fi conectado' || warn 'Wi-Fi no está conectado actualmente'
   ((wwan > 0)) && ok 'WWAN conectada como respaldo' || info 'WWAN no conectada actualmente'
-  duplicate_count="$(nmcli -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null |
+  duplicate_count="$(nmcli -t -g NAME,UUID,TYPE connection show 2>/dev/null |
     awk -F: -v wanted='OXXO Cel' '$1 == wanted && $3 == "gsm" { count++ } END { print count + 0 }')"
-  active_count="$(nmcli -t -g connection.id,connection.uuid,connection.type connection show --active 2>/dev/null |
+  active_count="$(nmcli -t -g NAME,UUID,TYPE connection show --active 2>/dev/null |
     awk -F: -v wanted='OXXO Cel' '$1 == wanted && $3 == "gsm" { count++ } END { print count + 0 }')"
   if ((duplicate_count == 1)); then
     ok 'existe un único perfil GSM OXXO Cel'

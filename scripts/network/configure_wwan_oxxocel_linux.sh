@@ -377,7 +377,7 @@ nmcli_profile_rows() {
     nmcli_cmd=(sudo nmcli)
   fi
 
-  "${nmcli_cmd[@]}" -t -g connection.id,connection.uuid,connection.type connection show 2>/dev/null || true
+  "${nmcli_cmd[@]}" -t -g NAME,UUID,TYPE connection show 2>/dev/null || true
 }
 
 nmcli_active_profile_rows() {
@@ -386,7 +386,7 @@ nmcli_active_profile_rows() {
     nmcli_cmd=(sudo nmcli)
   fi
 
-  "${nmcli_cmd[@]}" -t -g connection.id,connection.uuid,connection.type connection show --active 2>/dev/null || true
+  "${nmcli_cmd[@]}" -t -g NAME,UUID,TYPE connection show --active 2>/dev/null || true
 }
 
 profile_uuid() {
