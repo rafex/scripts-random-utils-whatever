@@ -75,7 +75,7 @@ check_services() {
 }
 
 check_privileged_controls() {
-  local effective_ssh expected_line key
+  local effective_ssh expected_line actual_line key
   printf '═══ Controles privilegiados ═══\n'
   if ! sudo -n true 2>/dev/null; then
     pending 'ejecutar la verificación desde la consola local después de sudo -v'
@@ -118,7 +118,8 @@ check_privileged_controls() {
       if grep -Fqx "$expected_line" <<< "$effective_ssh"; then
         ok "sshd: $expected_line"
       else
-        blocker "sshd no aplica la directiva $expected_line"
+        actual_line="$(awk -v wanted="$key" '$1 == wanted { print; exit }' <<< "$effective_ssh")"
+        blocker "sshd no aplica la directiva $expected_line${actual_line:+ (actual: $actual_line)}"
       fi
     done
   fi
