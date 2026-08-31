@@ -116,8 +116,15 @@ pool_exists() {
 
 pool_active() {
   session_virsh pool-info "$1" 2>/dev/null |
-    awk -F': ' '/^Active:/ { print tolower($2); exit }' |
-    grep -qx 'yes'
+    awk -F': ' '
+      /^(State|Active):/ {
+        value=tolower($2)
+        if (value == "running" || value == "active" || value == "yes") {
+          found=1
+        }
+      }
+      END { exit(found ? 0 : 1) }
+    '
 }
 
 pool_path() {
