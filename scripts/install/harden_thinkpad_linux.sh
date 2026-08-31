@@ -164,16 +164,20 @@ restore_backup() {
 
 install_root_content() {
   local destination="$1" mode="$2" content="$3"
-  local temporary
+  local temporary current_mode
   FILE_CHANGED=0
   BACKUP_DEST=''
   temporary="$(mktemp)"
   printf '%s\n' "$content" > "$temporary"
   if sudo -n test -f "$destination" 2>/dev/null &&
     sudo -n cmp -s "$temporary" "$destination" 2>/dev/null; then
-    rm -f -- "$temporary"
-    ok "sin cambios: $destination"
-    return 0
+    current_mode="$(sudo -n stat -c '%a' "$destination" 2>/dev/null || true)"
+    if [[ "$current_mode" == "$mode" ]]; then
+      rm -f -- "$temporary"
+      ok "sin cambios: $destination"
+      return 0
+    fi
+    info "corrigiendo permisos de $destination: actual=$current_mode esperado=$mode"
   fi
   if [[ "$ACTION" == plan ]]; then
     rm -f -- "$temporary"
