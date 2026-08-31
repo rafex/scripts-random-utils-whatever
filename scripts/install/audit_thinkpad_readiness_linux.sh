@@ -243,6 +243,30 @@ check_runtimes_and_lab() {
   package_installed kismet || info 'kismet no está instalado; no tiene candidato en los repositorios activos'
 }
 
+check_creative_media_security() {
+  local command_name missing=0 missing_names=''
+  printf '═══ Creatividad, oficina, multimedia y antivirus ═══\n'
+  for command_name in gimp krita libreoffice ffmpeg mpv vlc clamscan clamdscan; do
+    command -v "$command_name" >/dev/null 2>&1 && ok "$command_name disponible" || {
+      missing=$((missing + 1))
+      missing_names="$missing_names $command_name"
+    }
+  done
+  if ((missing == 0)); then
+    ok 'herramientas creativas, oficina, multimedia y ClamAV disponibles'
+  else
+    info "componentes opcionales pendientes:$missing_names"
+  fi
+  package_installed fonts-noto-cjk && ok 'fuentes Noto CJK instaladas' ||
+    info 'fuentes Noto CJK no instaladas; son opcionales y ocupan más espacio'
+  if [[ -r "$HOME/.config/rafex/locale.conf" ]]; then
+    ok 'locale de sesión administrado por el perfil'
+  else
+    info 'locale de sesión español no administrado por este repositorio'
+  fi
+  info 'esta sección es informativa y no convierte paquetes opcionales en bloqueos'
+}
+
 check_repo() {
   local state
   if command -v git >/dev/null 2>&1 && [[ -d "$REPO_ROOT/.git" ]]; then
@@ -264,6 +288,7 @@ main() {
   check_virtualization
   check_desktop_and_backup
   check_runtimes_and_lab
+  check_creative_media_security
   printf '═══ Resultado ═══\n'
   if ((BLOCKERS == 0)); then
     ok "sin bloqueos confirmados; pendientes=$PENDING"

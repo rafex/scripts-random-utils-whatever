@@ -202,3 +202,48 @@ El perfil declara compatibilidad RGB/TrueColor para Alacritty
 (`xterm-256color`), Kitty (`xterm-kitty`) y rxvt-unicode. Si una sesión remota
 desde Kitty conserva colores amarillos o con poco contraste, desconecta y vuelve
 a conectar el cliente después de instalar el perfil.
+
+## Estación creativa, oficina y multimedia
+
+Estas capas son opcionales y no forman parte de la instalación ligera del
+perfil. Se instalan por separado desde Debian:
+
+```sh
+just install-graphics --apply
+just install-office --apply --locale es_MX
+just install-multimedia --apply
+just install-fonts --apply --profile web-programming
+```
+
+Para chino, japonés y coreano puede añadirse la etapa más grande de fuentes:
+
+```sh
+just install-fonts --apply --profile cjk
+```
+
+El locale de oficina se carga en la sesión del usuario desde
+`~/.config/rafex/locale.conf`; no reemplaza `/etc/default/locale`. Después de
+instalarlo hay que abrir una nueva sesión. Los scripts fuerzan `LC_ALL=C`
+solo al interpretar salidas APT, para que el idioma del escritorio no rompa sus
+diagnósticos.
+
+## Antivirus y USB
+
+ClamAV es opcional. El flujo recomendado es instalarlo y escanear manualmente
+cada memoria antes de compartirla:
+
+```sh
+just install-antivirus --apply
+just scan-usb --path /run/media/$USER/NOMBRE_USB
+```
+
+El escáner solo acepta dispositivos extraíbles montados bajo
+`/run/media/$USER` o `/media/$USER`, no borra ni pone archivos en cuarentena y
+no puede apuntar al NVMe interno. Si se desea escaneo al montar, debe
+habilitarse explícitamente con `just install-antivirus --apply --auto-usb`;
+esta opción usa el event-hook de udiskie, notifica el resultado y permanece
+sin borrado automático. `clamonacc` no se habilita.
+
+La auditoría `just audit-thinkpad --status` informa de estas capas sin tratarlas
+como bloqueos de preparación: su ausencia no impide desarrollar, impartir
+cursos o realizar auditorías de red.

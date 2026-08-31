@@ -111,6 +111,11 @@ nav:
       - install_runtime_switcher_linux: install/install_runtime_switcher_linux.md
       - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
       - install_security_lab_linux: install/install_security_lab_linux.md
+      - install_graphics_linux: install/install_graphics_linux.md
+      - install_office_linux: install/install_office_linux.md
+      - install_antivirus_linux: install/install_antivirus_linux.md
+      - install_multimedia_linux: install/install_multimedia_linux.md
+      - install_fonts_linux: install/install_fonts_linux.md
       - configure_kvm_linux: install/configure_kvm_linux.md
       - audit_thinkpad_readiness_linux: install/audit_thinkpad_readiness_linux.md
       - install_thinkpad_backgrounds_linux: install/install_thinkpad_backgrounds_linux.md
@@ -150,6 +155,7 @@ nav:
       - desktop_settings_menu_linux: system/desktop_settings_menu_linux.md
       - picom_toggle_linux: system/picom_toggle_linux.md
       - tint2_status_linux: system/tint2_status_linux.md
+      - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

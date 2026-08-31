@@ -164,6 +164,31 @@ harden-thinkpad *args:
 install-security-lab *args:
     bash scripts/install/install_security_lab_linux.sh {{args}}
 
+# Instalar herramientas creativas: GIMP, ayuda en español y Krita
+# Uso: just install-graphics --check|--apply
+install-graphics *args:
+    bash scripts/install/install_graphics_linux.sh {{args}}
+
+# Instalar LibreOffice y locale español de la sesión del usuario
+# Uso: just install-office --apply --locale es_MX
+install-office *args:
+    bash scripts/install/install_office_linux.sh {{args}}
+
+# Instalar ClamAV y configurar opcionalmente el escaneo USB con udiskie
+# Uso: just install-antivirus --apply [--auto-usb]
+install-antivirus *args:
+    bash scripts/install/install_antivirus_linux.sh {{args}}
+
+# Instalar reproducción, codificación y plugins multimedia desde Debian
+# Uso: just install-multimedia --check|--apply
+install-multimedia *args:
+    bash scripts/install/install_multimedia_linux.sh {{args}}
+
+# Instalar fuentes web/programación o la cobertura CJK opcional
+# Uso: just install-fonts --apply --profile web-programming|cjk|all
+install-fonts *args:
+    bash scripts/install/install_fonts_linux.sh {{args}}
+
 # Configurar QEMU/KVM para virtualización de usuario sin bridges físicos
 # Uso: just configure-kvm --check|--plan|--apply|--status
 configure-kvm *args:

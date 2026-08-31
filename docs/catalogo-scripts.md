@@ -73,6 +73,11 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_runtime_switcher_linux.sh` | Linux | install-runtime-switcher | no | sí | bajo | [doc](install/install_runtime_switcher_linux.md) |
 | `scripts/install/install_terminal_workstation_linux.sh` | Linux | install-terminal-workstation | sí | sí | medio | [doc](install/install_terminal_workstation_linux.md) |
 | `scripts/install/install_security_lab_linux.sh` | Linux | install-security-lab | sí | sí | medio | [doc](install/install_security_lab_linux.md) |
+| `scripts/install/install_graphics_linux.sh` | Linux | install-graphics | sí | sí | medio | [doc](install/install_graphics_linux.md) |
+| `scripts/install/install_office_linux.sh` | Linux | install-office | sí | sí | medio | [doc](install/install_office_linux.md) |
+| `scripts/install/install_antivirus_linux.sh` | Linux | install-antivirus | sí | sí | medio | [doc](install/install_antivirus_linux.md) |
+| `scripts/install/install_multimedia_linux.sh` | Linux | install-multimedia | sí | sí | medio | [doc](install/install_multimedia_linux.md) |
+| `scripts/install/install_fonts_linux.sh` | Linux | install-fonts | sí | sí | medio | [doc](install/install_fonts_linux.md) |
 | `scripts/install/configure_kvm_linux.sh` | Linux | configure-kvm | sí | sí | medio | [doc](install/configure_kvm_linux.md) |
 | `scripts/install/audit_thinkpad_readiness_linux.sh` | Linux | audit-thinkpad | no | sí | bajo | [doc](install/audit_thinkpad_readiness_linux.md) |
 | `scripts/install/install_thinkpad_backgrounds_linux.sh` | Linux | install-thinkpad-backgrounds | sí | sí | alto | [doc](install/install_thinkpad_backgrounds_linux.md) |
@@ -113,6 +118,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/desktop_settings_menu_linux.sh` | Linux | desktop-settings-menu | no | — | bajo | [doc](system/desktop_settings_menu_linux.md) |
 | `scripts/system/picom_toggle_linux.sh` | Linux | picom-toggle | no | sí | bajo | [doc](system/picom_toggle_linux.md) |
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
+| `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 
 ## Documentos suplementarios
 

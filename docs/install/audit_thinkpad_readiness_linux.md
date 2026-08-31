@@ -49,6 +49,12 @@ La salida separa bloqueos confirmados de asuntos pendientes. Un proyector no
 conectado, un respaldo desmontado o una comprobación privilegiada no disponible
 no se presentan como fallos del hardware.
 
+También informa, sin convertir en bloqueos, la disponibilidad opcional de GIMP,
+Krita, LibreOffice, FFmpeg, mpv, VLC, ClamAV y Noto CJK. Para instalar estas
+capas usa los instaladores separados `install-graphics`, `install-office`,
+`install-multimedia`, `install-antivirus` e `install-fonts`; la instalación
+ligera del perfil no las activa automáticamente.
+
 ## Opciones
 
 | Opción | Alias | Descripción |

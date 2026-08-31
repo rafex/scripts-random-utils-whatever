@@ -31,3 +31,8 @@ picom-toggle *args:
 # Uso: just tint2-status
 tint2-status *args:
     bash scripts/system/tint2_status_linux.sh {{args}}
+
+# Escanear una memoria USB extraíble montada con ClamAV
+# Uso: just scan-usb --path /run/media/$USER/NOMBRE_USB
+scan-usb *args:
+    bash scripts/system/scan_usb_clamav_linux.sh {{args}}
