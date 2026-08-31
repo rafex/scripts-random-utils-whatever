@@ -162,6 +162,12 @@ Solo responde `y` si el laboratorio, las cuentas y los datos son tuyos o tienes 
 
 **Solución:** revisa las fuentes de Debian, ejecuta `just install-security-lab --plan --stage <etapa>` y vuelve a intentar `--apply`. El script no sustituye paquetes ni añade repositorios externos.
 
+Si el mensaje aparece para todos los paquetes después de un `apt-get update`
+correcto, comprueba el idioma de la sesión. `apt-cache policy` puede mostrar
+`Candidato:` en lugar de `Candidate:` cuando `LANG` está en español. El
+instalador fuerza `LC_ALL=C` únicamente al leer esa salida, por lo que no es
+necesario cambiar el idioma global del sistema.
+
 ### `la confirmación requiere una terminal`
 
 **Causa:** se pidió una etapa sensible desde una ejecución no interactiva.

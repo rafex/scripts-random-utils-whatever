@@ -154,7 +154,9 @@ package_installed() {
 }
 
 package_candidate() {
-    apt-cache policy "$1" 2>/dev/null |
+    # apt-cache traduce las etiquetas según LANG (por ejemplo, "Candidato:")
+    # y el resto del instalador necesita una salida estable para analizarla.
+    LC_ALL=C apt-cache policy "$1" 2>/dev/null |
         awk -F': ' '/^[[:space:]]*Candidate:/ { print $2; exit }'
 }
 
