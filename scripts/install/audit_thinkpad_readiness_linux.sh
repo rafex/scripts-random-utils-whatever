@@ -75,7 +75,7 @@ check_services() {
 }
 
 check_privileged_controls() {
-  local effective_ssh expected_line actual_line key
+  local effective_ssh expected_line expected_value actual_line key
   printf '═══ Controles privilegiados ═══\n'
   if ! sudo -n true 2>/dev/null; then
     pending 'ejecutar la verificación desde la consola local después de sudo -v'
@@ -103,22 +103,24 @@ check_privileged_controls() {
   sudo -n test -f /etc/polkit-1/rules.d/10-udisks2-mount.rules &&
     ok 'regla Polkit de montaje USB presente' ||
     blocker 'falta la regla Polkit de montaje USB'
-  effective_ssh="$(sudo -n /usr/sbin/sshd -T 2>/dev/null || true)"
-  if [[ -z "$effective_ssh" ]]; then
+  if ! effective_ssh="$(sudo -n /usr/sbin/sshd -T -f /etc/ssh/sshd_config)"; then
     blocker 'no se pudo consultar sshd -T'
   else
     for key in permitrootlogin passwordauthentication kbdinteractiveauthentication pubkeyauthentication maxauthtries; do
       case "$key" in
-        permitrootlogin) expected_line='permitrootlogin no' ;;
-        passwordauthentication) expected_line='passwordauthentication no' ;;
-        kbdinteractiveauthentication) expected_line='kbdinteractiveauthentication no' ;;
-        pubkeyauthentication) expected_line='pubkeyauthentication yes' ;;
-        maxauthtries) expected_line='maxauthtries 3' ;;
+        permitrootlogin) expected_value='no' ;;
+        passwordauthentication) expected_value='no' ;;
+        kbdinteractiveauthentication) expected_value='no' ;;
+        pubkeyauthentication) expected_value='yes' ;;
+        maxauthtries) expected_value='3' ;;
       esac
-      if grep -Fqx "$expected_line" <<< "$effective_ssh"; then
+      expected_line="$key $expected_value"
+      if awk -v wanted="$key" -v expected="$expected_value" \
+        'tolower($1) == wanted && tolower($2) == expected { found=1; exit } END { exit(found ? 0 : 1) }' \
+        <<< "$effective_ssh"; then
         ok "sshd: $expected_line"
       else
-        actual_line="$(awk -v wanted="$key" '$1 == wanted { print; exit }' <<< "$effective_ssh")"
+        actual_line="$(awk -v wanted="$key" 'tolower($1) == wanted { print; exit }' <<< "$effective_ssh")"
         blocker "sshd no aplica la directiva $expected_line${actual_line:+ (actual: $actual_line)}"
       fi
     done
