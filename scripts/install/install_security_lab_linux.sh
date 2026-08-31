@@ -21,8 +21,11 @@ readonly -a BASE_PACKAGES=(
     ethtool iw socat lsof strace usbutils
 )
 readonly -a WIRELESS_PACKAGES=(
-    aircrack-ng kismet hcxdumptool hcxtools macchanger wireless-tools
+    aircrack-ng hcxdumptool hcxtools macchanger wireless-tools
 )
+# Kismet fue retirado de Debian Testing/Forky. Se conserva como referencia
+# informativa, pero su ausencia no debe impedir instalar la etapa wireless.
+readonly -a OPTIONAL_WIRELESS_PACKAGES=(kismet)
 readonly -a WEB_PACKAGES=(
     ffuf gobuster nikto whatweb mitmproxy dirb
 )
@@ -33,7 +36,7 @@ readonly -a CREDENTIALS_PACKAGES=(
     john hydra hashcat
 )
 readonly -a VIRTUALIZATION_PACKAGES=(
-    qemu-system-x86 qemu-utils qemu-kvm
+    qemu-system-x86 qemu-utils
     libvirt-daemon-system libvirt-clients
     virt-manager virt-viewer ovmf swtpm
 )
@@ -179,6 +182,25 @@ show_package_report() {
     printf 'resumen: instalados=%d ausentes=%d\n' "$installed_count" "$missing_count"
 }
 
+show_optional_package_report() {
+    local package candidate
+    if [[ "$STAGE" == "wireless" || "$STAGE" == "all" ]]; then
+        printf '═══ Paquetes opcionales no bloqueantes ═══\n'
+        for package in "${OPTIONAL_WIRELESS_PACKAGES[@]}"; do
+            if package_installed "$package"; then
+                printf '✓ %-24s instalado\n' "$package"
+                continue
+            fi
+            candidate="$(package_candidate "$package")"
+            if [[ -z "$candidate" || "$candidate" == "(none)" ]]; then
+                printf '⚠ %-24s sin candidato Debian; se omite\n' "$package"
+            else
+                printf '○ %-24s disponible (%s), no se instala automáticamente\n' "$package" "$candidate"
+            fi
+        done
+    fi
+}
+
 show_stage_sizes() {
     local original_stage="$STAGE" stage package size total
     printf '═══ Tamaño aproximado por etapa ═══\n'
@@ -307,6 +329,7 @@ show_status() {
     printf '═══ Laboratorio de seguridad ═══\n'
     printf 'usuario=%s\n' "$TARGET_USER"
     show_package_report
+    show_optional_package_report
     show_tool_versions
     show_dumpcap_status
     show_wireless_status
@@ -322,6 +345,7 @@ show_check() {
     printf 'distribución=%s\n' "${PRETTY_NAME:-Debian}"
     printf 'etapa=%s\n' "$STAGE"
     show_package_report
+    show_optional_package_report
     info "--check no actualiza índices APT, no instala paquetes y no cambia servicios"
 }
 

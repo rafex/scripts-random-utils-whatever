@@ -65,13 +65,19 @@ just install-security-lab --apply --stage virtualization
 | Etapa | Paquetes principales | Propósito |
 |---|---|---|
 | `base` | `nmap`, `ncat`, `ndiff`, `tcpdump`, `tshark`, `wireshark`, `mtr-tiny`, `bind9-dnsutils`, `whois`, `arp-scan`, `ethtool`, `iw`, `socat`, `lsof`, `strace`, `usbutils` | Diagnóstico de red, sistema y tráfico propio |
-| `wireless` | `aircrack-ng`, `kismet`, `hcxdumptool`, `hcxtools`, `macchanger`, `wireless-tools` | Laboratorios inalámbricos autorizados |
+| `wireless` | `aircrack-ng`, `hcxdumptool`, `hcxtools`, `macchanger`, `wireless-tools` | Laboratorios inalámbricos autorizados |
 | `web` | `ffuf`, `gobuster`, `nikto`, `whatweb`, `mitmproxy`, `dirb` | Pruebas web en aplicaciones propias o autorizadas |
 | `forensics` | `sleuthkit`, `testdisk`, `yara`, `hashdeep`, `ssdeep`, `rkhunter` | Análisis de copias e imágenes forenses |
 | `credentials` | `john`, `hydra`, `hashcat` | Laboratorios de credenciales propios |
-| `virtualization` | QEMU/KVM, libvirt, `virt-manager`, `virt-viewer`, OVMF y `swtpm` | Máquinas virtuales aisladas |
+| `virtualization` | `qemu-system-x86`, `qemu-utils`, libvirt, `virt-manager`, `virt-viewer`, OVMF y `swtpm` | Máquinas virtuales aisladas |
 
 La disponibilidad de `nmap`, `aircrack-ng`, `tshark`, libvirt y `virt-manager` en Debian Forky puede consultarse en sus páginas oficiales de paquetes: [Nmap](https://packages.debian.org/forky/nmap), [Aircrack-ng](https://packages.debian.org/forky/aircrack-ng), [TShark](https://packages.debian.org/forky/tshark), [libvirt](https://packages.debian.org/forky/libvirt-daemon-system) y [virt-manager](https://packages.debian.org/forky/virt-manager).
+
+`kismet` se mantiene como herramienta opcional documentada, pero fue retirado
+de Debian Testing/Forky y no bloquea la etapa `wireless`; el instalador no
+añade repositorios externos. Para virtualización se usa `qemu-system-x86`, que
+es el paquete disponible en Forky; no se solicita el nombre ausente
+`qemu-kvm`.
 
 ## Opciones
 
@@ -168,6 +174,11 @@ correcto, comprueba el idioma de la sesión. `apt-cache policy` puede mostrar
 instalador fuerza `LC_ALL=C` únicamente al leer esa salida, por lo que no es
 necesario cambiar el idioma global del sistema.
 
+Cuando el mensaje identifica un paquete concreto, revisa si se trata de una
+opción no disponible en Forky. `kismet` aparece como opcional no bloqueante y
+`qemu-kvm` ya no forma parte de la lista: `qemu-system-x86` cubre la base de
+QEMU/KVM.
+
 ### `la confirmación requiere una terminal`
 
 **Causa:** se pidió una etapa sensible desde una ejecución no interactiva.
@@ -192,11 +203,21 @@ necesario cambiar el idioma global del sistema.
 
 **Solución:** revisa la opción Intel VT-x/AMD-V en firmware y vuelve a comprobar `test -e /dev/kvm`. No se modifica BIOS automáticamente.
 
+### `kismet sin candidato Debian`
+
+**Causa:** Kismet fue retirado de Debian Testing/Forky.
+
+**Solución:** la etapa `wireless` continúa con `aircrack-ng`, `hcxdumptool`,
+`hcxtools`, `macchanger` y `wireless-tools`. Si se necesita Kismet, debe
+evaluarse aparte con una fuente oficial compatible, sin incorporarla
+automáticamente al instalador ni a la configuración de NetworkManager.
+
 ## Changelog
 
 ### [Unreleased]
 
 - `feat:` instalador por etapas para base, wireless, web, forense, credenciales y virtualización.
+- `fix:` paquetes no disponibles en Forky (`kismet` y `qemu-kvm`) dejan de bloquear las etapas correspondientes.
 - `docs:` política de autorización, captura privilegiada y KVM sin bridge físico.
 
 ### v1.0.0 — 2026-08-30
