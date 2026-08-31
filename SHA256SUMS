@@ -1,4 +1,4 @@
-18cb41c07733ce7120dea721804ae471d7741b33bab17c1b542c84f189716124  dotfiles/install.sh
+4c45e1d558be23eb7ed29ffc33d758982be10b60acfbe22d5ad56f100d1f120b  dotfiles/install.sh
 ca6b5e4f48a031e4eb2d73473dc98407b9dfe7295f5e0e9f6ba6fa52ec567600  dotfiles/profiles/default/config/i3status/brightness.sh
 ca6b5e4f48a031e4eb2d73473dc98407b9dfe7295f5e0e9f6ba6fa52ec567600  dotfiles/profiles/macbook-pro-late2012/config/i3status/brightness.sh
 32a4ecadb4a37f12fcc01fe6ecd70acb6845dce3991654a765046108a92d163a  dotfiles/profiles/thinkpad-x1-yoga-1st/config/i3status/brightness.sh

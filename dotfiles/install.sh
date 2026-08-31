@@ -83,7 +83,7 @@ list_profiles() {
     echo -e "${BOLD}Perfiles disponibles:${RESET}"
     if [[ ! -d "$PROFILES_DIR" ]]; then
         warn "Directorio profiles/ no encontrado."
-        return
+        return 0
     fi
     for d in "$PROFILES_DIR"/*/; do
         [[ -d "$d" ]] || continue
@@ -168,7 +168,7 @@ install_packages() {
     if [[ ! -f "$deps_file" ]]; then
         warn "Archivo deps.txt no encontrado para el perfil ${BOLD}$PROFILE${RESET}."
         warn "Saltando instalación de paquetes."
-        return
+        return 0
     fi
 
     if [[ "$HAS_SUDO" != "true" ]]; then
@@ -180,7 +180,7 @@ install_packages() {
             echo -e "    ${CYAN}${pkg}${RESET}"
         done < "$deps_file"
         echo
-        return
+        return 0
     fi
 
     info "Instalando paquetes desde ${BOLD}${deps_file}${RESET}..."
@@ -192,7 +192,7 @@ install_packages() {
 
     if [[ ${#pkgs[@]} -eq 0 ]]; then
         warn "deps.txt vacío — no hay paquetes para instalar."
-        return
+        return 0
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -290,7 +290,7 @@ install_theme_configs() {
     if [[ ! -d "$source_root" && "$PROFILE" == "openbox-thinkpad-x1-yoga-1st" ]]; then
         source_root="$PROFILES_DIR/thinkpad-x1-yoga-1st/config/rafex/themes"
     fi
-    [[ -d "$source_root" ]] || return
+    [[ -d "$source_root" ]] || return 0
     info "Instalando paletas de tema en ${BOLD}${target_root}${RESET}..."
     while IFS= read -r -d '' source_file; do
         target_file="$target_root/${source_file#"$source_root/"}"
@@ -317,12 +317,12 @@ install_tmux_config() {
     local dest="$HOME/.tmux.conf"
 
     if [[ ! -f "$src" ]]; then
-        return
+        return 0
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
         info "[dry-run] instalar tmux.conf → ${dest}"
-        return
+        return 0
     fi
 
     backup_existing "$dest"
@@ -339,11 +339,11 @@ initialize_theme() {
     local current="$theme_root/current"
 
     if [[ ! -d "$theme_root/nord" ]]; then
-        return
+        return 0
     fi
     if [[ -L "$current" ]]; then
         success "  tema actual: $(readlink "$current")"
-        return
+        return 0
     fi
     if [[ -e "$current" ]]; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -371,12 +371,12 @@ install_xresources() {
 
     if [[ ! -f "$src" ]]; then
         warn "Xresources no encontrado en el perfil — se omite."
-        return
+        return 0
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
         info "[dry-run] instalar Xresources → ${dest}"
-        return
+        return 0
     fi
 
     backup_existing "$dest"
@@ -393,12 +393,12 @@ install_xsession() {
     local dest="$HOME/.xsession"
 
     if [[ ! -f "$src" ]]; then
-        return
+        return 0
     fi
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
         info "[dry-run] instalar xsession → ${dest}"
-        return
+        return 0
     fi
 
     backup_existing "$dest"
@@ -414,7 +414,7 @@ install_profile_scripts() {
     local scripts_src="$PROFILES_DIR/$PROFILE/scripts"
 
     if [[ ! -d "$scripts_src" ]]; then
-        [[ "$PROFILE" == "thinkpad-x1-yoga-1st" ]] || return
+        [[ "$PROFILE" == "thinkpad-x1-yoga-1st" ]] || return 0
         local direct_script direct_name target
         local direct_scripts=(
             "$SCRIPT_DIR/../scripts/system/theme_toggle_linux.sh:theme-toggle.sh"
@@ -435,7 +435,7 @@ install_profile_scripts() {
                 success "  $direct_name"
             fi
         done
-        return
+        return 0
     fi
 
     info "Instalando scripts del perfil en ${BOLD}~/.local/bin/${RESET}..."
@@ -484,7 +484,9 @@ install_profile_assets() {
     local assets_dest="$HOME/.local/share/rafex/profiles/$PROFILE/assets"
     local source_file target_file relative_path
 
-    [[ -d "$assets_src" ]] || return
+    # Los assets son opcionales por perfil. Openbox reutiliza los scripts y
+    # temas, pero no necesita duplicar los fondos del perfil i3.
+    [[ -d "$assets_src" ]] || return 0
     info "Instalando assets del perfil en ${BOLD}${assets_dest}${RESET}..."
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -492,7 +494,7 @@ install_profile_assets() {
             relative_path="${source_file#"$assets_src"/}"
             info "[dry-run] asset: ${relative_path} → ${assets_dest}/${relative_path}"
         done < <(find "$assets_src" -type f -print0)
-        return
+        return 0
     fi
 
     while IFS= read -r -d '' source_file; do
@@ -522,14 +524,14 @@ inject_env_vars() {
     # Openbox se identifica por su .desktop y no por .bashrc.
     if [[ "$PROFILE" == "openbox-thinkpad-x1-yoga-1st" ]]; then
         info "Perfil paralelo: no se cambia el entorno global de $rc"
-        return
+        return 0
     fi
 
     info "Inyectando variables de entorno en ${BOLD}${rc#"$HOME"/}${RESET}..."
 
     if [[ "$DRY_RUN" -eq 1 ]]; then
         info "[dry-run] inyectar vars en $rc"
-        return
+        return 0
     fi
 
     if [[ ! -f "$rc" ]]; then
@@ -567,7 +569,7 @@ show_profile_deps() {
     local deps_toml="$PROFILES_DIR/$PROFILE/DEPS.toml"
 
     if [[ ! -f "$deps_toml" ]]; then
-        return
+        return 0
     fi
 
     echo

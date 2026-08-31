@@ -58,6 +58,10 @@ i3-dotfiles-bundle.tar.gz
 1. **Copia Xresources** a `~/.Xresources`
 1. **Copia scripts** a `~/.local/bin/` (con nombres que i3 config espera)
 1. **Crea directorios** de imágenes: `~/Imágenes/FondosDePantalla/`, `~/Imágenes/CapturasDePantalla/`
+1. **Instala assets del perfil**, cuando el perfil los declare. Los assets son
+   opcionales; por ejemplo, Openbox reutiliza el perfil visual pero no duplica
+   los fondos de ThinkPad. Los fondos se instalan con
+   `just install-thinkpad-backgrounds`.
 1. **Inyecta env vars** en el RC file (idempotente):
    ```sh
    export XDG_CURRENT_DESKTOP=i3
@@ -139,7 +143,22 @@ No se requieren variables adicionales fuera de las indicadas en esta documentaci
 
 ## Fallos conocidos
 
-No se han registrado fallos adicionales; conserva la salida del comando para diagnosticar cualquier incidencia.
+### `error: ... failed ...` después de crear los directorios de imágenes
+
+**Causa:** una versión anterior del instalador devolvía el código de una
+comprobación negativa cuando el perfil no tenía `assets/`. Esto afectaba al
+perfil Openbox, que comparte temas con ThinkPad pero no contiene una copia de
+los fondos.
+
+**Solución:** actualiza el repositorio y repite la instalación. Los
+componentes opcionales ahora terminan con éxito cuando no están declarados;
+los assets existentes siguen copiándose con respaldo e idempotencia.
+
+Si se necesitan los fondos de ThinkPad, ejecuta después:
+
+```bash
+just install-thinkpad-backgrounds --apply --stage desktop
+```
 
 ## Changelog
 
