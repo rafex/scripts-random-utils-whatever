@@ -61,10 +61,11 @@ parse_args() {
 apply_window_layout() {
   local window_id screen_height panel_height
   command -v wmctrl >/dev/null 2>&1 || return 0
+  command -v xwininfo >/dev/null 2>&1 || return 0
 
   for _ in 1 2 3 4 5 6 7 8 9 10; do
-    window_id="$(LC_ALL=C wmctrl -lx 2>/dev/null |
-      awk '$4 == "RafexConky.RafexConky" {print $1; exit}')"
+    window_id="$(LC_ALL=C xwininfo -root -tree 2>/dev/null |
+      awk '$0 ~ /\("RafexConky" "RafexConky"\)/ {print $1; exit}')"
     [[ -n "$window_id" ]] && break
     sleep 0.2
   done

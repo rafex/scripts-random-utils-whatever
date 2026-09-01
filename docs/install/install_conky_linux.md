@@ -13,14 +13,14 @@ Instala `conky-all` desde Debian y configura un panel informativo translúcido
 en el lateral izquierdo, debajo de i3bar o tint2, con el alto útil de la
 pantalla. El panel no reserva una columna en i3: queda como fondo inferior
 para no convertirse en una ventana que ocupe el escritorio. La plantilla usa
-`own_window_type = 'override'`, `alignment = 'top_left'`, un margen superior de
+`own_window_type = 'desktop'`, `alignment = 'top_left'`, un margen superior de
 34 píxeles y una altura base de 1030 píxeles, ajustada a la pantalla 1920×1080
-de este perfil. `wmctrl` corrige la geometría al iniciar y aplica el estado
-inferior de la ventana.
+de este perfil. El tipo `desktop` mantiene la ventana en el fondo y `wmctrl`
+corrige su geometría al iniciar.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
-- **Dependencias:** `bash`, `sudo`, `apt-get`, `apt-cache`, `dpkg-query`, `i3` opcional, `conky-all`, `wmctrl`
+- **Dependencias:** `bash`, `sudo`, `apt-get`, `apt-cache`, `dpkg-query`, `xwininfo` (de `x11-utils`), `i3` opcional, `conky-all`, `wmctrl`
 
 ---
 
@@ -151,16 +151,17 @@ transparente y una fuente pequeña.
 ubica en el lateral izquierdo y aplica un fondo de tema translúcido con
 opacidad aproximada del 78 % para conservar el contraste. El texto normal usa
 un color contrastante con el fondo de cada paleta. En i3 usa una ventana
-`override` colocada 34 píxeles debajo de la barra, con alto útil completo y
+`desktop` colocada 34 píxeles debajo de la barra, con alto útil completo y
 estado inferior; el borde y los colores se actualizan junto con el tema.
 
 ### `El panel cubre las ventanas en i3`
 
 **Causa:** una configuración anterior usaba `own_window_type = 'normal'` o
-`override`, que no reserva espacio y puede terminar encima de las ventanas.
+`override`, que pueden convertirse en ventanas administradas y terminar encima
+de las ventanas.
 
 **Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window_type = 'override'`, instala `wmctrl` para
+La plantilla actual usa `own_window_type = 'desktop'`, instala `wmctrl` para
 colocarla en 320×alto útil y elimina la regla flotante de i3. Si el panel ya
 estaba activo, usa
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
@@ -182,5 +183,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa una ventana X11 `override` lateral izquierda de alto completo,
+- `fix`: usa una ventana X11 `desktop` lateral izquierda de alto completo,
   redimensionada por `wmctrl` y colocada debajo de las ventanas de trabajo.

@@ -134,7 +134,7 @@ ensure_managed_layout() {
     } else if ($0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
       print "    own_window_argb_value = 200,"
     } else if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
-      print "    own_window_type = '\''override'\'',"
+      print "    own_window_type = '\''desktop'\'',"
     } else {
       print
     }

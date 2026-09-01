@@ -231,7 +231,7 @@ just conky-status
 Se muestra en el lateral izquierdo, debajo de la barra y con el alto útil de la
 pantalla, con un fondo translúcido y fuente `DejaVu Sans Mono` tamaño 11 para
 conservar el contraste sobre los fondos del perfil. En i3 es una ventana X11
-`override` de 320 píxeles de ancho, colocada debajo de las ventanas y ajustada
+`desktop` de 320 píxeles de ancho, colocada debajo de las ventanas y ajustada
 por `wmctrl`; no ocupa todo el escritorio ni cubre las ventanas de trabajo.
 En Openbox las ventanas son flotantes por diseño.
 Incluye kernel,
