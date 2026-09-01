@@ -27,8 +27,6 @@ exec_always --no-startup-id xrdb -merge ~/.Xresources
 exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
 exec_always --no-startup-id setxkbmap es
 # BEGIN rafex conky
-for_window [class="^RafexConky$"] floating enable, border pixel 0, sticky enable
-no_focus [class="^RafexConky$"]
 exec_always --no-startup-id ~/.local/bin/conky-launch.sh
 # END rafex conky
 # BEGIN rafex thinkpad backgrounds
