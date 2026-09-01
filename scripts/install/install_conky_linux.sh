@@ -70,18 +70,20 @@ require_platform() {
 
 require_commands() {
   local command_name
-  for command_name in apt-cache cmp cp date dirname mkdir mktemp mv pgrep; do
+  for command_name in apt-cache cmp cp date dirname dpkg-query mkdir mktemp mv pgrep; do
     command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta: $command_name"
   done
 }
 
 candidate_available() {
-  LC_ALL=C apt-cache policy conky-all 2>/dev/null |
+  local package_name="$1"
+  LC_ALL=C apt-cache policy "$package_name" 2>/dev/null |
     awk '$1 == "Candidate:" && $2 != "" && $2 != "(none)" {found=1} END {exit !found}'
 }
 
 package_installed() {
-  dpkg-query -W -f='${Status}' conky-all 2>/dev/null |
+  local package_name="$1"
+  dpkg-query -W -f='${Status}' "$package_name" 2>/dev/null |
     grep -q 'install ok installed'
 }
 
@@ -130,9 +132,9 @@ ensure_managed_layout() {
     } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/) {
       print "    maximum_height = 1030,"
     } else if ($0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
-      print "    own_window_argb_value = 215,"
+      print "    own_window_argb_value = 200,"
     } else if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
-      print "    own_window_type = '\''dock'\'',"
+      print "    own_window_type = '\''override'\'',"
     } else {
       print
     }
@@ -158,7 +160,7 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: lateral izquierdo, alto completo y dock'
+  ok 'configuración Conky administrada actualizada: lateral izquierdo, alto completo y fondo inferior'
 }
 
 write_i3_block() {
@@ -258,25 +260,29 @@ main() {
   case "$ACTION" in
     check)
       echo '═══ Comprobación de Conky ═══'
-      if candidate_available; then
-        ok 'conky-all tiene candidato APT'
-      elif package_installed; then
-        ok 'conky-all ya está instalado aunque APT no ofrece candidato activo'
-      else
-        warn 'conky-all no tiene candidato APT'
-      fi
+      for package_name in conky-all wmctrl; do
+        if package_installed "$package_name"; then
+          ok "$package_name ya está instalado"
+        elif candidate_available "$package_name"; then
+          ok "$package_name tiene candidato APT"
+        else
+          warn "$package_name no tiene candidato APT"
+        fi
+      done
       printf 'plantilla=%s\nhelper=%s\nlanzador=%s\n' "$SOURCE_CONFIG" "$SOURCE_HELPER" "$SOURCE_LAUNCHER"
       show_status
       ;;
     plan)
       echo '═══ Plan de instalación de Conky ═══'
-      if candidate_available; then
-        info '[plan] instalar conky-all desde Debian'
-      elif package_installed; then
-        info '[plan] conservar conky-all ya instalado; APT no ofrece candidato activo'
-      else
-        warn 'conky-all no tiene candidato APT'
-      fi
+      for package_name in conky-all wmctrl; do
+        if package_installed "$package_name"; then
+          info "[plan] conservar $package_name ya instalado"
+        elif candidate_available "$package_name"; then
+          info "[plan] instalar $package_name desde Debian"
+        else
+          warn "$package_name no tiene candidato APT"
+        fi
+      done
       info "[plan] instalar $CONKY_CONFIG"
       info "[plan] instalar $HELPER_TARGET y $LAUNCHER_TARGET"
       info '[plan] actualizar los bloques administrados de i3 y Openbox'
@@ -284,17 +290,20 @@ main() {
       ;;
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
-      if ! candidate_available && ! package_installed; then
-        die 'conky-all no está instalado y no tiene candidato APT; revisa las fuentes Debian'
-      fi
-      if package_installed; then
-        info 'conky-all ya está instalado; se omite APT'
-      elif candidate_available; then
+      local apt_packages=() package_name
+      for package_name in conky-all wmctrl; do
+        if package_installed "$package_name"; then
+          info "$package_name ya está instalado; se omite"
+        elif candidate_available "$package_name"; then
+          apt_packages+=("$package_name")
+        else
+          die "$package_name no está instalado y no tiene candidato APT; revisa las fuentes Debian"
+        fi
+      done
+      if [[ "${#apt_packages[@]}" -gt 0 ]]; then
         sudo -v
         sudo apt-get update
-        sudo apt-get install -y conky-all
-      else
-        die 'conky-all no está instalado y no tiene candidato APT; revisa las fuentes Debian'
+        sudo apt-get install -y "${apt_packages[@]}"
       fi
       configure_integrations
       ok 'Conky instalado; inicia al entrar en i3 u Openbox'

@@ -11,14 +11,16 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo translúcido
 en el lateral izquierdo, debajo de i3bar o tint2, con el alto útil de la
-pantalla. El panel reserva su propio espacio como dock en i3, no roba el foco
-y funciona también con Openbox. La plantilla usa `own_window_type = 'dock'`,
-`alignment = 'top_left'`, un margen superior de 34 píxeles y una altura fija de
-1030 píxeles, ajustada a la pantalla 1920×1080 de este perfil.
+pantalla. El panel no reserva una columna en i3: queda como fondo inferior
+para no convertirse en una ventana que ocupe el escritorio. La plantilla usa
+`own_window_type = 'override'`, `alignment = 'top_left'`, un margen superior de
+34 píxeles y una altura base de 1030 píxeles, ajustada a la pantalla 1920×1080
+de este perfil. `wmctrl` corrige la geometría al iniciar y aplica el estado
+inferior de la ventana.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
-- **Dependencias:** `bash`, `sudo`, `apt-get`, `apt-cache`, `i3` opcional, `conky-all`
+- **Dependencias:** `bash`, `sudo`, `apt-get`, `apt-cache`, `dpkg-query`, `i3` opcional, `conky-all`, `wmctrl`
 
 ---
 
@@ -60,7 +62,7 @@ Openbox.
 |---|---|---|
 | `--check` | — | Verifica Debian, el candidato APT, las plantillas y el estado sin escribir. |
 | `--plan` | `--dry-run` | Muestra la instalación e integración previstas sin escribir. |
-| `--apply` | — | Instala `conky-all`, copia la configuración y añade los bloques administrados. |
+| `--apply` | — | Instala `conky-all` y `wmctrl` si faltan, copia la configuración y añade los bloques administrados. |
 | `--status` | — | Muestra archivos, bloques, número de instancias y presencia de `DISPLAY`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
@@ -108,7 +110,7 @@ abrir una ventana en ese caso.
 ## Protecciones de seguridad
 
 - `--check`, `--plan` y `--status` son de solo lectura y no usan `sudo`.
-- `--apply` usa `sudo` solo para instalar `conky-all` mediante APT.
+- `--apply` usa `sudo` solo para instalar `conky-all` y `wmctrl` mediante APT.
 - Se respaldan los archivos de usuario existentes antes de reemplazarlos.
 - Los bloques de i3 y Openbox se reemplazan por sus marcadores, sin duplicarse.
 - El lanzador solo detiene su propio PID; nunca mata instancias ajenas.
@@ -147,9 +149,10 @@ transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
 ubica en el lateral izquierdo y aplica un fondo de tema translúcido con
-opacidad alta para conservar el contraste. El texto normal usa un color
-contrastante con el fondo de cada paleta. En i3 usa un dock con altura completa
-debajo de la barra; el borde y los colores se actualizan junto con el tema.
+opacidad aproximada del 78 % para conservar el contraste. El texto normal usa
+un color contrastante con el fondo de cada paleta. En i3 usa una ventana
+`override` colocada 34 píxeles debajo de la barra, con alto útil completo y
+estado inferior; el borde y los colores se actualizan junto con el tema.
 
 ### `El panel cubre las ventanas en i3`
 
@@ -157,11 +160,12 @@ debajo de la barra; el borde y los colores se actualizan junto con el tema.
 `override`, que no reserva espacio y puede terminar encima de las ventanas.
 
 **Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window_type = 'dock'`, reserva el lateral izquierdo
-y elimina la regla flotante de i3. Si el panel ya estaba activo, usa
+La plantilla actual usa `own_window_type = 'override'`, instala `wmctrl` para
+colocarla en 320×alto útil y elimina la regla flotante de i3. Si el panel ya
+estaba activo, usa
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
 Al ejecutar `just install-conky --apply`, el instalador también corrige ese
-ajuste y la geometría en una configuración anterior que conserve el bloque
+ajuste, la geometría y la transparencia en una configuración anterior que conserve el bloque
 administrado de Rafex; una configuración sin ese bloque no se sobrescribe.
 
 ### `existe otra instancia Conky del usuario`
@@ -178,5 +182,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa un dock X11 lateral izquierdo de alto completo para que i3 reserve
-  el espacio y Conky no cubra las ventanas de trabajo.
+- `fix`: usa una ventana X11 `override` lateral izquierda de alto completo,
+  redimensionada por `wmctrl` y colocada debajo de las ventanas de trabajo.
