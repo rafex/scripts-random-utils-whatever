@@ -80,6 +80,11 @@ candidate_available() {
     awk '$1 == "Candidate:" && $2 != "" && $2 != "(none)" {found=1} END {exit !found}'
 }
 
+package_installed() {
+  dpkg-query -W -f='${Status}' conky-all 2>/dev/null |
+    grep -q 'install ok installed'
+}
+
 validate_sources() {
   [[ -f "$SOURCE_CONFIG" ]] || die "falta la configuración: $SOURCE_CONFIG"
   [[ -f "$SOURCE_HELPER" ]] || die "falta el helper: $SOURCE_HELPER"
@@ -222,13 +227,25 @@ main() {
   case "$ACTION" in
     check)
       echo '═══ Comprobación de Conky ═══'
-      if candidate_available; then ok 'conky-all tiene candidato APT'; else warn 'conky-all no tiene candidato APT'; fi
+      if candidate_available; then
+        ok 'conky-all tiene candidato APT'
+      elif package_installed; then
+        ok 'conky-all ya está instalado aunque APT no ofrece candidato activo'
+      else
+        warn 'conky-all no tiene candidato APT'
+      fi
       printf 'plantilla=%s\nhelper=%s\nlanzador=%s\n' "$SOURCE_CONFIG" "$SOURCE_HELPER" "$SOURCE_LAUNCHER"
       show_status
       ;;
     plan)
       echo '═══ Plan de instalación de Conky ═══'
-      if candidate_available; then info '[plan] instalar conky-all desde Debian'; else warn 'conky-all no tiene candidato APT'; fi
+      if candidate_available; then
+        info '[plan] instalar conky-all desde Debian'
+      elif package_installed; then
+        info '[plan] conservar conky-all ya instalado; APT no ofrece candidato activo'
+      else
+        warn 'conky-all no tiene candidato APT'
+      fi
       info "[plan] instalar $CONKY_CONFIG"
       info "[plan] instalar $HELPER_TARGET y $LAUNCHER_TARGET"
       info '[plan] actualizar los bloques administrados de i3 y Openbox'
@@ -236,10 +253,16 @@ main() {
       ;;
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
-      candidate_available || die 'conky-all no tiene candidato APT; revisa las fuentes Debian'
+      if ! candidate_available && ! package_installed; then
+        die 'conky-all no está instalado y no tiene candidato APT; revisa las fuentes Debian'
+      fi
       sudo -v
-      sudo apt-get update
-      sudo apt-get install -y conky-all
+      if candidate_available; then
+        sudo apt-get update
+        sudo apt-get install -y conky-all
+      else
+        info 'conky-all ya está instalado; se omite APT porque no hay candidato activo'
+      fi
       configure_integrations
       ok 'Conky instalado; inicia al entrar en i3 u Openbox'
       ;;
