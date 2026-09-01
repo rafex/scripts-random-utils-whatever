@@ -12,8 +12,9 @@ tags:
 Instala `conky-all` desde Debian y configura un panel informativo translúcido
 en la esquina superior derecha, debajo de i3bar o tint2. El panel no reserva
 espacio, no roba el foco y funciona tanto con i3 como con Openbox. En i3 usa
-una ventana X11 de tipo `desktop`, que queda detrás de las ventanas de trabajo;
-Openbox conserva su comportamiento flotante por diseño.
+una ventana X11 de tipo `override`, fuera del árbol de ventanas administrado por
+i3, y sus hints la mantienen debajo de las ventanas de trabajo; Openbox conserva
+su comportamiento flotante por diseño.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
@@ -146,9 +147,10 @@ transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
 ubica arriba a la derecha y aplica un fondo de tema translúcido con opacidad
-alta para conservar el contraste. En i3 es una ventana de escritorio detrás
-del fondo y las ventanas normales; el borde y los colores se actualizan junto
-con el tema.
+alta para conservar el contraste. El texto normal usa un color contrastante
+con el fondo de cada paleta. En i3 usa `override` y el hint `below`, por lo que
+no entra como ventana flotante en el árbol administrado; el borde y los colores
+se actualizan junto con el tema.
 
 ### `El panel cubre las ventanas en i3`
 
@@ -157,7 +159,7 @@ regla i3 que forzaba la ventana a flotante. El hint `below` no siempre basta
 para que i3 la coloque detrás.
 
 **Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window_type = 'desktop'` y elimina la regla
+La plantilla actual usa `own_window_type = 'override'` y elimina la regla
 flotante de i3. Si el panel ya estaba activo, usa
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
 
@@ -175,5 +177,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa una ventana X11 de tipo `desktop` en i3 para que Conky quede detrás
-  de las ventanas y se ubique arriba a la derecha.
+- `fix`: usa una ventana X11 de tipo `override` en i3 para que Conky no sea
+  administrado como contenedor flotante y se ubique arriba a la derecha.
