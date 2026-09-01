@@ -115,6 +115,14 @@ abrir una ventana en ese caso.
 
 ## Fallos conocidos
 
+### `conky-all no tiene candidato APT` aunque `apt search conky` lo encuentre
+
+**Causa:** en una sesión en español, `apt-cache policy` puede mostrar
+`Candidato:`. El instalador fuerza `LC_ALL=C` para interpretar de forma
+estable la salida y comprobar el candidato real sin depender del idioma.
+
+**Solución:** actualiza el repositorio y repite `just install-conky --apply`.
+
 ### `conky-all no tiene candidato APT`
 
 **Causa:** las fuentes Debian no están disponibles o no se actualizaron.
@@ -141,3 +149,5 @@ manualmente si esa instancia es necesaria.
 ### [Unreleased]
 
 - `feat`: añade instalación e integración idempotente del panel Conky.
+- `fix`: detecta candidatos APT correctamente en sesiones con localización
+  distinta de inglés.

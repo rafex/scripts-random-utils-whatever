@@ -76,7 +76,7 @@ require_commands() {
 }
 
 candidate_available() {
-  apt-cache policy conky-all 2>/dev/null |
+  LC_ALL=C apt-cache policy conky-all 2>/dev/null |
     awk '$1 == "Candidate:" && $2 != "" && $2 != "(none)" {found=1} END {exit !found}'
 }
 
