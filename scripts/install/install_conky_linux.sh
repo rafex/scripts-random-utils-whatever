@@ -109,25 +109,56 @@ install_file() {
   mv -f -- "$temporary" "$target"
 }
 
-ensure_managed_window_type() {
-  local target="$1" temporary
+ensure_managed_layout() {
+  local target="$1" temporary expanded
   [[ -f "$target" ]] || return 0
   grep -Fq '    -- BEGIN rafex theme' "$target" || return 0
-  if grep -Eq "^[[:space:]]*own_window_type[[:space:]]*=[[:space:]]*'override',[[:space:]]*$" "$target"; then
-    return 0
-  fi
   temporary="$(mktemp "${target}.tmp.XXXXXX")"
   awk '{
-    if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
-      print "    own_window_type = '\''override'\'',"
+    if ($0 ~ /^[[:space:]]*alignment[[:space:]]*=/) {
+      print "    alignment = '\''top_left'\'',"
+    } else if ($0 ~ /^[[:space:]]*gap_x[[:space:]]*=/) {
+      print "    gap_x = 18,"
+    } else if ($0 ~ /^[[:space:]]*gap_y[[:space:]]*=/) {
+      print "    gap_y = 34,"
+    } else if ($0 ~ /^[[:space:]]*minimum_width[[:space:]]*=/) {
+      print "    minimum_width = 320,"
+    } else if ($0 ~ /^[[:space:]]*maximum_width[[:space:]]*=/) {
+      print "    maximum_width = 320,"
+    } else if ($0 ~ /^[[:space:]]*minimum_height[[:space:]]*=/) {
+      print "    minimum_height = 1030,"
+    } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/) {
+      print "    maximum_height = 1030,"
+    } else if ($0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
+      print "    own_window_argb_value = 215,"
+    } else if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
+      print "    own_window_type = '\''dock'\'',"
     } else {
       print
     }
   }' "$target" > "$temporary"
+  if ! grep -Eq "^[[:space:]]*minimum_height[[:space:]]*=" "$temporary"; then
+    expanded="$(mktemp "${target}.tmp.XXXXXX")"
+    awk '
+      /^[[:space:]]*maximum_width[[:space:]]*=/ && !inserted {
+        print
+        print "    minimum_height = 1030,"
+        print "    maximum_height = 1030,"
+        inserted=1
+        next
+      }
+      {print}
+    ' "$temporary" > "$expanded"
+    mv -f -- "$expanded" "$temporary"
+  fi
+  if [[ -f "$target" ]] && cmp -s "$target" "$temporary"; then
+    rm -f -- "$temporary"
+    return 0
+  fi
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada para i3/Openbox'
+  ok 'configuración Conky administrada actualizada: lateral izquierdo, alto completo y dock'
 }
 
 write_i3_block() {
@@ -174,7 +205,7 @@ configure_integrations() {
   if [[ -f "$CONKY_CONFIG" ]] && ! grep -Fq '    -- BEGIN rafex theme' "$CONKY_CONFIG"; then
     warn "existe una configuración Conky no administrada; no se sobrescribe: $CONKY_CONFIG"
   elif [[ -f "$CONKY_CONFIG" ]]; then
-    ensure_managed_window_type "$CONKY_CONFIG"
+    ensure_managed_layout "$CONKY_CONFIG"
   else
     install_file "$SOURCE_CONFIG" "$CONKY_CONFIG" 0644
   fi

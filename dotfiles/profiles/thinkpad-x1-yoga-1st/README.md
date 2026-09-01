@@ -228,12 +228,11 @@ just install-conky --status
 just conky-status
 ```
 
-Se muestra en la esquina superior derecha, debajo de la barra, con un fondo
-translúcido de alta opacidad y fuente `DejaVu Sans Mono` tamaño 11 para
-conservar el contraste sobre los fondos del perfil. En i3 es una ventana X11
-de tipo `override`, fuera del árbol de ventanas administrado, y usa el hint
-`below` para quedar detrás de las ventanas de trabajo. En Openbox las ventanas
-son flotantes por diseño.
+Se muestra en el lateral izquierdo, debajo de la barra y con el alto útil de la
+pantalla, con un fondo translúcido de alta opacidad y fuente `DejaVu Sans Mono`
+tamaño 11 para conservar el contraste sobre los fondos del perfil. En i3 es un
+dock X11 que reserva ese espacio y no cubre las ventanas de trabajo. En
+Openbox las ventanas son flotantes por diseño.
 Incluye kernel,
 uptime, CPU, RAM, disco, temperaturas válidas, batería, red sin SSID/IP,
 audio, KVM, Podman, runtimes y un resumen no certificador de seguridad. Las

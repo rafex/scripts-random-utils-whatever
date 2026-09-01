@@ -10,11 +10,11 @@ tags:
 # install_conky_linux.sh
 
 Instala `conky-all` desde Debian y configura un panel informativo translúcido
-en la esquina superior derecha, debajo de i3bar o tint2. El panel no reserva
-espacio, no roba el foco y funciona tanto con i3 como con Openbox. En i3 usa
-una ventana X11 de tipo `override`, fuera del árbol de ventanas administrado por
-i3, y sus hints la mantienen debajo de las ventanas de trabajo; Openbox conserva
-su comportamiento flotante por diseño.
+en el lateral izquierdo, debajo de i3bar o tint2, con el alto útil de la
+pantalla. El panel reserva su propio espacio como dock en i3, no roba el foco
+y funciona también con Openbox. La plantilla usa `own_window_type = 'dock'`,
+`alignment = 'top_left'`, un margen superior de 34 píxeles y una altura fija de
+1030 píxeles, ajustada a la pantalla 1920×1080 de este perfil.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
@@ -146,25 +146,23 @@ sesión gráfica local.
 transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
-ubica arriba a la derecha y aplica un fondo de tema translúcido con opacidad
-alta para conservar el contraste. El texto normal usa un color contrastante
-con el fondo de cada paleta. En i3 usa `override` y el hint `below`, por lo que
-no entra como ventana flotante en el árbol administrado; el borde y los colores
-se actualizan junto con el tema.
+ubica en el lateral izquierdo y aplica un fondo de tema translúcido con
+opacidad alta para conservar el contraste. El texto normal usa un color
+contrastante con el fondo de cada paleta. En i3 usa un dock con altura completa
+debajo de la barra; el borde y los colores se actualizan junto con el tema.
 
 ### `El panel cubre las ventanas en i3`
 
-**Causa:** una configuración anterior usaba `own_window_type = 'normal'` y una
-regla i3 que forzaba la ventana a flotante. El hint `below` no siempre basta
-para que i3 la coloque detrás.
+**Causa:** una configuración anterior usaba `own_window_type = 'normal'` o
+`override`, que no reserva espacio y puede terminar encima de las ventanas.
 
 **Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window_type = 'override'` y elimina la regla
-flotante de i3. Si el panel ya estaba activo, usa
+La plantilla actual usa `own_window_type = 'dock'`, reserva el lateral izquierdo
+y elimina la regla flotante de i3. Si el panel ya estaba activo, usa
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
 Al ejecutar `just install-conky --apply`, el instalador también corrige ese
-ajuste en una configuración anterior que conserve el bloque administrado de
-Rafex; una configuración sin ese bloque no se sobrescribe.
+ajuste y la geometría en una configuración anterior que conserve el bloque
+administrado de Rafex; una configuración sin ese bloque no se sobrescribe.
 
 ### `existe otra instancia Conky del usuario`
 
@@ -180,5 +178,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa una ventana X11 de tipo `override` en i3 para que Conky no sea
-  administrado como contenedor flotante y se ubique arriba a la derecha.
+- `fix`: usa un dock X11 lateral izquierdo de alto completo para que i3 reserve
+  el espacio y Conky no cubra las ventanas de trabajo.
