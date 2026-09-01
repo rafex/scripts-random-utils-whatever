@@ -131,14 +131,33 @@ ensure_managed_layout() {
       print "    minimum_height = 1030,"
     } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/) {
       print "    maximum_height = 1030,"
-    } else if ($0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
-      print "    own_window_argb_value = 150,"
+    } else if ($0 ~ /^[[:space:]]*own_window_colour[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_argb_visual[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
+      next
+    } else if ($0 ~ /^[[:space:]]*own_window_transparent[[:space:]]*=/) {
+      print "    own_window_transparent = true,"
+    } else if ($0 ~ /^[[:space:]]*own_window[[:space:]]*=/) {
+      print "    own_window = true,"
     } else if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
       print "    own_window_type = '\''desktop'\'',"
     } else {
       print
     }
   }' "$target" > "$temporary"
+  if ! grep -Eq "^[[:space:]]*own_window_transparent[[:space:]]*=" "$temporary"; then
+    expanded="$(mktemp "${target}.tmp.XXXXXX")"
+    awk '
+      /^[[:space:]]*own_window[[:space:]]*=/ && !inserted {
+        print
+        print "    own_window_transparent = true,"
+        inserted=1
+        next
+      }
+      {print}
+    ' "$temporary" > "$expanded"
+    mv -f -- "$expanded" "$temporary"
+  fi
   if ! grep -Eq "^[[:space:]]*minimum_height[[:space:]]*=" "$temporary"; then
     expanded="$(mktemp "${target}.tmp.XXXXXX")"
     awk '
