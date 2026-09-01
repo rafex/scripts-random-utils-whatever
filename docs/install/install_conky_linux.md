@@ -162,6 +162,9 @@ para que i3 la coloque detrás.
 La plantilla actual usa `own_window_type = 'override'` y elimina la regla
 flotante de i3. Si el panel ya estaba activo, usa
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
+Al ejecutar `just install-conky --apply`, el instalador también corrige ese
+ajuste en una configuración anterior que conserve el bloque administrado de
+Rafex; una configuración sin ese bloque no se sobrescribe.
 
 ### `existe otra instancia Conky del usuario`
 

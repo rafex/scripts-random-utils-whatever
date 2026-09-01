@@ -104,6 +104,27 @@ install_file() {
   mv -f -- "$temporary" "$target"
 }
 
+ensure_managed_window_type() {
+  local target="$1" temporary
+  [[ -f "$target" ]] || return 0
+  grep -Fq '    -- BEGIN rafex theme' "$target" || return 0
+  if grep -Eq "^[[:space:]]*own_window_type[[:space:]]*=[[:space:]]*'override',[[:space:]]*$" "$target"; then
+    return 0
+  fi
+  temporary="$(mktemp "${target}.tmp.XXXXXX")"
+  awk '{
+    if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
+      print "    own_window_type = '\''override'\'',"
+    } else {
+      print
+    }
+  }' "$target" > "$temporary"
+  backup_path "$target"
+  chmod --reference="$target" "$temporary" 2>/dev/null || true
+  mv -f -- "$temporary" "$target"
+  ok 'configuración Conky administrada actualizada para i3/Openbox'
+}
+
 write_i3_block() {
   cat <<'EOF'
 # BEGIN rafex conky
@@ -147,6 +168,8 @@ configure_integrations() {
   mkdir -p "$CONFIG_HOME/openbox"
   if [[ -f "$CONKY_CONFIG" ]] && ! grep -Fq '    -- BEGIN rafex theme' "$CONKY_CONFIG"; then
     warn "existe una configuración Conky no administrada; no se sobrescribe: $CONKY_CONFIG"
+  elif [[ -f "$CONKY_CONFIG" ]]; then
+    ensure_managed_window_type "$CONKY_CONFIG"
   else
     install_file "$SOURCE_CONFIG" "$CONKY_CONFIG" 0644
   fi
