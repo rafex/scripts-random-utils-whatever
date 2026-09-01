@@ -11,8 +11,8 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo en el lateral
 izquierdo, debajo de i3bar o tint2, con el alto útil de la pantalla. El panel
-usa una ventana X11 de tipo `desktop`, un fondo azul oscuro semitransparente y
-un ancho fijo de 320 píxeles. No reserva una columna en i3 ni desplaza las
+usa una ventana X11 de tipo `desktop`, sin fondo visible y con un ancho fijo de
+320 píxeles. No reserva una columna en i3 ni desplaza las
 ventanas normales. La plantilla usa `alignment = 'top_left'`, un margen
 superior de 34 píxeles y una altura base de 1030 píxeles, ajustada a la
 pantalla 1920×1080 de este perfil.
@@ -144,12 +144,13 @@ sesión gráfica local.
 ### `El panel ocupa toda la pantalla o el texto no contrasta`
 
 **Causa:** una configuración anterior podía usar una ventana `dock` de tamaño
-completo o una ventana completamente transparente.
+completo. El panel actual es deliberadamente transparente y depende de los
+colores del tema para conservar la legibilidad sobre el fondo de pantalla.
 
 **Solución:** ejecuta `just install-conky --apply` y recarga la instancia
 administrada. La plantilla usa `DejaVu Sans Mono` tamaño 11, una ventana
-`desktop` de 320 píxeles de ancho, fondo `#2e3440` con opacidad ARGB 200 y
-colores de texto contrastantes definidos por el tema.
+`desktop` de 320 píxeles de ancho y `own_window_colour = '#00000000'` para
+eliminar el fondo del panel. Los colores de texto los define el tema.
 
 ### `El panel cubre las ventanas en i3`
 

@@ -120,9 +120,7 @@ ensure_managed_layout() {
   awk '
   function print_window_settings() {
     print "    own_window = true,"
-    print "    own_window_argb_visual = true,"
-    print "    own_window_argb_value = 200,"
-    print "    own_window_colour = '\''#2e3440'\'',"
+    print "    own_window_colour = '\''#00000000'\'',"
     print "    own_window_class = '\''RafexConky'\'',"
     print "    own_window_title = '\''Rafex ThinkPad Monitor'\'',"
     print "    own_window_hints = '\''undecorated,below,sticky,skip_taskbar,skip_pager'\'',"
@@ -180,7 +178,7 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: desktop semitransparente bajo ventanas, lateral izquierdo y alto completo'
+  ok 'configuración Conky administrada actualizada: desktop sin fondo bajo ventanas, lateral izquierdo y alto completo'
 }
 
 write_i3_block() {
