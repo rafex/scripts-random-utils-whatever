@@ -11,11 +11,21 @@ readonly GOPASS_KEYRING="/usr/share/keyrings/gopass-archive-keyring.gpg"
 readonly GOPASS_SOURCES="/etc/apt/sources.list.d/gopass.sources"
 readonly GOPASS_PREFERENCES="/etc/apt/preferences.d/gopass.pref"
 readonly GOPASS_STORE="${PASSWORD_STORE_DIR:-${HOME}/.password-store}"
+REPOSITORY_TEMP_DIR=""
 
 die() { printf '✗ ERROR: %s\n' "$*" >&2; exit 1; }
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
 warn() { printf '⚠ %s\n' "$*" >&2; }
+
+cleanup_repository_temp() {
+  if [[ -n "$REPOSITORY_TEMP_DIR" && -d "$REPOSITORY_TEMP_DIR" ]]; then
+    rm -rf -- "$REPOSITORY_TEMP_DIR"
+  fi
+  REPOSITORY_TEMP_DIR=""
+}
+
+trap cleanup_repository_temp EXIT
 
 usage() {
   cat <<'EOF'
@@ -143,12 +153,11 @@ verify_key() {
 }
 
 configure_repository() {
-  local temp_dir key_file source_file preferences_file backup_dir changed=0
-  temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/gopass-repository.XXXXXX")"
-  trap 'rm -rf -- "$temp_dir"' RETURN
-  key_file="$temp_dir/gopass-archive-keyring.gpg"
-  source_file="$temp_dir/gopass.sources"
-  preferences_file="$temp_dir/gopass.pref"
+  local key_file source_file preferences_file backup_dir changed=0
+  REPOSITORY_TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/gopass-repository.XXXXXX")"
+  key_file="$REPOSITORY_TEMP_DIR/gopass-archive-keyring.gpg"
+  source_file="$REPOSITORY_TEMP_DIR/gopass.sources"
+  preferences_file="$REPOSITORY_TEMP_DIR/gopass.pref"
   backup_dir="/var/backups/rafex-gopass"
 
   curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
@@ -163,6 +172,7 @@ configure_repository() {
   if ((changed == 0)); then
     ok 'fuente, preferencias y keyring gopass ya están actualizados'
   fi
+  cleanup_repository_temp
 }
 
 show_plan() {
