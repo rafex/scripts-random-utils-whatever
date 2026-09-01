@@ -10,10 +10,10 @@ tags:
 # install_conky_linux.sh
 
 Instala `conky-all` desde Debian y configura un panel informativo translúcido
-en la esquina superior izquierda, debajo de i3bar o tint2. El panel no reserva
-espacio, no roba el foco y funciona tanto con i3 como con Openbox. Usa una
-ventana normal flotante con estado `below`, para que las ventanas de trabajo
-puedan cubrirlo cuando se abren o reciben el foco.
+en la esquina superior derecha, debajo de i3bar o tint2. El panel no reserva
+espacio, no roba el foco y funciona tanto con i3 como con Openbox. En i3 usa
+una ventana X11 de tipo `desktop`, que queda detrás de las ventanas de trabajo;
+Openbox conserva su comportamiento flotante por diseño.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
@@ -145,9 +145,21 @@ sesión gráfica local.
 transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
-ubica arriba a la izquierda y aplica un fondo oscuro translúcido con opacidad
-aproximada del 75 %. Es una ventana normal con estado `below`, no un fondo de
-escritorio permanente. El borde y los colores se actualizan junto con el tema.
+ubica arriba a la derecha y aplica un fondo de tema translúcido con opacidad
+alta para conservar el contraste. En i3 es una ventana de escritorio detrás
+del fondo y las ventanas normales; el borde y los colores se actualizan junto
+con el tema.
+
+### `El panel cubre las ventanas en i3`
+
+**Causa:** una configuración anterior usaba `own_window_type = 'normal'` y una
+regla i3 que forzaba la ventana a flotante. El hint `below` no siempre basta
+para que i3 la coloque detrás.
+
+**Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
+La plantilla actual usa `own_window_type = 'desktop'` y elimina la regla
+flotante de i3. Si el panel ya estaba activo, usa
+`~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
 
 ### `existe otra instancia Conky del usuario`
 
@@ -163,5 +175,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa una ventana normal flotante para que las ventanas de trabajo
-  puedan cubrir Conky.
+- `fix`: usa una ventana X11 de tipo `desktop` en i3 para que Conky quede detrás
+  de las ventanas y se ubique arriba a la derecha.
