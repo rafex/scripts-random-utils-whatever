@@ -36,3 +36,8 @@ tint2-status *args:
 # Uso: just scan-usb --path /run/media/$USER/NOMBRE_USB
 scan-usb *args:
     bash scripts/system/scan_usb_clamav_linux.sh {{args}}
+
+# Escanear un documento con el Epson XP-241 mediante SANE, sin sudo
+# Uso: just scan-document --output ~/Documents/escaneo.png
+scan-document *args:
+    bash scripts/system/scan_document_linux.sh {{args}}

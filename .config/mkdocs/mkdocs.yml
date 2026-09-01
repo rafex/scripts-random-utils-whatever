@@ -117,6 +117,8 @@ nav:
       - install_antivirus_linux: install/install_antivirus_linux.md
       - install_multimedia_linux: install/install_multimedia_linux.md
       - install_fonts_linux: install/install_fonts_linux.md
+      - install_printers_linux: install/install_printers_linux.md
+      - configure_printers_linux: install/configure_printers_linux.md
       - install_restic_backup_linux: install/install_restic_backup_linux.md
       - configure_kvm_linux: install/configure_kvm_linux.md
       - audit_thinkpad_readiness_linux: install/audit_thinkpad_readiness_linux.md
@@ -159,6 +161,7 @@ nav:
       - picom_toggle_linux: system/picom_toggle_linux.md
       - tint2_status_linux: system/tint2_status_linux.md
       - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
+      - scan_document_linux: system/scan_document_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

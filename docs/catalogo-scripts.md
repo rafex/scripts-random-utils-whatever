@@ -79,6 +79,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_antivirus_linux.sh` | Linux | install-antivirus | sí | sí | medio | [doc](install/install_antivirus_linux.md) |
 | `scripts/install/install_multimedia_linux.sh` | Linux | install-multimedia | sí | sí | medio | [doc](install/install_multimedia_linux.md) |
 | `scripts/install/install_fonts_linux.sh` | Linux | install-fonts | sí | sí | medio | [doc](install/install_fonts_linux.md) |
+| `scripts/install/install_printers_linux.sh` | Linux | install-printers | sí | sí | medio | [doc](install/install_printers_linux.md) |
+| `scripts/install/configure_printers_linux.sh` | Linux | configure-printers, printer-test | sí | sí | medio | [doc](install/configure_printers_linux.md) |
 | `scripts/install/install_restic_backup_linux.sh` | Linux | install-restic-backup | sí | sí | medio | [doc](install/install_restic_backup_linux.md) |
 | `scripts/install/configure_kvm_linux.sh` | Linux | configure-kvm | sí | sí | medio | [doc](install/configure_kvm_linux.md) |
 | `scripts/install/audit_thinkpad_readiness_linux.sh` | Linux | audit-thinkpad | no | sí | bajo | [doc](install/audit_thinkpad_readiness_linux.md) |
@@ -122,6 +124,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/picom_toggle_linux.sh` | Linux | picom-toggle | no | sí | bajo | [doc](system/picom_toggle_linux.md) |
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
+| `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
 
 ## Documentos suplementarios
 

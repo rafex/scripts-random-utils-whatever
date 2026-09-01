@@ -267,6 +267,30 @@ visibles para otros dispositivos del mismo segmento. Si no necesitas
 descubrimiento local, puedes detener Avahi; mDNS no es necesario para navegar
 ni para usar OXXO Cel.
 
+## Impresoras y escáner
+
+La estación puede configurar por USB o por red la multifuncional Epson XP-241 y
+la impresora láser Xerox Phaser 3020. La Epson usa ESC/P-R para imprimir y SANE
+para escanear; la Xerox se configura como impresora únicamente. La cola Xerox
+queda como predeterminada cuando está disponible.
+
+```sh
+just install-printers --apply
+just configure-printers --status
+just configure-printers --apply
+just printer-test --printer xerox
+just printer-test --printer epson
+just scan-document --list
+just scan-document --output ~/Documents/escaneo.png
+```
+
+La configuración no comparte CUPS, no habilita `saned`, no abre puertos nuevos
+en UFW y no almacena contraseñas. Si hay varias URI para una impresora, el
+configurador exige seleccionar una explícitamente con `--device-uri`; si una
+cola existente entra en conflicto, `--replace` es necesario y puede eliminar
+trabajos pendientes. La primera creación de colas puede solicitar sudo, pero
+imprimir y escanear se realiza como usuario normal.
+
 ## Respaldo incremental cifrado
 
 El respaldo portable anterior sigue disponible para exportaciones puntuales,

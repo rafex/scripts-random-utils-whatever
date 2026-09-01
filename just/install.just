@@ -189,6 +189,21 @@ install-multimedia *args:
 install-fonts *args:
     bash scripts/install/install_fonts_linux.sh {{args}}
 
+# Instalar CUPS, SANE y controladores Debian para Epson XP-241 y Xerox Phaser 3020
+# Uso: just install-printers --check|--plan|--apply|--status
+install-printers *args:
+    bash scripts/install/install_printers_linux.sh {{args}}
+
+# Configurar colas CUPS idempotentes para Epson XP-241 y Xerox Phaser 3020
+# Uso: just configure-printers --apply [--printer epson|xerox|all]
+configure-printers *args:
+    bash scripts/install/configure_printers_linux.sh {{args}}
+
+# Enviar una página de prueba a una cola configurada sin sudo
+# Uso: just printer-test --printer xerox|epson
+printer-test *args:
+    bash scripts/install/configure_printers_linux.sh --test-print {{args}}
+
 # Instalar Restic y Secret Service sin inicializar repositorios
 # Uso: just install-restic-backup --check|--plan|--apply
 install-restic-backup *args:
