@@ -11,16 +11,16 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo sin rectángulo
 de fondo en el lateral izquierdo, debajo de i3bar o tint2, con el alto útil de
-la pantalla. El panel no reserva una columna en i3: queda como texto de fondo
-para no convertirse en una ventana que ocupe el escritorio. La plantilla usa
-`own_window_type = 'desktop'`, `own_window_transparent = true`,
-`alignment = 'top_left'`, un margen superior de 34 píxeles y una altura base de
-1030 píxeles, ajustada a la pantalla 1920×1080 de este perfil. El tipo `desktop`
-mantiene la ventana en el fondo y `wmctrl` corrige su geometría al iniciar.
+la pantalla. El panel no reserva una columna en i3: Conky dibuja directamente
+sobre la ventana raíz (`own_window = false`), por lo que i3 y Openbox no pueden
+reparentarlo como una ventana flotante y cualquier aplicación queda siempre
+encima. La plantilla usa `alignment = 'top_left'`, un margen superior de 34
+píxeles y una altura base de 1030 píxeles, ajustada a la pantalla 1920×1080 de
+este perfil.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
-- **Dependencias:** `bash`, `sudo`, `apt-get`, `apt-cache`, `dpkg-query`, `xwininfo` (de `x11-utils`), `i3` opcional, `conky-all`, `wmctrl`
+- **Dependencias:** `bash`, `sudo`, `apt-get`, `apt-cache`, `dpkg-query`, `i3` opcional, `conky-all`
 
 ---
 
@@ -62,7 +62,7 @@ Openbox.
 |---|---|---|
 | `--check` | — | Verifica Debian, el candidato APT, las plantillas y el estado sin escribir. |
 | `--plan` | `--dry-run` | Muestra la instalación e integración previstas sin escribir. |
-| `--apply` | — | Instala `conky-all` y `wmctrl` si faltan, copia la configuración y añade los bloques administrados. |
+| `--apply` | — | Instala `conky-all` si falta, copia la configuración y añade los bloques administrados. |
 | `--status` | — | Muestra archivos, bloques, número de instancias y presencia de `DISPLAY`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
@@ -110,7 +110,7 @@ abrir una ventana en ese caso.
 ## Protecciones de seguridad
 
 - `--check`, `--plan` y `--status` son de solo lectura y no usan `sudo`.
-- `--apply` usa `sudo` solo para instalar `conky-all` y `wmctrl` mediante APT.
+- `--apply` usa `sudo` solo para instalar `conky-all` mediante APT.
 - Se respaldan los archivos de usuario existentes antes de reemplazarlos.
 - Los bloques de i3 y Openbox se reemplazan por sus marcadores, sin duplicarse.
 - El lanzador solo detiene su propio PID; nunca mata instancias ajenas.
@@ -149,25 +149,37 @@ transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
 ubica en el lateral izquierdo y no pinta un rectángulo que oculte el wallpaper.
-El texto usa colores claros de alto contraste: blanco para los datos, azul
-claro para las secciones y salmón para avisos. En i3 usa una ventana `desktop`
-colocada 34 píxeles debajo de la barra, con alto útil completo y estado
-inferior; el borde y los colores se actualizan junto con el tema.
+El texto usa colores contrastantes definidos por el tema: datos claros,
+secciones azules y avisos salmón. Si un fondo personalizado resulta demasiado
+claro, cambia a una paleta oscura o ajusta únicamente los colores del tema; no
+se añade una ventana translúcida porque volvería a exponer el problema de
+superposición en i3.
 
 ### `El panel cubre las ventanas en i3`
 
-**Causa:** una configuración anterior usaba `own_window_type = 'normal'` o
-`override`, que pueden convertirse en ventanas administradas y terminar encima
-de las ventanas.
+**Causa:** aunque una configuración use `own_window_type = 'desktop'` y el
+estado EWMH `below`, i3 puede reparentar la ventana X11 de Conky dentro de un
+contenedor. En ese caso sigue apareciendo sobre Firefox, VSCodium u otras
+ventanas.
 
 **Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window_type = 'desktop'`, instala `wmctrl` para
-colocarla en 320×alto útil y elimina la regla flotante de i3. Si el panel ya
-estaba activo, usa
-`~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica.
-Al ejecutar `just install-conky --apply`, el instalador también corrige ese
-ajuste, la geometría y el fondo transparente en una configuración anterior que conserve el bloque
-administrado de Rafex; una configuración sin ese bloque no se sobrescribe.
+La plantilla actual usa `own_window = false`: no crea una ventana Conky que el
+window manager pueda administrar. El instalador elimina las opciones de ventana
+de la configuración administrada anterior y conserva el panel como dibujo de
+fondo. Si el panel ya estaba activo, usa
+`~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. La instancia
+anterior desaparecerá al detenerse y no debe quedar ningún `RafexConky` en
+`wmctrl -l`.
+
+### `Conky no se ve después de cambiar el wallpaper`
+
+**Causa:** al dibujar sobre la ventana raíz, una herramienta que repinta el
+fondo después de Conky puede cubrir temporalmente sus textos.
+
+**Solución:** inicia o recarga Conky después de aplicar el fondo con
+`~/.local/bin/conky-launch.sh --reload`. Es una limitación deliberada del modo
+raíz: las ventanas normales siempre quedan por encima y el panel no recibe
+clics ni roba el foco.
 
 ### `existe otra instancia Conky del usuario`
 
@@ -183,7 +195,7 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa una ventana X11 `desktop` lateral izquierda de alto completo,
-  redimensionada por `wmctrl` y colocada debajo de las ventanas de trabajo.
+- `fix`: dibuja Conky sobre la ventana raíz para impedir que i3 lo convierta en
+  una ventana flotante superpuesta.
 - `fix`: elimina el fondo pintado y usa colores de texto de alto contraste para
   mostrar directamente el wallpaper.

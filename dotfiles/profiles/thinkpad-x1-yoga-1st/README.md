@@ -236,10 +236,10 @@ just conky-status
 
 Se muestra en el lateral izquierdo, debajo de la barra y con el alto útil de la
 pantalla, sin rectángulo de fondo y con fuente `DejaVu Sans Mono` tamaño 11 para
-conservar el contraste sobre los fondos del perfil. En i3 es una ventana X11
-`desktop` de 320 píxeles de ancho, colocada debajo de las ventanas y ajustada
-por `wmctrl`; no ocupa todo el escritorio ni cubre las ventanas de trabajo.
-En Openbox las ventanas son flotantes por diseño.
+conservar el contraste sobre los fondos del perfil. Conky dibuja sobre la
+ventana raíz (`own_window = false`), en vez de crear una ventana X11; así i3 y
+Openbox no lo pueden poner encima de las ventanas de trabajo. El panel no
+ocupa espacio, no recibe clics y no roba el foco.
 Incluye kernel,
 uptime, CPU, RAM, disco, temperaturas válidas, batería, red sin SSID/IP,
 audio, KVM, Podman, runtimes y un resumen no certificador de seguridad. Las

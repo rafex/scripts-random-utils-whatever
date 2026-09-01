@@ -22,6 +22,7 @@ I3_BEGIN='# BEGIN rafex conky'
 I3_END='# END rafex conky'
 OPENBOX_BEGIN='# BEGIN rafex conky'
 OPENBOX_END='# END rafex conky'
+CONKY_PACKAGES=(conky-all)
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 info() { printf '%b→%b %s\n' "${CYAN}${BOLD}" "$RESET" "$*"; }
@@ -133,24 +134,25 @@ ensure_managed_layout() {
       print "    maximum_height = 1030,"
     } else if ($0 ~ /^[[:space:]]*own_window_colour[[:space:]]*=/ ||
                $0 ~ /^[[:space:]]*own_window_argb_visual[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
+               $0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_transparent[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_class[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_title[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_hints[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
       next
-    } else if ($0 ~ /^[[:space:]]*own_window_transparent[[:space:]]*=/) {
-      print "    own_window_transparent = true,"
     } else if ($0 ~ /^[[:space:]]*own_window[[:space:]]*=/) {
-      print "    own_window = true,"
-    } else if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
-      print "    own_window_type = '\''desktop'\'',"
+      print "    own_window = false,"
     } else {
       print
     }
   }' "$target" > "$temporary"
-  if ! grep -Eq "^[[:space:]]*own_window_transparent[[:space:]]*=" "$temporary"; then
+  if ! grep -Eq "^[[:space:]]*own_window[[:space:]]*=" "$temporary"; then
     expanded="$(mktemp "${target}.tmp.XXXXXX")"
     awk '
-      /^[[:space:]]*own_window[[:space:]]*=/ && !inserted {
+      /^[[:space:]]*double_buffer[[:space:]]*=/ && !inserted {
         print
-        print "    own_window_transparent = true,"
+        print "    own_window = false,"
         inserted=1
         next
       }
@@ -179,7 +181,7 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: lateral izquierdo, alto completo y fondo inferior'
+  ok 'configuración Conky administrada actualizada: dibujo en la raíz, lateral izquierdo y alto completo'
 }
 
 write_i3_block() {
@@ -279,7 +281,7 @@ main() {
   case "$ACTION" in
     check)
       echo '═══ Comprobación de Conky ═══'
-      for package_name in conky-all wmctrl; do
+      for package_name in "${CONKY_PACKAGES[@]}"; do
         if package_installed "$package_name"; then
           ok "$package_name ya está instalado"
         elif candidate_available "$package_name"; then
@@ -293,7 +295,7 @@ main() {
       ;;
     plan)
       echo '═══ Plan de instalación de Conky ═══'
-      for package_name in conky-all wmctrl; do
+      for package_name in "${CONKY_PACKAGES[@]}"; do
         if package_installed "$package_name"; then
           info "[plan] conservar $package_name ya instalado"
         elif candidate_available "$package_name"; then
@@ -310,7 +312,7 @@ main() {
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
       local apt_packages=() package_name
-      for package_name in conky-all wmctrl; do
+      for package_name in "${CONKY_PACKAGES[@]}"; do
         if package_installed "$package_name"; then
           info "$package_name ya está instalado; se omite"
         elif candidate_available "$package_name"; then
