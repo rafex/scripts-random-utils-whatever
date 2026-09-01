@@ -108,6 +108,7 @@ write_i3_block() {
   cat <<'EOF'
 # BEGIN rafex conky
 exec_always --no-startup-id ~/.local/bin/conky-launch.sh
+for_window [class="^RafexConky$"] floating enable, border pixel 0
 # END rafex conky
 EOF
 }

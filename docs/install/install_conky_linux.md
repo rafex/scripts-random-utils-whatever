@@ -11,7 +11,9 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo translúcido
 en la esquina superior izquierda, debajo de i3bar o tint2. El panel no reserva
-espacio, no roba el foco y funciona tanto con i3 como con Openbox.
+espacio, no roba el foco y funciona tanto con i3 como con Openbox. Usa una
+ventana normal flotante con estado `below`, para que las ventanas de trabajo
+puedan cubrirlo cuando se abren o reciben el foco.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
@@ -144,7 +146,8 @@ transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
 ubica arriba a la izquierda y aplica un fondo oscuro translúcido con opacidad
-aproximada del 75 %. El borde y los colores se actualizan junto con el tema.
+aproximada del 75 %. Es una ventana normal con estado `below`, no un fondo de
+escritorio permanente. El borde y los colores se actualizan junto con el tema.
 
 ### `existe otra instancia Conky del usuario`
 
@@ -160,3 +163,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
+- `fix`: usa una ventana normal flotante para que las ventanas de trabajo
+  puedan cubrir Conky.

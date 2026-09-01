@@ -213,7 +213,8 @@ just conky-status
 
 Se muestra en la esquina superior izquierda, debajo de la barra, con un fondo
 oscuro translúcido y fuente `DejaVu Sans Mono` tamaño 11 para conservar el
-contraste sobre los fondos del perfil. Incluye kernel,
+contraste sobre los fondos del perfil. Es una ventana normal flotante en estado
+`below`, por lo que las ventanas de trabajo pueden cubrirla. Incluye kernel,
 uptime, CPU, RAM, disco, temperaturas válidas, batería, red sin SSID/IP,
 audio, KVM, Podman, runtimes y un resumen no certificador de seguridad. Las
 lecturas que no estén disponibles aparecen como `N/D`. No muestra credenciales,
