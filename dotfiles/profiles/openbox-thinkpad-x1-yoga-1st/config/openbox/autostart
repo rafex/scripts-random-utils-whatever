@@ -9,9 +9,13 @@ if command -v setxkbmap >/dev/null 2>&1; then
     setxkbmap es
 fi
 
-if command -v feh >/dev/null 2>&1 && [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then
-    feh --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"
+# BEGIN rafex feh wallpaper
+if [ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]; then
+    "$HOME/.local/bin/rafex-wallpaper.sh"
+elif command -v feh >/dev/null 2>&1 && [ -f "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg" ]; then
+    feh --no-fehbg --bg-scale "$HOME/Imágenes/FondosDePantalla/wallpaper.jpg"
 fi
+# END rafex feh wallpaper
 
 if [ -x "$HOME/.local/bin/dunst-smart.sh" ]; then
     DUNST_BAR_POSITION=top "$HOME/.local/bin/dunst-smart.sh" --start &

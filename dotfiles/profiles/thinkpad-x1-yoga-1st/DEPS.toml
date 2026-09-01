@@ -8,6 +8,7 @@ apt = [
     "i3status",
     "rofi",
     "9menu",
+    "ratmenu",
     "dunst",
     "alacritty",
     "rxvt-unicode",
@@ -31,6 +32,8 @@ apt = [
     "dex",
     "libnotify-bin",
     "autorandr",
+    "python3-gi",
+    "gir1.2-gtk-3.0",
 ]
 
 [files]

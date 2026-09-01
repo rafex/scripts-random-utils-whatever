@@ -2,6 +2,7 @@ i3-wm
 i3status
 rofi
 9menu
+ratmenu
 dunst
 alacritty
 rxvt-unicode
@@ -25,3 +26,5 @@ i3lock
 dex
 libnotify-bin
 autorandr
+python3-gi
+gir1.2-gtk-3.0

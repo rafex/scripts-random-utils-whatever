@@ -25,7 +25,7 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 
 ## Incluye
 
-- i3, i3status, rofi, 9menu, dunst, alacritty y picom. Dunst detecta la
+- i3, i3status, rofi, ratmenu (con 9menu como respaldo), dunst, alacritty y picom. Dunst detecta la
   posición de i3bar y reserva espacio para que las notificaciones no se
   empalmen con la barra.
 - Inicio de `udiskie` desde i3; `pasystray` y `nm-applet` se gestionan mediante
@@ -40,7 +40,7 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   Instálalos con `just install-clipboard --apply` y
   `just install-screenshot --apply`. El historial puede contener información
   sensible: no copies contraseñas y revísalo o límpialo desde CopyQ.
-- Menú 9menu en `Mod+F9` y `XF86Tools` con accesos a las herramientas de la
+- Menú ratmenu en `Mod+F9` y `XF86Tools` (9menu queda como respaldo) con accesos a las herramientas de la
   ThinkPad, incluido Synaptic mediante `synaptic-pkexec`. Incluye capturas de
   pantalla, historial CopyQ, una salida visible y acciones de cerrar sesión,
   suspender, hibernar, reiniciar y apagar; todas las acciones sensibles piden
@@ -72,6 +72,26 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   `just install-i3-gaps --apply`.
 - Incluye `.tmux.conf` basado en el perfil `developer` de
   `development-environment-rafex`, con navegación tipo Vim, OSC52 y TPM.
+
+## Herramientas visuales opcionales
+
+Para mantener el perfil base ligero, estas piezas se instalan por separado:
+
+```sh
+just install-feh --apply
+just install-ratmenu --apply
+just install-eww --apply
+just install-i3lock-color --apply
+just install-rafex-control-panel --apply
+```
+
+`feh` aplica el fondo mediante un helper común. `ratmenu` es el menú activo y
+`9menu` permanece como respaldo. EWW es un widget optativo sin autostart ni
+reserva de espacio. `i3lock-color` se instala en paralelo al `i3lock` de
+Debian y se prueba manualmente con `just lock-screen --mode solid|image|blur`;
+no cambia `xss-lock`. El panel GTK se abre con `Super+Control+P`, desde
+ratmenu o desde el menú raíz de Openbox. No acepta comandos arbitrarios ni
+crea un daemon root.
 
 ## Laboratorio de seguridad opcional
 

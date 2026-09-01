@@ -130,6 +130,11 @@ nav:
       - audit_thinkpad_readiness_linux: install/audit_thinkpad_readiness_linux.md
       - install_thinkpad_backgrounds_linux: install/install_thinkpad_backgrounds_linux.md
       - install_conky_linux: install/install_conky_linux.md
+      - install_feh_linux: install/install_feh_linux.md
+      - install_ratmenu_linux: install/install_ratmenu_linux.md
+      - install_eww_linux: install/install_eww_linux.md
+      - install_i3lock_color_linux: install/install_i3lock_color_linux.md
+      - install_rafex_control_panel_linux: install/install_rafex_control_panel_linux.md
       - install_ufw_linux: install/install_ufw_linux.md
       - install_vscodium_linux: install/install_vscodium_linux.md
       - install_rustdesk_linux: install/install_rustdesk_linux.md
@@ -175,6 +180,11 @@ nav:
       - kbd_brightness_privileged_linux: system/kbd_brightness_privileged_linux.md
       - age_file_linux: system/age_file_linux.md
       - conky_status_linux: system/conky_status_linux.md
+      - set_wallpaper_linux: system/set_wallpaper_linux.md
+      - rafex_ratmenu_linux: system/rafex_ratmenu_linux.md
+      - eww_widgets_linux: system/eww_widgets_linux.md
+      - lock_screen_linux: system/lock_screen_linux.md
+      - rafex_control_panel: system/rafex_control_panel.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

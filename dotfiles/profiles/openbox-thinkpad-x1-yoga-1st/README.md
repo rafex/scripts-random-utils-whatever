@@ -46,8 +46,8 @@ se modifica y puede elegirse nuevamente como recuperación.
 | `Super+Space` | Menú Rofi |
 | `Super+1` … `Super+0` | Escritorios 1–10 |
 | `Super+Tab` | Ventanas Rofi |
-| `Super+F9` | Menú 9menu |
-| `XF86Tools` | Menú 9menu |
+| `Super+F9` | Menú ratmenu (9menu como respaldo) |
+| `XF86Tools` | Menú ratmenu |
 | `XF86WakeUp` | Menú de energía |
 | `XF86KbdBrightnessDown` / `Up` | Bajar/subir brillo del teclado |
 | `XF86LaunchA` / `XF86Explorer` | Bajar/subir brillo del teclado |
@@ -57,6 +57,7 @@ se modifica y puede elegirse nuevamente como recuperación.
 | `XF86WLAN` / `XF86RFKill` | Wi-Fi/modo avión |
 | `Super+Shift+T` | Cambiar tema |
 | `Super+Shift+P` | Activar o desactivar picom |
+| `Super+Control+P` | Panel de control Rafex |
 
 El menú raíz de Openbox y 9menu ofrecen capturas de pantalla, CopyQ, cerrar
 sesión, suspender, hibernar, reiniciar y apagar. Las acciones sensibles siempre
@@ -77,6 +78,10 @@ theme-toggle.sh --cycle
 
 El selector actualiza Openbox, tint2, Dunst, Rofi, Alacritty, rxvt-unicode,
 i3status y tmux cuando las configuraciones correspondientes existen.
+
+El panel GTK3 opcional se instala con `just install-rafex-control-panel --apply`.
+EWW e i3lock-color también son componentes opcionales y no activan servicios ni
+reemplazan el bloqueo existente automáticamente.
 
 ## Fallos conocidos
 

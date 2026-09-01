@@ -90,6 +90,11 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/audit_thinkpad_readiness_linux.sh` | Linux | audit-thinkpad | no | sí | bajo | [doc](install/audit_thinkpad_readiness_linux.md) |
 | `scripts/install/install_thinkpad_backgrounds_linux.sh` | Linux | install-thinkpad-backgrounds | sí | sí | alto | [doc](install/install_thinkpad_backgrounds_linux.md) |
 | `scripts/install/install_conky_linux.sh` | Linux | install-conky | sí | sí | medio | [doc](install/install_conky_linux.md) |
+| `scripts/install/install_feh_linux.sh` | Linux | install-feh | sí | sí | bajo | [doc](install/install_feh_linux.md) |
+| `scripts/install/install_ratmenu_linux.sh` | Linux | install-ratmenu | sí | sí | bajo | [doc](install/install_ratmenu_linux.md) |
+| `scripts/install/install_eww_linux.sh` | Linux | install-eww | sí | sí | medio | [doc](install/install_eww_linux.md) |
+| `scripts/install/install_i3lock_color_linux.sh` | Linux | install-i3lock-color | sí | sí | alto | [doc](install/install_i3lock_color_linux.md) |
+| `scripts/install/install_rafex_control_panel_linux.sh` | Linux | install-rafex-control-panel | sí | sí | medio | [doc](install/install_rafex_control_panel_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
@@ -138,6 +143,11 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/kbd_brightness_privileged_linux.sh` | Linux | — | sí | — | alto | [doc](system/kbd_brightness_privileged_linux.md) |
 | `scripts/system/age_file_linux.sh` | Linux | age-file | no | sí | medio | [doc](system/age_file_linux.md) |
 | `scripts/system/conky_status_linux.sh` | Linux | conky-status | no | — | bajo | [doc](system/conky_status_linux.md) |
+| `scripts/system/set_wallpaper_linux.sh` | Linux | — | no | — | bajo | [doc](system/set_wallpaper_linux.md) |
+| `scripts/system/rafex_ratmenu_linux.sh` | Linux | rafex-ratmenu | no | — | bajo | [doc](system/rafex_ratmenu_linux.md) |
+| `scripts/system/eww_widgets_linux.sh` | Linux | eww-widgets | no | sí | bajo | [doc](system/eww_widgets_linux.md) |
+| `scripts/system/lock_screen_linux.sh` | Linux | lock-screen | no | — | alto | [doc](system/lock_screen_linux.md) |
+| `scripts/system/rafex_control_panel.py` | Linux | rafex-control-panel | no | — | medio | [doc](system/rafex_control_panel.md) |
 
 ## Documentos suplementarios
 

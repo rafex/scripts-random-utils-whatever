@@ -6,6 +6,7 @@
     <item label="Aplicaciones"><action name="Execute"><command>rofi -show drun -show-icons</command></action></item>
     <item label="Navegador"><action name="Execute"><command>firefox</command></action></item>
     <item label="Archivos"><action name="Execute"><command>thunar</command></action></item>
+    <item label="Panel de control Rafex"><action name="Execute"><command>~/.local/bin/rafex-control-panel.sh</command></action></item>
     <item label="Audio"><action name="Execute"><command>pavucontrol</command></action></item>
     <item label="Red"><action name="Execute"><command>nm-connection-editor</command></action></item>
     <item label="Wi-Fi"><action name="Execute"><command>~/.local/bin/wifi-toggle.sh toggle</command></action></item>

@@ -2,7 +2,7 @@
 set $mod Mod4
 set $term alacritty
 set $menu rofi -show drun -show-icons
-set $laptop_menu 9menu -popup -label "ThinkPad" -file ~/.config/9menu/laptop.menu
+set $laptop_menu ~/.local/bin/rafex-ratmenu.sh
 
 # BEGIN rafex theme
 set $theme_bar_bg #e5e9f0
@@ -29,9 +29,9 @@ exec_always --no-startup-id setxkbmap es
 # BEGIN rafex conky
 exec_always --no-startup-id ~/.local/bin/conky-launch.sh
 # END rafex conky
-# BEGIN rafex thinkpad backgrounds
-exec_always --no-startup-id sh -c 'if command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
-# END rafex thinkpad backgrounds
+# BEGIN rafex feh wallpaper
+exec_always --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]; then "$HOME/.local/bin/rafex-wallpaper.sh"; elif command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
+# END rafex feh wallpaper
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'
 exec --no-startup-id dex --autostart --environment i3
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
@@ -54,6 +54,7 @@ bindsym XF86AudioMute exec --no-startup-id ~/.local/bin/volume-notify.sh mute &&
 bindsym XF86Display exec --no-startup-id ~/.local/bin/screen-projector.sh --apply --mode next
 # XF86Tools y XF86WakeUp se añaden por install-i3-laptop-controls.
 bindsym $mod+F9 exec --no-startup-id $laptop_menu
+bindsym $mod+Control+p exec --no-startup-id ~/.local/bin/rafex-control-panel.sh
 bindsym $mod+Shift+t exec --no-startup-id ~/.local/bin/theme-toggle.sh --toggle
 
 floating_modifier $mod

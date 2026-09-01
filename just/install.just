@@ -268,3 +268,28 @@ install-thinkpad-backgrounds *args:
 # Uso: just install-conky --check|--plan|--apply|--status
 install-conky *args:
     bash scripts/install/install_conky_linux.sh {{args}}
+
+# Instalar feh y unificar el fondo del perfil ThinkPad en i3/Openbox
+# Uso: just install-feh --check|--plan|--apply|--status
+install-feh *args:
+    bash scripts/install/install_feh_linux.sh {{args}}
+
+# Instalar ratmenu y migrar el menú activo conservando 9menu como respaldo
+# Uso: just install-ratmenu --check|--plan|--apply|--status
+install-ratmenu *args:
+    bash scripts/install/install_ratmenu_linux.sh {{args}}
+
+# Compilar EWW X11 v0.6.0 como widget opcional de usuario
+# Uso: just install-eww --check|--plan|--apply|--status
+install-eww *args:
+    bash scripts/install/install_eww_linux.sh {{args}}
+
+# Compilar i3lock-color en paralelo al bloqueador oficial
+# Uso: just install-i3lock-color --check|--plan|--apply|--status
+install-i3lock-color *args:
+    bash scripts/install/install_i3lock_color_linux.sh {{args}}
+
+# Instalar el panel GTK3/PyGObject del perfil Rafex
+# Uso: just install-rafex-control-panel --check|--plan|--apply|--status
+install-rafex-control-panel *args:
+    bash scripts/install/install_rafex_control_panel_linux.sh {{args}}

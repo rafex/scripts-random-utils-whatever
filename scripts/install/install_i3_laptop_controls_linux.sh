@@ -131,8 +131,10 @@ configure_i3() {
   local begin='# >>> i3-laptop-controls managed >>>'
   local end='# <<< i3-laptop-controls managed <<<'
   local dunst_line='exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start'
-  local block
-  block="$begin
+  local block_file
+  block_file="$(mktemp)"
+  cat > "$block_file" <<'EOF'
+${begin}
 bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh toggle
 bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
 bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
@@ -141,16 +143,20 @@ bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-n
 bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
 bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
-bindsym \$mod+Shift+b exec --no-startup-id ~/.local/bin/rofi-search.sh browser
+bindsym $mod+Shift+b exec --no-startup-id ~/.local/bin/rofi-search.sh browser
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
-bindsym XF86Tools exec --no-startup-id 9menu -popup -label \"ThinkPad\" -file ~/.config/9menu/laptop.menu
+bindsym XF86Tools exec --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-ratmenu.sh" ]; then "$HOME/.local/bin/rafex-ratmenu.sh"; else 9menu -popup -label "ThinkPad" -file "$HOME/.config/9menu/laptop.menu"; fi'
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
-$end"
+${end}
+EOF
+  sed -i "s/\${begin}/$begin/; s/\${end}/$end/" "$block_file"
   if [[ "$ACTION" == plan ]]; then
+    rm -f -- "$block_file"
     info "[plan] actualizar bloque administrado en $I3_CONFIG"
     return
   fi
   if [[ "$ACTION" != apply ]]; then
+    rm -f -- "$block_file"
     return 0
   fi
   mkdir -p "$(dirname "$I3_CONFIG")"
@@ -195,15 +201,18 @@ $end"
   fi
 
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$begin" "$I3_CONFIG"; then
-    awk -v begin="$begin" -v end="$end" -v block="$block" '
-      $0 == begin {if (!done) {print block; done=1} skip=1; next}
+    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
+      function emit(  line) { while ((getline line < block_file) > 0) print line; close(block_file) }
+      $0 == begin {if (!done) {emit(); done=1} skip=1; next}
       skip && $0 == end {skip=0; next}
       !skip {print}
     ' "$I3_CONFIG" > "$I3_CONFIG.tmp"
     mv "$I3_CONFIG.tmp" "$I3_CONFIG"
   else
-    printf '\n%s\n' "$block" >> "$I3_CONFIG"
+    printf '\n' >> "$I3_CONFIG"
+    cat "$block_file" >> "$I3_CONFIG"
   fi
+  rm -f -- "$block_file"
 }
 
 main() {

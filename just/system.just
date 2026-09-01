@@ -61,3 +61,23 @@ clipboard-menu *args:
 # Uso: just age-file --encrypt --input archivo --output archivo.age --recipient age1...
 age-file *args:
     bash scripts/system/age_file_linux.sh {{args}}
+
+# Abrir el menú ligero ratmenu del perfil ThinkPad
+# Uso: just rafex-ratmenu
+rafex-ratmenu *args:
+    bash scripts/system/rafex_ratmenu_linux.sh {{args}}
+
+# Abrir o cerrar widgets EWW opcionales sin reservar espacio
+# Uso: just eww-widgets --open status | --close status | --status
+eww-widgets *args:
+    bash scripts/system/eww_widgets_linux.sh {{args}}
+
+# Bloquear la sesión con i3lock-color en modo sólido, imagen o desenfoque
+# Uso: just lock-screen --mode solid|image|blur|--status
+lock-screen *args:
+    bash scripts/system/lock_screen_linux.sh {{args}}
+
+# Abrir el panel GTK3 del perfil Rafex
+# Uso: just rafex-control-panel
+rafex-control-panel *args:
+    python3 scripts/system/rafex_control_panel.py {{args}}

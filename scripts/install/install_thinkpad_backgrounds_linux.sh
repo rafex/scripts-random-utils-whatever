@@ -19,8 +19,10 @@ readonly GRUB_ASSET="/boot/grub/rafex-thinkpad-boot.png"
 readonly LIGHTDM_ASSET="/usr/local/share/backgrounds/rafex/rafex-thinkpad-login.png"
 readonly LIGHTDM_CONFIG="/etc/lightdm/lightdm-gtk-greeter.conf"
 readonly SYSTEM_BACKUP_ROOT="/var/backups/rafex-thinkpad-backgrounds"
-readonly I3_START="# BEGIN rafex thinkpad backgrounds"
-readonly I3_END="# END rafex thinkpad backgrounds"
+readonly I3_START="# BEGIN rafex feh wallpaper"
+readonly I3_END="# END rafex feh wallpaper"
+readonly I3_OLD_START="# BEGIN rafex thinkpad backgrounds"
+readonly I3_OLD_END="# END rafex thinkpad backgrounds"
 readonly GRUB_START="# BEGIN rafex thinkpad grub background"
 readonly GRUB_END="# END rafex thinkpad grub background"
 readonly LIGHTDM_START="# BEGIN rafex thinkpad lightdm background"
@@ -171,7 +173,7 @@ copy_user_assets() {
 }
 
 configure_i3_background() {
-  local temporary
+  local temporary legacy_cleaned
   [[ -f "$I3_CONFIG" ]] || {
     warn "no existe ${I3_CONFIG}; copia primero el perfil i3"
     return 0
@@ -180,12 +182,15 @@ configure_i3_background() {
   backup_user_file "$I3_CONFIG"
   temporary="$(mktemp "${I3_CONFIG}.XXXXXX")"
   register_temp "$temporary"
-  strip_managed_block "$I3_CONFIG" "$I3_START" "$I3_END" > "$temporary"
+  legacy_cleaned="$(mktemp "${I3_CONFIG}.legacy.XXXXXX")"
+  register_temp "$legacy_cleaned"
+  strip_managed_block "$I3_CONFIG" "$I3_OLD_START" "$I3_OLD_END" > "$legacy_cleaned"
+  strip_managed_block "$legacy_cleaned" "$I3_START" "$I3_END" > "$temporary"
   cat >> "$temporary" <<'EOF'
 
-# BEGIN rafex thinkpad backgrounds
-exec_always --no-startup-id sh -c 'if command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
-# END rafex thinkpad backgrounds
+# BEGIN rafex feh wallpaper
+exec_always --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]; then "$HOME/.local/bin/rafex-wallpaper.sh"; elif command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
+# END rafex feh wallpaper
 EOF
   chmod 0644 "$temporary"
   mv -f -- "$temporary" "$I3_CONFIG"
