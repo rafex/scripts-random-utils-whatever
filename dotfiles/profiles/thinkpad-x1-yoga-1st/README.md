@@ -1,8 +1,9 @@
 # Perfil: thinkpad-x1-yoga-1st
 
 Configuración portable de i3 para ThinkPad X1 Yoga de primera generación.
-Conserva el flujo de trabajo de la MacBook, pero no instala configuraciones
-específicas de Xorg, DPI ni autorandr.
+Conserva el flujo de trabajo de la MacBook. La configuración explícita de
+Xorg se aplica mediante un instalador separado para no forzarla durante una
+instalación genérica del perfil.
 
 ## Instalación
 
@@ -53,6 +54,10 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   multimedia, comunicaciones, operaciones, monitorización y scratch.
 - Configuración de udiskie que ignora el NVMe interno.
 - `.Xresources` sin un DPI fijo.
+- Incluye `config/X11/xorg.conf.d/20-thinkpad-modesetting.conf`, que fija el
+  driver Xorg `modesetting`, `glamor` y `PageFlip on` para el GPU Intel. Se
+  aplica explícitamente con `just configure-thinkpad-xorg-dri3 --apply` y no
+  copia el `20-intel.conf` de la MacBook.
 - La autorrotación y las pruebas Wacom se activan con la etapa `tablet` de la
   migración; no se inician desde `.bashrc`.
 - La suspensión se probó con el modo `s2idle`; para hacerlo
@@ -151,7 +156,8 @@ respaldan los archivos del sistema y no reinician LightDM automáticamente.
 
 ## No incluye
 
-- `20-intel.conf` de la MacBook.
+- Configuración `20-intel.conf` de la MacBook; la ThinkPad usa el archivo
+  explícito `20-thinkpad-modesetting.conf` del propio perfil.
 - Configuración de trackpad exclusiva de MacBook.
 - Perfil autorandr de la Mac.
 - Contraseñas, perfiles `.nmconnection` o archivos privados.
@@ -229,7 +235,7 @@ just conky-status
 ```
 
 Se muestra en el lateral izquierdo, debajo de la barra y con el alto útil de la
-pantalla, con un fondo translúcido y fuente `DejaVu Sans Mono` tamaño 11 para
+pantalla, sin rectángulo de fondo y con fuente `DejaVu Sans Mono` tamaño 11 para
 conservar el contraste sobre los fondos del perfil. En i3 es una ventana X11
 `desktop` de 320 píxeles de ancho, colocada debajo de las ventanas y ajustada
 por `wmctrl`; no ocupa todo el escritorio ni cubre las ventanas de trabajo.

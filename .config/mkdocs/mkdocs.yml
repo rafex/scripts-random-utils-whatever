@@ -103,6 +103,7 @@ nav:
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_kbd_brightness_policy_linux: install/install_kbd_brightness_policy_linux.md
       - install_i3_gaps_linux: install/install_i3_gaps_linux.md
+      - configure_thinkpad_xorg_dri3_linux: install/configure_thinkpad_xorg_dri3_linux.md
       - install_openbox_profile_linux: install/install_openbox_profile_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_node_runtime_linux: install/install_node_runtime_linux.md

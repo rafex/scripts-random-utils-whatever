@@ -100,6 +100,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
 | `scripts/install/install_kbd_brightness_policy_linux.sh` | Linux | install-kbd-brightness | sí | sí | alto | [doc](install/install_kbd_brightness_policy_linux.md) |
 | `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
+| `scripts/install/configure_thinkpad_xorg_dri3_linux.sh` | Linux | configure-thinkpad-xorg-dri3 | sí | sí | alto | [doc](install/configure_thinkpad_xorg_dri3_linux.md) |
 | `scripts/install/install_openbox_profile_linux.sh` | Linux | install-openbox-profile | sí | sí | medio | [doc](install/install_openbox_profile_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/harden_thinkpad_linux.sh` | Linux | harden-thinkpad | sí | sí | alto | [doc](install/harden_thinkpad_linux.md) |

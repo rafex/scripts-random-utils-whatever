@@ -154,6 +154,11 @@ install-kbd-brightness *args:
 install-i3-gaps *args:
     bash scripts/install/install_i3_gaps_linux.sh {{args}}
 
+# Configurar Xorg explícitamente para modesetting/DRI3 en la ThinkPad
+# Uso: just configure-thinkpad-xorg-dri3 --check|--plan|--apply|--status
+configure-thinkpad-xorg-dri3 *args:
+    bash scripts/install/configure_thinkpad_xorg_dri3_linux.sh {{args}}
+
 # Instalar el perfil Openbox paralelo con tint2 sin reemplazar i3
 # Uso: just install-openbox-profile --dry-run | just install-openbox-profile
 install-openbox-profile *args:

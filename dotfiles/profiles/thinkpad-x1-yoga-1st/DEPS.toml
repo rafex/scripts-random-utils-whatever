@@ -1,5 +1,6 @@
 # ThinkPad X1 Yoga 1st generation — Debian + i3/Xorg.
-# No contiene Xorg, DPI ni autorandr específicos del hardware.
+# La política Xorg explícita se aplica por separado con
+# configure-thinkpad-xorg-dri3; no se instala automáticamente con el perfil.
 
 [packages]
 apt = [
@@ -47,9 +48,14 @@ portable = [
     "config/tmux.conf",
 ]
 
+[xorg]
+# Archivo específico de la ThinkPad; requiere sudo y reinicio de la sesión Xorg.
+system_files = [
+    "/etc/X11/xorg.conf.d/20-thinkpad-modesetting.conf",
+]
+
 [excluded]
 hardware_specific = [
-    "config/X11/xorg.conf.d/20-intel.conf",
     "config/X11/xorg.conf.d/40-libinput.conf",
     "config/autorandr/mirror",
 ]
