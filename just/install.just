@@ -238,3 +238,8 @@ audit-thinkpad *args:
 # Uso: just install-thinkpad-backgrounds --apply --stage desktop|grub|login|all
 install-thinkpad-backgrounds *args:
     bash scripts/install/install_thinkpad_backgrounds_linux.sh {{args}}
+
+# Instalar Conky e integrar el panel lateral en i3 y Openbox
+# Uso: just install-conky --check|--plan|--apply|--status
+install-conky *args:
+    bash scripts/install/install_conky_linux.sh {{args}}

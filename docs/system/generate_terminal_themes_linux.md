@@ -1,6 +1,6 @@
 ---
 title: generate_terminal_themes_linux.sh
-description: Materializa las paletas de terminal, i3, Openbox, tint2, tmux, Rofi, Dunst y rxvt-unicode del perfil ThinkPad.
+description: Materializa las paletas de terminal, i3, Openbox, tint2, Conky, tmux, Rofi, Dunst y rxvt-unicode del perfil ThinkPad.
 tags:
   - sistema
   - temas
@@ -35,8 +35,8 @@ Ejecuta el comando desde una copia del repositorio en Linux. Las plantillas
 están en `dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes/`.
 
 Cada paleta debe contener `i3.conf`, `i3status.conf`, `tmux.conf`,
-`alacritty.toml`, `rofi.rasi`, `dunst.conf`, `xresources`, `openbox.themerc`
-y `tint2.conf`. El archivo `i3status.conf` se sincroniza en
+`alacritty.toml`, `rofi.rasi`, `dunst.conf`, `xresources`, `openbox.themerc`,
+`tint2.conf` y `conky.conf`. El archivo `i3status.conf` se sincroniza en
 `~/.config/i3status/config` para que el texto de la barra conserve contraste
 tanto en temas claros como oscuros.
 
@@ -54,9 +54,9 @@ Después selecciona una paleta con `theme-toggle.sh`:
 ~/.local/bin/theme-toggle.sh --set nord
 ```
 
-El destino es `~/.config/rafex/themes/`. Alacritty, Rofi, Dunst, Openbox y
-tint2 utilizan el enlace `current` que mantiene el selector. Openbox y tint2
-solo se sincronizan cuando sus configuraciones están instaladas.
+El destino es `~/.config/rafex/themes/`. Alacritty, Rofi, Dunst, Openbox, tint2
+y Conky utilizan el enlace `current` que mantiene el selector. Openbox, tint2
+y Conky solo se sincronizan cuando sus configuraciones están instaladas.
 
 ## Opciones
 
@@ -133,7 +133,7 @@ abierto no siempre relee los recursos automáticamente.
 ### [Unreleased]
 
 - **feat:** Añadir Paper, Nord, Everforest y Dracula con soporte para
-  rxvt-unicode, i3status, Openbox y tint2.
+  rxvt-unicode, i3status, Openbox, tint2 y Conky.
 
 ### v1.0.0 — 2026-08-29
 

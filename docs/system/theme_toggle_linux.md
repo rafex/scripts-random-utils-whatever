@@ -1,6 +1,6 @@
 ---
 title: theme_toggle_linux.sh
-description: Selector de cuatro paletas para i3, Openbox, tint2, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
+description: Selector de cuatro paletas para i3, Openbox, tint2, Conky, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
 tags:
   - i3
   - temas
@@ -10,12 +10,12 @@ tags:
 # theme_toggle_linux.sh
 
 Activa las paletas `paper`, `nord`, `everforest` y `dracula` del perfil
-ThinkPad para i3, Openbox, tint2, i3status, tmux, Alacritty, rxvt-unicode,
-Rofi y Dunst sin usar `sudo`.
+ThinkPad para i3, Openbox, tint2, i3status, Conky, tmux, Alacritty,
+rxvt-unicode, Rofi y Dunst sin usar `sudo`.
 
 - **Ruta:** `scripts/system/theme_toggle_linux.sh`
 - **SO requerido:** Linux (Xorg/i3 u Openbox)
-- **Dependencias:** `bash`; opcionales `i3-msg`, `openbox`, `tmux`, `tint2`, `dunstctl`, `pgrep`
+- **Dependencias:** `bash`; opcionales `i3-msg`, `openbox`, `tmux`, `tint2`, `dunstctl`, `conky-launch.sh`, `pgrep`
 
 ---
 
@@ -58,13 +58,18 @@ sincronizan en `~/.config/i3status/config` para conservar contraste en la barra.
 La paleta X11 se sincroniza en `~/.Xresources` y se aplica con `xrdb` cuando
 existe una sesión gráfica. Si la sesión activa es Openbox, también actualiza
 su tema `~/.themes/Rafex-*/openbox-3/themerc`, el bloque administrado de
-`~/.config/openbox/rc.xml` y el bloque de colores de `~/.config/tint2/tint2rc`.
+`~/.config/openbox/rc.xml`, el bloque de colores de `~/.config/tint2/tint2rc`
+y el bloque de colores de `~/.config/conky/conky.conf` si Conky está instalado.
 Si la sesión activa es i3, solo recarga i3; no intenta conectarse a un socket
 de i3 inexistente desde Openbox.
 
 Cuando está instalado `dunst-smart.sh`, las notificaciones se regeneran según
 la posición de i3bar y reservan un margen vertical para no empalmarse con la
 barra.
+
+Cuando está instalado `conky-launch.sh`, el selector recarga únicamente la
+instancia Conky administrada por Rafex. No detiene instancias de otros usuarios
+ni configura Conky desde SSH sin `DISPLAY`.
 
 ## Opciones
 

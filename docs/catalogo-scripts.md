@@ -87,6 +87,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/configure_kvm_linux.sh` | Linux | configure-kvm | sí | sí | medio | [doc](install/configure_kvm_linux.md) |
 | `scripts/install/audit_thinkpad_readiness_linux.sh` | Linux | audit-thinkpad | no | sí | bajo | [doc](install/audit_thinkpad_readiness_linux.md) |
 | `scripts/install/install_thinkpad_backgrounds_linux.sh` | Linux | install-thinkpad-backgrounds | sí | sí | alto | [doc](install/install_thinkpad_backgrounds_linux.md) |
+| `scripts/install/install_conky_linux.sh` | Linux | install-conky | sí | sí | medio | [doc](install/install_conky_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
 | `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
@@ -128,6 +129,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
 | `scripts/system/age_file_linux.sh` | Linux | age-file | no | sí | medio | [doc](system/age_file_linux.md) |
+| `scripts/system/conky_status_linux.sh` | Linux | conky-status | no | — | bajo | [doc](system/conky_status_linux.md) |
 
 ## Documentos suplementarios
 

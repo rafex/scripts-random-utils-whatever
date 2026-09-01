@@ -32,6 +32,11 @@ picom-toggle *args:
 tint2-status *args:
     bash scripts/system/tint2_status_linux.sh {{args}}
 
+# Mostrar el estado seguro que consume el panel Conky
+# Uso: just conky-status [--section network|power|temperature|audio|lab|security]
+conky-status *args:
+    bash scripts/system/conky_status_linux.sh {{args}}
+
 # Escanear una memoria USB extraíble montada con ClamAV
 # Uso: just scan-usb --path /run/media/$USER/NOMBRE_USB
 scan-usb *args:

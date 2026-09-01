@@ -18,6 +18,7 @@ I3_CONFIG="$CONFIG_HOME/i3/config"
 I3STATUS_CONFIG="$CONFIG_HOME/i3status/config"
 OPENBOX_CONFIG="$CONFIG_HOME/openbox/rc.xml"
 TINT2_CONFIG="$CONFIG_HOME/tint2/tint2rc"
+CONKY_CONFIG="$CONFIG_HOME/conky/conky.conf"
 XRESOURCES="$HOME/.Xresources"
 I3_THEME_BEGIN='# BEGIN rafex theme'
 I3_THEME_END='# END rafex theme'
@@ -28,6 +29,8 @@ OPENBOX_THEME_BEGIN='    <!-- BEGIN rafex theme -->'
 OPENBOX_THEME_END='    <!-- END rafex theme -->'
 TINT2_THEME_BEGIN='# BEGIN rafex theme'
 TINT2_THEME_END='# END rafex theme'
+CONKY_THEME_BEGIN='    -- BEGIN rafex theme'
+CONKY_THEME_END='    -- END rafex theme'
 THEME_NAMES=(paper nord everforest dracula)
 
 RED='\033[0;31m'
@@ -118,7 +121,7 @@ validate_mode() {
   local file
   mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   [[ -d "$THEME_HOME/$mode" ]] || die "no existe la paleta: $THEME_HOME/$mode"
-  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf; do
+  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf conky.conf; do
     [[ -f "$THEME_HOME/$mode/$file" ]] || die "falta $THEME_HOME/$mode/$file"
   done
   if [[ -f "$OPENBOX_CONFIG" ]]; then
@@ -153,6 +156,11 @@ show_status() {
     printf 'tint2-config=present\n'
   else
     printf 'tint2-config=missing-or-inactive\n'
+  fi
+  if [[ -f "$CONKY_CONFIG" ]] && grep -Fq "$CONKY_THEME_BEGIN" "$CONKY_CONFIG"; then
+    printf 'conky-theme-block=present\n'
+  else
+    printf 'conky-theme-block=missing-or-inactive\n'
   fi
   for command_name in i3-msg tmux dunstctl; do
     if command -v "$command_name" >/dev/null 2>&1; then
@@ -335,6 +343,46 @@ sync_tint2_theme() {
   fi
 }
 
+sync_conky_theme() {
+  local source_file temporary
+  [[ -f "$CONKY_CONFIG" ]] || return 0
+  if ! grep -Fq "$CONKY_THEME_BEGIN" "$CONKY_CONFIG"; then
+    warn "la configuración Conky no está administrada por Rafex; no se modifica: $CONKY_CONFIG"
+    return 0
+  fi
+  source_file="$CURRENT_LINK/conky.conf"
+  [[ -f "$source_file" ]] || {
+    warn "no existe la plantilla Conky del tema: $source_file"
+    return 0
+  }
+  temporary="$(mktemp)"
+  awk -v begin="$CONKY_THEME_BEGIN" -v end="$CONKY_THEME_END" -v source_file="$source_file" '
+    function emit_theme(line) {
+      while ((getline line < source_file) > 0) {
+        if (line == begin) inside_source=1
+        if (inside_source) print line
+        if (line == end) break
+      }
+      close(source_file)
+    }
+    $0 == begin { emit_theme(); inside=1; found=1; next }
+    inside && $0 == end { inside=0; next }
+    !inside { print }
+    END { if (!found) { print ""; emit_theme() } }
+  ' "$CONKY_CONFIG" > "$temporary"
+  if cmp -s "$CONKY_CONFIG" "$temporary"; then
+    rm -f -- "$temporary"
+  else
+    backup_file "$CONKY_CONFIG"
+    chmod --reference="$CONKY_CONFIG" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$CONKY_CONFIG"
+  fi
+  if [[ -x "$HOME/.local/bin/conky-launch.sh" ]] && [[ -n "${DISPLAY:-}" ]]; then
+    "$HOME/.local/bin/conky-launch.sh" --reload >/dev/null 2>&1 ||
+      warn 'Conky no pudo recargar el tema'
+  fi
+}
+
 sync_i3status_theme() {
   local block_file temporary
   [[ -f "$I3STATUS_CONFIG" ]] || {
@@ -452,6 +500,7 @@ apply_mode() {
   sync_xresources
   sync_openbox_theme
   sync_tint2_theme
+  sync_conky_theme
   reload_desktop
   ok "tema activo: $mode"
 }

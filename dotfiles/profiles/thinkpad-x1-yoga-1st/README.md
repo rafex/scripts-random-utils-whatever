@@ -198,6 +198,36 @@ actualizar plugins. Una sesión existente puede recargar la configuración con:
 tmux source-file ~/.tmux.conf
 ```
 
+## Panel Conky opcional
+
+El panel Conky complementa i3bar o tint2 sin reemplazarlos. Se instala desde
+Debian y se inicia automáticamente en i3 y Openbox:
+
+```sh
+just install-conky --check
+just install-conky --plan
+just install-conky --apply
+just install-conky --status
+just conky-status
+```
+
+Se muestra en la esquina superior derecha, debajo de la barra, con kernel,
+uptime, CPU, RAM, disco, temperaturas válidas, batería, red sin SSID/IP,
+audio, KVM, Podman, runtimes y un resumen no certificador de seguridad. Las
+lecturas que no estén disponibles aparecen como `N/D`. No muestra credenciales,
+IMEI, IMSI, APN, nombres de archivos ni puertos.
+
+El cambio de tema también actualiza los colores del panel:
+
+```sh
+~/.local/bin/theme-toggle.sh --set nord
+~/.local/bin/theme-toggle.sh --set dracula
+```
+
+Conky se controla mediante `~/.local/bin/conky-launch.sh`; `--reload` solo
+reinicia la instancia administrada por Rafex. Si el comando se ejecuta por SSH
+sin `DISPLAY`, no inicia ninguna ventana.
+
 El perfil declara compatibilidad RGB/TrueColor para Alacritty
 (`xterm-256color`), Kitty (`xterm-kitty`) y rxvt-unicode. Si una sesión remota
 desde Kitty conserva colores amarillos o con poco contraste, desconecta y vuelve
