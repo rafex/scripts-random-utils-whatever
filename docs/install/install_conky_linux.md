@@ -9,12 +9,12 @@ tags:
 
 # install_conky_linux.sh
 
-Instala `conky-all` desde Debian y configura un panel informativo sin rectángulo
-de fondo en el lateral izquierdo, debajo de i3bar o tint2, con el alto útil de
-la pantalla. El panel no reserva una columna en i3: Conky usa una ventana X11
-transparente de tipo `dock`, con estado `below`, por lo que las ventanas
-normales permanecen encima. La plantilla usa `alignment = 'top_left'`, un
-margen superior de 34 píxeles y una altura base de 1030 píxeles, ajustada a la
+Instala `conky-all` desde Debian y configura un panel informativo en el lateral
+izquierdo, debajo de i3bar o tint2, con el alto útil de la pantalla. El panel
+usa una ventana X11 de tipo `desktop`, un fondo azul oscuro semitransparente y
+un ancho fijo de 320 píxeles. No reserva una columna en i3 ni desplaza las
+ventanas normales. La plantilla usa `alignment = 'top_left'`, un margen
+superior de 34 píxeles y una altura base de 1030 píxeles, ajustada a la
 pantalla 1920×1080 de este perfil.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
@@ -141,44 +141,37 @@ se añade ningún repositorio externo.
 **Solución:** inicia Conky desde i3/Openbox o ejecuta el lanzador dentro de la
 sesión gráfica local.
 
-### `El texto no contrasta con el fondo`
+### `El panel ocupa toda la pantalla o el texto no contrasta`
 
-**Causa:** una configuración anterior podía usar una ventana completamente
-transparente y una fuente pequeña.
+**Causa:** una configuración anterior podía usar una ventana `dock` de tamaño
+completo o una ventana completamente transparente.
 
-**Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
-ubica en el lateral izquierdo y no pinta un rectángulo que oculte el wallpaper.
-El texto usa colores contrastantes definidos por el tema: datos claros,
-secciones azules y avisos salmón. Si un fondo personalizado resulta demasiado
-claro, cambia a una paleta oscura o ajusta únicamente los colores del tema; no
-se añade una ventana translúcida porque volvería a exponer el problema de
-superposición en i3.
+**Solución:** ejecuta `just install-conky --apply` y recarga la instancia
+administrada. La plantilla usa `DejaVu Sans Mono` tamaño 11, una ventana
+`desktop` de 320 píxeles de ancho, fondo `#2e3440` con opacidad ARGB 200 y
+colores de texto contrastantes definidos por el tema.
 
 ### `El panel cubre las ventanas en i3`
 
-**Causa:** aunque una configuración use `own_window_type = 'desktop'` y el
-estado EWMH `below`, i3 puede reparentar la ventana X11 de Conky dentro de un
-contenedor. En ese caso sigue apareciendo sobre Firefox, VSCodium u otras
-ventanas.
+**Causa:** `own_window_type = 'dock'` puede ser interpretado por i3 como una
+ventana especial de pantalla completa, aun sin publicar un strut explícito.
+Eso puede reducir el área útil o dejar Conky por encima del escritorio.
 
-**Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window_type = 'dock'`, transparencia ARGB y el
-estado `below`: i3 lo reconoce como dock y las ventanas normales quedan encima.
-El instalador migra las opciones antiguas `desktop`/raíz y elimina el tamaño
-máximo inválido. Si el panel ya estaba activo, usa
-`~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. La instancia
-anterior desaparecerá al detenerse y debe quedar como máximo una ventana
-`RafexConky` tipo dock en `wmctrl -l`.
+**Solución:** ejecuta `just install-conky --apply` y después
+`~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. El instalador
+migra la configuración administrada a `own_window_type = 'desktop'`, elimina
+`maximum_height` y `border_color` no soportados por Conky 1.24.2, y conserva
+como máximo una instancia administrada de `RafexConky`.
 
 ### `Conky no se ve después de cambiar el wallpaper`
 
-**Causa:** una herramienta que repinta el fondo o un gestor de ventanas puede
-recolocar temporalmente el dock después de iniciar Conky.
+**Causa:** los gestores de iconos de escritorio pueden pintar una ventana por
+encima de una ventana `desktop`. En el perfil ThinkPad se usa el fondo de X11
+sin un gestor de iconos de escritorio.
 
 **Solución:** inicia o recarga Conky después de aplicar el fondo con
-`~/.local/bin/conky-launch.sh --reload`. Es una limitación deliberada del modo
-`dock`: las ventanas normales siempre quedan por encima y el panel no recibe
-clics ni roba el foco.
+`~/.local/bin/conky-launch.sh --reload`. Si se usa otro gestor de escritorio,
+debe configurarse para que no cubra ventanas `desktop`.
 
 ### `existe otra instancia Conky del usuario`
 
@@ -194,7 +187,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa un dock X11 transparente con estado `below` para que i3 lo mantenga
-  debajo de las ventanas normales.
-- `fix`: elimina el fondo pintado y usa colores de texto de alto contraste para
-  mostrar directamente el wallpaper.
+- `fix`: usa una ventana X11 `desktop` semitransparente de ancho fijo para evitar
+  que i3 reserve o reduzca el área útil de las ventanas.

@@ -121,15 +121,30 @@ ensure_managed_layout() {
   function print_window_settings() {
     print "    own_window = true,"
     print "    own_window_argb_visual = true,"
-    print "    own_window_argb_value = 0,"
-    print "    own_window_colour = '\''#00000000'\'',"
+    print "    own_window_argb_value = 200,"
+    print "    own_window_colour = '\''#2e3440'\'',"
     print "    own_window_class = '\''RafexConky'\'',"
     print "    own_window_title = '\''Rafex ThinkPad Monitor'\'',"
     print "    own_window_hints = '\''undecorated,below,sticky,skip_taskbar,skip_pager'\'',"
-    print "    own_window_type = '\''dock'\'',"
+    print "    own_window_type = '\''desktop'\'',"
   }
   {
-    if ($0 ~ /^[[:space:]]*alignment[[:space:]]*=/) {
+    if ($0 ~ /^[[:space:]]*-- BEGIN rafex theme[[:space:]]*$/) {
+      in_theme=1
+      print
+    } else if ($0 ~ /^[[:space:]]*-- END rafex theme[[:space:]]*$/) {
+      print
+      if (!inserted) {
+        print_window_settings()
+        inserted=1
+      }
+      in_theme=0
+    } else if ($0 ~ /^[[:space:]]*own_window[_A-Za-z0-9]*[[:space:]]*=/) {
+      next
+    } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*border_color[[:space:]]*=/) {
+      next
+    } else if ($0 ~ /^[[:space:]]*alignment[[:space:]]*=/) {
       print "    alignment = '\''top_left'\'',"
     } else if ($0 ~ /^[[:space:]]*gap_x[[:space:]]*=/) {
       print "    gap_x = 18,"
@@ -142,25 +157,20 @@ ensure_managed_layout() {
     } else if ($0 ~ /^[[:space:]]*minimum_height[[:space:]]*=/) {
       print "    minimum_height = 1030,"
       has_height=1
-    } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*border_color[[:space:]]*=/) {
-      next
-    } else if ($0 ~ /^[[:space:]]*own_window[_A-Za-z0-9]*[[:space:]]*=/) {
-      if (!has_window) {
-        print_window_settings()
-        has_window=1
-      }
-      next
-    } else if ($0 ~ /^[[:space:]]*double_buffer[[:space:]]*=/ && !has_window) {
+    } else if ($0 ~ /^conky\.text[[:space:]]*\[\[/ && !has_height) {
+      print "    minimum_height = 1030,"
+      has_height=1
+      print
+    } else if ($0 ~ /^[[:space:]]*double_buffer[[:space:]]*=/ && !inserted) {
       print
       print_window_settings()
-      has_window=1
+      inserted=1
     } else {
       print
     }
   }
   END {
-    if (!has_window) print_window_settings()
+    if (!inserted) print_window_settings()
     if (!has_height) print "    minimum_height = 1030,"
   }' "$target" > "$temporary"
   if [[ -f "$target" ]] && cmp -s "$target" "$temporary"; then
@@ -170,7 +180,7 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: dock transparente bajo ventanas, lateral izquierdo y alto completo'
+  ok 'configuración Conky administrada actualizada: desktop semitransparente bajo ventanas, lateral izquierdo y alto completo'
 }
 
 write_i3_block() {
