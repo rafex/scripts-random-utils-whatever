@@ -91,6 +91,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_thinkpad_backgrounds_linux.sh` | Linux | install-thinkpad-backgrounds | sí | sí | alto | [doc](install/install_thinkpad_backgrounds_linux.md) |
 | `scripts/install/install_conky_linux.sh` | Linux | install-conky | sí | sí | medio | [doc](install/install_conky_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
+| `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
 | `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
 | `scripts/install/scrape_java_runtimes.py` | Linux | scrape-java-runtimes | no | — | bajo | [doc](install/scrape_java_runtimes.md) |

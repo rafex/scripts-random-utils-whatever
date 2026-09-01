@@ -52,6 +52,11 @@ install-github-cli *args:
 install-vscodium *args:
     bash scripts/install/install_vscodium_linux.sh {{args}}
 
+# Descargar, verificar e instalar RustDesk 1.4.9 desde el DEB oficial
+# Uso: just install-rustdesk --check|--plan|--apply|--status
+install-rustdesk *args:
+    bash scripts/install/install_rustdesk_linux.sh {{args}}
+
 # Extraer versiones/enlaces oficiales de Eclipse IDE Java y Enterprise Java
 # Uso: just scrape-eclipse-packages --package all --pretty
 scrape-eclipse-packages *args:

@@ -398,3 +398,20 @@ just age-file --encrypt --input ~/.config/app/config.yml \
 almacén se introduce únicamente en la terminal interactiva y nunca debe
 guardarse en este repositorio, logs o respaldos sin cifrar. No se debe confundir
 el `gopass` oficial con el paquete Debian homónimo de otra implementación.
+
+## Escritorio remoto opcional
+
+RustDesk 1.4.9 puede instalarse desde el DEB oficial de GitHub. El instalador
+verifica el SHA-256 antes de entregarlo a APT y no habilita el acceso
+desatendido automáticamente:
+
+```sh
+just install-rustdesk --check
+just install-rustdesk --plan
+just install-rustdesk --apply
+just install-rustdesk --status
+```
+
+Abre RustDesk como usuario normal con `rustdesk`. Configura el acceso remoto
+solo con autorización explícita, revisa cualquier contraseña o permiso desde
+la aplicación y evita habilitarlo automáticamente en redes públicas.
