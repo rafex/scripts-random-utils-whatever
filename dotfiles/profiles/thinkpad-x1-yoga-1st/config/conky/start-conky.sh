@@ -25,7 +25,7 @@ stop_ours() {
     pid="$(cat "$PID_FILE")"
     kill -TERM "$pid" 2>/dev/null || true
     still_running=1
-    for _ in 1 2 3 4 5; do
+    for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25; do
       if ! kill -0 "$pid" 2>/dev/null; then
         still_running=0
         break
