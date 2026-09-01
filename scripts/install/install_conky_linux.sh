@@ -256,8 +256,8 @@ main() {
       if ! candidate_available && ! package_installed; then
         die 'conky-all no está instalado y no tiene candidato APT; revisa las fuentes Debian'
       fi
-      sudo -v
       if candidate_available; then
+        sudo -v
         sudo apt-get update
         sudo apt-get install -y conky-all
       else
