@@ -189,6 +189,21 @@ install-multimedia *args:
 install-fonts *args:
     bash scripts/install/install_fonts_linux.sh {{args}}
 
+# Instalar Codex CLI y Claude Code con npm del usuario, sin sudo
+# Uso: just install-ai-cli --check|--plan|--apply|--status
+install-ai-cli *args:
+    bash scripts/install/install_ai_cli_linux.sh {{args}}
+
+# Instalar age y gopass oficial; no inicializa el almacén automáticamente
+# Uso: just install-age-gopass --check|--plan|--apply|--status
+install-age-gopass *args:
+    bash scripts/install/install_age_gopass_linux.sh {{args}}
+
+# Inicializar explícitamente un almacén gopass con el backend age
+# Uso: just init-gopass-age
+init-gopass-age *args:
+    bash scripts/install/install_age_gopass_linux.sh --init-gopass-age {{args}}
+
 # Instalar CUPS, SANE y controladores Debian para Epson XP-241 y Xerox Phaser 3020
 # Uso: just install-printers --check|--plan|--apply|--status
 install-printers *args:

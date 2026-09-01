@@ -322,3 +322,33 @@ just backup-thinkpad-restic --install-timer
 
 Un único SSD no protege frente a robo, incendio o fallo del dispositivo. Para
 una estrategia 3-2-1 se necesita una segunda réplica en otro destino.
+
+## CLIs de desarrollo y secretos
+
+Los asistentes de desarrollo se instalan como usuario normal en un prefijo npm
+privado. La instalación no inicia sesión ni guarda credenciales:
+
+```sh
+just install-ai-cli --check
+just install-ai-cli --plan
+just install-ai-cli --apply
+codex --login
+claude
+```
+
+Para cifrado de archivos se usa `age`. gopass se instala desde su repositorio
+oficial y puede inicializarse con su backend age, que actualmente es
+experimental:
+
+```sh
+just install-age-gopass --apply
+just init-gopass-age
+just age-file --encrypt --input ~/.config/app/config.yml \
+  --output ~/.config/app/config.yml.age \
+  --ssh-recipient ~/.ssh/id_ed25519.pub
+```
+
+`--apply` no crea el almacén ni las identidades. La frase de protección del
+almacén se introduce únicamente en la terminal interactiva y nunca debe
+guardarse en este repositorio, logs o respaldos sin cifrar. No se debe confundir
+el `gopass` oficial con el paquete Debian homónimo de otra implementación.

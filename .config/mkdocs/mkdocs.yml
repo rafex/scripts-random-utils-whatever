@@ -117,6 +117,8 @@ nav:
       - install_antivirus_linux: install/install_antivirus_linux.md
       - install_multimedia_linux: install/install_multimedia_linux.md
       - install_fonts_linux: install/install_fonts_linux.md
+      - install_ai_cli_linux: install/install_ai_cli_linux.md
+      - install_age_gopass_linux: install/install_age_gopass_linux.md
       - install_printers_linux: install/install_printers_linux.md
       - configure_printers_linux: install/configure_printers_linux.md
       - install_restic_backup_linux: install/install_restic_backup_linux.md
@@ -162,6 +164,7 @@ nav:
       - tint2_status_linux: system/tint2_status_linux.md
       - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
       - scan_document_linux: system/scan_document_linux.md
+      - age_file_linux: system/age_file_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

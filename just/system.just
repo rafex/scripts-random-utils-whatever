@@ -41,3 +41,8 @@ scan-usb *args:
 # Uso: just scan-document --output ~/Documents/escaneo.png
 scan-document *args:
     bash scripts/system/scan_document_linux.sh {{args}}
+
+# Cifrar o descifrar un archivo con age sin exponer frases en argumentos
+# Uso: just age-file --encrypt --input archivo --output archivo.age --recipient age1...
+age-file *args:
+    bash scripts/system/age_file_linux.sh {{args}}
