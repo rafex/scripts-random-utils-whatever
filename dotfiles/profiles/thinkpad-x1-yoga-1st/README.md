@@ -32,6 +32,12 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas. F5/F6 controlan el
   brillo de pantalla; F11/F12 bajan/suben el brillo del teclado con
   notificación. Fn+Space conserva el control nativo del firmware.
+- CopyQ mantiene un historial visual del portapapeles y se abre con
+  `Mod+Shift+V`; la captura X11 se realiza con `Mod+P` o `Print` (pantalla
+  completa), `Shift+Print` (selección) y `Ctrl+Print` (ventana activa).
+  Instálalos con `just install-clipboard --apply` y
+  `just install-screenshot --apply`. El historial puede contener información
+  sensible: no copies contraseñas y revísalo o límpialo desde CopyQ.
 - Menú 9menu en `Mod+F9` y `XF86Tools` con accesos a las herramientas de la
   ThinkPad, incluido Synaptic mediante `synaptic-pkexec`. Incluye una salida
   visible y acciones de cerrar sesión, suspender, hibernar, reiniciar y apagar;

@@ -79,6 +79,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_antivirus_linux.sh` | Linux | install-antivirus | sí | sí | medio | [doc](install/install_antivirus_linux.md) |
 | `scripts/install/install_multimedia_linux.sh` | Linux | install-multimedia | sí | sí | medio | [doc](install/install_multimedia_linux.md) |
 | `scripts/install/install_fonts_linux.sh` | Linux | install-fonts | sí | sí | medio | [doc](install/install_fonts_linux.md) |
+| `scripts/install/install_clipboard_linux.sh` | Linux | install-clipboard | sí | sí | medio | [doc](install/install_clipboard_linux.md) |
+| `scripts/install/install_screenshot_linux.sh` | Linux | install-screenshot | sí | sí | medio | [doc](install/install_screenshot_linux.md) |
 | `scripts/install/install_printers_linux.sh` | Linux | install-printers | sí | sí | medio | [doc](install/install_printers_linux.md) |
 | `scripts/install/configure_printers_linux.sh` | Linux | configure-printers, printer-test | sí | sí | medio | [doc](install/configure_printers_linux.md) |
 | `scripts/install/install_ai_cli_linux.sh` | Linux | install-ai-cli | no | sí | medio | [doc](install/install_ai_cli_linux.md) |
@@ -128,6 +130,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
+| `scripts/system/clipboard_menu_linux.sh` | Linux | clipboard-menu | no | sí | bajo | [doc](system/clipboard_menu_linux.md) |
+| `scripts/system/screenshot_linux.sh` | Linux | screenshot | no | sí | medio | [doc](system/screenshot_linux.md) |
 | `scripts/system/age_file_linux.sh` | Linux | age-file | no | sí | medio | [doc](system/age_file_linux.md) |
 | `scripts/system/conky_status_linux.sh` | Linux | conky-status | no | — | bajo | [doc](system/conky_status_linux.md) |
 

@@ -29,6 +29,12 @@ if command -v udiskie >/dev/null 2>&1 && ! pgrep -x udiskie >/dev/null 2>&1; the
     udiskie --tray &
 fi
 
+# BEGIN rafex clipboard
+if command -v copyq >/dev/null 2>&1 && ! pgrep -x copyq >/dev/null 2>&1; then
+    copyq >/dev/null 2>&1 &
+fi
+# END rafex clipboard
+
 if command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1; then
     lxpolkit &
 fi

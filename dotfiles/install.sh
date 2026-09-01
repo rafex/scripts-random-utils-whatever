@@ -419,6 +419,8 @@ install_profile_scripts() {
         local direct_scripts=(
             "$SCRIPT_DIR/../scripts/system/theme_toggle_linux.sh:theme-toggle.sh"
             "$SCRIPT_DIR/../scripts/system/dunst_smart_start_linux.sh:dunst-smart.sh"
+            "$SCRIPT_DIR/../scripts/system/clipboard_menu_linux.sh:clipboard-menu.sh"
+            "$SCRIPT_DIR/../scripts/system/screenshot_linux.sh:screenshot.sh"
         )
         for direct_script in "${direct_scripts[@]}"; do
             direct_name="${direct_script##*:}"

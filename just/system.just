@@ -47,6 +47,16 @@ scan-usb *args:
 scan-document *args:
     bash scripts/system/scan_document_linux.sh {{args}}
 
+# Capturar pantalla completa, selección o ventana activa en X11
+# Uso: just screenshot --select [--copy]
+screenshot *args:
+    bash scripts/system/screenshot_linux.sh {{args}}
+
+# Abrir el historial visual de CopyQ desde la sesión gráfica
+# Uso: just clipboard-menu --show | just clipboard-menu --status
+clipboard-menu *args:
+    bash scripts/system/clipboard_menu_linux.sh {{args}}
+
 # Cifrar o descifrar un archivo con age sin exponer frases en argumentos
 # Uso: just age-file --encrypt --input archivo --output archivo.age --recipient age1...
 age-file *args:

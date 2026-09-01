@@ -9,6 +9,9 @@ rxvt-unicode
 tmux
 feh
 maim
+slop
+xclip
+copyq
 picom
 brightnessctl
 pavucontrol

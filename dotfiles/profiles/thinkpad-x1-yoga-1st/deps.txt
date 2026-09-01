@@ -8,6 +8,9 @@ rxvt-unicode
 picom
 feh
 maim
+slop
+xclip
+copyq
 brightnessctl
 pavucontrol
 pasystray

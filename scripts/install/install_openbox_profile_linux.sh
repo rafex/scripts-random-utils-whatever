@@ -186,6 +186,8 @@ scripts/system/desktop_settings_menu_linux.sh:desktop-settings-menu.sh
 scripts/system/rofi_search_linux.sh:rofi-search.sh
 scripts/system/picom_toggle_linux.sh:picom-toggle.sh
 scripts/system/tint2_status_linux.sh:tint2-status.sh
+scripts/system/clipboard_menu_linux.sh:clipboard-menu.sh
+scripts/system/screenshot_linux.sh:screenshot.sh
 scripts/hardware/notify_volume_linux.sh:volume-notify.sh
 scripts/hardware/notify_microphone_linux.sh:microphone-notify.sh
 scripts/hardware/notify_brightness_linux.sh:brightness-notify.sh

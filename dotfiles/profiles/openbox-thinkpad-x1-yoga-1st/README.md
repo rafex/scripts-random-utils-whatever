@@ -17,6 +17,11 @@ predeterminada de LightDM.
 - F5/F6 controlan el brillo de pantalla y F11/F12 bajan/suben el brillo del
   teclado con notificación; Fn+Space conserva el control del firmware.
 - Alacritty y rxvt-unicode siguen abriendo la sesión tmux `thinkpad`.
+- CopyQ mantiene el historial del portapapeles y se abre con
+  `Super+Shift+V`. El capturador X11 usa `Super+P` o `Print` para pantalla
+  completa, `Shift+Print` para selección y `Ctrl+Print` para la ventana activa.
+  Se instalan por separado con `just install-clipboard --apply` y
+  `just install-screenshot --apply`.
 - Picom no se inicia por defecto; se puede activar desde el centro de control.
 
 ## Instalación

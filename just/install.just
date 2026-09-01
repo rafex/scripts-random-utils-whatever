@@ -189,6 +189,16 @@ install-multimedia *args:
 install-fonts *args:
     bash scripts/install/install_fonts_linux.sh {{args}}
 
+# Instalar CopyQ e integrar el historial de portapapeles en i3/Openbox
+# Uso: just install-clipboard --check|--plan|--apply|--status
+install-clipboard *args:
+    bash scripts/install/install_clipboard_linux.sh {{args}}
+
+# Instalar maim y atajos de captura de pantalla para i3/Openbox
+# Uso: just install-screenshot --check|--plan|--apply|--status
+install-screenshot *args:
+    bash scripts/install/install_screenshot_linux.sh {{args}}
+
 # Instalar Codex CLI y Claude Code con npm del usuario, sin sudo
 # Uso: just install-ai-cli --check|--plan|--apply|--status
 install-ai-cli *args:

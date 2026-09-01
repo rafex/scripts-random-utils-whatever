@@ -35,6 +35,10 @@ exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgre
 exec --no-startup-id udiskie --tray
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 exec --no-startup-id nm-applet
+# BEGIN rafex clipboard
+exec_always --no-startup-id sh -c 'command -v copyq >/dev/null 2>&1 && ! pgrep -x copyq >/dev/null 2>&1 && exec copyq'
+bindsym $mod+Shift+v exec --no-startup-id ~/.local/bin/clipboard-menu.sh --show
+# END rafex clipboard
 
 font pango:DejaVu Sans Mono 9
 default_border pixel 2
@@ -89,7 +93,12 @@ bindsym $mod+a focus parent
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 bindsym XF86LaunchB scratchpad show
-bindsym $mod+p exec --no-startup-id maim "$HOME/Imágenes/CapturasDePantalla/screenshot-$(date +%F_%H-%M-%S).png" && notify-send "Screenshot" "Pantalla completa guardada"
+# BEGIN rafex screenshots
+bindsym $mod+p exec --no-startup-id ~/.local/bin/screenshot.sh --full
+bindsym Print exec --no-startup-id ~/.local/bin/screenshot.sh --full
+bindsym Shift+Print exec --no-startup-id ~/.local/bin/screenshot.sh --select
+bindsym Ctrl+Print exec --no-startup-id ~/.local/bin/screenshot.sh --window
+# END rafex screenshots
 bindsym $mod+Shift+p exec --no-startup-id sh -c 'pgrep picom && pkill picom && notify-send "Picom" "Desactivado" || (picom & notify-send "Picom" "Activado")'
 
 set $ws1 "1:term"

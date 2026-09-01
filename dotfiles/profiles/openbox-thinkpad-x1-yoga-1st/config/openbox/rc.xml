@@ -84,7 +84,13 @@
     <keybind key="W-F9"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></keybind>
     <keybind key="W-Shift-t"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></keybind>
     <keybind key="W-Shift-p"><action name="Execute"><command>~/.local/bin/picom-toggle.sh</command></action></keybind>
-    <keybind key="W-p"><action name="Execute"><command>sh -c 'mkdir -p "$HOME/Imágenes/CapturasDePantalla"; maim "$HOME/Imágenes/CapturasDePantalla/screenshot-$(date +%F_%H-%M-%S).png" &amp;&amp; notify-send "Screenshot" "Pantalla completa guardada"'</command></action></keybind>
+    <keybind key="W-Shift-v"><action name="Execute"><command>~/.local/bin/clipboard-menu.sh --show</command></action></keybind>
+    <!-- BEGIN rafex screenshots -->
+    <keybind key="W-p"><action name="Execute"><command>~/.local/bin/screenshot.sh --full</command></action></keybind>
+    <keybind key="Print"><action name="Execute"><command>~/.local/bin/screenshot.sh --full</command></action></keybind>
+    <keybind key="S-Print"><action name="Execute"><command>~/.local/bin/screenshot.sh --select</command></action></keybind>
+    <keybind key="C-Print"><action name="Execute"><command>~/.local/bin/screenshot.sh --window</command></action></keybind>
+    <!-- END rafex screenshots -->
     <keybind key="W-f"><action name="ToggleFullscreen"/></keybind>
     <keybind key="W-q"><action name="Close"/></keybind>
     <keybind key="W-Left"><action name="DirectionalFocusWest"/></keybind>
