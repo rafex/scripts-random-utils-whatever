@@ -66,3 +66,8 @@ reconcile-networkmanager *args:
 # Uso: just configure-wwan-oxxocel --check | --plan | --apply | --status
 configure-wwan-oxxocel *args:
     bash scripts/network/configure_wwan_oxxocel_linux.sh {{args}}
+
+# Instalar y configurar mDNS/Avahi con alcance limitado a Wi-Fi/Ethernet.
+# Uso: just install-mdns --check | --plan | --apply | --status
+install-mdns *args:
+    bash scripts/network/install_mdns_linux.sh {{args}}

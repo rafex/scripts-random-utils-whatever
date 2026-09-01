@@ -248,6 +248,25 @@ La auditoría `just audit-thinkpad --status` informa de estas capas sin tratarla
 como bloqueos de preparación: su ausencia no impide desarrollar, impartir
 cursos o realizar auditorías de red.
 
+## mDNS en la red local
+
+Avahi y `libnss-mdns` permiten resolver la ThinkPad como `thinkpad.local` y
+descubrir equipos locales. La configuración recomendada limita mDNS a Wi-Fi y
+Ethernet, dejando la conexión WWAN fuera; tampoco publica automáticamente
+servicios de archivos, SSH, impresoras o escritorios remotos.
+
+```sh
+just install-mdns --check
+just install-mdns --plan
+just install-mdns --apply
+just install-mdns --status
+```
+
+En una Wi-Fi pública el nombre del equipo y su dirección local pueden ser
+visibles para otros dispositivos del mismo segmento. Si no necesitas
+descubrimiento local, puedes detener Avahi; mDNS no es necesario para navegar
+ni para usar OXXO Cel.
+
 ## Respaldo incremental cifrado
 
 El respaldo portable anterior sigue disponible para exportaciones puntuales,

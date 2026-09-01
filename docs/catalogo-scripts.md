@@ -103,6 +103,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/network/nm_force_ip_linux.sh` | Linux | nm-force-ip | opcional | sí | alto | [doc](network/nm_force_ip_linux.md) |
 | `scripts/network/reconcile_networkmanager_linux.sh` | Linux | reconcile-networkmanager | sí | sí | alto | [doc](network/reconcile_networkmanager_linux.md) |
 | `scripts/network/configure_wwan_oxxocel_linux.sh` | Linux | configure-wwan-oxxocel | sí | sí | medio | [doc](network/configure_wwan_oxxocel_linux.md) |
+| `scripts/network/install_mdns_linux.sh` | Linux | install-mdns | sí | sí | medio | [doc](network/install_mdns_linux.md) |
 | `scripts/network/wifi_connect_interactive_linux.sh` | Linux | wifi-connect-interactive | opcional | — | medio | [doc](network/wifi_connect_interactive_linux.md) |
 | `scripts/network/wifi_connect_linux.sh` | Linux | wifi-connect | opcional | — | medio | [doc](network/wifi_connect_linux.md) |
 | `scripts/network/wifi_off_linux.sh` | Linux | wifi-off | opcional | — | medio | [doc](network/wifi_off_linux.md) |
