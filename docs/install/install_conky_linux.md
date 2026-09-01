@@ -32,6 +32,7 @@ pantalla 1920×1080 de este perfil.
 - [Variables de entorno](#variables-de-entorno)
 - [Ejemplos](#ejemplos)
 - [Protecciones de seguridad](#protecciones-de-seguridad)
+- [Incidente real y hallazgos](#incidente-real-y-hallazgos)
 - [Fallos conocidos](#fallos-conocidos)
 - [Changelog](#changelog)
 
@@ -121,6 +122,110 @@ abrir una ventana en ese caso.
 - El panel no muestra SSID, IP, IMEI, IMSI, APN, nombres de archivos,
   credenciales, puertos ni comandos completos.
 - No modifica i3bar, i3status, tint2, Xorg, NetworkManager, WWAN ni Picom.
+
+## Incidente real y hallazgos
+
+Esta sección conserva el análisis de las iteraciones que terminaron en la
+configuración actual. Su objetivo es evitar volver a introducir una solución
+que visualmente parezca correcta en el escritorio vacío, pero que viole la
+regla principal del perfil: Conky debe estar detrás de las ventanas y solo
+verse cuando no haya una ventana normal encima.
+
+### Errores de implementación que se deben evitar
+
+1. **Usar `dock` o `panel` para Conky.** En i3 esas ventanas pueden participar
+   en el cálculo del área útil o publicar reservas de espacio. El resultado
+   observado fue una ventana de aproximadamente `1920x1040`, aplicaciones
+   desplazadas y, en algunas recargas, estado `MAXIMIZED_VERT`. Conky no debe
+   usarse como barra ni como panel reservador en este perfil.
+2. **Añadir `floating enable` o intentar corregir la capa con el WM.** Una
+   ventana flotante de i3 queda por encima de las ventanas en mosaico. Las
+   reglas `for_window`, `wmctrl`, `no_focus` y similares no convierten una
+   ventana flotante en un fondo fiable. La configuración actual no contiene
+   reglas de ventana para Conky.
+3. **Usar `own_window = false` esperando que el texto quede en el fondo.** Eso
+   dibuja sobre la ventana raíz y depende de cómo se pinte el wallpaper; en
+   esta ThinkPad el texto no quedó visible de forma confiable.
+4. **Confiar en `desktop` bajo i3 sin comprobar una recarga.** Aunque puede
+   verse bien en un escritorio vacío, i3 puede adoptar o maximizar esa ventana
+   después de una recarga. Por ello no se considera suficiente una captura sin
+   ventanas: hay que comprobar también el apilado con una ventana normal.
+5. **Cambiar varias propiedades a la vez sin una prueba de regresión.** Durante
+   las iteraciones se modificaron posición, fondo, transparencia, tamaño y
+   reglas del WM demasiado cerca unas de otras. La configuración debe cambiarse
+   de forma pequeña y validarse después de cada cambio.
+
+### Hallazgo decisivo
+
+La configuración que cumple el requisito en esta sesión X11 es:
+
+```text
+own_window = true
+own_window_type = 'override'
+own_window_class = 'RafexConky'
+own_window_title = 'Rafex ThinkPad Monitor'
+own_window_colour = '#00000000'
+alignment = 'top_left'
+minimum_width = 320
+maximum_width = 320
+```
+
+`override` deja la ventana fuera de la gestión normal de i3/Openbox. En la
+prueba real, Conky apareció en un escritorio vacío, desapareció visualmente
+debajo de una terminal y no apareció en `_NET_CLIENT_LIST_STACKING`. Por eso
+la propiedad de apilado se valida con una ventana normal abierta, no solo con
+`pgrep` o una captura del escritorio vacío.
+
+El fondo transparente es una propiedad distinta del apilado. `#00000000`
+solicita transparencia, pero la transparencia ARGB/pseudo-transparencia puede
+depender del compositor X11 y del controlador. Un rectángulo oscuro o una
+transparencia imperfecta no debe corregirse cambiando `override` a `dock`,
+`panel` o `floating`: primero se debe diagnosticar el compositor.
+
+### Procedimiento de validación obligatorio
+
+Después de modificar Conky, comprobar desde la sesión gráfica local:
+
+```bash
+pgrep -a -u "$USER" -x conky
+~/.local/bin/conky-launch.sh --reload
+i3 -C -c ~/.config/i3/config
+grep -nE 'own_window|alignment|gap_|minimum_|maximum_height|border_color' \
+  ~/.config/conky/conky.conf
+```
+
+La prueba visual mínima tiene dos estados:
+
+1. En un escritorio vacío, Conky debe verse en la columna izquierda, debajo de
+   la barra superior y sin ocupar todo el ancho.
+2. En ese mismo escritorio, abrir una ventana normal que cubra la columna.
+   Conky debe quedar completamente oculto; no debe desplazar la ventana ni
+   permanecer por encima.
+
+Como comprobación técnica adicional, una ventana `override` no debe aparecer
+   como cliente administrado por i3 ni publicar `_NET_WM_STRUT` o
+   `_NET_WM_STRUT_PARTIAL`. Si aparece `MAXIMIZED_VERT`, `MAXIMIZED_HORZ` o una
+   geometría de pantalla completa, la prueba falla y no se debe publicar el
+   cambio.
+
+### Reglas de mantenimiento
+
+- Mantener exactamente una instancia administrada por
+  `~/.local/bin/conky-launch.sh`.
+- Mantener únicamente el autoinicio `exec_always` de i3 y el autoinicio de
+  Openbox; no añadir reglas `floating`, `above`, `dock` o `panel`.
+- Recargar con `conky-launch.sh --reload`; no usar `kill-server`, `wmctrl` ni
+  matar procesos ajenos.
+- Antes de cambiar la configuración, conservar el respaldo fechado que crea
+  `install-conky --apply`.
+- Si falla el apilado, volver a revisar primero `own_window_type`, las reglas
+  del WM y la lista de clientes antes de tocar Picom o el wallpaper.
+- Si falla únicamente la transparencia, revisar el compositor X11 de la
+  sesión (`_NET_WM_CM_S0` y el proceso de Picom) sin cambiar el modelo de
+  apilado que ya fue validado.
+- No considerar válida una modificación solo porque el panel se vea bonito:
+  debe pasar simultáneamente la prueba de escritorio vacío y la prueba con
+  una ventana normal abierta.
 
 ## Fallos conocidos
 

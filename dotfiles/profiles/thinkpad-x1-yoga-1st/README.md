@@ -258,6 +258,24 @@ Conky se controla mediante `~/.local/bin/conky-launch.sh`; `--reload` solo
 reinicia la instancia administrada por Rafex. Si el comando se ejecuta por SSH
 sin `DISPLAY`, no inicia ninguna ventana.
 
+#### Lección de apilado de Conky
+
+En este perfil Conky debe comportarse como información del escritorio, nunca
+como una ventana visible sobre las aplicaciones. La solución validada usa
+`own_window_type = 'override'`, ancho fijo de 320 píxeles y no tiene reglas
+`floating`, `dock`, `panel` ni `above` en i3 u Openbox. `dock` puede reservar
+espacio o provocar geometrías de pantalla completa; `floating` queda por encima
+de las ventanas en mosaico de i3. `desktop` tampoco es suficiente por sí solo,
+porque i3 puede adoptar la ventana después de una recarga.
+
+Antes de publicar cualquier cambio se deben comprobar ambos estados: Conky
+visible en un escritorio vacío y Conky completamente cubierto al abrir una
+ventana normal sobre la columna izquierda. También se debe verificar que no
+aparezca como cliente de i3 ni publique reservas `_NET_WM_STRUT*`. La
+transparencia de `own_window_colour = '#00000000'` depende adicionalmente del
+compositor X11; un problema de transparencia no se resuelve cambiando la capa
+de apilado.
+
 El perfil declara compatibilidad RGB/TrueColor para Alacritty
 (`xterm-256color`), Kitty (`xterm-kitty`) y rxvt-unicode. Si una sesión remota
 desde Kitty conserva colores amarillos o con poco contraste, desconecta y vuelve
