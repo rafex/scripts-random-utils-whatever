@@ -256,12 +256,14 @@ main() {
       if ! candidate_available && ! package_installed; then
         die 'conky-all no está instalado y no tiene candidato APT; revisa las fuentes Debian'
       fi
-      if candidate_available; then
+      if package_installed; then
+        info 'conky-all ya está instalado; se omite APT'
+      elif candidate_available; then
         sudo -v
         sudo apt-get update
         sudo apt-get install -y conky-all
       else
-        info 'conky-all ya está instalado; se omite APT porque no hay candidato activo'
+        die 'conky-all no está instalado y no tiene candidato APT; revisa las fuentes Debian'
       fi
       configure_integrations
       ok 'Conky instalado; inicia al entrar en i3 u Openbox'
