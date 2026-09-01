@@ -102,10 +102,16 @@ show_cups_status() {
     warn 'cups.service no está habilitado al arrancar'
   fi
   if command -v lpstat >/dev/null 2>&1; then
-    if lpstat -r 2>/dev/null | grep -qi 'running\|ejecutándose\|activo'; then
+    local scheduler_status
+    scheduler_status="$(LC_ALL=C lpstat -r 2>/dev/null || true)"
+    if [[ "$scheduler_status" == 'scheduler is running' ]]; then
       ok 'planificador CUPS responde'
     else
-      warn 'el planificador CUPS no responde'
+      if [[ -n "$scheduler_status" ]]; then
+        warn "el planificador CUPS no responde: $scheduler_status"
+      else
+        warn 'el planificador CUPS no responde'
+      fi
     fi
   else
     warn 'lpstat no está disponible'
