@@ -189,6 +189,11 @@ install-multimedia *args:
 install-fonts *args:
     bash scripts/install/install_fonts_linux.sh {{args}}
 
+# Instalar Restic y Secret Service sin inicializar repositorios
+# Uso: just install-restic-backup --check|--plan|--apply
+install-restic-backup *args:
+    bash scripts/install/install_restic_backup_linux.sh {{args}}
+
 # Configurar QEMU/KVM para virtualización de usuario sin bridges físicos
 # Uso: just configure-kvm --check|--plan|--apply|--status
 configure-kvm *args:

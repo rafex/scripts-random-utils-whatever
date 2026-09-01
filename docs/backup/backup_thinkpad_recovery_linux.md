@@ -9,9 +9,10 @@ tags:
 
 # backup_thinkpad_recovery_linux.sh
 
-Crea una instantánea del estado de la ThinkPad y una copia curada del perfil
-`thinkpad-x1-yoga-1st` en un SSD externo validado. No modifica la instalación
-actual.
+Crea una exportación puntual del estado de la ThinkPad y una copia curada del
+perfil `thinkpad-x1-yoga-1st` en un SSD externo validado. No modifica la
+instalación actual. No es un backup incremental, cifrado ni deduplicado; para
+historiales cifrados usa `backup_thinkpad_restic_linux.sh`.
 
 - **Ruta:** `scripts/backup/backup_thinkpad_recovery_linux.sh`
 - **SO requerido:** Linux

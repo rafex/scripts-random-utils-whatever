@@ -247,3 +247,35 @@ sin borrado automático. `clamonacc` no se habilita.
 La auditoría `just audit-thinkpad --status` informa de estas capas sin tratarlas
 como bloqueos de preparación: su ausencia no impide desarrollar, impartir
 cursos o realizar auditorías de red.
+
+## Respaldo incremental cifrado
+
+El respaldo portable anterior sigue disponible para exportaciones puntuales,
+pero no sustituye un historial. Para respaldos incrementales usa Restic con dos
+repositorios separados en el SSD externo `ssd_rafex_1`:
+
+```sh
+just install-restic-backup --apply
+just backup-thinkpad-restic --init --profile recovery
+just backup-thinkpad-restic --init --profile personal
+just backup-thinkpad-restic --backup
+just backup-thinkpad-restic --verify
+```
+
+`recovery` conserva configuraciones y scripts; `personal` conserva
+`Documents`, `Projects`, `Pictures`, `Videos` y `Music`. Las claves se guardan
+solo en GNOME Keyring mediante Secret Service. No se incluyen claves SSH/GPG,
+credenciales, cookies, keyrings, caches ni los binarios de `mise`.
+
+El SSD debe montarse manualmente y conservar la etiqueta exacta
+`ssd_rafex_1`; el runner no formatea ni monta discos. La poda es manual y el
+timer opcional solo crea snapshots:
+
+```sh
+just backup-thinkpad-restic --prune --plan
+just backup-thinkpad-restic --prune --apply
+just backup-thinkpad-restic --install-timer
+```
+
+Un único SSD no protege frente a robo, incendio o fallo del dispositivo. Para
+una estrategia 3-2-1 se necesita una segunda réplica en otro destino.

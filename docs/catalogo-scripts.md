@@ -22,6 +22,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | Script | Plataforma | Tarea Just | sudo | Seguro | Riesgo | Documentación |
 |---|---|---|---|---|---|---|
 | `scripts/backup/backup_thinkpad_recovery_linux.sh` | Linux | backup-thinkpad | sí | sí | alto | [doc](backup/backup_thinkpad_recovery_linux.md) |
+| `scripts/backup/backup_thinkpad_restic_linux.sh` | Linux | backup-thinkpad-restic | no | sí | alto | [doc](backup/backup_thinkpad_restic_linux.md) |
 | `scripts/dev/commons_deploy_verify_unix.sh` | macOS/Linux | — | no | — | medio | [doc](dev/commons_deploy_verify_unix.md) |
 | `scripts/dev/deploy_configs_unix.sh` | macOS/Linux | deploy-configs | opcional | sí | alto | [doc](dev/deploy_configs_unix.md) |
 | `scripts/dev/deploy_verify_unix.sh` | macOS/Linux | deploy-verify | no | sí | medio | [doc](dev/deploy_verify_unix.md) |
@@ -78,6 +79,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_antivirus_linux.sh` | Linux | install-antivirus | sí | sí | medio | [doc](install/install_antivirus_linux.md) |
 | `scripts/install/install_multimedia_linux.sh` | Linux | install-multimedia | sí | sí | medio | [doc](install/install_multimedia_linux.md) |
 | `scripts/install/install_fonts_linux.sh` | Linux | install-fonts | sí | sí | medio | [doc](install/install_fonts_linux.md) |
+| `scripts/install/install_restic_backup_linux.sh` | Linux | install-restic-backup | sí | sí | medio | [doc](install/install_restic_backup_linux.md) |
 | `scripts/install/configure_kvm_linux.sh` | Linux | configure-kvm | sí | sí | medio | [doc](install/configure_kvm_linux.md) |
 | `scripts/install/audit_thinkpad_readiness_linux.sh` | Linux | audit-thinkpad | no | sí | bajo | [doc](install/audit_thinkpad_readiness_linux.md) |
 | `scripts/install/install_thinkpad_backgrounds_linux.sh` | Linux | install-thinkpad-backgrounds | sí | sí | alto | [doc](install/install_thinkpad_backgrounds_linux.md) |

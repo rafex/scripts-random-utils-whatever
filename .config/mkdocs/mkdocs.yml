@@ -52,6 +52,7 @@ nav:
   - Comandos útiles: comandos-utiles.md
   - Respaldos:
       - backup_thinkpad_recovery_linux: backup/backup_thinkpad_recovery_linux.md
+      - backup_thinkpad_restic_linux: backup/backup_thinkpad_restic_linux.md
   - Desarrollo:
       - commons_deploy_verify_unix: dev/commons_deploy_verify_unix.md
       - deploy_configs_unix: dev/deploy_configs_unix.md
@@ -116,6 +117,7 @@ nav:
       - install_antivirus_linux: install/install_antivirus_linux.md
       - install_multimedia_linux: install/install_multimedia_linux.md
       - install_fonts_linux: install/install_fonts_linux.md
+      - install_restic_backup_linux: install/install_restic_backup_linux.md
       - configure_kvm_linux: install/configure_kvm_linux.md
       - audit_thinkpad_readiness_linux: install/audit_thinkpad_readiness_linux.md
       - install_thinkpad_backgrounds_linux: install/install_thinkpad_backgrounds_linux.md
