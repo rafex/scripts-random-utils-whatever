@@ -9,12 +9,14 @@ tags:
 
 Ajusta el brillo del teclado retroiluminado con niveles reales del dispositivo y
 muestra una notificación. Prefiere `brightnessctl` y usa sysfs como alternativa
-si el dispositivo permite escritura al usuario.
+si el dispositivo permite escritura al usuario. Si la sesión aún no incorporó
+el grupo `input`, utiliza el helper Polkit restringido instalado por
+`install-kbd-brightness`.
 
 - **Ruta:** `scripts/hardware/notify_kbd_brightness_linux.sh`
 - **SO requerido:** Linux (ThinkPad, MacBook u otro equipo con LED de teclado)
-- **Dependencias:** `brightnessctl` (preferida), `notify-send` y un LED
-  compatible en `/sys/class/leds`
+- **Dependencias:** `brightnessctl` (preferida), `notify-send`, `pkexec` solo
+  como respaldo y un LED compatible en `/sys/class/leds`
 
 ______________________________________________________________________
 
@@ -62,7 +64,10 @@ ______________________________________________________________________
 ## Requisitos
 
 El usuario debe tener permiso para cambiar el dispositivo de backlight. El
-script no ejecuta `sudo`; si sysfs no es escribible, informa el problema.
+script no ejecuta `sudo`: después de [instalar la política](../install/install_kbd_brightness_policy_linux.md),
+usa `brightnessctl` con el grupo `input` y deja `pkexec` como respaldo temporal
+para una sesión antigua. El helper solo acepta `up`/`down` y solo modifica
+`tpacpi::kbd_backlight`.
 
 ## Opciones
 
@@ -84,15 +89,16 @@ funcionando aunque Linux no exponga un control software.
 **Causa:** el dispositivo existe, pero sus permisos no permiten escritura a la
 sesión gráfica.
 
-**Solución:** usa Fn+Space o corrige la política de permisos del sistema
-separadamente. El helper no eleva privilegios.
+**Solución:** usa Fn+Space o ejecuta `just install-kbd-brightness --apply`.
+Después cierra y abre sesión para que `input` sea efectivo. Si se usa el
+respaldo Polkit, debe existir un agente gráfico como `lxpolkit`.
 
 ## Changelog
 
 ### [Unreleased]
 
-**fix:** preferir `tpacpi::kbd_backlight`, respetar niveles reales y notificar
-errores de permisos sin usar sudo.
+**fix:** preferir `tpacpi::kbd_backlight`, respetar niveles reales y usar un
+respaldo Polkit mínimo cuando la sesión aún no tiene `input`, sin usar sudo.
 
 ### v1.0.0 — 2026-07-22
 

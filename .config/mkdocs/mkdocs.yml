@@ -101,6 +101,7 @@ nav:
       - configure_java_mise_linux: install/configure_java_mise_linux.md
       - install_bash_reload_linux: install/install_bash_reload_linux.md
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
+      - install_kbd_brightness_policy_linux: install/install_kbd_brightness_policy_linux.md
       - install_i3_gaps_linux: install/install_i3_gaps_linux.md
       - install_openbox_profile_linux: install/install_openbox_profile_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
@@ -169,6 +170,7 @@ nav:
       - scan_document_linux: system/scan_document_linux.md
       - clipboard_menu_linux: system/clipboard_menu_linux.md
       - screenshot_linux: system/screenshot_linux.md
+      - kbd_brightness_privileged_linux: system/kbd_brightness_privileged_linux.md
       - age_file_linux: system/age_file_linux.md
       - conky_status_linux: system/conky_status_linux.md
   - macOS:

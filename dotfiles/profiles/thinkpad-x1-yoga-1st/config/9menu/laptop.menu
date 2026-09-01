@@ -20,6 +20,10 @@ Tema Paper:exec ~/.local/bin/theme-toggle.sh --set paper
 Tema Everforest:exec ~/.local/bin/theme-toggle.sh --set everforest
 Tema Dracula:exec ~/.local/bin/theme-toggle.sh --set dracula
 Estado del sistema:exec alacritty -e btop
+Captura completa:exec ~/.local/bin/screenshot.sh --full
+Captura de area:exec ~/.local/bin/screenshot.sh --select
+Captura de ventana:exec ~/.local/bin/screenshot.sh --window
+Portapapeles CopyQ:exec ~/.local/bin/clipboard-menu.sh --show
 Bloquear sesión:exec loginctl lock-session
 Cerrar menú:exit
 Cerrar sesión:exec ~/.local/bin/desktop-settings-menu.sh logout

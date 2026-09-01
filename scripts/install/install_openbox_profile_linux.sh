@@ -117,6 +117,16 @@ install_openbox_themes() {
   done
 }
 
+install_kbd_brightness_policy() {
+  local policy_script="$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh"
+  [[ -f "$policy_script" ]] || die "falta el instalador de brillo de teclado: $policy_script"
+  case "$ACTION" in
+    plan) bash "$policy_script" --plan ;;
+    check) bash "$policy_script" --check ;;
+    apply) bash "$policy_script" --apply ;;
+  esac
+}
+
 install_profile() {
   if [[ "$ACTION" == plan ]]; then
     info "[plan] ejecutar dotfiles/install.sh --profile $PROFILE --dry-run"
@@ -165,12 +175,14 @@ main() {
   case "$ACTION" in
     check)
       check_profile
+      install_kbd_brightness_policy
       ;;
     plan)
       echo '═══ Plan perfil Openbox ThinkPad ═══'
       install_packages
       install_profile
       install_openbox_themes
+      install_kbd_brightness_policy
       ;;
     apply)
       echo '═══ Instalación perfil Openbox ThinkPad ═══'
@@ -198,6 +210,7 @@ scripts/display/screen_projector_linux.sh:screen-projector.sh
 scripts/hardware/autorotate_x1_yoga_linux.sh:autorotate-x1-yoga.sh
 scripts/hardware/test_wacom_pen_linux.sh:test-wacom-pen.sh
 EOF
+      install_kbd_brightness_policy
       install_openbox_themes
       ok 'perfil Openbox instalado; selecciona Openbox manualmente en LightDM'
       ;;

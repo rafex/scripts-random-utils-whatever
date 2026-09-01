@@ -5,6 +5,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
+readonly PRIVILEGED_HELPER='/usr/local/libexec/rafex-kbd-backlight'
+
 usage() {
   echo "Uso: $0 [up|down]"
   exit 1
@@ -85,14 +87,26 @@ fi
 (( NEW > MAX )) && NEW=$MAX
 (( NEW < 0 )) && NEW=0
 
+APPLIED=0
 if [[ "$BACKEND" == brightnessctl ]]; then
-  brightnessctl --device "$DEVICE_NAME" set "$NEW" >/dev/null
-else
-  if [[ ! -w "$DEVICE/brightness" ]]; then
-    echo "No hay permisos de usuario para modificar $DEVICE/brightness; no se usará sudo." >&2
+  if brightnessctl --device "$DEVICE_NAME" set "$NEW" >/dev/null 2>&1; then
+    APPLIED=1
+  fi
+elif [[ -w "$DEVICE/brightness" ]] && printf '%s\n' "$NEW" > "$DEVICE/brightness"; then
+  APPLIED=1
+fi
+
+if (( APPLIED == 0 )); then
+  if [[ ! -x "$PRIVILEGED_HELPER" ]] || ! command -v pkexec >/dev/null 2>&1; then
+    echo "No hay permisos para modificar $DEVICE/brightness; instala la política Polkit con just install-kbd-brightness --apply." >&2
     exit 1
   fi
-  printf '%s\n' "$NEW" > "$DEVICE/brightness"
+  if ! pkexec "$PRIVILEGED_HELPER" "$1"; then
+    echo "No se pudo autorizar el cambio de brillo mediante Polkit." >&2
+    exit 1
+  fi
+  CURRENT="$(<"$DEVICE/brightness")"
+  NEW="$CURRENT"
 fi
 
 PERCENT=$((NEW * 100 / MAX))

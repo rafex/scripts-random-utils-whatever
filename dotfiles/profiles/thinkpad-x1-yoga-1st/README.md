@@ -30,8 +30,9 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - Inicio de `udiskie` desde i3; `pasystray` y `nm-applet` se gestionan mediante
   los archivos XDG de autostart ejecutados por `dex`.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas. F5/F6 controlan el
-  brillo de pantalla; F11/F12 bajan/suben el brillo del teclado con
-  notificación. Fn+Space conserva el control nativo del firmware.
+  brillo de pantalla; `XF86KbdBrightnessDown`/`Up` y
+  `XF86LaunchA`/`Explorer` bajan/suben el brillo del teclado con notificación.
+  Fn+Space conserva el control nativo del firmware.
 - CopyQ mantiene un historial visual del portapapeles y se abre con
   `Mod+Shift+V`; la captura X11 se realiza con `Mod+P` o `Print` (pantalla
   completa), `Shift+Print` (selección) y `Ctrl+Print` (ventana activa).
@@ -39,9 +40,14 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   `just install-screenshot --apply`. El historial puede contener información
   sensible: no copies contraseñas y revísalo o límpialo desde CopyQ.
 - Menú 9menu en `Mod+F9` y `XF86Tools` con accesos a las herramientas de la
-  ThinkPad, incluido Synaptic mediante `synaptic-pkexec`. Incluye una salida
-  visible y acciones de cerrar sesión, suspender, hibernar, reiniciar y apagar;
-  todas las acciones sensibles piden confirmación en Rofi.
+  ThinkPad, incluido Synaptic mediante `synaptic-pkexec`. Incluye capturas de
+  pantalla, historial CopyQ, una salida visible y acciones de cerrar sesión,
+  suspender, hibernar, reiniciar y apagar; todas las acciones sensibles piden
+  confirmación en Rofi.
+- El brillo de teclado usa `brightnessctl` con el grupo `input` y conserva un
+  respaldo Polkit restringido al LED `tpacpi::kbd_backlight`. El grupo `input`
+  también permite leer eventos de `/dev/input/event*`; cierra y abre sesión
+  después de ejecutar `just install-kbd-brightness --apply`.
 - Diez escritorios con nombres y reglas para colocar automáticamente las
   aplicaciones habituales: terminal, código, web, documentos, configuración,
   multimedia, comunicaciones, operaciones, monitorización y scratch.

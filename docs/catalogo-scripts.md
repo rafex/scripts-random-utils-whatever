@@ -97,6 +97,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/scrape_node_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_node_runtime.md) |
 | `scripts/install/scrape_build_runtime.py` | Linux | — | no | — | bajo | [doc](install/scrape_build_runtime.md) |
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
+| `scripts/install/install_kbd_brightness_policy_linux.sh` | Linux | install-kbd-brightness | sí | sí | alto | [doc](install/install_kbd_brightness_policy_linux.md) |
 | `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
 | `scripts/install/install_openbox_profile_linux.sh` | Linux | install-openbox-profile | sí | sí | medio | [doc](install/install_openbox_profile_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
@@ -132,6 +133,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
 | `scripts/system/clipboard_menu_linux.sh` | Linux | clipboard-menu | no | sí | bajo | [doc](system/clipboard_menu_linux.md) |
 | `scripts/system/screenshot_linux.sh` | Linux | screenshot | no | sí | medio | [doc](system/screenshot_linux.md) |
+| `scripts/system/kbd_brightness_privileged_linux.sh` | Linux | — | sí | — | alto | [doc](system/kbd_brightness_privileged_linux.md) |
 | `scripts/system/age_file_linux.sh` | Linux | age-file | no | sí | medio | [doc](system/age_file_linux.md) |
 | `scripts/system/conky_status_linux.sh` | Linux | conky-status | no | — | bajo | [doc](system/conky_status_linux.md) |
 

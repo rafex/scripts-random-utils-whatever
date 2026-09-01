@@ -43,7 +43,16 @@ just install-openbox-profile
 ```
 
 Tras aplicar, cierra sesión y selecciona **Openbox** en LightDM. Para volver a
-i3, selecciónalo nuevamente en el mismo menú.
+i3, selecciónalo nuevamente en el mismo menú. `Super+F9` y `XF86Tools` abren
+9menu; el menú incluye capturas, CopyQ y acciones de energía confirmadas por
+Rofi.
+
+Durante `--apply` se ejecuta además `install-kbd-brightness --apply`, que añade
+el usuario al grupo `input` y registra el respaldo Polkit restringido para
+`tpacpi::kbd_backlight`. Cierra y abre sesión para que el grupo sea efectivo.
+`input` permite leer eventos de `/dev/input/event*`, incluidos teclado,
+touchpad, Wacom y teclas multimedia, por lo que es un permiso más amplio que
+el brillo del teclado.
 
 Sin opciones, la tarea ejecuta la aplicación del perfil. Usa `--check` o
 `--dry-run` cuando solo quieras inspeccionar.
@@ -81,6 +90,8 @@ just install-openbox-profile --plan
 
 - Solicita la contraseña solo mediante `sudo -v`.
 - No almacena credenciales.
+- La política de brillo solo autoriza `up`/`down` sobre el LED del teclado; no
+  añade al usuario al grupo `libvirt` ni a otros grupos administrativos.
 - No modifica i3, Xorg, GPU, DRI, LUKS, GRUB, `fstab` ni LightDM.
 - Respaldar configuraciones existentes es responsabilidad del instalador de
   perfiles antes de reemplazar archivos de usuario.

@@ -12,6 +12,8 @@ tags:
 El perfil `thinkpad-x1-yoga-1st` instala un menú 9menu pequeño para acciones
 frecuentes. Se abre con la tecla de herramientas/engranaje (`XF86Tools`) o con
 `Mod+F9`. La tecla `XF86WakeUp` queda reservada para suspender el equipo.
+El menú incluye capturas de pantalla y el historial de CopyQ, además de las
+acciones de sesión y energía.
 
 - **Ruta del menú:** `dotfiles/profiles/thinkpad-x1-yoga-1st/config/9menu/laptop.menu`
 - **SO requerido:** Linux (Xorg/i3)
@@ -70,7 +72,7 @@ que pide confirmación antes de ejecutar la acción.
 | `-popup` | — | Cierra 9menu después de seleccionar una acción. |
 | `-label "ThinkPad"` | — | Define el título de la ventana. |
 | `-file <archivo>` | — | Lee las entradas desde un archivo de menú. |
-| `XF86Tools` | — | Abre el menú desde la tecla de herramientas si X11 la reporta. |
+| `XF86Tools` | — | Abre 9menu desde la tecla de herramientas si X11 la reporta. |
 | `Mod+F9` | — | Atajo alternativo independiente del teclado multimedia. |
 | `XF86WakeUp` | — | Abre energía y sesión; las acciones requieren confirmación. |
 
@@ -110,6 +112,8 @@ Mod+Shift+R
 - `XF86WakeUp` abre energía y sesión; la acción elegida pide confirmación.
   El despertar tras suspensión lo gestiona el firmware y no requiere un
   comando adicional.
+- El menú ofrece `Captura completa`, `Captura de área`, `Captura de ventana` y
+  `Portapapeles CopyQ`; estas entradas dependen de los instaladores respectivos.
 - No añadir entradas provenientes de archivos no confiables: 9menu ejecuta el
   comando asociado mediante un shell.
 

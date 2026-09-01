@@ -139,6 +139,11 @@ install-terminal-workstation *args:
 install-i3-laptop-controls *args:
     bash scripts/install/install_i3_laptop_controls_linux.sh {{args}}
 
+# Preparar permisos input y respaldo Polkit para brillo XF86 del teclado
+# Uso: just install-kbd-brightness --check|--plan|--apply|--status
+install-kbd-brightness *args:
+    bash scripts/install/install_kbd_brightness_policy_linux.sh {{args}}
+
 # Instalar gaps nativos de i3 (i3 >= 4.22), sin compilar el fork archivado
 # Uso: just install-i3-gaps --apply
 install-i3-gaps *args:

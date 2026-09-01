@@ -42,8 +42,10 @@ just install-i3-laptop-controls --apply
 El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
 `XF86Search`, `XF86LaunchA`, `XF86Explorer`,
 `XF86WakeUp` y `XF86Tools`. `XF86LaunchA` baja y
-`XF86Explorer` sube el brillo del teclado. `XF86Tools` abre
-el centro de control completo; `XF86WakeUp` abre solo energía y sesión.
+`XF86Explorer` sube el brillo del teclado. Si el firmware expone
+`XF86KbdBrightnessDown` y `XF86KbdBrightnessUp`, también quedan enlazados al
+mismo helper. `XF86Tools` abre el menú 9menu;
+`Mod+F9` es su acceso alternativo y `XF86WakeUp` abre solo energía y sesión.
 El navegador conserva un atajo alternativo en `Mod+Shift+b` y también
 está disponible en Rofi. El centro incluye `Software — Synaptic`, que
 se ejecuta mediante `synaptic-pkexec`.
@@ -54,6 +56,12 @@ retroiluminación del teclado.
 
 Además, instala los helpers de brillo, `dunst` y registra `dunst-smart.sh`, que detecta si i3bar está
 arriba o abajo y coloca las notificaciones fuera de su área.
+
+Durante `--apply` también ejecuta `install-kbd-brightness --apply`: añade el
+usuario al grupo `input` y deja un respaldo Polkit restringido para el LED del
+teclado. Cierra y abre sesión para activar el grupo. La pertenencia a `input`
+permite leer `/dev/input/event*`, por lo que es más amplia que el brillo y debe
+aceptarse conscientemente.
 
 ## Opciones
 

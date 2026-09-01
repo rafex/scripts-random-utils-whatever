@@ -137,11 +137,13 @@ bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh 
 bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
 bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
 bindsym XF86Search exec --no-startup-id ~/.local/bin/rofi-search.sh apps
+bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
 bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym \$mod+Shift+b exec --no-startup-id ~/.local/bin/rofi-search.sh browser
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
-bindsym XF86Tools exec --no-startup-id ~/.local/bin/i3-settings-menu.sh
+bindsym XF86Tools exec --no-startup-id 9menu -popup -label \"ThinkPad\" -file ~/.config/9menu/laptop.menu
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 $end"
   if [[ "$ACTION" == plan ]]; then
@@ -177,6 +179,8 @@ $end"
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86LaunchA[[:space:]]+move[[:space:]]+scratchpad[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86LaunchA[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+down[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Explorer[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+up[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86KbdBrightnessDown[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+down[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86KbdBrightnessUp[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+up[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+\$mod\+Shift\+b[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/rofi-search\.sh[[:space:]]+browser[[:space:]]*$/ {removed=1; next}
       {print}
       END {
@@ -216,6 +220,13 @@ main() {
   install_helper scripts/system/i3_settings_menu_linux.sh i3-settings-menu.sh
   install_helper scripts/system/dunst_smart_start_linux.sh dunst-smart.sh
   install_helper scripts/hardware/test_wacom_pen_linux.sh test-wacom-pen.sh
+  if [[ "$ACTION" == plan ]]; then
+    bash "$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh" --plan
+  elif [[ "$ACTION" == check ]]; then
+    bash "$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh" --check
+  elif [[ "$ACTION" == apply ]]; then
+    bash "$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh" --apply
+  fi
   configure_i3
   if [[ "$ACTION" == apply ]]; then
     ok "controles instalados; recarga i3 con Mod4+Shift+r"

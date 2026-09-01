@@ -14,8 +14,10 @@ predeterminada de LightDM.
   `ops`, `monitor` y `scratch`.
 - Atajos multimedia, brillo, Wi-Fi, micrófono, proyector, rotación y energía
   reutilizando los scripts comunes del repositorio.
-- F5/F6 controlan el brillo de pantalla y F11/F12 bajan/suben el brillo del
-  teclado con notificación; Fn+Space conserva el control del firmware.
+- F5/F6 controlan el brillo de pantalla y los keysyms `XF86LaunchA`/
+  `XF86Explorer` (las teclas físicas F11/F12 en este modelo) bajan/suben el
+  brillo del teclado con notificación; Fn+Space conserva el control del
+  firmware.
 - Alacritty y rxvt-unicode siguen abriendo la sesión tmux `thinkpad`.
 - CopyQ mantiene el historial del portapapeles y se abre con
   `Super+Shift+V`. El capturador X11 usa `Super+P` o `Print` para pantalla
@@ -44,9 +46,10 @@ se modifica y puede elegirse nuevamente como recuperación.
 | `Super+Space` | Menú Rofi |
 | `Super+1` … `Super+0` | Escritorios 1–10 |
 | `Super+Tab` | Ventanas Rofi |
-| `Super+F9` | Centro de control |
-| `XF86Tools` | Centro de control |
+| `Super+F9` | Menú 9menu |
+| `XF86Tools` | Menú 9menu |
 | `XF86WakeUp` | Menú de energía |
+| `XF86KbdBrightnessDown` / `Up` | Bajar/subir brillo del teclado |
 | `XF86LaunchA` / `XF86Explorer` | Bajar/subir brillo del teclado |
 | `XF86Display` | Siguiente modo del proyector |
 | `XF86AudioRaiseVolume` / `XF86AudioLowerVolume` | Volumen |
@@ -55,10 +58,13 @@ se modifica y puede elegirse nuevamente como recuperación.
 | `Super+Shift+T` | Cambiar tema |
 | `Super+Shift+P` | Activar o desactivar picom |
 
-El menú raíz de Openbox y el centro de control ofrecen cerrar sesión,
-suspender, hibernar, reiniciar y apagar. Las acciones sensibles siempre piden
-confirmación mediante Rofi; la hibernación solo se intenta si
-`loginctl can-hibernate` la anuncia como disponible.
+El menú raíz de Openbox y 9menu ofrecen capturas de pantalla, CopyQ, cerrar
+sesión, suspender, hibernar, reiniciar y apagar. Las acciones sensibles siempre
+piden confirmación mediante Rofi; la hibernación solo se intenta si
+`loginctl can-hibernate` la anuncia como disponible. El brillo usa
+`brightnessctl` con el grupo `input` y conserva un respaldo Polkit restringido
+al LED del teclado; esa pertenencia también permite leer eventos de entrada y
+requiere cerrar y abrir sesión después de `just install-kbd-brightness --apply`.
 
 ## Temas
 

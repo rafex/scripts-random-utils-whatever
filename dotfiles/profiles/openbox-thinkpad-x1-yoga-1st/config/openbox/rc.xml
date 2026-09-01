@@ -81,7 +81,7 @@
     <keybind key="W-space"><action name="Execute"><command>rofi -show drun -show-icons</command></action></keybind>
     <keybind key="W-Tab"><action name="Execute"><command>rofi -show window -show-icons</command></action></keybind>
     <keybind key="W-Shift-b"><action name="Execute"><command>~/.local/bin/rofi-search.sh browser</command></action></keybind>
-    <keybind key="W-F9"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></keybind>
+    <keybind key="W-F9"><action name="Execute"><command>9menu -popup -label "ThinkPad" -file ~/.config/9menu/laptop.menu</command></action></keybind>
     <keybind key="W-Shift-t"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></keybind>
     <keybind key="W-Shift-p"><action name="Execute"><command>~/.local/bin/picom-toggle.sh</command></action></keybind>
     <keybind key="W-Shift-v"><action name="Execute"><command>~/.local/bin/clipboard-menu.sh --show</command></action></keybind>
@@ -117,7 +117,7 @@
     <keybind key="XF86WLAN"><action name="Execute"><command>~/.local/bin/wifi-toggle.sh toggle</command></action></keybind>
     <keybind key="XF86RFKill"><action name="Execute"><command>~/.local/bin/flight-mode-toggle.sh toggle</command></action></keybind>
     <keybind key="XF86Display"><action name="Execute"><command>~/.local/bin/screen-projector.sh --apply --mode next</command></action></keybind>
-    <keybind key="XF86Tools"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh</command></action></keybind>
+    <keybind key="XF86Tools"><action name="Execute"><command>9menu -popup -label "ThinkPad" -file ~/.config/9menu/laptop.menu</command></action></keybind>
     <keybind key="XF86WakeUp"><action name="Execute"><command>~/.local/bin/desktop-settings-menu.sh power</command></action></keybind>
 
     <keybind key="W-1"><action name="GoToDesktop"><to>1</to></action></keybind>
