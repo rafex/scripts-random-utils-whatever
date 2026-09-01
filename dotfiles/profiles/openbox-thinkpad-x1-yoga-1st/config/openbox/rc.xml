@@ -170,7 +170,7 @@
     <application class="Zathura"><desktop>4</desktop></application>
     <application class="Evince"><desktop>4</desktop></application>
     <application class="Xournalpp"><desktop>4</desktop></application>
-    <application class="Thunar"><desktop>5</desktop><maximized>no</maximized><decor>yes</decor><position force="yes"><x>center</x><y>center</y></position><size><width>800</width><height>600</height></size></application>
+    <application class="Thunar"><desktop>5</desktop></application>
     <application class="Pavucontrol"><desktop>5</desktop></application>
     <application class="Nm-connection-editor"><desktop>5</desktop></application>
     <application class="Blueman-manager"><desktop>5</desktop></application>

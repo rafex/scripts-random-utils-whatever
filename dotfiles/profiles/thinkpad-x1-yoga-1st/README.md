@@ -176,6 +176,11 @@ Las clases no reconocidas permanecen en el escritorio actual. Para incorporar
 una aplicación nueva, ejecuta `xprop WM_CLASS`, pulsa sobre su ventana y añade
 su clase al bloque de asignaciones de `config/i3`.
 
+Thunar se asigna al escritorio `5:misc` y ahora conserva el comportamiento
+normal de i3: se abre como ventana en mosaico, sin tamaño ni posición flotante
+forzados. En el perfil Openbox solo se conserva la asignación al escritorio;
+Openbox es un gestor flotante por diseño y no ofrece mosaico nativo.
+
 ## Tema, terminales y tmux
 
 El instalador de perfiles crea `~/.config/rafex/themes/current` apuntando a
