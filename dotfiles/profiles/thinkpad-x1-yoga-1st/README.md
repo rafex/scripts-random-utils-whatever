@@ -211,7 +211,9 @@ just install-conky --status
 just conky-status
 ```
 
-Se muestra en la esquina superior derecha, debajo de la barra, con kernel,
+Se muestra en la esquina superior izquierda, debajo de la barra, con un fondo
+oscuro translúcido y fuente `DejaVu Sans Mono` tamaño 11 para conservar el
+contraste sobre los fondos del perfil. Incluye kernel,
 uptime, CPU, RAM, disco, temperaturas válidas, batería, red sin SSID/IP,
 audio, KVM, Podman, runtimes y un resumen no certificador de seguridad. Las
 lecturas que no estén disponibles aparecen como `N/D`. No muestra credenciales,
@@ -253,7 +255,8 @@ just install-fonts --apply --profile cjk
 
 El locale de oficina se carga en la sesión del usuario desde
 `~/.config/rafex/locale.conf`; no reemplaza `/etc/default/locale`. Después de
-instalarlo hay que abrir una nueva sesión. Los scripts fuerzan `LC_ALL=C`
+instalarlo hay que abrir una nueva sesión. El locale de usuario es
+`es_MX.UTF-8` (no `es_MX_UTF8`) y `LC_ALL` debe quedar sin definir. Los scripts fuerzan `LC_ALL=C`
 solo al interpretar salidas APT, para que el idioma del escritorio no rompa sus
 diagnósticos.
 

@@ -9,8 +9,8 @@ tags:
 
 # install_conky_linux.sh
 
-Instala `conky-all` desde Debian y configura un panel informativo transparente
-en la esquina superior derecha, debajo de i3bar o tint2. El panel no reserva
+Instala `conky-all` desde Debian y configura un panel informativo translúcido
+en la esquina superior izquierda, debajo de i3bar o tint2. El panel no reserva
 espacio, no roba el foco y funciona tanto con i3 como con Openbox.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
@@ -136,6 +136,15 @@ se añade ningún repositorio externo.
 
 **Solución:** inicia Conky desde i3/Openbox o ejecuta el lanzador dentro de la
 sesión gráfica local.
+
+### `El texto no contrasta con el fondo`
+
+**Causa:** una configuración anterior podía usar una ventana completamente
+transparente y una fuente pequeña.
+
+**Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
+ubica arriba a la izquierda y aplica un fondo oscuro translúcido con opacidad
+aproximada del 75 %. El borde y los colores se actualizan junto con el tema.
 
 ### `existe otra instancia Conky del usuario`
 

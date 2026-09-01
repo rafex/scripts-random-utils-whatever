@@ -5,7 +5,7 @@ umask 077
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 ACTION="check"
-REQUESTED_LOCALE="es_MX"
+REQUESTED_LOCALE="es_MX.UTF-8"
 LOCALE_VALUE="es_MX.UTF-8"
 LANGUAGE_VALUE="es_MX:es"
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -142,9 +142,10 @@ write_locale_config() {
   local target="$HOME/.config/rafex/locale.conf" source
   mkdir -p "$(dirname "$target")"
   source="$(mktemp)"
-  cat > "$source" <<EOF
+cat > "$source" <<EOF
 # Configuración administrada por scripts-random-utils-whatever.
 # Se carga desde ~/.profile en sesiones de login.
+unset LC_ALL
 export LANG="$LOCALE_VALUE"
 export LANGUAGE="$LANGUAGE_VALUE"
 export LC_MESSAGES="$LOCALE_VALUE"

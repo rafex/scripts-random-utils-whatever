@@ -40,9 +40,9 @@ usuario sin modificar `/etc/default/locale`.
 
 ```bash
 just install-office --check
-just install-office --plan --locale es_MX
-just install-office --apply --locale es_MX
-just install-office --status --locale es_MX
+just install-office --plan --locale es_MX.UTF-8
+just install-office --apply --locale es_MX.UTF-8
+just install-office --status --locale es_MX.UTF-8
 ```
 
 Después de aplicar, cierra y abre la sesión para que Bash y las aplicaciones
@@ -67,7 +67,7 @@ crea en `~/.config/rafex/locale.conf`.
 ## Ejemplos
 
 ```bash
-just install-office --apply --locale es_MX
+just install-office --apply --locale es_MX.UTF-8
 locale
 libreoffice
 ```
@@ -88,7 +88,8 @@ libreoffice
 **Causa:** falta el paquete `locales`, el locale no pudo generarse o la sesión
 actual conserva un entorno anterior.
 
-**Solución:** repite `--apply`, comprueba `locale -a` y abre una nueva sesión.
+**Solución:** repite `--apply --locale es_MX.UTF-8`, comprueba `locale -a` y
+abre una nueva sesión.
 
 ### `algún paquete de oficina no tiene candidato APT`
 
@@ -102,3 +103,5 @@ repositorios externos desde este script.
 ### [Unreleased]
 
 - **feat:** añadir LibreOffice y locale de sesión español.
+- **fix:** usar `es_MX.UTF-8` como locale canónico y limpiar `LC_ALL` al cargar
+  la configuración de usuario.

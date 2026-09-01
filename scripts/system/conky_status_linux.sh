@@ -4,6 +4,8 @@
 set -Eeuo pipefail
 umask 077
 
+# Este LC_ALL solo afecta a este proceso: estabiliza el parsing de herramientas
+# y no cambia el locale persistente de la sesión gráfica del usuario.
 export LC_ALL=C
 
 SECTION="all"

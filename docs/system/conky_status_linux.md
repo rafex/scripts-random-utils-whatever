@@ -61,7 +61,7 @@ El instalador de Conky copia este script a `~/.local/bin/conky-status.sh`.
 
 | Variable | Predeterminado | Descripción |
 |---|---|---|
-| `LC_ALL` | `C` | Se fuerza internamente para interpretar salidas de herramientas de forma estable. |
+| `LC_ALL` | `C` | Se fuerza solo dentro del helper para interpretar salidas de herramientas de forma estable; no cambia el locale de la sesión. |
 
 No usa `.env`, no almacena datos y no acepta credenciales.
 
