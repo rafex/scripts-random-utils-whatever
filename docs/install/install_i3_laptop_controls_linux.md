@@ -109,7 +109,9 @@ explícitamente uno de esos modos, usa `--log-file`.
 - Elimina vinculaciones heredadas conflictivas de `XF86Tools`,
   `XF86WakeUp`, `XF86Explorer`, `XF86LaunchA` y
   el navegador alternativo fuera del bloque administrado para reparar perfiles
-  anteriores sin perder el respaldo.
+  anteriores sin perder el respaldo. También retira la regla heredada que
+  forzaba Thunar a abrirse flotante con tamaño fijo; no elimina su asignación
+  al escritorio `5:misc`.
 - Las acciones de energía del centro de control siempre piden confirmación;
   hibernar se comprueba con `loginctl can-hibernate` antes de ejecutarse.
 - Los helpers de brillo no usan `sudo`.
@@ -160,3 +162,6 @@ ejecuciones de aplicación con logs fechados.
 
 **feat:** instalar `lxpolkit` y Synaptic para autenticación y administración
 gráfica desde i3.
+
+**fix:** retirar la regla legacy que forzaba Thunar a flotante y conservar su
+asignación al escritorio `5:misc`.

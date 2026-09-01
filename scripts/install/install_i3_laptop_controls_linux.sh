@@ -159,6 +159,8 @@ $end"
   # El perfil ThinkPad antiguo definía estas teclas fuera del bloque
   # administrado. Retirarlas evita que el perfil y este instalador compitan
   # por el mismo keysym y permite reparar instalaciones ya duplicadas.
+  # También elimina la regla legacy que forzaba Thunar a flotante; la
+  # asignación de Thunar al escritorio 5 permanece en el perfil.
   if [[ -f "$I3_CONFIG" ]]; then
     local cleaned
     cleaned="$(mktemp "${I3_CONFIG}.tmp.XXXXXX")"
@@ -182,6 +184,7 @@ $end"
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86KbdBrightnessDown[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+down[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86KbdBrightnessUp[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+up[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+\$mod\+Shift\+b[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/rofi-search\.sh[[:space:]]+browser[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*for_window[[:space:]]+\[class="Thunar"\][[:space:]]+floating[[:space:]]+enable,[[:space:]]+resize[[:space:]]+set[[:space:]]+800[[:space:]]+600[[:space:]]*$/ {removed=1; next}
       {print}
       END {
         if (!dunst_found) print dunst_line
