@@ -132,7 +132,7 @@ ensure_managed_layout() {
     } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/) {
       print "    maximum_height = 1030,"
     } else if ($0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/) {
-      print "    own_window_argb_value = 200,"
+      print "    own_window_argb_value = 150,"
     } else if ($0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
       print "    own_window_type = '\''desktop'\'',"
     } else {

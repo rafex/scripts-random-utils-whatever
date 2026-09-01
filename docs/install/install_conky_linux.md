@@ -149,7 +149,7 @@ transparente y una fuente pequeña.
 
 **Solución:** la plantilla administrada usa `DejaVu Sans Mono` tamaño 11, se
 ubica en el lateral izquierdo y aplica un fondo de tema translúcido con
-opacidad aproximada del 78 % para conservar el contraste. El texto normal usa
+opacidad aproximada del 59 % para conservar el contraste. El texto normal usa
 un color contrastante con el fondo de cada paleta. En i3 usa una ventana
 `desktop` colocada 34 píxeles debajo de la barra, con alto útil completo y
 estado inferior; el borde y los colores se actualizan junto con el tema.
@@ -185,3 +185,5 @@ manualmente si esa instancia es necesaria.
   distinta de inglés.
 - `fix`: usa una ventana X11 `desktop` lateral izquierda de alto completo,
   redimensionada por `wmctrl` y colocada debajo de las ventanas de trabajo.
+- `fix`: reduce la opacidad del fondo ARGB para dejar visible el wallpaper sin
+  perder el contraste del texto.
