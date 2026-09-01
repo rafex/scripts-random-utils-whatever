@@ -113,11 +113,22 @@ install_file() {
 }
 
 ensure_managed_layout() {
-  local target="$1" temporary expanded
+  local target="$1" temporary
   [[ -f "$target" ]] || return 0
   grep -Fq '    -- BEGIN rafex theme' "$target" || return 0
   temporary="$(mktemp "${target}.tmp.XXXXXX")"
-  awk '{
+  awk '
+  function print_window_settings() {
+    print "    own_window = true,"
+    print "    own_window_argb_visual = true,"
+    print "    own_window_argb_value = 0,"
+    print "    own_window_colour = '\''#00000000'\'',"
+    print "    own_window_class = '\''RafexConky'\'',"
+    print "    own_window_title = '\''Rafex ThinkPad Monitor'\'',"
+    print "    own_window_hints = '\''undecorated,below,sticky,skip_taskbar,skip_pager'\'',"
+    print "    own_window_type = '\''dock'\'',"
+  }
+  {
     if ($0 ~ /^[[:space:]]*alignment[[:space:]]*=/) {
       print "    alignment = '\''top_left'\'',"
     } else if ($0 ~ /^[[:space:]]*gap_x[[:space:]]*=/) {
@@ -130,50 +141,28 @@ ensure_managed_layout() {
       print "    maximum_width = 320,"
     } else if ($0 ~ /^[[:space:]]*minimum_height[[:space:]]*=/) {
       print "    minimum_height = 1030,"
-    } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/) {
-      print "    maximum_height = 1030,"
-    } else if ($0 ~ /^[[:space:]]*own_window_colour[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_argb_visual[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_argb_value[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_transparent[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_class[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_title[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_hints[[:space:]]*=/ ||
-               $0 ~ /^[[:space:]]*own_window_type[[:space:]]*=/) {
+      has_height=1
+    } else if ($0 ~ /^[[:space:]]*maximum_height[[:space:]]*=/ ||
+               $0 ~ /^[[:space:]]*border_color[[:space:]]*=/) {
       next
-    } else if ($0 ~ /^[[:space:]]*own_window[[:space:]]*=/) {
-      print "    own_window = false,"
+    } else if ($0 ~ /^[[:space:]]*own_window[_A-Za-z0-9]*[[:space:]]*=/) {
+      if (!has_window) {
+        print_window_settings()
+        has_window=1
+      }
+      next
+    } else if ($0 ~ /^[[:space:]]*double_buffer[[:space:]]*=/ && !has_window) {
+      print
+      print_window_settings()
+      has_window=1
     } else {
       print
     }
+  }
+  END {
+    if (!has_window) print_window_settings()
+    if (!has_height) print "    minimum_height = 1030,"
   }' "$target" > "$temporary"
-  if ! grep -Eq "^[[:space:]]*own_window[[:space:]]*=" "$temporary"; then
-    expanded="$(mktemp "${target}.tmp.XXXXXX")"
-    awk '
-      /^[[:space:]]*double_buffer[[:space:]]*=/ && !inserted {
-        print
-        print "    own_window = false,"
-        inserted=1
-        next
-      }
-      {print}
-    ' "$temporary" > "$expanded"
-    mv -f -- "$expanded" "$temporary"
-  fi
-  if ! grep -Eq "^[[:space:]]*minimum_height[[:space:]]*=" "$temporary"; then
-    expanded="$(mktemp "${target}.tmp.XXXXXX")"
-    awk '
-      /^[[:space:]]*maximum_width[[:space:]]*=/ && !inserted {
-        print
-        print "    minimum_height = 1030,"
-        print "    maximum_height = 1030,"
-        inserted=1
-        next
-      }
-      {print}
-    ' "$temporary" > "$expanded"
-    mv -f -- "$expanded" "$temporary"
-  fi
   if [[ -f "$target" ]] && cmp -s "$target" "$temporary"; then
     rm -f -- "$temporary"
     return 0
@@ -181,7 +170,7 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: dibujo en la raíz, lateral izquierdo y alto completo'
+  ok 'configuración Conky administrada actualizada: dock transparente bajo ventanas, lateral izquierdo y alto completo'
 }
 
 write_i3_block() {

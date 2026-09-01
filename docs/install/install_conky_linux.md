@@ -11,12 +11,11 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo sin rectángulo
 de fondo en el lateral izquierdo, debajo de i3bar o tint2, con el alto útil de
-la pantalla. El panel no reserva una columna en i3: Conky dibuja directamente
-sobre la ventana raíz (`own_window = false`), por lo que i3 y Openbox no pueden
-reparentarlo como una ventana flotante y cualquier aplicación queda siempre
-encima. La plantilla usa `alignment = 'top_left'`, un margen superior de 34
-píxeles y una altura base de 1030 píxeles, ajustada a la pantalla 1920×1080 de
-este perfil.
+la pantalla. El panel no reserva una columna en i3: Conky usa una ventana X11
+transparente de tipo `dock`, con estado `below`, por lo que las ventanas
+normales permanecen encima. La plantilla usa `alignment = 'top_left'`, un
+margen superior de 34 píxeles y una altura base de 1030 píxeles, ajustada a la
+pantalla 1920×1080 de este perfil.
 
 - **Ruta:** `scripts/install/install_conky_linux.sh`
 - **SO requerido:** Linux (Debian o derivada)
@@ -163,22 +162,22 @@ contenedor. En ese caso sigue apareciendo sobre Firefox, VSCodium u otras
 ventanas.
 
 **Solución:** actualiza el repositorio y ejecuta `just install-conky --apply`.
-La plantilla actual usa `own_window = false`: no crea una ventana Conky que el
-window manager pueda administrar. El instalador elimina las opciones de ventana
-de la configuración administrada anterior y conserva el panel como dibujo de
-fondo. Si el panel ya estaba activo, usa
+La plantilla actual usa `own_window_type = 'dock'`, transparencia ARGB y el
+estado `below`: i3 lo reconoce como dock y las ventanas normales quedan encima.
+El instalador migra las opciones antiguas `desktop`/raíz y elimina el tamaño
+máximo inválido. Si el panel ya estaba activo, usa
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. La instancia
-anterior desaparecerá al detenerse y no debe quedar ningún `RafexConky` en
-`wmctrl -l`.
+anterior desaparecerá al detenerse y debe quedar como máximo una ventana
+`RafexConky` tipo dock en `wmctrl -l`.
 
 ### `Conky no se ve después de cambiar el wallpaper`
 
-**Causa:** al dibujar sobre la ventana raíz, una herramienta que repinta el
-fondo después de Conky puede cubrir temporalmente sus textos.
+**Causa:** una herramienta que repinta el fondo o un gestor de ventanas puede
+recolocar temporalmente el dock después de iniciar Conky.
 
 **Solución:** inicia o recarga Conky después de aplicar el fondo con
 `~/.local/bin/conky-launch.sh --reload`. Es una limitación deliberada del modo
-raíz: las ventanas normales siempre quedan por encima y el panel no recibe
+`dock`: las ventanas normales siempre quedan por encima y el panel no recibe
 clics ni roba el foco.
 
 ### `existe otra instancia Conky del usuario`
@@ -195,7 +194,7 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: dibuja Conky sobre la ventana raíz para impedir que i3 lo convierta en
-  una ventana flotante superpuesta.
+- `fix`: usa un dock X11 transparente con estado `below` para que i3 lo mantenga
+  debajo de las ventanas normales.
 - `fix`: elimina el fondo pintado y usa colores de texto de alto contraste para
   mostrar directamente el wallpaper.
