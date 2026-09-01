@@ -144,3 +144,4 @@ parcial.
 ### [Unreleased]
 
 - **feat:** añadir capturas X11 completas, por selección y de ventana activa.
+- **fix:** insertar el bloque Openbox dentro de `<keyboard>` para conservar un XML válido.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 - Instala el backend maim y registra atajos X11 de captura.
+# v1.0.1 - Instala el backend maim y registra atajos X11 de captura.
 set -Eeuo pipefail
 umask 077
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
@@ -133,18 +133,6 @@ remove_i3_legacy() {
   info 'binding legacy de maim eliminado'
 }
 
-remove_openbox_legacy() {
-  local temporary
-  [[ -f "$OPENBOX_RC" ]] || return 0
-  if ! grep -Eq '^[[:space:]]*<keybind key="W-p">.*maim' "$OPENBOX_RC"; then return 0; fi
-  backup_path "$OPENBOX_RC"
-  temporary="$(mktemp)"
-  awk '!/^[[:space:]]*<keybind key="W-p">.*maim/ { print }' "$OPENBOX_RC" > "$temporary"
-  chmod 644 "$temporary"
-  mv -f -- "$temporary" "$OPENBOX_RC"
-  info 'binding legacy de maim eliminado de Openbox'
-}
-
 configure_i3() {
   local block_file begin='# BEGIN rafex screenshots' end='# END rafex screenshots'
   [[ "$ACTION" == plan ]] && { info "[plan] actualizar $I3_CONFIG"; return 0; }
@@ -165,12 +153,53 @@ EOF
   ok 'capturas integradas en i3'
 }
 
+replace_openbox_keyboard_block() {
+  local target="$1" begin="$2" end="$3" block_file="$4" temporary
+  [[ -f "$target" ]] || die "falta la configuración de Openbox: $target"
+  temporary="$(mktemp)"
+  if ! awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+    function emit(line) {
+      while ((getline line < block_file) > 0) print line
+      close(block_file)
+    }
+    trim($0) == begin { inside=1; found=1; next }
+    inside && trim($0) == end { inside=0; next }
+    inside { next }
+    /^[[:space:]]*<keybind key="W-p">.*maim/ { legacy=1; next }
+    trim($0) == "</keyboard>" && !inserted {
+      emit()
+      inserted=1
+    }
+    { print }
+    END {
+      if (!inserted) exit 42
+    }
+  ' "$target" > "$temporary"; then
+    rm -f -- "$temporary"
+    die "no se encontró </keyboard> en $target; no se modificó Openbox"
+  fi
+  if [[ -f "$target" ]] && cmp -s "$target" "$temporary"; then
+    rm -f -- "$temporary"
+    return 0
+  fi
+  backup_path "$target"
+  chmod 644 "$temporary"
+  mv -f -- "$temporary" "$target"
+  if [[ "${legacy:-0}" == 1 ]]; then
+    info 'binding legacy de maim eliminado de Openbox'
+  fi
+}
+
 configure_openbox() {
   local block_file begin='<!-- BEGIN rafex screenshots -->' end='<!-- END rafex screenshots -->'
   [[ "$ACTION" == plan ]] && { info "[plan] actualizar $OPENBOX_RC"; return 0; }
   [[ "$ACTION" == apply ]] || return 0
   mkdir -p "$(dirname -- "$OPENBOX_RC")"
-  remove_openbox_legacy
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
     <!-- BEGIN rafex screenshots -->
@@ -180,7 +209,7 @@ configure_openbox() {
     <keybind key="C-Print"><action name="Execute"><command>~/.local/bin/screenshot.sh --window</command></action></keybind>
     <!-- END rafex screenshots -->
 EOF
-  replace_block "$OPENBOX_RC" "$begin" "$end" "$block_file" 644
+  replace_openbox_keyboard_block "$OPENBOX_RC" "$begin" "$end" "$block_file"
   rm -f -- "$block_file"
   ok 'capturas integradas en Openbox'
 }
