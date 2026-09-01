@@ -99,15 +99,17 @@ just install-antivirus --apply --disable-auto-usb
 
 ### `clamav-daemon.service inactivo`
 
-**Causa:** la base de firmas aún se está inicializando o el servicio no pudo
-arrancar.
+**Causa:** la base de firmas aún se estaba inicializando cuando systemd intentó
+arrancar el daemon, la actualización inicial tardó más de 30 segundos o el
+servicio no pudo abrir su socket.
 
-**Solución:** revisa `sudo journalctl -u clamav-daemon -u clamav-freshclam` y
-espera a que FreshClam complete. El escaneo manual con `clamscan` puede usarse
-cuando la base esté disponible.
+**Solución:** espera a que FreshClam complete y ejecuta
+`sudo systemctl restart clamav-daemon`; luego comprueba `clamdscan --ping 1`.
+El escaneo manual con `clamscan` permanece disponible.
 
 ## Changelog
 
 ### [Unreleased]
 
 - **feat:** añadir ClamAV y escaneo USB seguro manual/opt-in.
+- **fix:** esperar las bases de firmas antes de reintentar el daemon de ClamAV.

@@ -6,6 +6,7 @@ umask 077
 
 ACTION="check"
 BASHRC="${BASHRC:-$HOME/.bashrc}"
+PROFILE="${PROFILE:-$HOME/.profile}"
 JAVA_HOME_LINK="${HOME}/.local/share/java-runtimes/current-java"
 JAVA_SELECTION_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/runtime-java-selection"
 BEGIN_MARKER="# BEGIN rafex runtime-switcher"
@@ -322,6 +323,26 @@ fi
 EOF
 }
 
+profile_block() {
+  cat <<'EOF'
+# Mantiene disponibles los shims de mise y JAVA_HOME en shells de login.
+_rafex_mise_shims="${HOME}/.local/share/mise/shims"
+_rafex_java_home="${HOME}/.local/share/java-runtimes/current-java"
+if [ -d "$_rafex_mise_shims" ]; then
+  case ":${PATH:-}:" in
+    *:"$_rafex_mise_shims":*) ;;
+    *) PATH="$_rafex_mise_shims${PATH:+:$PATH}" ;;
+  esac
+fi
+if [ -e "$_rafex_java_home" ] || [ -L "$_rafex_java_home" ]; then
+  JAVA_HOME="$_rafex_java_home"
+fi
+export PATH
+export JAVA_HOME
+unset _rafex_mise_shims _rafex_java_home
+EOF
+}
+
 validate_selector_block() {
   local temporary
   temporary="$(mktemp)"
@@ -341,10 +362,19 @@ check_markers() {
   [[ "$begin_count" -le 1 ]] || die "$BASHRC contiene bloques runtime-switcher duplicados"
 }
 
+check_profile_markers() {
+  local begin_count end_count
+  begin_count="$(grep -Fxc '# BEGIN rafex runtime-switcher profile' "$PROFILE" 2>/dev/null || true)"
+  end_count="$(grep -Fxc '# END rafex runtime-switcher profile' "$PROFILE" 2>/dev/null || true)"
+  [[ "$begin_count" == "$end_count" ]] || die "$PROFILE contiene un bloque runtime-switcher profile incompleto"
+  [[ "$begin_count" -le 1 ]] || die "$PROFILE contiene bloques runtime-switcher profile duplicados"
+}
+
 show_status() {
   local shell_context
   echo '═══ Selector de runtimes Bash ═══'
   printf 'bashrc=%s\n' "$BASHRC"
+  printf 'profile=%s\n' "$PROFILE"
   printf 'java_home_link=%s\n' "$JAVA_HOME_LINK"
   printf 'JAVA_HOME=%s\n' "${JAVA_HOME:-ausente}"
   if [[ $- == *i* ]]; then
@@ -362,6 +392,11 @@ show_status() {
     ok "bloque runtime-use presente"
   else
     warn "bloque runtime-use ausente"
+  fi
+  if [[ -f "$PROFILE" ]] && grep -Fq '# BEGIN rafex runtime-switcher profile' "$PROFILE"; then
+    ok "bloque de login presente en $PROFILE"
+  else
+    warn "bloque de login ausente en $PROFILE"
   fi
   if [[ -L "$JAVA_HOME_LINK" ]]; then
     ok "enlace current-java: $(readlink -f -- "$JAVA_HOME_LINK" 2>/dev/null || readlink -- "$JAVA_HOME_LINK")"
@@ -386,6 +421,18 @@ backup_bashrc() {
     suffix=$((suffix + 1))
   done
   cp -a -- "$BASHRC" "$backup"
+  info "respaldo creado: $backup"
+}
+
+backup_file() {
+  local target="$1" backup suffix=1
+  [[ -e "$target" || -L "$target" ]] || return 0
+  backup="${target}.bak.${STAMP}"
+  while [[ -e "$backup" || -L "$backup" ]]; do
+    backup="${target}.bak.${STAMP}.${suffix}"
+    suffix=$((suffix + 1))
+  done
+  cp -a -- "$target" "$backup"
   info "respaldo creado: $backup"
 }
 
@@ -452,6 +499,41 @@ write_bashrc() {
   ok "bloque runtime-use instalado en $BASHRC"
 }
 
+write_profile() {
+  local begin='# BEGIN rafex runtime-switcher profile'
+  local end='# END rafex runtime-switcher profile'
+  local temporary current expected
+  check_profile_markers
+  expected="$(profile_block)"
+  if [[ -f "$PROFILE" ]]; then
+    current="$(awk -v begin="$begin" -v end="$end" '
+      $0 == begin { inside=1; next }
+      $0 == end { inside=0; next }
+      inside { print }
+    ' "$PROFILE")"
+    if grep -Fq "$begin" "$PROFILE" && [[ "$current" == "$expected" ]]; then
+      ok "bloque de login ya está actualizado en $PROFILE"
+      return 0
+    fi
+  fi
+  backup_file "$PROFILE"
+  temporary="$(mktemp)"
+  if [[ -f "$PROFILE" ]]; then
+    awk -v begin="$begin" -v end="$end" '
+      $0 == begin { inside=1; next }
+      $0 == end { inside=0; next }
+      !inside { print }
+    ' "$PROFILE" > "$temporary"
+    chmod --reference="$PROFILE" "$temporary"
+  else
+    chmod 600 "$temporary"
+  fi
+  printf '\n%s\n%s\n%s\n' "$begin" "$expected" "$end" >> "$temporary"
+  mkdir -p "$(dirname "$PROFILE")"
+  mv -- "$temporary" "$PROFILE"
+  ok "bloque de login instalado en $PROFILE"
+}
+
 main() {
   parse_args "$@"
   [[ "$(uname -s)" == Linux ]] || die 'este instalador requiere Linux'
@@ -463,12 +545,14 @@ main() {
     plan)
       show_status
       info "[plan] respaldar y actualizar el bloque runtime-use en $BASHRC"
+      info "[plan] respaldar y actualizar el entorno de login en $PROFILE"
       info "[plan] usar $JAVA_HOME_LINK como JAVA_HOME estable"
       info "[plan] sincronizar current-java con el Java seleccionado en mise"
       info "[plan] guardar la selección Java en $JAVA_SELECTION_FILE"
       ;;
     apply)
       write_bashrc
+      write_profile
       sync_java_link
       ok "runtime-use listo; abre una nueva shell o ejecuta: source $BASHRC"
       ;;

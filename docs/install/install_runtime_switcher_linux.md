@@ -12,7 +12,9 @@ tags:
 
 Instala la función Bash `runtime-use` para seleccionar Java y Node.js mediante
 `mise`. `JAVA_HOME` permanece estable y apunta a
-`~/.local/share/java-runtimes/current-java`.
+`~/.local/share/java-runtimes/current-java`. También mantiene los shims de
+`mise` disponibles en shells de login mediante un bloque administrado de
+`~/.profile`, sin insertar rutas versionadas directamente.
 
 - **Ruta:** `scripts/install/install_runtime_switcher_linux.sh`
 - **SO requerido:** Linux
@@ -35,7 +37,7 @@ Instala la función Bash `runtime-use` para seleccionar Java y Node.js mediante
 
 - Ejecutar como usuario normal, no como `root`.
 - Tener `mise` instalado y activado en Bash.
-- Tener `~/.bashrc` o permitir que el instalador lo cree.
+- Tener `~/.bashrc` y `~/.profile`, o permitir que el instalador los cree.
 - Las versiones seleccionables deben estar registradas en el manifiesto propio
   por un instalador del repositorio. Si falta una versión, el selector muestra
   el comando `just install-*-runtime` correspondiente y no ejecuta `mise install`.
@@ -90,6 +92,7 @@ La función instalada acepta:
 |---|---|---|
 | `BASHRC` | CLI indirecta / entorno | Permite probar otro archivo Bash durante la instalación. |
 | `HOME` | Entorno del usuario | Determina `.bashrc` y el enlace `current-java`. |
+| `PROFILE` | Entorno del usuario | Permite probar otro archivo de entorno de login durante la instalación. |
 
 No se usa `.env` ni se aceptan credenciales.
 
@@ -151,11 +154,18 @@ java --version
 node --version
 ```
 
+En una shell de login no interactiva también deben resolverse los shims:
+
+```bash
+bash -lc 'command -v node; command -v mvn; command -v gradle; echo "$JAVA_HOME"'
+```
+
 ## Protecciones de seguridad
 
 - `--check` y `--plan` no modifican archivos.
 - No usa `sudo` ni almacena credenciales.
 - Crea respaldo fechado de `.bashrc` antes de modificarlo.
+- Crea respaldo fechado de `.profile` antes de modificarlo.
 - No elimina runtimes instalados.
 - Rechaza reemplazar `current-java` si existe como archivo o directorio no
   simbólico.
@@ -187,8 +197,10 @@ bloque antes de escribirlo; después comprueba el archivo completo con
 **Causa:** la shell fue abierta antes de instalar el selector o conserva el
 valor exportado por una configuración anterior.
 
-**Solución:** ejecuta `reload-bash` o abre una nueva terminal y verifica que
-`JAVA_HOME` termine en `current-java`.
+**Solución:** ejecuta `just install-runtime-switcher --apply`, abre una nueva
+sesión de login y verifica que `JAVA_HOME` termine en `current-java`. El bloque
+de `.profile` agrega `~/.local/share/mise/shims` para que Node, Maven y Gradle
+también funcionen fuera de una shell interactiva.
 
 Si la comprobación se ejecuta con `ssh host comando`, es normal que muestre
 `JAVA_HOME=ausente`: una shell SSH no interactiva no carga necesariamente
@@ -232,3 +244,5 @@ backends. Para activarlo, ejecuta `runtime-use java graalvm-25.0.2`.
   comprobaciones SSH no interactivas.
 - **fix:** corrige el `;;` adicional del bloque generado y valida su sintaxis
   antes de modificar `.bashrc`.
+- **fix:** mantiene los shims de mise y `JAVA_HOME` estable en `.profile` para
+  shells de login.

@@ -75,6 +75,26 @@ auto_hook_present() {
   grep -Fqx '# BEGIN rafex clamav usb' "$UDISKIE_CONFIG" 2>/dev/null
 }
 
+clamav_database_ready() {
+  local main_file daily_file main_ready=0 daily_ready=0
+  for main_file in /var/lib/clamav/main.cvd /var/lib/clamav/main.cld /var/lib/clamav/main.inc; do
+    [[ -e "$main_file" ]] && main_ready=1
+  done
+  for daily_file in /var/lib/clamav/daily.cvd /var/lib/clamav/daily.cld /var/lib/clamav/daily.inc; do
+    [[ -e "$daily_file" ]] && daily_ready=1
+  done
+  ((main_ready == 1 && daily_ready == 1))
+}
+
+wait_for_clamav_database() {
+  local deadline=$((SECONDS + 30))
+  while ! clamav_database_ready; do
+    ((SECONDS >= deadline)) && return 1
+    sleep 1
+  done
+  return 0
+}
+
 report() {
   local package candidate service
   printf '═══ Antivirus ClamAV ═══\n'
@@ -214,7 +234,16 @@ apply_install() {
   info "instalando: ${PACKAGES[*]}"
   sudo apt-get install -y "${PACKAGES[@]}"
   sudo systemctl enable --now clamav-freshclam.service
-  sudo systemctl enable --now clamav-daemon.service
+  if wait_for_clamav_database; then
+    sudo systemctl enable clamav-daemon.service clamav-daemon.socket
+    if sudo systemctl restart clamav-daemon.service; then
+      ok 'clamav-daemon iniciado después de confirmar las firmas'
+    else
+      warn 'clamav-daemon no pudo iniciar; clamscan manual permanece disponible'
+    fi
+  else
+    warn 'las firmas aún no están disponibles; se conserva FreshClam y se omitió el arranque del daemon'
+  fi
   install_scanner
   if ((AUTO_USB)); then
     update_udiskie_hook 1
