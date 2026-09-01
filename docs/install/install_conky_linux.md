@@ -13,7 +13,8 @@ Instala `conky-all` desde Debian y configura un panel informativo en el lateral
 izquierdo, debajo de i3bar o tint2, con el alto útil de la pantalla. El panel
 usa una ventana X11 de tipo `desktop`, sin fondo visible y con un ancho fijo de
 320 píxeles. No reserva una columna en i3 ni desplaza las
-ventanas normales. La plantilla usa `alignment = 'top_left'`, un margen
+ventanas normales. Se mantiene por encima de ellas para que la información sea
+visible mientras trabajas. La plantilla usa `alignment = 'top_left'`, un margen
 superior de 34 píxeles y una altura base de 1030 píxeles, ajustada a la
 pantalla 1920×1080 de este perfil.
 
@@ -152,23 +153,22 @@ administrada. La plantilla usa `DejaVu Sans Mono` tamaño 11, una ventana
 `desktop` de 320 píxeles de ancho y `own_window_colour = '#00000000'` para
 eliminar el fondo del panel. Los colores de texto los define el tema.
 
-### `El panel cubre las ventanas en i3`
+### `El panel sigue detrás de las ventanas en i3`
 
-**Causa:** `own_window_type = 'dock'` puede ser interpretado por i3 como una
-ventana especial de pantalla completa, aun sin publicar un strut explícito.
-Eso puede reducir el área útil o dejar Conky por encima del escritorio.
+**Causa:** la sugerencia `below` deja Conky detrás de las ventanas normales.
 
 **Solución:** ejecuta `just install-conky --apply` y después
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. El instalador
-migra la configuración administrada a `own_window_type = 'desktop'`, elimina
-`maximum_height` y `border_color` no soportados por Conky 1.24.2, y conserva
-como máximo una instancia administrada de `RafexConky`.
+migra la configuración administrada a `own_window_type = 'desktop'` con la
+sugerencia `above`, elimina `maximum_height` y `border_color` no soportados por
+Conky 1.24.2, y conserva como máximo una instancia administrada de
+`RafexConky`. El panel puede cubrir el contenido que quede bajo sus 320
+píxeles; esto es intencional para mantener el estado visible.
 
 ### `Conky no se ve después de cambiar el wallpaper`
 
 **Causa:** los gestores de iconos de escritorio pueden pintar una ventana por
-encima de una ventana `desktop`. En el perfil ThinkPad se usa el fondo de X11
-sin un gestor de iconos de escritorio.
+encima de una ventana `desktop` y ocultar Conky.
 
 **Solución:** inicia o recarga Conky después de aplicar el fondo con
 `~/.local/bin/conky-launch.sh --reload`. Si se usa otro gestor de escritorio,
