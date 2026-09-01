@@ -55,8 +55,8 @@ package_installed() {
 }
 
 package_candidate() {
-  apt-cache policy "$1" 2>/dev/null \
-    | awk '/^[[:space:]]*Candidate:/ { print $2; exit }'
+  LC_ALL=C apt-cache policy "$1" 2>/dev/null \
+    | awk -F': ' '/^[[:space:]]*Candidate:/ { print $2; exit }'
 }
 
 report_packages() {
@@ -79,6 +79,9 @@ report_packages() {
 validate_packages() {
   local package_name candidate missing=0
   for package_name in "${PACKAGES[@]}"; do
+    if package_installed "$package_name"; then
+      continue
+    fi
     candidate="$(package_candidate "$package_name")"
     if [[ -z "$candidate" || "$candidate" == '(none)' ]]; then
       warn "sin candidato APT: $package_name"
