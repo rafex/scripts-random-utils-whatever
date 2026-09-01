@@ -131,8 +131,22 @@ install_system_file() {
 validate_policy() {
   command -v pkexec >/dev/null 2>&1 || die 'pkexec no está disponible'
   command -v pkaction >/dev/null 2>&1 || die 'pkaction no está disponible'
-  pkaction --verbose 2>/dev/null | grep -Fq 'org.rafex.kbd-backlight' ||
-    warn 'la política aún no aparece en pkaction; puede requerir unos segundos para recargarse'
+  local attempt=1
+  while (( attempt <= 5 )); do
+    if pkaction --action-id org.rafex.kbd-backlight >/dev/null 2>&1; then
+      ok 'acción Polkit registrada: org.rafex.kbd-backlight'
+      return 0
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
+  done
+  die 'la acción Polkit no aparece registrada después de recargarla'
+}
+
+reload_polkit() {
+  command -v systemctl >/dev/null 2>&1 || return 0
+  systemctl is-active --quiet polkit || return 0
+  sudo systemctl restart polkit || die 'no se pudo recargar el servicio Polkit'
 }
 
 apply_install() {
@@ -155,6 +169,7 @@ apply_install() {
   sudo install -d -o root -g root -m 0755 /etc/polkit-1/actions
   install_system_file "$HELPER_SOURCE" "$HELPER_TARGET" 0755
   install_system_file "$POLICY_SOURCE" "$POLICY_TARGET" 0644
+  reload_polkit
   validate_policy
   ok 'brillo XF86 preparado; cierra y abre sesión para activar el grupo input'
 }

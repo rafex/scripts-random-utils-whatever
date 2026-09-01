@@ -34,6 +34,8 @@ controlar únicamente `tpacpi::kbd_backlight`. El uso diario no ejecuta `sudo`.
 - El kernel debe exponer `/sys/class/leds/tpacpi::kbd_backlight` para que el
   control tenga efecto.
 - La sesión gráfica debe tener Polkit y un agente activo para usar el respaldo.
+  El instalador reinicia el servicio `polkit` después de cambiar la política y
+  confirma que la acción aparece registrada.
 
 ## Uso
 
@@ -104,6 +106,13 @@ ejecutes directamente como root; la política lo autoriza mediante `pkexec`.
 
 **Solución:** cierra y abre sesión, o reinicia. `newgrp input` puede servir para
   una prueba puntual, pero no reemplaza una nueva sesión gráfica.
+
+### `la acción Polkit no aparece registrada después de recargarla`
+
+**Causa:** el daemon Polkit no pudo cargar la política instalada.
+
+**Solución:** revisa `systemctl status polkit`, confirma que exista
+`/etc/polkit-1/actions/org.rafex.kbd-backlight.policy` y repite el instalador.
 
 ### `No se pudo autorizar el cambio de brillo mediante Polkit`
 
