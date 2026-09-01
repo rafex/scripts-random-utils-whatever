@@ -123,7 +123,7 @@ ensure_managed_layout() {
     print "    own_window_colour = '\''#00000000'\'',"
     print "    own_window_class = '\''RafexConky'\'',"
     print "    own_window_title = '\''Rafex ThinkPad Monitor'\'',"
-    print "    own_window_type = '\''desktop'\'',"
+    print "    own_window_type = '\''override'\'',"
   }
   {
     if ($0 ~ /^[[:space:]]*-- BEGIN rafex theme[[:space:]]*$/) {
@@ -177,7 +177,7 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: ventana desktop transparente detrás de las ventanas'
+  ok 'configuración Conky administrada actualizada: ventana override transparente detrás de las ventanas'
 }
 
 write_i3_block() {

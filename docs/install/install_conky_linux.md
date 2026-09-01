@@ -11,10 +11,10 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo en el lateral
 izquierdo, debajo de i3bar o tint2, con el alto útil de la pantalla. El panel
-usa una ventana X11 de tipo `desktop`, transparente y sin reglas de ventana
-flotante, con un ancho fijo de 320 píxeles. No reserva una columna en i3 ni
-desplaza las ventanas normales: las ventanas normales la cubren completamente.
-Solo se ve cuando el escritorio queda libre. La plantilla usa `alignment = 'top_left'`, un margen
+usa una ventana X11 de tipo `override`, transparente y sin reglas de ventana
+flotante, con un ancho fijo de 320 píxeles. No es gestionada por i3/Openbox ni
+puede reservar una columna o desplazar ventanas. Las ventanas normales la cubren
+completamente. Solo se ve cuando el escritorio queda libre. La plantilla usa `alignment = 'top_left'`, un margen
 superior de 34 píxeles y una altura base de 1030 píxeles, ajustada a la
 pantalla 1920×1080 de este perfil.
 
@@ -113,8 +113,10 @@ abrir una ventana en ese caso.
 - `--apply` usa `sudo` solo para instalar `conky-all` mediante APT.
 - Se respaldan los archivos de usuario existentes antes de reemplazarlos.
 - Los bloques de autoinicio de i3 y Openbox se reemplazan por sus marcadores, sin duplicarse.
-- Conky usa `own_window_type = 'desktop'`; no se añade una regla `floating` en i3
-  ni una regla de capa en Openbox, porque esas reglas podrían ponerlo delante.
+- Conky usa `own_window_type = 'override'`; no se añade una regla `floating` en i3
+  ni una regla de capa en Openbox, porque override no es gestionado por el WM.
+- `override` no aparece en la lista de clientes de i3 y las ventanas normales lo
+  cubren; la transparencia del fondo requiere ARGB/composición X11.
 - El lanzador solo detiene su propio PID; nunca mata instancias ajenas.
 - El panel no muestra SSID, IP, IMEI, IMSI, APN, nombres de archivos,
   credenciales, puertos ni comandos completos.
@@ -153,7 +155,7 @@ pantalla.
 
 **Solución:** ejecuta `just install-conky --apply` y recarga la instancia
 administrada. La plantilla usa `DejaVu Sans Mono` tamaño 11, una ventana
-`desktop` de 320 píxeles de ancho y `own_window_colour = '#00000000'` para
+`override` de 320 píxeles de ancho y `own_window_colour = '#00000000'` para
 eliminar el fondo del panel. Los colores de texto los define el tema.
 
 ### `El panel aparece delante de las ventanas en i3`
@@ -163,7 +165,7 @@ i3 mantiene las ventanas flotantes por encima de las ventanas en mosaico.
 
 **Solución:** ejecuta `just install-conky --apply` y después
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. El instalador
-migra la configuración administrada a `own_window_type = 'desktop'` y elimina
+migra la configuración administrada a `own_window_type = 'override'` y elimina
 las reglas administradas de ventana flotante de i3/Openbox. También elimina
 `maximum_height` y `border_color` no soportados por Conky 1.24.2, y conserva como
 máximo una instancia administrada. El panel solo queda visible sobre el
@@ -172,7 +174,7 @@ escritorio vacío y las ventanas normales lo cubren.
 ### `Conky no se ve después de cambiar el wallpaper`
 
 **Causa:** los gestores de iconos de escritorio pueden pintar una ventana por
-encima de una ventana `desktop` y ocultar Conky incluso sobre el escritorio.
+encima de una ventana `override` y ocultar Conky incluso sobre el escritorio.
 
 **Solución:** inicia o recarga Conky después de aplicar el fondo con
 `~/.local/bin/conky-launch.sh --reload`. Si se usa otro gestor de escritorio,
@@ -192,5 +194,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: vuelve a una ventana X11 `desktop` transparente y retira las reglas
-  flotantes para que las ventanas normales cubran Conky.
+- `fix`: usa una ventana X11 `override` transparente, fuera del control de i3,
+  y retira las reglas flotantes para que las ventanas normales cubran Conky.
