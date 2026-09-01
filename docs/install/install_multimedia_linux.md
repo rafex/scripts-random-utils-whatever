@@ -11,6 +11,10 @@ tags:
 
 Instala reproducción, codificación y plugins multimedia desde Debian. Incluye
 FFmpeg con codecs adicionales, x264/x265, mpv, VLC y GStreamer para PipeWire.
+Durante `--apply`, Debian puede mostrar que `libavcodec62` será reemplazado por
+`libavcodec-extra62`; es la transición normal a la variante de codecs extra.
+El script repara dependencias y reinstala automáticamente cualquier consumidor
+multimedia que realmente haya quedado removido.
 
 - **Ruta:** `scripts/install/install_multimedia_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -73,6 +77,17 @@ mpv video.mp4
 
 **Solución:** revisa candidatos con `apt-cache policy`, habilita únicamente
 fuentes Debian válidas y vuelve a ejecutar `--apply`.
+
+### `Los siguientes paquetes se ELIMINARÁN: libavcodec62`
+
+**Causa:** `libavcodec-extra62` reemplaza a la variante base de FFmpeg para
+proporcionar codecs adicionales. El mensaje de dpkg enumera temporalmente los
+consumidores de la biblioteca durante la transición.
+
+**Solución:** deja que termine el instalador. Este ejecuta `apt-get -f install`,
+comprueba los consumidores que estaban instalados antes y reinstala los que
+realmente falten. No reinstales manualmente `libavcodec62` encima de la
+variante extra.
 
 ## Changelog
 

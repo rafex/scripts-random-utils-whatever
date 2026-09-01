@@ -5,11 +5,16 @@ umask 077
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 ACTION="check"
+PREEXISTING_CONSUMERS=()
 readonly -a PACKAGES=(
   ffmpeg libavcodec-extra libx264-165 libx265-216 x264 mpv vlc
   gstreamer1.0-libav gstreamer1.0-plugins-base gstreamer1.0-plugins-good
   gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-pipewire
   gstreamer1.0-tools
+)
+readonly -a CONSUMER_PACKAGES=(
+  ffmpeg x264 vlc gstreamer1.0-libav obs-studio guvcview
+  ffmpegthumbs
 )
 
 info() { printf '→ %s\n' "$*"; }
@@ -98,13 +103,43 @@ validate_candidates() {
   ((missing == 0)) || die 'algún paquete multimedia no tiene candidato APT'
 }
 
+capture_preexisting_consumers() {
+  local package
+  PREEXISTING_CONSUMERS=()
+  for package in "${CONSUMER_PACKAGES[@]}"; do
+    if package_installed "$package"; then
+      PREEXISTING_CONSUMERS+=("$package")
+    fi
+  done
+}
+
+repair_multimedia_dependencies() {
+  local package
+  local -a removed_consumers=()
+  info 'reparando dependencias después de cambiar la variante FFmpeg'
+  sudo apt-get -f install -y
+  for package in "${PREEXISTING_CONSUMERS[@]}"; do
+    if ! package_installed "$package"; then
+      removed_consumers+=("$package")
+    fi
+  done
+  if ((${#removed_consumers[@]} > 0)); then
+    warn "reinstalando consumidores multimedia removidos: ${removed_consumers[*]}"
+    sudo apt-get install -y "${removed_consumers[@]}"
+  fi
+  sudo apt-get check
+  ok 'dependencias multimedia consistentes'
+}
+
 apply_install() {
   sudo -v
   info 'actualizando índices APT'
   sudo apt-get update
   validate_candidates
+  capture_preexisting_consumers
   info "instalando: ${PACKAGES[*]}"
   sudo apt-get install -y "${PACKAGES[@]}"
+  repair_multimedia_dependencies
   ok 'soporte multimedia instalado'
 }
 
