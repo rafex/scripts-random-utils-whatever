@@ -11,7 +11,7 @@ tags:
 
 Instala `conky-all` desde Debian y configura un panel informativo en el lateral
 izquierdo, debajo de i3bar o tint2, con el alto útil de la pantalla. El panel
-usa una ventana X11 de tipo `desktop`, sin fondo visible y con un ancho fijo de
+usa una ventana X11 de tipo `normal`, flotante y sin fondo visible, con un ancho fijo de
 320 píxeles. No reserva una columna en i3 ni desplaza las
 ventanas normales. Se mantiene detrás de ellas y solo se ve cuando el escritorio
 queda libre. La plantilla usa `alignment = 'top_left'`, un margen
@@ -150,19 +150,21 @@ colores del tema para conservar la legibilidad sobre el fondo de pantalla.
 
 **Solución:** ejecuta `just install-conky --apply` y recarga la instancia
 administrada. La plantilla usa `DejaVu Sans Mono` tamaño 11, una ventana
-`desktop` de 320 píxeles de ancho y `own_window_colour = '#00000000'` para
-eliminar el fondo del panel. Los colores de texto los define el tema.
+`normal` flotante de 320 píxeles de ancho y `own_window_colour = '#00000000'`
+para eliminar el fondo del panel. Los colores de texto los define el tema.
 
 ### `El panel aparece delante de las ventanas en i3`
 
-**Causa:** una configuración anterior podía usar la sugerencia `above`.
+**Causa:** una configuración `desktop` puede quedar en un orden de apilamiento
+incorrecto aunque anuncie `BELOW`.
 
 **Solución:** ejecuta `just install-conky --apply` y después
 `~/.local/bin/conky-launch.sh --reload` desde la sesión gráfica. El instalador
-migra la configuración administrada a `own_window_type = 'desktop'` con la
-sugerencia `below`, elimina `maximum_height` y `border_color` no soportados por
-Conky 1.24.2, y conserva como máximo una instancia administrada de
-`RafexConky`. El panel solo queda visible sobre el escritorio vacío.
+migra la configuración administrada a `own_window_type = 'normal'` con la
+sugerencia `below` y reglas de ventana flotante para i3/Openbox. También elimina
+`maximum_height` y `border_color` no soportados por Conky 1.24.2, y conserva como
+máximo una instancia administrada de `RafexConky`. El panel solo queda visible
+sobre el escritorio vacío y las ventanas normales lo cubren.
 
 ### `Conky no se ve después de cambiar el wallpaper`
 
@@ -171,7 +173,7 @@ encima de una ventana `desktop` y ocultar Conky incluso sobre el escritorio.
 
 **Solución:** inicia o recarga Conky después de aplicar el fondo con
 `~/.local/bin/conky-launch.sh --reload`. Si se usa otro gestor de escritorio,
-debe configurarse para que no cubra ventanas `desktop`.
+debe configurarse para que no cubra la ventana flotante de Conky.
 
 ### `existe otra instancia Conky del usuario`
 
@@ -187,5 +189,5 @@ manualmente si esa instancia es necesaria.
 - `feat`: añade instalación e integración idempotente del panel Conky.
 - `fix`: detecta candidatos APT correctamente en sesiones con localización
   distinta de inglés.
-- `fix`: usa una ventana X11 `desktop` semitransparente de ancho fijo para evitar
-  que i3 reserve o reduzca el área útil de las ventanas.
+- `fix`: usa una ventana X11 `normal` flotante debajo de las ventanas de trabajo
+  para evitar que i3 deje Conky encima del escritorio.

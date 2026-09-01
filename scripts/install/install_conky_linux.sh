@@ -15,6 +15,7 @@ HELPER_TARGET="$HOME/.local/bin/conky-status.sh"
 LAUNCHER_TARGET="$HOME/.local/bin/conky-launch.sh"
 I3_CONFIG="$CONFIG_HOME/i3/config"
 OPENBOX_AUTOSTART="$CONFIG_HOME/openbox/autostart"
+OPENBOX_RC="$CONFIG_HOME/openbox/rc.xml"
 SOURCE_CONFIG="$PROFILE_ROOT/config/conky/conky.conf"
 SOURCE_HELPER="$REPO_ROOT/scripts/system/conky_status_linux.sh"
 SOURCE_LAUNCHER="$PROFILE_ROOT/config/conky/start-conky.sh"
@@ -22,6 +23,8 @@ I3_BEGIN='# BEGIN rafex conky'
 I3_END='# END rafex conky'
 OPENBOX_BEGIN='# BEGIN rafex conky'
 OPENBOX_END='# END rafex conky'
+OPENBOX_RULE_BEGIN='<!-- BEGIN rafex conky rule -->'
+OPENBOX_RULE_END='<!-- END rafex conky rule -->'
 CONKY_PACKAGES=(conky-all)
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
@@ -124,7 +127,7 @@ ensure_managed_layout() {
     print "    own_window_class = '\''RafexConky'\'',"
     print "    own_window_title = '\''Rafex ThinkPad Monitor'\'',"
     print "    own_window_hints = '\''undecorated,below,sticky,skip_taskbar,skip_pager'\'',"
-    print "    own_window_type = '\''desktop'\'',"
+    print "    own_window_type = '\''normal'\'',"
   }
   {
     if ($0 ~ /^[[:space:]]*-- BEGIN rafex theme[[:space:]]*$/) {
@@ -178,14 +181,29 @@ ensure_managed_layout() {
   backup_path "$target"
   chmod --reference="$target" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$target"
-  ok 'configuración Conky administrada actualizada: desktop sin fondo detrás de ventanas, lateral izquierdo y alto completo'
+  ok 'configuración Conky administrada actualizada: ventana normal flotante sin fondo detrás de ventanas, lateral izquierdo y alto completo'
 }
 
 write_i3_block() {
   cat <<'EOF'
 # BEGIN rafex conky
+for_window [class="^RafexConky$"] floating enable, border pixel 0, sticky enable
+no_focus [class="^RafexConky$"]
 exec_always --no-startup-id ~/.local/bin/conky-launch.sh
 # END rafex conky
+EOF
+}
+
+write_openbox_rule_block() {
+  cat <<'EOF'
+<!-- BEGIN rafex conky rule -->
+<application class="RafexConky">
+  <decor>no</decor>
+  <focus>no</focus>
+  <layer>below</layer>
+  <desktop>all</desktop>
+</application>
+<!-- END rafex conky rule -->
 EOF
 }
 
@@ -219,8 +237,33 @@ replace_block() {
   mv -f -- "$temporary" "$target"
 }
 
+ensure_openbox_rule() {
+  local target="$1" block_file="$2" temporary
+  [[ -f "$target" ]] || {
+    warn "no existe $target; la regla de Openbox deberá integrarse manualmente"
+    return 0
+  }
+  grep -Eq '^[[:space:]]*</applications>[[:space:]]*$' "$target" ||
+    die "no se encontró <applications> en $target"
+  temporary="$(mktemp)"
+  awk -v begin="$OPENBOX_RULE_BEGIN" -v end="$OPENBOX_RULE_END" -v block_file="$block_file" '
+    function emit(line) {while ((getline line < block_file) > 0) print line; close(block_file)}
+    $0 == begin {emit(); inside=1; found=1; next}
+    inside && $0 == end {inside=0; next}
+    !inside && $0 ~ /^[[:space:]]*<\/applications>[[:space:]]*$/ && !found {emit(); inserted=1}
+    {print}
+  ' "$target" > "$temporary"
+  if [[ -f "$target" ]] && cmp -s "$target" "$temporary"; then
+    rm -f -- "$temporary"
+    return 0
+  fi
+  backup_path "$target"
+  chmod --reference="$target" "$temporary" 2>/dev/null || true
+  mv -f -- "$temporary" "$target"
+}
+
 configure_integrations() {
-  local block_file i3_backup had_i3=0
+  local block_file openbox_rule_file i3_backup had_i3=0
   mkdir -p "$CONFIG_HOME/openbox"
   if [[ -f "$CONKY_CONFIG" ]] && ! grep -Fq '    -- BEGIN rafex theme' "$CONKY_CONFIG"; then
     warn "existe una configuración Conky no administrada; no se sobrescribe: $CONKY_CONFIG"
@@ -251,6 +294,10 @@ configure_integrations() {
   fi
   write_openbox_block > "$block_file"
   replace_block "$OPENBOX_AUTOSTART" "$OPENBOX_BEGIN" "$OPENBOX_END" "$block_file"
+  openbox_rule_file="$(mktemp)"
+  write_openbox_rule_block > "$openbox_rule_file"
+  ensure_openbox_rule "$OPENBOX_RC" "$openbox_rule_file"
+  rm -f -- "$openbox_rule_file"
   rm -f -- "$block_file"
   ok 'autoinicio de Conky integrado en Openbox'
 }
@@ -265,6 +312,7 @@ show_status() {
   if [[ -x "$LAUNCHER_TARGET" ]]; then ok 'lanzador Conky presente'; else warn 'lanzador Conky ausente'; fi
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then ok 'bloque Conky presente en i3'; else warn 'bloque Conky ausente en i3'; fi
   if [[ -f "$OPENBOX_AUTOSTART" ]] && grep -Fq "$OPENBOX_BEGIN" "$OPENBOX_AUTOSTART"; then ok 'bloque Conky presente en Openbox'; else warn 'bloque Conky ausente en Openbox'; fi
+  if [[ -f "$OPENBOX_RC" ]] && grep -Fq "$OPENBOX_RULE_BEGIN" "$OPENBOX_RC"; then ok 'regla Conky debajo de ventanas presente en Openbox'; else warn 'regla Conky ausente en Openbox'; fi
   if command -v pgrep >/dev/null 2>&1; then instance_count="$(pgrep -u "$(id -u)" -x conky 2>/dev/null | wc -l | awk '{$1=$1; print}' || true)"; fi
   printf 'instancias-usuario=%s\nDISPLAY=%s\n' "$instance_count" "${DISPLAY:-ausente}"
   [[ -z "${DISPLAY:-}" ]] && info 'sin DISPLAY: el diagnóstico no intenta iniciar Conky'

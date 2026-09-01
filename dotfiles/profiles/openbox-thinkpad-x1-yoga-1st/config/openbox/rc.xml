@@ -159,6 +159,14 @@
   </mouse>
 
   <applications>
+    <!-- BEGIN rafex conky rule -->
+    <application class="RafexConky">
+      <decor>no</decor>
+      <focus>no</focus>
+      <layer>below</layer>
+      <desktop>all</desktop>
+    </application>
+    <!-- END rafex conky rule -->
     <application class="Alacritty"><desktop>1</desktop></application>
     <application class="Kitty"><desktop>1</desktop></application>
     <application class="URxvt"><desktop>1</desktop></application>

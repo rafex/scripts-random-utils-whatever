@@ -236,10 +236,10 @@ just conky-status
 
 Se muestra en el lateral izquierdo, debajo de la barra y con el alto útil de la
 pantalla, sin fondo visible y con fuente `DejaVu Sans Mono` tamaño 11. Conky
-usa `own_window_colour = '#00000000'`, una ventana X11 de tipo `desktop`, ancho
-fijo de 320 píxeles y estado `below`; así i3 y Openbox la mantienen detrás de
-las ventanas de trabajo sin reservar una columna. Solo aparece sobre el
-escritorio vacío y no roba el foco.
+usa `own_window_colour = '#00000000'`, una ventana X11 de tipo `normal`, ancho
+fijo de 320 píxeles y estado `below`; i3 y Openbox la tratan como ventana
+flotante detrás de las ventanas de trabajo, sin reservar una columna. Solo
+aparece sobre el escritorio vacío y no roba el foco.
 Incluye kernel,
 uptime, CPU, RAM, disco, temperaturas válidas, batería, red sin SSID/IP,
 audio, KVM, Podman, runtimes y un resumen no certificador de seguridad. Las

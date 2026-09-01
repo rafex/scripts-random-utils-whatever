@@ -26,6 +26,11 @@ exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
 exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
 exec_always --no-startup-id setxkbmap es
+# BEGIN rafex conky
+for_window [class="^RafexConky$"] floating enable, border pixel 0, sticky enable
+no_focus [class="^RafexConky$"]
+exec_always --no-startup-id ~/.local/bin/conky-launch.sh
+# END rafex conky
 # BEGIN rafex thinkpad backgrounds
 exec_always --no-startup-id sh -c 'if command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
 # END rafex thinkpad backgrounds
