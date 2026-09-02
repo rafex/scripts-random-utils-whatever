@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 - Verificación y flasheo controlado de la base v18D para Mozilla Flame.
+# v1.0.1 - Verificación y flasheo controlado de la base v18D para Mozilla Flame.
 set -Eeuo pipefail
 
 umask 077
@@ -216,7 +216,7 @@ fastboot_serials() {
 }
 
 require_fastboot_flame() {
-  local serials product_output
+  local serials product_output product version_output
   [[ -n "$FASTBOOT_COMMAND" ]] || die 'fastboot no está instalado'
   serials="$(fastboot_serials)"
   [[ -n "$serials" ]] || die 'no hay un dispositivo en fastboot; no se escribirá nada'
@@ -227,11 +227,27 @@ require_fastboot_flame() {
 
   product_output="$("$FASTBOOT_COMMAND" -s "$FASTBOOT_SERIAL" getvar product 2>&1)" ||
     die 'no se pudo consultar el producto fastboot'
-  if ! grep -Eiq 'product:[[:space:]]*(flame|flame-kk)([[:space:]]|$)' <<< "$product_output"; then
-    printf '%s\n' "$product_output" | sed -E 's/([Ss]erial[^:]*:|[Ss]n:)[^[:space:]]+/\1[oculto]/g' >&2
-    die 'el dispositivo fastboot no se identificó como Flame; se detiene por seguridad'
-  fi
-  ok 'un único dispositivo fastboot identificado como Flame'
+  product="$(awk -F: 'tolower($1) ~ /product/ { value = $2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", value); print tolower(value); exit }' <<< "$product_output")"
+  case "$product" in
+    flame|flame-kk)
+      ok 'un único dispositivo fastboot identificado como Flame'
+      ;;
+    msm8610)
+      version_output="$("$FASTBOOT_COMMAND" -s "$FASTBOOT_SERIAL" getvar version 2>&1)" ||
+        die 'no se pudo consultar la versión del protocolo fastboot'
+      if ! grep -Eiq 'version:[[:space:]]*0\.5([[:space:]]|$)' <<< "$version_output"; then
+        printf '%s\n' "$product_output" "$version_output" |
+          sed -E 's/([Ss]erial[^:]*:|[Ss]n:)[^[:space:]]+/\1[oculto]/g' >&2
+        die 'MSM8610 no coincide con el protocolo fastboot histórico esperado; se detiene por seguridad'
+      fi
+      warn 'el bootloader expone MSM8610 en lugar del nombre Flame; coincide con el fastboot histórico 0.5 del Flame'
+      ok 'un único dispositivo fastboot compatible con Flame (MSM8610/fastboot 0.5)'
+      ;;
+    *)
+      printf '%s\n' "$product_output" | sed -E 's/([Ss]erial[^:]*:|[Ss]n:)[^[:space:]]+/\1[oculto]/g' >&2
+      die 'el dispositivo fastboot no se identificó como Flame; se detiene por seguridad'
+      ;;
+  esac
 }
 
 show_status() {

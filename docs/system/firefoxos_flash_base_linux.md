@@ -41,7 +41,11 @@ coincidir con este SHA512:
 ```
 
 El teléfono debe ser un Mozilla Flame y ADB/fastboot deben funcionar como
-usuario normal. No se debe usar `sudo` con este wrapper.
+usuario normal. En el Flame histórico, `fastboot getvar product` puede devolver
+`MSM8610` en vez del nombre comercial; el wrapper acepta ese valor únicamente
+si el protocolo reporta `version: 0.5`. ADB debe haber identificado previamente
+el dispositivo como `Flame`/`flame` antes de entrar en fastboot. No se debe usar
+`sudo` con este wrapper.
 
 Antes de aplicar se necesita una exportación validada de los datos accesibles
 mediante ADB. La exportación no equivale a una imagen completa del teléfono.
@@ -130,7 +134,9 @@ just firefoxos-tools --preflight
 - Nunca ejecuta `flash.sh`, `adb kill-server` ni `adb logcat` del archivo.
 - No reinicia el teléfono desde ADB automáticamente.
 - Exige exactamente un dispositivo fastboot.
-- Verifica que el producto fastboot sea `flame` o `flame-kk`.
+- Verifica que el producto fastboot sea `flame`, `flame-kk` o el valor histórico
+  `MSM8610` acompañado de `version: 0.5`; este último no se acepta de forma
+  aislada como nombre comercial.
 - No imprime seriales ni usa `sudo`.
 - `--check`, `--plan` y `--fastboot` no escriben particiones.
 - `--apply` exige un terminal interactivo y la confirmación exacta del borrado.
@@ -154,7 +160,8 @@ USB 2, y repite `--fastboot`. No uses `sudo` para ocultar el problema.
 
 ### `el dispositivo fastboot no se identificó como Flame`
 
-**Causa:** el producto no es `flame`/`flame-kk` o no pudo consultarse.
+**Causa:** el producto no es `flame`/`flame-kk`, ni `MSM8610` con el protocolo
+`version: 0.5`, o no pudo consultarse.
 
 **Solución:** detén el procedimiento. No flashees ROMs Motorola, Android
 genéricas ni imágenes de otro modelo.
@@ -165,6 +172,14 @@ genéricas ni imágenes de otro modelo.
 
 **Solución:** no lo ejecutes ni lo extraigas para flashear; consigue otra copia
 y verifica nuevamente el SHA512.
+
+### `MSM8610 no coincide con el protocolo fastboot histórico esperado`
+
+**Causa:** el dispositivo expone la plataforma Qualcomm `MSM8610`, pero no
+reporta el protocolo fastboot histórico `0.5` asociado al flujo documentado.
+
+**Solución:** detén el procedimiento. No fuerces la validación ni uses una
+imagen de otro equipo; vuelve a comprobar la identificación ADB del Flame.
 
 ### `confirmación incorrecta`
 
@@ -188,6 +203,11 @@ este wrapper.
 ### [Unreleased]
 
 - Cambios pendientes de release.
+
+### v1.0.1 — 2026-09-02
+
+- **fix:** acepta la identificación histórica `MSM8610` del Flame cuando
+  fastboot reporta `version: 0.5`, sin relajar la validación a otros productos.
 
 ### v1.0.0 — 2026-09-02
 
