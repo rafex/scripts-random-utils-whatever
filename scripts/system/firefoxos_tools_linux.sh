@@ -609,7 +609,7 @@ verify_base_archive() {
   ok 'imagen system*.img encontrada'
 
   for flame_file in gpt_both0.bin NON-HLOS.bin emmc_appsboot.mbn rawprogram0.xml patch0.xml; do
-    has_archive_entry "$entries" "$flame_file" ||
+    [[ -n "$(find_archive_entry "$entries" "$flame_file")" ]] ||
       die "falta el marcador estructural de Flame: $flame_file"
   done
   ok 'marcadores estructurales de Flame encontrados'
