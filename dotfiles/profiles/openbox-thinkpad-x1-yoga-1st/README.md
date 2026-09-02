@@ -86,8 +86,9 @@ i3status, tmux y el estilo EWW cuando las configuraciones correspondientes
 existen.
 
 El panel GTK3 opcional se instala con `just install-rafex-control-panel --apply`.
-EWW e i3lock-color también son componentes opcionales y no activan servicios ni
-reemplazan el bloqueo existente automáticamente.
+EWW es opcional y no activa servicios privilegiados. `i3lock-color` también es
+opcional; al ejecutar su instalador se activa el wrapper para el atajo y
+`xss-lock`, mientras el `i3lock` de Debian queda disponible como respaldo.
 
 ## Herramientas Android opcionales
 

@@ -1,6 +1,6 @@
 ---
 title: install_i3lock_color_linux.sh
-description: Compila i3lock-color en paralelo al bloqueador oficial de Debian.
+description: Compila y activa i3lock-color conservando el bloqueador oficial de Debian como respaldo.
 tags:
   - instalación
   - seguridad
@@ -9,7 +9,8 @@ tags:
 
 # install_i3lock_color_linux.sh
 
-Instala `i3lock-color` en `~/.local/bin` sin reemplazar `/usr/bin/i3lock`.
+Instala `i3lock-color` en `~/.local/bin`, lo integra con el bloqueo manual y
+automático de i3/Openbox, y conserva `/usr/bin/i3lock` como respaldo.
 
 - **Ruta:** `scripts/install/install_i3lock_color_linux.sh`
 - **SO requerido:** Linux (Debian con X11)
@@ -28,8 +29,9 @@ Instala `i3lock-color` en `~/.local/bin` sin reemplazar `/usr/bin/i3lock`.
 
 ## Requisitos
 
-La instalación compila el tag `2.12.c.5`. `xss-lock` y el bloqueo automático
-existente no cambian.
+La instalación compila el tag `2.12.c.5`. Durante `--apply` instala el wrapper
+`lock-screen.sh` y actualiza de forma idempotente los bloques administrados de
+i3 y Openbox para que el atajo y `xss-lock` utilicen `i3lock-color`.
 
 ## Uso
 
@@ -47,7 +49,7 @@ just lock-screen --mode solid
 |---|---|---|
 | `--check` | — | Comprueba dependencias y binarios. |
 | `--plan` | `--dry-run` | Simula la compilación. |
-| `--apply` | — | Compila e instala en el usuario. |
+| `--apply` | — | Compila, instala y activa el wrapper en i3/Openbox. |
 | `--status` | — | Muestra ambos bloqueadores. |
 
 ## Variables de entorno
@@ -55,6 +57,9 @@ just lock-screen --mode solid
 | Variable | Predeterminado | Descripción |
 |---|---|---|
 | `I3LOCK_COLOR_BIN` | `~/.local/bin/i3lock-color` | Binario usado por el wrapper. |
+| `I3LOCK_COLOR_I3_CONFIG` | `~/.config/i3/config` | Configuración i3 que se integra. |
+| `I3LOCK_COLOR_OPENBOX_RC` | `~/.config/openbox/rc.xml` | Configuración de teclas de Openbox. |
+| `I3LOCK_COLOR_OPENBOX_AUTOSTART` | `~/.config/openbox/autostart` | Autoinicio de `xss-lock` en Openbox. |
 
 ## Ejemplos
 
@@ -65,7 +70,20 @@ just lock-screen --mode blur
 just lock-screen --status
 ```
 
+Después de aplicar la configuración, recarga i3 con `Mod4+Shift+r` o
+reinicia Openbox con `openbox --reconfigure`. El atajo de i3/Openbox es
+`Super+Shift+l`; el bloqueo automático usa `xss-lock` y el modo sólido.
+
 ## Fallos conocidos
+
+### `i3 sigue usando el bloqueador oficial`
+
+**Causa:** se instaló el binario paralelo, pero no se ejecutó de nuevo
+`install-i3lock-color --apply` después de actualizar el perfil.
+
+**Solución:** ejecuta `just install-i3lock-color --apply`, recarga i3/Openbox y
+comprueba `just install-i3lock-color --status`. El instalador no sobrescribe el
+binario oficial.
 
 ### `blur requiere ImageMagick`
 
@@ -76,4 +94,4 @@ just lock-screen --status
 ## Changelog
 
 ### [Unreleased]
-- **feat:** añadir compilación paralela y wrapper de bloqueo.
+- **feat:** añadir compilación paralela, wrapper y activación idempotente en i3/Openbox.

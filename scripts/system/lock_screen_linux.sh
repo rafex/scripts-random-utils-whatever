@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# lock_screen_linux.sh v1.0.0
-# Bloqueo manual con i3lock-color en modo sólido, imagen o desenfoque.
+# lock_screen_linux.sh v1.1.0
+# Bloqueo con i3lock-color en modo sólido, imagen o desenfoque.
 set -Eeuo pipefail
 umask 077
 export LC_ALL=C
@@ -31,10 +31,10 @@ fi
 [[ -n "${DISPLAY:-}" ]] || { printf '✗ ERROR: DISPLAY ausente; ejecuta el bloqueo desde X11\n' >&2; exit 1; }
 
 case "$MODE" in
-  solid) exec "$LOCKER" --color 2e3440;;
+  solid) exec "$LOCKER" --nofork --color 2e3440;;
   image)
     [[ -s "$PROFILE_IMAGE" ]] || { printf '✗ ERROR: falta la imagen del perfil: %s\n' "$PROFILE_IMAGE" >&2; exit 1; }
-    exec "$LOCKER" --image "$PROFILE_IMAGE";;
+    exec "$LOCKER" --nofork --image "$PROFILE_IMAGE";;
   blur)
     command -v maim >/dev/null 2>&1 || { printf '✗ ERROR: blur requiere maim\n' >&2; exit 1; }
     command -v convert >/dev/null 2>&1 || { printf '✗ ERROR: blur requiere ImageMagick (convert)\n' >&2; exit 1; }
@@ -44,6 +44,6 @@ case "$MODE" in
     trap 'rm -rf -- "$temp_dir"' EXIT HUP INT TERM
     maim -u -- "$temp_dir/screen.png"
     convert "$temp_dir/screen.png" -blur 0x6 "$temp_dir/blur.png"
-    exec "$LOCKER" --image "$temp_dir/blur.png";;
+    exec "$LOCKER" --nofork --image "$temp_dir/blur.png";;
   *) printf '✗ ERROR: modo inválido: %s\n' "$MODE" >&2; exit 2;;
 esac

@@ -40,7 +40,10 @@ exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/po
 exec --no-startup-id dex --autostart --environment i3
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 exec --no-startup-id udiskie --tray
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+# BEGIN rafex i3lock-color
+exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode solid
+bindsym $mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode solid
+# END rafex i3lock-color
 exec --no-startup-id nm-applet
 # BEGIN rafex clipboard
 exec_always --no-startup-id sh -c 'command -v copyq >/dev/null 2>&1 && ! pgrep -x copyq >/dev/null 2>&1 && exec copyq'
@@ -86,8 +89,6 @@ bindsym $mod+w layout tabbed
 bindsym $mod+e layout toggle split
 bindsym $mod+Shift+f floating toggle; move position center
 bindsym $mod+d focus mode_toggle
-bindsym $mod+Shift+l exec --no-startup-id i3lock -c 000000
-
 for_window [window_type="dialog"] floating enable
 for_window [window_role="pop-up"] floating enable
 for_window [window_role="task_dialog"] floating enable

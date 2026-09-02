@@ -8,7 +8,9 @@ tags:
 
 # lock_screen_linux.sh
 
-Wrapper manual; no reemplaza `xss-lock` ni el i3lock oficial.
+Wrapper usado por el bloqueo manual y, después de `install-i3lock-color
+--apply`, por `xss-lock` en i3/Openbox. El i3lock oficial se conserva como
+respaldo.
 
 - **Ruta:** `scripts/system/lock_screen_linux.sh`
 - **SO requerido:** Linux (X11)
@@ -28,8 +30,9 @@ Wrapper manual; no reemplaza `xss-lock` ni el i3lock oficial.
 
 ## Requisitos
 
-Instala primero `i3lock-color`. Prueba manualmente los modos antes de cambiar
-el bloqueo automático.
+Instala primero `i3lock-color` y ejecuta `just install-i3lock-color --apply`
+para activar el wrapper en el atajo y el bloqueo automático. El wrapper pasa
+`--nofork` para que `xss-lock` mantenga correctamente la sesión bloqueada.
 
 ## Uso
 
@@ -78,4 +81,4 @@ elimina mediante `trap`; no se conserva una imagen permanente.
 ## Changelog
 
 ### [Unreleased]
-- **feat:** añadir tres modos de bloqueo manual.
+- **feat:** añadir tres modos de bloqueo y ejecución sin fork para `xss-lock`.

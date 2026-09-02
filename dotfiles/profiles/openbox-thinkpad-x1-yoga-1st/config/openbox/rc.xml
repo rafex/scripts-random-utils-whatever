@@ -89,6 +89,9 @@
     <keybind key="W-Shift-t"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></keybind>
     <keybind key="W-Shift-p"><action name="Execute"><command>~/.local/bin/picom-toggle.sh</command></action></keybind>
     <keybind key="W-Shift-v"><action name="Execute"><command>~/.local/bin/clipboard-menu.sh --show</command></action></keybind>
+    <!-- BEGIN rafex i3lock-color -->
+    <keybind key="W-Shift-l"><action name="Execute"><command>~/.local/bin/lock-screen.sh --mode solid</command></action></keybind>
+    <!-- END rafex i3lock-color -->
     <!-- BEGIN rafex screenshots -->
     <keybind key="W-p"><action name="Execute"><command>~/.local/bin/screenshot.sh --full</command></action></keybind>
     <keybind key="Print"><action name="Execute"><command>~/.local/bin/screenshot.sh --full</command></action></keybind>

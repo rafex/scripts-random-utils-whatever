@@ -92,9 +92,11 @@ derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante
 espacio y permanece detrás de las ventanas. Se inicia automáticamente y se
 alterna con `Super+Control+W` o `just eww-widgets --toggle dashboard`. Sus
 acciones pasan por una allowlist sin comandos libres; el panel GTK sigue siendo
-el centro administrativo completo. `i3lock-color` se instala en paralelo al `i3lock` de
-Debian y se prueba manualmente con `just lock-screen --mode solid|image|blur`;
-no cambia `xss-lock`. El panel GTK se abre con `Super+Control+P`, desde
+el centro administrativo completo. `i3lock-color` se instala en paralelo al
+`i3lock` de Debian, pero el instalador activa su wrapper en el atajo
+`Super+Shift+L` y en `xss-lock`; el binario oficial se conserva como respaldo.
+Los modos se prueban con `just lock-screen --mode solid|image|blur`. El panel
+GTK se abre con `Super+Control+P`, desde
 ratmenu o desde el menú raíz de Openbox. No acepta comandos arbitrarios ni
 crea un daemon root.
 

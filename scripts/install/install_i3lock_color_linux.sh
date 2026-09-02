@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# install_i3lock_color_linux.sh v1.0.0
-# Compila i3lock-color en paralelo sin sustituir el i3lock de Debian.
+# install_i3lock_color_linux.sh v1.1.0
+# Compila i3lock-color y lo activa mediante el wrapper del perfil.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
 umask 077
@@ -16,6 +16,9 @@ SOURCE_ROOT="$HOME/.local/share/rafex/i3lock-color/${VERSION}-src"
 TARGET="$HOME/.local/bin/i3lock-color"
 WRAPPER_SOURCE="$REPO_ROOT/scripts/system/lock_screen_linux.sh"
 WRAPPER_TARGET="$HOME/.local/bin/lock-screen.sh"
+I3_CONFIG="${I3LOCK_COLOR_I3_CONFIG:-$HOME/.config/i3/config}"
+OPENBOX_RC="${I3LOCK_COLOR_OPENBOX_RC:-$HOME/.config/openbox/rc.xml}"
+OPENBOX_AUTOSTART="${I3LOCK_COLOR_OPENBOX_AUTOSTART:-$HOME/.config/openbox/autostart}"
 
 BUILD_PACKAGES=(git autoconf gcc make pkg-config libpam0g-dev libcairo2-dev
   libfontconfig1-dev libxcb-composite0-dev libev-dev libx11-xcb-dev libxcb-xkb-dev
@@ -48,11 +51,157 @@ show_status() {
   [[ -x "$TARGET" ]] && ok "binario paralelo presente: $TARGET" || warn 'i3lock-color no está instalado'
   if command -v i3lock >/dev/null 2>&1; then ok "i3lock oficial se conserva: $(command -v i3lock)"; fi
   [[ -x "$WRAPPER_TARGET" ]] && ok "wrapper lock-screen presente: $WRAPPER_TARGET" || warn "wrapper lock-screen ausente: $WRAPPER_TARGET"
-  info 'xss-lock no se modifica; la sustitución automática requiere una decisión posterior'
+  if [[ -f "$I3_CONFIG" ]] &&
+    grep -Fq -- 'exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode solid' "$I3_CONFIG" &&
+    grep -Fq -- "bindsym \$mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode solid" "$I3_CONFIG"; then
+    ok 'i3 usa el wrapper i3lock-color para el atajo y xss-lock'
+  else
+    warn 'i3 todavía usa la configuración anterior del bloqueador'
+  fi
+  if [[ -f "$OPENBOX_AUTOSTART" ]] &&
+    grep -Fq -- "xss-lock --transfer-sleep-lock -- \"\$HOME/.local/bin/lock-screen.sh\" --mode solid &" "$OPENBOX_AUTOSTART"; then
+    ok 'Openbox usa el wrapper i3lock-color mediante xss-lock'
+  else
+    info 'Openbox no tiene autoinicio administrado por i3lock-color'
+  fi
+  info 'i3lock oficial se conserva únicamente como respaldo'
+}
+
+replace_i3_lock_block() {
+  local begin='# BEGIN rafex i3lock-color' end='# END rafex i3lock-color'
+  local temporary block_file
+  [[ "$ACTION" == plan ]] && { info "[plan] activar i3lock-color en $I3_CONFIG"; return 0; }
+  [[ "$ACTION" == apply ]] || return 0
+  mkdir -p "$(dirname -- "$I3_CONFIG")"
+  block_file="$(mktemp)"
+  cat > "$block_file" <<'EOF'
+# BEGIN rafex i3lock-color
+exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode solid
+bindsym $mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode solid
+# END rafex i3lock-color
+EOF
+  temporary="$(mktemp)"
+  if [[ -f "$I3_CONFIG" ]]; then
+    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" -v legacy_xss='exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork' -v legacy_binding='bindsym $mod+Shift+l exec --no-startup-id i3lock -c 000000' '
+      function emit(line) {
+        while ((getline line < block_file) > 0) print line
+        close(block_file)
+      }
+      $0 == begin { emit(); inside=1; found=1; next }
+      inside && $0 == end { inside=0; next }
+      !inside && ($0 == legacy_xss || $0 == legacy_binding) { next }
+      { print }
+      END { if (!found) { print ""; emit() } }
+    ' "$I3_CONFIG" > "$temporary"
+  else
+    awk -v block_file="$block_file" 'function emit(line) { while ((getline line < block_file) > 0) print line; close(block_file) } BEGIN { emit() }' > "$temporary"
+  fi
+  if [[ -f "$I3_CONFIG" ]] && cmp -s "$I3_CONFIG" "$temporary"; then
+    rm -f -- "$block_file" "$temporary"
+    return 0
+  fi
+  backup "$I3_CONFIG"
+  chmod 0644 "$temporary"
+  mv -f -- "$temporary" "$I3_CONFIG"
+  rm -f -- "$block_file"
+  ok "i3 configurado para usar i3lock-color: $I3_CONFIG"
+}
+
+replace_openbox_autostart() {
+  local begin='# BEGIN rafex i3lock-color' end='# END rafex i3lock-color'
+  local temporary block_file
+  [[ "$ACTION" == plan ]] && { info "[plan] activar xss-lock con i3lock-color en $OPENBOX_AUTOSTART"; return 0; }
+  [[ "$ACTION" == apply ]] || return 0
+  mkdir -p "$(dirname -- "$OPENBOX_AUTOSTART")"
+  block_file="$(mktemp)"
+  cat > "$block_file" <<'EOF'
+# BEGIN rafex i3lock-color
+if [ -x "$HOME/.local/bin/lock-screen.sh" ] && command -v xss-lock >/dev/null 2>&1; then
+    xss-lock --transfer-sleep-lock -- "$HOME/.local/bin/lock-screen.sh" --mode solid &
+fi
+# END rafex i3lock-color
+EOF
+  temporary="$(mktemp)"
+  if [[ -f "$OPENBOX_AUTOSTART" ]]; then
+    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
+      function trim(value) {
+        sub(/^[[:space:]]+/, "", value)
+        sub(/[[:space:]]+$/, "", value)
+        return value
+      }
+      function emit(line) {
+        while ((getline line < block_file) > 0) print line
+        close(block_file)
+      }
+      trim($0) == begin { emit(); inside=1; found=1; next }
+      inside && trim($0) == end { inside=0; next }
+      !inside && $0 ~ /^[[:space:]]*if command -v xss-lock[[:space:]]+.*&& command -v i3lock[[:space:]]+.*; then[[:space:]]*$/ { legacy=1; next }
+      legacy && $0 ~ /^[[:space:]]*xss-lock[[:space:]]+--transfer-sleep-lock[[:space:]]+--[[:space:]]+i3lock[[:space:]]+--nofork[[:space:]]*&[[:space:]]*$/ { next }
+      legacy && $0 ~ /^[[:space:]]*fi[[:space:]]*$/ { legacy=0; next }
+      { print }
+      END { if (!found) { print ""; emit() } }
+    ' "$OPENBOX_AUTOSTART" > "$temporary"
+  else
+    awk -v block_file="$block_file" 'function emit(line) { while ((getline line < block_file) > 0) print line; close(block_file) } BEGIN { emit() }' > "$temporary"
+  fi
+  if [[ -f "$OPENBOX_AUTOSTART" ]] && cmp -s "$OPENBOX_AUTOSTART" "$temporary"; then
+    rm -f -- "$block_file" "$temporary"
+    return 0
+  fi
+  backup "$OPENBOX_AUTOSTART"
+  chmod 0755 "$temporary"
+  mv -f -- "$temporary" "$OPENBOX_AUTOSTART"
+  rm -f -- "$block_file"
+  ok "Openbox configurado para usar i3lock-color: $OPENBOX_AUTOSTART"
+}
+
+replace_openbox_keybind() {
+  local begin='<!-- BEGIN rafex i3lock-color -->' end='<!-- END rafex i3lock-color -->'
+  local temporary block_file
+  [[ "$ACTION" == plan ]] && { info "[plan] añadir atajo de bloqueo i3lock-color en $OPENBOX_RC"; return 0; }
+  [[ "$ACTION" == apply ]] || return 0
+  [[ -f "$OPENBOX_RC" ]] || return 0
+  block_file="$(mktemp)"
+  cat > "$block_file" <<'EOF'
+    <!-- BEGIN rafex i3lock-color -->
+    <keybind key="W-Shift-l"><action name="Execute"><command>~/.local/bin/lock-screen.sh --mode solid</command></action></keybind>
+    <!-- END rafex i3lock-color -->
+EOF
+  temporary="$(mktemp)"
+  if ! awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+    function emit(line) {
+      while ((getline line < block_file) > 0) print line
+      close(block_file)
+    }
+    trim($0) == begin { inside=1; found=1; next }
+    inside && trim($0) == end { inside=0; next }
+    trim($0) == "</keyboard>" && !inserted { emit(); inserted=1 }
+    { print }
+    END { if (!inserted) exit 42 }
+  ' "$OPENBOX_RC" > "$temporary"; then
+    rm -f -- "$block_file" "$temporary"
+    warn "no se encontró </keyboard> en $OPENBOX_RC; se omitió el atajo de Openbox"
+    return 0
+  fi
+  if [[ -f "$OPENBOX_RC" ]] && cmp -s "$OPENBOX_RC" "$temporary"; then
+    rm -f -- "$block_file" "$temporary"
+    return 0
+  fi
+  backup "$OPENBOX_RC"
+  chmod 0644 "$temporary"
+  mv -f -- "$temporary" "$OPENBOX_RC"
+  rm -f -- "$block_file"
+  ok "atajo Openbox configurado para usar i3lock-color: $OPENBOX_RC"
 }
 
 main() {
   [[ "$(uname -s)" == Linux ]] || die 'este instalador requiere Linux'
+  [[ "$EUID" -ne 0 ]] || die 'ejecútalo como usuario normal; sudo se usa internamente en --apply'
   command -v apt-cache >/dev/null 2>&1 || die 'falta apt-cache'
   case "$ACTION" in
     check)
@@ -67,7 +216,7 @@ main() {
       info '[plan] instalar dependencias de compilación disponibles mediante APT'
       info "[plan] clonar tag ${VERSION} bajo $SOURCE_ROOT"
       info '[plan] compilar con el método oficial del proyecto'
-      info "[plan] instalar solo $TARGET; no tocar /usr/bin/i3lock ni xss-lock"
+      info "[plan] instalar $TARGET y activar el wrapper en i3/Openbox mediante xss-lock"
       ;;
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
@@ -90,7 +239,10 @@ main() {
       [[ -f "$WRAPPER_SOURCE" ]] || die "falta $WRAPPER_SOURCE"
       if [[ -e "$WRAPPER_TARGET" ]] && ! cmp -s "$WRAPPER_SOURCE" "$WRAPPER_TARGET"; then backup "$WRAPPER_TARGET"; fi
       install -m 0755 -- "$WRAPPER_SOURCE" "$WRAPPER_TARGET"
-      ok "i3lock-color instalado en paralelo: $TARGET"
+      replace_i3_lock_block
+      replace_openbox_autostart
+      replace_openbox_keybind
+      ok "i3lock-color instalado y activado: $TARGET"
       ;;
     status) show_status;;
   esac

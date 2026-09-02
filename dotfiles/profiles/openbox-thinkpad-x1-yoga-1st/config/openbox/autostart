@@ -49,9 +49,11 @@ if command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1; t
     lxpolkit &
 fi
 
-if command -v xss-lock >/dev/null 2>&1 && command -v i3lock >/dev/null 2>&1; then
-    xss-lock --transfer-sleep-lock -- i3lock --nofork &
+# BEGIN rafex i3lock-color
+if [ -x "$HOME/.local/bin/lock-screen.sh" ] && command -v xss-lock >/dev/null 2>&1; then
+    xss-lock --transfer-sleep-lock -- "$HOME/.local/bin/lock-screen.sh" --mode solid &
 fi
+# END rafex i3lock-color
 
 if [ -x "$HOME/.local/bin/autorotate-x1-yoga.sh" ] && [ -n "${DISPLAY:-}" ]; then
     "$HOME/.local/bin/autorotate-x1-yoga.sh" --daemon &
