@@ -101,6 +101,16 @@ archivos para una prueba posterior.
 **Solución:** ejecuta `just eww-widgets --open dashboard` desde la sesión X11
 local. `--status` sí funciona sin `DISPLAY`.
 
+### El atajo vuelve a abrir el dashboard
+
+**Causa:** versiones recientes de EWW ya no ofrecen la consulta `windows`;
+el helper antiguo confundía una consulta fallida con una ventana cerrada.
+
+**Solución:** el helper usa `active-windows` y, ante un error de consulta, no
+abre ni cierra ninguna ventana. Ejecuta `just eww-widgets --status` para ver
+las ventanas activas y `just eww-widgets --reload` para reconstruir la
+ventana administrada.
+
 ### La ventana no aparece sobre una aplicación
 
 **Causa:** es intencional: el tipo `desktop` y `stacking bg` la colocan detrás
@@ -112,7 +122,8 @@ convertir en `dock` o `fg`, porque podría reservar espacio o quedar encima.
 ## Changelog
 
 ### [Unreleased]
-- **feat:** añadir dashboard derecho `rafex-widgets`, alternancia y recarga.
+- **fix:** consultar ventanas con `active-windows` de EWW v0.6 y evitar que el atajo vuelva a abrir el dashboard cuando no pudo leer su estado.
+- **fix:** cerrar y abrir únicamente `rafex-widgets` al recargar para aplicar de nuevo `desktop` y `stacking bg` sin afectar ventanas EWW ajenas.
 
 ### v1.0.0 — 2026-09-01
 

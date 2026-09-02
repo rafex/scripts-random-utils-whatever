@@ -94,7 +94,8 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
-- **feat:** instalar dashboard Rafex derecho con calendario, multimedia, dispositivos y controles.
+- **fix:** recargar la ventana administrada de forma explícita para conservar el apilado X11 `desktop/bg` después de cambios de configuración.
+- **fix:** actualizar el diagnóstico y el helper al comando `active-windows` de EWW v0.6.
 
 ### v1.0.1 — 2026-09-01
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_eww_linux.sh v1.1.0
+# install_eww_linux.sh v1.1.1
 # Compila EWW fijado para X11 e instala los widgets Rafex sin reservar espacio.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -264,6 +264,9 @@ main() {
       install_helpers
       write_config
       configure_integrations
+      if [[ -n "${DISPLAY:-}" ]]; then
+        "$WIDGETS_TARGET" --reload || warn 'no se pudo recargar la ventana EWW existente; prueba eww-widgets --reload desde la sesión gráfica'
+      fi
       ok "EWW ${VERSION} instalado; usa eww-widgets --open dashboard o Super+Control+W"
       ;;
     status) show_status ;;

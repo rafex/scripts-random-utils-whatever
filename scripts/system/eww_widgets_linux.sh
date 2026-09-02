@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# eww_widgets_linux.sh v1.1.0
+# eww_widgets_linux.sh v1.1.1
 # Controla la columna EWW administrada por Rafex sin reservar espacio del WM.
 set -Eeuo pipefail
 umask 077
@@ -60,9 +60,27 @@ resolve_eww() {
   fi
 }
 
-is_open() {
-  local eww_bin="$1"
-  "$eww_bin" windows 2>/dev/null | grep -Eq "(^|[[:space:]])${WINDOW}([[:space:]]|:).*([Oo]pen|true|visible)"
+window_state() {
+  local eww_bin="$1" active_windows
+
+  # EWW v0.5+ replaced the old windows query with active-windows. Keep the
+  # command failure distinguishable so toggle never reopens a window just
+  # because its state could not be queried.
+  active_windows="$("$eww_bin" active-windows 2>/dev/null)" || return 2
+  if awk -v window="$WINDOW" '
+    {
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+      if (line == window || line ~ ("^" window "([[:space:]:]|$)")) {
+        found = 1
+      }
+    }
+    END { exit(found ? 0 : 1) }
+  ' <<<"$active_windows"; then
+    return 0
+  fi
+  return 1
 }
 
 ensure_daemon() {
@@ -77,25 +95,39 @@ ensure_daemon() {
 }
 
 open_window() {
-  local eww_bin="$1"
+  local eww_bin="$1" state
   [[ -n "${DISPLAY:-}" ]] || { notify_error 'DISPLAY ausente; ejecuta esto dentro de la sesión X11'; return 1; }
   [[ -f "$CONFIG_ROOT/eww.yuck" && -f "$CONFIG_ROOT/eww.scss" ]] || {
     notify_error "falta la configuración en $CONFIG_ROOT; ejecuta just install-eww --apply"
     return 1
   }
   ensure_daemon "$eww_bin" || { notify_error 'el daemon EWW no respondió'; return 1; }
-  if is_open "$eww_bin"; then
+  if window_state "$eww_bin"; then
     ok 'ventana rafex-widgets ya estaba abierta'
     return 0
+  else
+    state=$?
+  fi
+  if [[ "$state" -eq 2 ]]; then
+    notify_error 'no se pudo consultar las ventanas activas de EWW; no se abrirá otra instancia'
+    return 1
   fi
   "$eww_bin" open "$WINDOW" || { notify_error 'EWW no pudo abrir rafex-widgets'; return 1; }
   ok 'widgets EWW abiertos'
 }
 
 close_window() {
-  local eww_bin="$1"
+  local eww_bin="$1" state
   "$eww_bin" ping >/dev/null 2>&1 || { info 'daemon EWW detenido'; return 0; }
-  if is_open "$eww_bin"; then
+  if window_state "$eww_bin"; then
+    state=0
+  else
+    state=$?
+  fi
+  if [[ "$state" -eq 2 ]]; then
+    notify_error 'no se pudo consultar las ventanas activas de EWW; no se cerrará ninguna ventana'
+    return 1
+  elif [[ "$state" -eq 0 ]]; then
     "$eww_bin" close "$WINDOW" || { notify_error 'EWW no pudo cerrar rafex-widgets'; return 1; }
     ok 'widgets EWW cerrados'
   else
@@ -113,7 +145,10 @@ status() {
   printf 'binario=%s\n' "$eww_bin"
   if "$eww_bin" ping >/dev/null 2>&1; then
     ok 'daemon EWW activo'
-    "$eww_bin" windows 2>/dev/null || true
+    printf '%s\n' 'ventanas activas:'
+    "$eww_bin" active-windows 2>/dev/null || warn 'no se pudo consultar ventanas activas'
+    printf '%s\n' 'ventanas definidas:'
+    "$eww_bin" list-windows 2>/dev/null || warn 'no se pudo consultar ventanas definidas'
   else
     info 'daemon EWW detenido'
   fi
@@ -134,15 +169,46 @@ main() {
     open) open_window "$eww_bin" ;;
     close) close_window "$eww_bin" ;;
     toggle)
-      if [[ -n "${DISPLAY:-}" ]] && ensure_daemon "$eww_bin" && is_open "$eww_bin"; then
-        close_window "$eww_bin"
+      [[ -n "${DISPLAY:-}" ]] || { open_window "$eww_bin"; return; }
+      ensure_daemon "$eww_bin" || { notify_error 'el daemon EWW no respondió'; return 1; }
+      local state
+      if window_state "$eww_bin"; then
+        state=0
       else
-        open_window "$eww_bin"
+        state=$?
       fi
+      case "$state" in
+        0) close_window "$eww_bin" ;;
+        1) open_window "$eww_bin" ;;
+        *)
+          notify_error 'no se pudo consultar las ventanas activas de EWW; no se cambiará su estado'
+          return 1
+          ;;
+      esac
       ;;
     reload)
       "$eww_bin" ping >/dev/null 2>&1 || { info 'daemon EWW detenido; no se recarga'; return 0; }
+      if [[ -z "${DISPLAY:-}" ]]; then
+        info 'DISPLAY ausente; no se recarga la ventana EWW desde esta sesión'
+        return 0
+      fi
+      local state
+      if window_state "$eww_bin"; then
+        state=0
+      else
+        state=$?
+      fi
+      [[ "$state" -ne 2 ]] || {
+        notify_error 'no se pudo consultar las ventanas activas de EWW; no se recargará'
+        return 1
+      }
+      if [[ "$state" -eq 0 ]]; then
+        "$eww_bin" close "$WINDOW" || { notify_error 'EWW no pudo cerrar rafex-widgets antes de recargar'; return 1; }
+      fi
       "$eww_bin" reload || { notify_error 'EWW no pudo recargar su configuración'; return 1; }
+      if [[ "$state" -eq 0 ]]; then
+        "$eww_bin" open "$WINDOW" || { notify_error 'EWW no pudo volver a abrir rafex-widgets'; return 1; }
+      fi
       ok 'configuración EWW recargada'
       ;;
     *) die "acción desconocida: $ACTION" ;;

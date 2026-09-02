@@ -32,6 +32,10 @@ guarda en la configuración del usuario.
 
 Ejecutar como usuario normal. No requiere `sudo`.
 
+En los perfiles ThinkPad, la configuración administrada mantiene las sombras
+desactivadas (`shadow = false`). Si una sesión ya tenía picom ejecutándose,
+hay que reiniciarlo para que lea el archivo actualizado.
+
 ## Uso
 
 ```bash
@@ -70,6 +74,14 @@ PICOM_CONFIG="$HOME/.config/picom/picom.conf" picom-toggle --toggle
 **Causa:** se solicitó activarlo sin instalar el paquete.
 
 **Solución:** instala `picom` desde Debian y repite la acción.
+
+### Las ventanas conservan sombras después de cambiar el perfil
+
+**Causa:** picom conserva la configuración con la que fue iniciado; editar
+`picom.conf` no cambia una instancia que ya está ejecutándose.
+
+**Solución:** ejecuta `just picom-toggle --disable` y después
+`just picom-toggle --enable`, o cierra y abre la sesión gráfica.
 
 ## Changelog
 
