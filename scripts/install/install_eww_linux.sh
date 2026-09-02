@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_eww_linux.sh v1.0.1
+# install_eww_linux.sh v1.0.2
 # Compila EWW fijado para X11 y prepara un widget opcional sin autostart.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -9,6 +9,7 @@ export LC_ALL=C
 
 ACTION=check
 VERSION="v0.6.0"
+TIME_INCOMPAT_VERSION="0.3.34"
 TIME_COMPAT_VERSION="0.3.36"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SOURCE_ROOT="$HOME/.local/share/rafex/eww/${VERSION}-src"
@@ -84,23 +85,39 @@ EOF
 }
 
 prepare_lockfile() {
-  local time_version
+  local time_versions
 
   [[ -f "$SOURCE_ROOT/Cargo.lock" ]] || return 0
 
-  time_version="$(awk '
-    $0 == "name = \"time\"" { in_time = 1; next }
-    in_time && $0 ~ /^name = / { exit }
-    in_time && $0 ~ /^version = / {
+  time_versions="$(awk '
+    /^\[\[package\]\]$/ { in_time = 0 }
+    /^name = "time"$/ { in_time = 1; next }
+    in_time && /^version = / {
       gsub(/"/, "", $3)
       print $3
-      exit
+      in_time = 0
     }
   ' "$SOURCE_ROOT/Cargo.lock")"
 
-  if [[ "$time_version" == "0.3.34" ]]; then
-    info "actualizando dependencia incompatible time ${time_version} → ${TIME_COMPAT_VERSION}"
-    (cd "$SOURCE_ROOT" && cargo update -p "time@${time_version}" --precise "$TIME_COMPAT_VERSION")
+  if grep -Fqx "$TIME_INCOMPAT_VERSION" <<<"$time_versions"; then
+    info "actualizando dependencia incompatible time ${TIME_INCOMPAT_VERSION} → ${TIME_COMPAT_VERSION}"
+    (cd "$SOURCE_ROOT" && cargo update -p "time@${TIME_INCOMPAT_VERSION}" --precise "$TIME_COMPAT_VERSION")
+    time_versions="$(awk '
+      /^\[\[package\]\]$/ { in_time = 0 }
+      /^name = "time"$/ { in_time = 1; next }
+      in_time && /^version = / {
+        gsub(/"/, "", $3)
+        print $3
+        in_time = 0
+      }
+    ' "$SOURCE_ROOT/Cargo.lock")"
+  fi
+
+  if grep -Fqx "$TIME_INCOMPAT_VERSION" <<<"$time_versions"; then
+    die "Cargo no actualizó time ${TIME_INCOMPAT_VERSION}; no se inicia la compilación"
+  fi
+  if grep -Fqx "$TIME_COMPAT_VERSION" <<<"$time_versions"; then
+    ok "dependencia time compatible confirmada: ${TIME_COMPAT_VERSION}"
   fi
 }
 

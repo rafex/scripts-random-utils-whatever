@@ -82,6 +82,11 @@ antes de compilar. La versión se especifica explícitamente porque EWW también
 usa una rama antigua `time 0.1.x`. No se modifica el código fuente de EWW ni
 se escribe en el registro global de Cargo.
 
+La ejecución muestra `dependencia time compatible confirmada: 0.3.36`; si la
+salida todavía comienza directamente con `Compiling time v0.3.34`, el checkout
+de la ThinkPad está desactualizado y debe sincronizarse con
+`git pull --ff-only` antes de repetir el comando.
+
 ## Changelog
 
 ### [Unreleased]
@@ -91,3 +96,8 @@ se escribe en el registro global de Cargo.
 
 **fix:** actualizar `time 0.3.34` a `0.3.36` cuando el compilador moderno no
 puede inferir el tipo de `Box`.
+
+### v1.0.2 — 2026-09-01
+
+**fix:** verificar la actualización exacta del `Cargo.lock` antes de compilar y
+evitar la ambigüedad entre `time 0.1.x` y `time 0.3.x`.
