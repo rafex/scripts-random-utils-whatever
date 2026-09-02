@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_eww_linux.sh v1.0.0
+# install_eww_linux.sh v1.0.1
 # Compila EWW fijado para X11 y prepara un widget opcional sin autostart.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -9,6 +9,7 @@ export LC_ALL=C
 
 ACTION=check
 VERSION="v0.6.0"
+TIME_COMPAT_VERSION="0.3.36"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SOURCE_ROOT="$HOME/.local/share/rafex/eww/${VERSION}-src"
 TARGET="$HOME/.local/bin/eww"
@@ -82,6 +83,27 @@ EOF
 EOF
 }
 
+prepare_lockfile() {
+  local time_version
+
+  [[ -f "$SOURCE_ROOT/Cargo.lock" ]] || return 0
+
+  time_version="$(awk '
+    $0 == "name = \"time\"" { in_time = 1; next }
+    in_time && $0 ~ /^name = / { exit }
+    in_time && $0 ~ /^version = / {
+      gsub(/"/, "", $3)
+      print $3
+      exit
+    }
+  ' "$SOURCE_ROOT/Cargo.lock")"
+
+  if [[ "$time_version" == "0.3.34" ]]; then
+    info "actualizando dependencia incompatible time ${time_version} → ${TIME_COMPAT_VERSION}"
+    (cd "$SOURCE_ROOT" && cargo update -p "time@${time_version}" --precise "$TIME_COMPAT_VERSION")
+  fi
+}
+
 show_status() {
   echo "═══ EWW ${VERSION} ThinkPad ═══"
   command -v eww >/dev/null 2>&1 && ok "eww disponible: $(eww --version 2>/dev/null | head -n 1)" || warn 'eww no está instalado'
@@ -128,6 +150,7 @@ main() {
       if [[ ! -d "$SOURCE_ROOT/.git" ]]; then
         git clone --branch "$VERSION" --depth 1 https://github.com/elkowar/eww.git "$SOURCE_ROOT"
       fi
+      prepare_lockfile
       (cd "$SOURCE_ROOT" && cargo build --release --no-default-features --features x11)
       [[ -x "$SOURCE_ROOT/target/release/eww" ]] || die 'la compilación no produjo target/release/eww'
       if [[ -e "$TARGET" ]] && ! cmp -s "$SOURCE_ROOT/target/release/eww" "$TARGET"; then backup "$TARGET"; fi
