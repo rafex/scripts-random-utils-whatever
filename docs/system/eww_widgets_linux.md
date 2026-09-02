@@ -149,6 +149,7 @@ convertir en `dock` o `fg`, porque podría reservar espacio o quedar encima.
 ## Changelog
 
 ### [Unreleased]
+- **fix:** cerrar el descriptor de `flock` en un subshell antes de iniciar el daemon EWW persistente.
 - **fix:** evitar que el daemon EWW herede el descriptor de `flock` y bloquee futuras operaciones.
 - **style:** añadir emojis e indicadores `−/+` a todos los controles rápidos del dashboard.
 - **fix:** evitar aperturas duplicadas con `exec` en i3 y un bloqueo exclusivo por usuario.

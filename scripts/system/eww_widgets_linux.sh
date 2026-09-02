@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# eww_widgets_linux.sh v1.2.1
+# eww_widgets_linux.sh v1.2.2
 # Controla la columna EWW administrada por Rafex sin reservar espacio del WM.
 set -Eeuo pipefail
 umask 077
@@ -102,7 +102,10 @@ ensure_daemon() {
   local eww_bin="$1"
   "$eww_bin" ping >/dev/null 2>&1 && return 0
   # El daemon es persistente: nunca debe heredar el bloqueo de la operación.
-  "$eww_bin" daemon 9>&- >/dev/null 2>&1 &
+  (
+    exec 9>&-
+    exec "$eww_bin" daemon >/dev/null 2>&1
+  ) &
   for _ in {1..20}; do
     sleep 0.2
     "$eww_bin" ping >/dev/null 2>&1 && return 0
