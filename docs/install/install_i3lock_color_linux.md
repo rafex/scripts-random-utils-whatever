@@ -110,6 +110,13 @@ binario oficial.
 ### [Unreleased]
 - **feat:** añadir compilación paralela, wrapper y activación idempotente en i3/Openbox.
 
+### v1.2.2 — 2026-09-02
+
+**fix:** evitar que el contenido del bloque administrado se conserve al migrarlo.
+
+- Se descarta el bloque anterior completo antes de insertar su versión canónica.
+- Se evita que las reinstalaciones vuelvan a crear bindings duplicados en i3.
+
 ### v1.2.1 — 2026-09-02
 
 **fix:** eliminar bindings legacy de `Super+Shift+l` que provocaban duplicados.
