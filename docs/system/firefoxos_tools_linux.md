@@ -11,8 +11,9 @@ tags:
 # firefoxos_tools_linux.sh
 
 Helper separado del flujo Android para diagnosticar un teléfono Firefox OS
-legado por USB y, únicamente cuando ADB está autorizado, listar o extraer
-archivos hacia un directorio privado del usuario.
+legado por USB, generar un inventario técnico de solo lectura y, únicamente
+cuando ADB está autorizado, listar o extraer archivos hacia un directorio
+privado del usuario.
 
 - **Ruta:** `scripts/system/firefoxos_tools_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -55,6 +56,8 @@ Desde el repositorio:
 ```bash
 just firefoxos-tools --status
 just firefoxos-tools --devices
+just firefoxos-tools --inventory
+just firefoxos-tools --preflight
 just firefoxos-tools --list --remote /
 just firefoxos-tools --pull --remote /data \
   --target ~/Documents/firefoxos-exports
@@ -63,17 +66,36 @@ just firefoxos-tools --pull --remote /data \
 El estado diferencia `sin USB`, `USB sin ADB`, `unauthorized`, `offline` y
 `device`. No imprime números de serie en la salida normal.
 
+## Inventario y preflight
+
+    just firefoxos-tools --inventory
+    just firefoxos-tools --preflight
+
+inventory es el primer diagnóstico recomendado después de autorizar ADB.
+preflight añade la interpretación de compatibilidad, pero no prepara ni
+descarga ninguna imagen. Ambas acciones son de solo lectura y no muestran
+números de serie.
+
 ## Opciones
 
 | Opción | Alias | Descripción |
 |---|---|---|
 | `--status` | `--check` | Muestra herramientas, perfil USB, ADB, almacenamiento y protecciones. |
 | `--devices` | — | Consulta estados ADB sin mostrar números de serie. |
+| `--inventory` | — | Lee modelo, base, build, B2G/Gecko, Gaia, USB y almacenamiento del teléfono. |
+| `--preflight` | — | Evalúa, sin modificar, la compatibilidad histórica con Firefox OS 2.5 y JanOS. |
 | `--list` | — | Ejecuta únicamente `adb shell ls -la` sobre la ruta indicada. |
 | `--pull` | — | Extrae una ruta mediante `adb pull` al directorio permitido. |
 | `--remote <ruta>` | — | Ruta absoluta remota, obligatoria para `--list` y `--pull`. |
 | `--target <directorio>` | — | Directorio bajo `~/Documents/firefoxos-exports`, obligatorio para `--pull`. |
 | `--help` | `-h` | Muestra la ayuda. |
+
+Acciones nuevas:
+
+- inventory: lee modelo, base, build, B2G/Gecko, Gaia, USB y almacenamiento
+  del teléfono.
+- preflight: evalúa, sin modificar, la compatibilidad histórica con Firefox OS
+  2.5 y JanOS.
 
 ## Variables de entorno
 
@@ -130,6 +152,60 @@ aparece pero un cliente antiguo no reconoce el teléfono. El helper no modifica
 ese archivo, no agrega identificadores automáticamente y no reemplaza el modo
 USB seleccionado en el teléfono.
 
+### Lectura del estado actual
+
+El Flame evaluado reporta:
+
+- modelo Flame y dispositivo flame;
+- base Android 4.3, build JLS36C y bootloader L1TC00011230, cuyo sufijo
+  corresponde históricamente a una base v123;
+- B2G/Gecko 28.0, con una build de 2014;
+- perfil USB 05c6:9025 con ADB autorizado.
+
+Estos datos describen el teléfono conectado; no significan que Firefox OS 2.5
+ni JanOS estén instalados. La interpretación de la base es histórica y debe
+confirmarse antes de cualquier operación futura.
+
+### Qué significa el preflight
+
+Firefox OS 2.5 fue una plataforma histórica basada en Gaia 2.5 y Gecko 44,
+por lo que no se trata de una actualización OTA moderna. La documentación
+histórica del Flame indica que las imágenes nuevas requerían primero una base
+v180 o superior y advierte que el flasheo puede sobrescribir los datos:
+[Firefox OS 2.5](https://wiki.mozilla.org/Firefox_OS/Releases/2.5) ·
+[actualización histórica del Flame](https://devdoc.net/web/developer.mozilla.org/en-US/Firefox_OS/Developer_phone_guide/Flame/Updating_your_Flame.html).
+
+La ruta comunitaria más concreta para este hardware es JanOS, que incluye
+flame-kk entre sus dispositivos documentados, pero también exige una base
+actualizada y advierte del borrado del teléfono:
+[dispositivos JanOS](https://janos.io/device-list.html).
+
+Con una base equivalente a v123, el preflight marcará pendiente la ruta 2.5 o
+JanOS. No ejecutará reinicios para verificar recovery, no probará fastboot, no
+descargará imágenes y no modificará particiones.
+
+### Rutas que no se mezclan
+
+- Conservar el sistema actual: inventario, listado y extracción controlada
+  mediante ADB.
+- Firefox OS 2.5: ruta histórica, no mantenida y potencialmente destructiva.
+- JanOS: candidato comunitario experimental para Flame; una imagen disponible
+  no se considera compatible hasta verificarla.
+- Capyloon: no es candidato para este Flame; sus dispositivos actuales
+  documentados son Pixel 3a y Android GSI
+  ([Capyloon](https://capyloon.org/)).
+
+Los proyectos oficiales Mozilla-B2G están archivados, por lo que esta
+evaluación no representa soporte actual ni actualizaciones de seguridad:
+[Mozilla-B2G](https://github.com/mozilla-b2g). Esta conclusión es una
+inferencia del estado archivado de los repositorios y de la antigüedad de las
+guías.
+
+Ninguna ruta de actualización se ejecutará desde este helper. Antes de
+considerar un procedimiento manual futuro se necesitarán una exportación
+validada, una imagen exacta para Flame con checksum, un método de recuperación,
+batería suficiente, cable estable y autorización explícita para borrar datos.
+
 ## Protecciones de seguridad
 
 - Se ejecuta como usuario normal y no añade grupos ni reglas udev.
@@ -152,6 +228,11 @@ Usa un navegador legacy o una máquina virtual aislada, sin cuentas personales y
 sin convertir versiones antiguas en navegador diario. Las aplicaciones Firefox
 OS no son APK: suelen ser aplicaciones web hosted o empaquetadas compatibles
 con B2G/WebIDE.
+
+Las acciones inventory y preflight solo ejecutan consultas fijas: getprop,
+lectura de archivos de versión y df. No ofrecen shell remoto, adb push,
+borrado, reinicio, root, remount, desbloqueo de bootloader ni flasheo.
+Tampoco descargan imágenes ni modifican ADB, udev o USBGuard.
 
 ## Fallos conocidos
 
@@ -201,12 +282,37 @@ legacy.
 descargues binarios antiguos automáticamente ni uses ese navegador para cuentas
 personales.
 
+### la base histórica v123 es anterior a v180
+
+**Causa:** el bootloader reportado corresponde al esquema histórico de base
+v123. Las guías antiguas del Flame no consideran esa base apta para imágenes
+posteriores.
+
+**Solución:** no intentes actualizar desde este helper. Primero serían
+necesarios una exportación validada, una imagen exacta para Flame, checksum,
+recuperación confirmada y autorización separada para el posible borrado.
+
+### no se puede verificar recovery sin reiniciar
+
+**Causa:** comprobar recovery o fastboot requiere cambiar el estado de arranque
+del teléfono y ya no sería una consulta completamente pasiva.
+
+**Solución:** el preflight deja el dato como pendiente. No uses reboot,
+desbloqueo de bootloader ni fastboot como parte de la evaluación actual.
+
 ## Changelog
 
 ### [Unreleased]
 
-- **feat:** añade diagnóstico USB, listado controlado y extracción segura para
-  Firefox OS separado de Android.
+- **feat:** añade inventario y preflight de compatibilidad histórica sin
+  modificar el teléfono.
+
+### v1.1.0 — 2026-09-02
+
+- **feat:** añade consultas fijas de modelo, base, B2G/Gecko, Gaia,
+  almacenamiento y configuración USB.
+- **docs:** documenta Firefox OS 2.5, JanOS, Capyloon y los prerrequisitos de
+  cualquier futura actualización.
 
 ### v1.0.0 — 2026-09-02
 

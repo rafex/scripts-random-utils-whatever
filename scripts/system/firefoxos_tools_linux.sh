@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 - Diagnóstico y lectura controlada de Firefox OS por USB.
+# v1.1.0 - Diagnóstico, inventario y lectura controlada de Firefox OS por USB.
 set -Eeuo pipefail
 
 umask 077
@@ -28,6 +28,20 @@ UNKNOWN_COUNT=0
 TOTAL_COUNT=0
 AUTHORIZED_SERIAL=""
 
+DEVICE_MODEL=""
+DEVICE_NAME=""
+DEVICE_ANDROID_VERSION=""
+DEVICE_BUILD_ID=""
+DEVICE_BOOTLOADER=""
+DEVICE_B2G_VERSION=""
+DEVICE_B2G_BUILD_ID=""
+DEVICE_GAIA_VERSION=""
+DEVICE_BATTERY_LEVEL=""
+DEVICE_BATTERY_STATUS=""
+DEVICE_USB_CONFIG=""
+DEVICE_DF_OUTPUT=""
+DEVICE_USB_ID=""
+
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
 warn() { printf '⚠ %s\n' "$*" >&2; }
@@ -38,12 +52,14 @@ usage() {
 Uso:
   firefoxos_tools_linux.sh --status
   firefoxos_tools_linux.sh --devices
+  firefoxos_tools_linux.sh --inventory
+  firefoxos_tools_linux.sh --preflight
   firefoxos_tools_linux.sh --list --remote <ruta-absoluta>
   firefoxos_tools_linux.sh --pull --remote <ruta-absoluta> \
     --target ~/Documents/firefoxos-exports
 
-Diagnóstico y lectura controlada de Firefox OS por USB. No ofrece shell remoto,
-adb push, borrado, reinicio, desbloqueo, flasheo ni ADB por red.
+Diagnóstico, inventario y lectura controlada de Firefox OS por USB. No ofrece
+shell remoto, adb push, borrado, reinicio, desbloqueo, flasheo ni ADB por red.
 EOF
 }
 
@@ -58,6 +74,8 @@ parse_args() {
     case "$1" in
       --status|--check) choose_action status ;;
       --devices) choose_action devices ;;
+      --inventory) choose_action inventory ;;
+      --preflight) choose_action preflight ;;
       --list) choose_action list ;;
       --pull) choose_action pull ;;
       --remote)
@@ -314,6 +332,164 @@ show_devices() {
     warn 'la interfaz ADB está presente, pero adb no muestra el teléfono'
 }
 
+adb_getprop() {
+  local property="$1"
+  "$ADB_COMMAND" -s "$AUTHORIZED_SERIAL" shell getprop "$property" 2>/dev/null |
+    tr -d '\r' | sed -n '1p'
+}
+
+adb_read_fixed_file() {
+  local remote_file="$1"
+  "$ADB_COMMAND" -s "$AUTHORIZED_SERIAL" shell cat "$remote_file" 2>/dev/null |
+    tr -d '\r'
+}
+
+ini_value() {
+  local content="$1" key="$2"
+  awk -F= -v wanted_key="$key" '
+    $1 == wanted_key {
+      value = $0
+      sub(/^[^=]*=/, "", value)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' <<< "$content"
+}
+
+collect_device_inventory() {
+  local application_ini platform_ini gaia_ini
+
+  require_readable_device
+  DEVICE_USB_ID="$(detect_usb_id || true)"
+
+  DEVICE_MODEL="$(adb_getprop ro.product.model || true)"
+  DEVICE_NAME="$(adb_getprop ro.product.device || true)"
+  DEVICE_ANDROID_VERSION="$(adb_getprop ro.build.version.release || true)"
+  DEVICE_BUILD_ID="$(adb_getprop ro.build.id || true)"
+  DEVICE_BOOTLOADER="$(adb_getprop ro.bootloader || true)"
+  DEVICE_BATTERY_LEVEL="$(adb_getprop status.battery.level || true)"
+  DEVICE_BATTERY_STATUS="$(adb_getprop status.battery.status || true)"
+  DEVICE_USB_CONFIG="$(adb_getprop sys.usb.config || true)"
+
+  application_ini="$(adb_read_fixed_file /system/b2g/application.ini || true)"
+  platform_ini="$(adb_read_fixed_file /system/b2g/platform.ini || true)"
+  gaia_ini="$(adb_read_fixed_file /system/b2g/gaia/application.ini || true)"
+
+  DEVICE_B2G_VERSION="$(ini_value "$application_ini" Version)"
+  DEVICE_B2G_BUILD_ID="$(ini_value "$application_ini" BuildID)"
+  [[ -n "$DEVICE_B2G_BUILD_ID" ]] ||
+    DEVICE_B2G_BUILD_ID="$(ini_value "$platform_ini" BuildID)"
+  DEVICE_GAIA_VERSION="$(ini_value "$gaia_ini" Version)"
+
+  DEVICE_DF_OUTPUT="$("$ADB_COMMAND" -s "$AUTHORIZED_SERIAL" shell df /data /system /sdcard 2>/dev/null |
+    tr -d '\r' || true)"
+}
+
+display_value() {
+  local label="$1" value="$2"
+  if [[ -n "$value" ]]; then
+    printf '%s: %s\n' "$label" "$value"
+  else
+    printf '%s: N/D\n' "$label"
+  fi
+}
+
+show_device_storage() {
+  local found=0
+
+  if [[ -n "$DEVICE_DF_OUTPUT" ]]; then
+    while IFS='|' read -r mount total used available; do
+      [[ -n "$mount" ]] || continue
+      found=1
+      printf '  %s: total=%s KB usado=%s KB libre=%s KB\n' \
+        "$mount" "$total" "$used" "$available"
+    done < <(
+      awk '
+        NR > 1 && ($NF == "/data" || $NF == "/system" || $NF == "/sdcard" ||
+          $NF ~ /sdcard/) {
+          printf "%s|%s|%s|%s\n", $NF, $2, $3, $4
+        }
+      ' <<< "$DEVICE_DF_OUTPUT"
+    )
+  fi
+
+  (( found == 1 )) || printf '  almacenamiento: N/D\n'
+}
+
+historical_base_version() {
+  if [[ "$DEVICE_BOOTLOADER" =~ ([0-9]{3})0$ ]]; then
+    printf 'v%s\n' "${BASH_REMATCH[1]}"
+  fi
+}
+
+show_inventory() {
+  local base_version
+
+  collect_device_inventory
+  printf '═══ Inventario Firefox OS (solo lectura) ═══\n'
+  display_value 'Modelo' "$DEVICE_MODEL"
+  display_value 'Dispositivo' "$DEVICE_NAME"
+  display_value 'Android base' "$DEVICE_ANDROID_VERSION"
+  display_value 'Build Android' "$DEVICE_BUILD_ID"
+  display_value 'Bootloader' "$DEVICE_BOOTLOADER"
+  base_version="$(historical_base_version || true)"
+  display_value 'Base histórica estimada' "$base_version"
+  display_value 'B2G/Gecko' "$DEVICE_B2G_VERSION"
+  display_value 'Build B2G' "$DEVICE_B2G_BUILD_ID"
+  display_value 'Gaia' "$DEVICE_GAIA_VERSION"
+  display_value 'Batería reportada por getprop' "$DEVICE_BATTERY_LEVEL"
+  display_value 'Estado de batería reportado por getprop' "$DEVICE_BATTERY_STATUS"
+  display_value 'Configuración USB reportada' "$DEVICE_USB_CONFIG"
+  display_value 'Perfil USB detectado en el host' "$DEVICE_USB_ID"
+  printf 'ADB: un dispositivo Firefox OS autorizado en estado device\n'
+  printf 'Almacenamiento del teléfono:\n'
+  show_device_storage
+  info 'no se muestran seriales, IMEI, IMSI, credenciales ni archivos privados'
+  info 'inventario realizado sin reiniciar ni modificar el teléfono'
+}
+
+show_preflight() {
+  local base_version base_number
+
+  collect_device_inventory
+  printf '═══ Preflight Firefox OS (no destructivo) ═══\n'
+  ok 'ADB autorizado y perfil Firefox OS detectado'
+  display_value 'Modelo' "$DEVICE_MODEL"
+  display_value 'B2G/Gecko actual' "$DEVICE_B2G_VERSION"
+  display_value 'Base histórica estimada' "$(historical_base_version || true)"
+
+  base_version="$(historical_base_version || true)"
+  base_number="${base_version#v}"
+  if [[ "$base_number" =~ ^[0-9]+$ && "$base_number" -lt 180 ]]; then
+    warn "la base histórica $base_version es anterior a v180; la ruta legacy de actualización exige una base v180 o superior"
+  elif [[ "$base_number" =~ ^[0-9]+$ ]]; then
+    ok "la base histórica $base_version cumple el umbral legacy v180+; todavía no se ha verificado una imagen compatible"
+  else
+    warn 'no se pudo determinar la base histórica; no se asumirá compatibilidad'
+  fi
+
+  if [[ "$DEVICE_B2G_VERSION" == 28.* ]]; then
+    warn 'el B2G/Gecko actual es 28.x; Firefox OS 2.5 usa una plataforma histórica distinta y no se actualizará por OTA'
+  else
+    info 'la versión B2G/Gecko no coincide con el patrón conocido; se requiere verificación manual de compatibilidad'
+  fi
+
+  if [[ -n "$DEVICE_BATTERY_LEVEL" ]]; then
+    display_value 'Batería del teléfono' "$DEVICE_BATTERY_LEVEL"
+  else
+    warn 'batería del teléfono: N/D mediante las propiedades fijas permitidas; no se ejecuta dumpsys ni se reinicia para consultarla'
+  fi
+  display_value 'Perfil USB' "$DEVICE_USB_ID"
+  display_value 'Configuración USB' "$DEVICE_USB_CONFIG"
+  ok 'el ADB está autorizado; no se habilitará ADB por red'
+  warn 'la recuperación no se verifica en línea: hacerlo requeriría reiniciar o entrar en bootloader'
+  warn 'no hay imagen compatible verificada en esta evaluación; no se descargan imágenes ni se ejecutan comandos de flasheo'
+  warn 'cualquier ruta Firefox OS 2.5 o JanOS requiere exportación respaldada, checksum, recuperación confirmada y autorización independiente para borrar datos'
+  info 'JanOS para Flame queda como candidato comunitario documentado, no como sistema instalado ni validado en este teléfono'
+  info 'la evaluación terminó sin escribir en el teléfono, el host, ADB, udev o USBGuard'
+}
+
 require_readable_device() {
   [[ -n "$ADB_COMMAND" ]] || die 'adb no está instalado; ejecuta just install-android-tools --apply'
   [[ -n "$LSUSB_COMMAND" ]] || die 'lsusb no está disponible'
@@ -351,6 +527,8 @@ main() {
   case "$ACTION" in
     status) show_status ;;
     devices) show_devices ;;
+    inventory) show_inventory ;;
+    preflight) show_preflight ;;
     list) list_remote ;;
     pull) pull_remote ;;
     *) die "acción interna no soportada: $ACTION" ;;
