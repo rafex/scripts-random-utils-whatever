@@ -19,6 +19,7 @@ I3STATUS_CONFIG="$CONFIG_HOME/i3status/config"
 OPENBOX_CONFIG="$CONFIG_HOME/openbox/rc.xml"
 TINT2_CONFIG="$CONFIG_HOME/tint2/tint2rc"
 CONKY_CONFIG="$CONFIG_HOME/conky/conky.conf"
+EWW_CONFIG="$CONFIG_HOME/eww/eww.scss"
 XRESOURCES="$HOME/.Xresources"
 I3_THEME_BEGIN='# BEGIN rafex theme'
 I3_THEME_END='# END rafex theme'
@@ -121,7 +122,7 @@ validate_mode() {
   local file
   mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   [[ -d "$THEME_HOME/$mode" ]] || die "no existe la paleta: $THEME_HOME/$mode"
-  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf conky.conf; do
+  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf conky.conf eww.scss; do
     [[ -f "$THEME_HOME/$mode/$file" ]] || die "falta $THEME_HOME/$mode/$file"
   done
   if [[ -f "$OPENBOX_CONFIG" ]]; then
@@ -161,6 +162,11 @@ show_status() {
     printf 'conky-theme-block=present\n'
   else
     printf 'conky-theme-block=missing-or-inactive\n'
+  fi
+  if [[ -f "$EWW_CONFIG" ]] && grep -Fq 'BEGIN rafex eww theme' "$EWW_CONFIG"; then
+    printf 'eww-theme-block=present\n'
+  else
+    printf 'eww-theme-block=missing-or-inactive\n'
   fi
   for command_name in i3-msg tmux dunstctl; do
     if command -v "$command_name" >/dev/null 2>&1; then
@@ -383,6 +389,33 @@ sync_conky_theme() {
   fi
 }
 
+sync_eww_theme() {
+  local source_file temporary
+  [[ -f "$EWW_CONFIG" ]] || return 0
+  if ! grep -Fq 'BEGIN rafex eww theme' "$EWW_CONFIG"; then
+    warn "la configuración EWW no está administrada por Rafex; no se modifica: $EWW_CONFIG"
+    return 0
+  fi
+  source_file="$CURRENT_LINK/eww.scss"
+  [[ -f "$source_file" ]] || {
+    warn "no existe la plantilla EWW del tema: $source_file"
+    return 0
+  }
+  temporary="$(mktemp)"
+  cp -- "$source_file" "$temporary"
+  if cmp -s "$EWW_CONFIG" "$temporary"; then
+    rm -f -- "$temporary"
+  else
+    backup_file "$EWW_CONFIG"
+    chmod --reference="$EWW_CONFIG" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$EWW_CONFIG"
+  fi
+  if [[ -x "$HOME/.local/bin/eww-widgets.sh" ]] && [[ -n "${DISPLAY:-}" ]]; then
+    "$HOME/.local/bin/eww-widgets.sh" --reload >/dev/null 2>&1 ||
+      warn 'EWW no pudo recargar el tema'
+  fi
+}
+
 sync_i3status_theme() {
   local block_file temporary
   [[ -f "$I3STATUS_CONFIG" ]] || {
@@ -501,6 +534,7 @@ apply_mode() {
   sync_openbox_theme
   sync_tint2_theme
   sync_conky_theme
+  sync_eww_theme
   reload_desktop
   ok "tema activo: $mode"
 }

@@ -86,8 +86,13 @@ just install-rafex-control-panel --apply
 ```
 
 `feh` aplica el fondo mediante un helper común. `ratmenu` es el menú activo y
-`9menu` permanece como respaldo. EWW es un widget optativo sin autostart ni
-reserva de espacio. `i3lock-color` se instala en paralelo al `i3lock` de
+`9menu` permanece como respaldo. EWW instala, de forma opcional, una columna
+derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante
+`playerctl`, dispositivos y controles; usa `desktop`/`stacking bg`, no reserva
+espacio y permanece detrás de las ventanas. Se inicia automáticamente y se
+alterna con `Super+Control+W` o `just eww-widgets --toggle dashboard`. Sus
+acciones pasan por una allowlist sin comandos libres; el panel GTK sigue siendo
+el centro administrativo completo. `i3lock-color` se instala en paralelo al `i3lock` de
 Debian y se prueba manualmente con `just lock-screen --mode solid|image|blur`;
 no cambia `xss-lock`. El panel GTK se abre con `Super+Control+P`, desde
 ratmenu o desde el menú raíz de Openbox. No acepta comandos arbitrarios ni

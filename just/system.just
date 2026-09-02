@@ -67,8 +67,8 @@ age-file *args:
 rafex-ratmenu *args:
     bash scripts/system/rafex_ratmenu_linux.sh {{args}}
 
-# Abrir o cerrar widgets EWW opcionales sin reservar espacio
-# Uso: just eww-widgets --open status | --close status | --status
+# Abrir, cerrar, alternar o recargar la columna de widgets EWW sin reservar espacio
+# Uso: just eww-widgets --open dashboard | --close dashboard | --toggle dashboard | --reload | --status
 eww-widgets *args:
     bash scripts/system/eww_widgets_linux.sh {{args}}
 

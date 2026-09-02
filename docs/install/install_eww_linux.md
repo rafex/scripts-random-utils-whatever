@@ -1,6 +1,6 @@
 ---
 title: install_eww_linux.sh
-description: Compila EWW X11 fijado y prepara widgets opcionales sin reserva.
+description: Compila EWW X11 fijado e instala el dashboard Rafex sin reservar espacio.
 tags:
   - instalación
   - eww
@@ -9,11 +9,12 @@ tags:
 
 # install_eww_linux.sh
 
-Compila EWW `v0.6.0` con soporte X11 en el espacio del usuario.
+Compila EWW `v0.6.0` con soporte X11 en el espacio del usuario e instala una
+columna de widgets tipo dashboard para la ThinkPad.
 
 - **Ruta:** `scripts/install/install_eww_linux.sh`
 - **SO requerido:** Linux (Debian)
-- **Dependencias:** bash, git, cargo, rustc, compilador C, GTK3 y sudo solo para APT.
+- **Dependencias:** bash, git, cargo, rustc, compilador C, GTK3, `playerctl` y sudo solo para APT.
 
 ---
 
@@ -28,8 +29,10 @@ Compila EWW `v0.6.0` con soporte X11 en el espacio del usuario.
 
 ## Requisitos
 
-La primera aplicación descarga el código oficial y compila. No se activa ningún
-daemon ni autostart.
+La primera aplicación descarga el código oficial y compila. Después instala el
+dashboard `rafex-widgets`, sus helpers y bloques idempotentes de autostart para
+i3/Openbox. El dashboard se fija al monitor primario y el daemon solo se inicia
+dentro de la sesión gráfica del usuario.
 
 ## Uso
 
@@ -38,7 +41,7 @@ just install-eww --check
 just install-eww --plan
 just install-eww --apply
 just install-eww --status
-just eww-widgets --open status
+just eww-widgets --open dashboard
 ```
 
 ## Opciones
@@ -58,8 +61,9 @@ No requiere variables. El binario se instala en `~/.local/bin/eww`.
 
 ```bash
 just install-eww --apply
-just eww-widgets --open status
-just eww-widgets --close status
+just eww-widgets --open dashboard
+just eww-widgets --toggle dashboard
+just eww-widgets --close dashboard
 ```
 
 ## Fallos conocidos
@@ -90,7 +94,7 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
-- **feat:** añadir EWW X11 opcional con versión fijada.
+- **feat:** instalar dashboard Rafex derecho con calendario, multimedia, dispositivos y controles.
 
 ### v1.0.1 — 2026-09-01
 

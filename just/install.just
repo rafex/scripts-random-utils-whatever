@@ -279,7 +279,7 @@ install-feh *args:
 install-ratmenu *args:
     bash scripts/install/install_ratmenu_linux.sh {{args}}
 
-# Compilar EWW X11 v0.6.0 como widget opcional de usuario
+# Compilar EWW X11 v0.6.0 e instalar el dashboard Rafex de usuario
 # Uso: just install-eww --check|--plan|--apply|--status
 install-eww *args:
     bash scripts/install/install_eww_linux.sh {{args}}

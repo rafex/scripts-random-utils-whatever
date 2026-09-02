@@ -145,6 +145,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/conky_status_linux.sh` | Linux | conky-status | no | — | bajo | [doc](system/conky_status_linux.md) |
 | `scripts/system/set_wallpaper_linux.sh` | Linux | — | no | — | bajo | [doc](system/set_wallpaper_linux.md) |
 | `scripts/system/rafex_ratmenu_linux.sh` | Linux | rafex-ratmenu | no | — | bajo | [doc](system/rafex_ratmenu_linux.md) |
+| `scripts/system/eww_actions_linux.sh` | Linux | — | no | sí | medio | [doc](system/eww_actions_linux.md) |
 | `scripts/system/eww_widgets_linux.sh` | Linux | eww-widgets | no | sí | bajo | [doc](system/eww_widgets_linux.md) |
 | `scripts/system/lock_screen_linux.sh` | Linux | lock-screen | no | — | alto | [doc](system/lock_screen_linux.md) |
 | `scripts/system/rafex_control_panel.py` | Linux | rafex-control-panel | no | — | medio | [doc](system/rafex_control_panel.md) |

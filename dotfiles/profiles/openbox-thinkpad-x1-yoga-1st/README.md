@@ -25,6 +25,11 @@ predeterminada de LightDM.
   Se instalan por separado con `just install-clipboard --apply` y
   `just install-screenshot --apply`.
 - Picom no se inicia por defecto; se puede activar desde el centro de control.
+- EWW es opcional: `just install-eww --apply` instala una columna derecha
+  `rafex-widgets` con calendario, multimedia mediante `playerctl`, dispositivos
+  y controles rápidos. Usa `windowtype desktop`, `stacking bg`, no reserva
+  espacio y permanece detrás de las ventanas; se alterna con
+  `Super+Control+W` o `just eww-widgets --toggle dashboard`.
 
 ## Instalación
 
@@ -77,7 +82,8 @@ theme-toggle.sh --cycle
 ```
 
 El selector actualiza Openbox, tint2, Dunst, Rofi, Alacritty, rxvt-unicode,
-i3status y tmux cuando las configuraciones correspondientes existen.
+i3status, tmux y el estilo EWW cuando las configuraciones correspondientes
+existen.
 
 El panel GTK3 opcional se instala con `just install-rafex-control-panel --apply`.
 EWW e i3lock-color también son componentes opcionales y no activan servicios ni

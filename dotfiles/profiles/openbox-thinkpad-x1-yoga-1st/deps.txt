@@ -30,3 +30,4 @@ fonts-font-awesome
 fonts-noto-color-emoji
 python3-gi
 gir1.2-gtk-3.0
+playerctl

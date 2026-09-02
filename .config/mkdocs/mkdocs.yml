@@ -183,6 +183,7 @@ nav:
       - set_wallpaper_linux: system/set_wallpaper_linux.md
       - rafex_ratmenu_linux: system/rafex_ratmenu_linux.md
       - eww_widgets_linux: system/eww_widgets_linux.md
+      - eww_actions_linux: system/eww_actions_linux.md
       - lock_screen_linux: system/lock_screen_linux.md
       - rafex_control_panel: system/rafex_control_panel.md
   - macOS:

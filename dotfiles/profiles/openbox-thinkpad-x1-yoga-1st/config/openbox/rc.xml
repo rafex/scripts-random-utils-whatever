@@ -83,6 +83,9 @@
     <keybind key="W-Shift-b"><action name="Execute"><command>~/.local/bin/rofi-search.sh browser</command></action></keybind>
     <keybind key="W-F9"><action name="Execute"><command>~/.local/bin/rafex-ratmenu.sh</command></action></keybind>
     <keybind key="W-C-p"><action name="Execute"><command>~/.local/bin/rafex-control-panel.sh</command></action></keybind>
+    <!-- BEGIN rafex eww -->
+    <keybind key="W-C-w"><action name="Execute"><command>~/.local/bin/eww-widgets.sh --toggle dashboard</command></action></keybind>
+    <!-- END rafex eww -->
     <keybind key="W-Shift-t"><action name="Execute"><command>~/.local/bin/theme-toggle.sh --toggle</command></action></keybind>
     <keybind key="W-Shift-p"><action name="Execute"><command>~/.local/bin/picom-toggle.sh</command></action></keybind>
     <keybind key="W-Shift-v"><action name="Execute"><command>~/.local/bin/clipboard-menu.sh --show</command></action></keybind>

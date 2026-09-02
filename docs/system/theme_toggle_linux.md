@@ -1,6 +1,6 @@
 ---
 title: theme_toggle_linux.sh
-description: Selector de cuatro paletas para i3, Openbox, tint2, Conky, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
+description: Selector de cuatro paletas para i3, Openbox, tint2, Conky, EWW, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
 tags:
   - i3
   - temas
@@ -10,7 +10,7 @@ tags:
 # theme_toggle_linux.sh
 
 Activa las paletas `paper`, `nord`, `everforest` y `dracula` del perfil
-ThinkPad para i3, Openbox, tint2, i3status, Conky, tmux, Alacritty,
+ThinkPad para i3, Openbox, tint2, i3status, Conky, EWW, tmux, Alacritty,
 rxvt-unicode, Rofi y Dunst sin usar `sudo`.
 
 - **Ruta:** `scripts/system/theme_toggle_linux.sh`
@@ -60,6 +60,9 @@ existe una sesión gráfica. Si la sesión activa es Openbox, también actualiza
 su tema `~/.themes/Rafex-*/openbox-3/themerc`, el bloque administrado de
 `~/.config/openbox/rc.xml`, el bloque de colores de `~/.config/tint2/tint2rc`
 y el bloque de colores de `~/.config/conky/conky.conf` si Conky está instalado.
+Si el dashboard EWW administrado existe, reemplaza solo su estilo por la
+paleta activa y recarga únicamente el daemon EWW de usuario; la geometría y el
+fondo transparente permanecen sin cambios.
 Si la sesión activa es i3, solo recarga i3; no intenta conectarse a un socket
 de i3 inexistente desde Openbox.
 
