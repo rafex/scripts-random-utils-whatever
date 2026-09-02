@@ -110,6 +110,13 @@ binario oficial.
 ### [Unreleased]
 - **feat:** añadir compilación paralela, wrapper y activación idempotente en i3/Openbox.
 
+### v1.2.3 — 2026-09-02
+
+**fix:** eliminar autoinicios duplicados de `xss-lock` durante la migración.
+
+- Se conserva únicamente el autoinicio administrado del wrapper de bloqueo.
+- Se evita iniciar simultáneamente los modos `image`, `solid` y `blur`.
+
 ### v1.2.2 — 2026-09-02
 
 **fix:** evitar que el contenido del bloque administrado se conserve al migrarlo.

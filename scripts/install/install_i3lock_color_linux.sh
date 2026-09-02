@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_i3lock_color_linux.sh v1.2.2
+# install_i3lock_color_linux.sh v1.2.3
 # Compila i3lock-color y lo activa mediante el wrapper del perfil.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -136,6 +136,8 @@ EOF
       # Skip the previous managed block after emitting its canonical version.
       inside { next }
       !inside && ($0 == legacy_xss || $0 == legacy_binding) { next }
+      # Keep exactly one xss-lock wrapper outside the managed block.
+      !inside && $0 ~ /^[[:space:]]*exec --no-startup-id xss-lock --transfer-sleep-lock -- (~\/\.local\/bin\/lock-screen\.sh|\$HOME\/\.local\/bin\/lock-screen\.sh) --mode (solid|image|blur)[[:space:]]*$/ { next }
       # Remove only old Super+Shift+L lock bindings; preserve every other user binding.
       !inside && is_legacy_lock_binding($0) { next }
       { print }
