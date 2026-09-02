@@ -399,6 +399,9 @@ reconecta el cable antes de consultar:
 ```sh
 just firefoxos-tools --status
 just firefoxos-tools --devices
+just firefoxos-tools --inventory
+just firefoxos-tools --preflight
+just firefoxos-tools --verify-base --archive ~/Downloads/v18D.zip
 just firefoxos-tools --list --remote /
 just firefoxos-tools --pull --remote /data \
   --target ~/Documents/firefoxos-exports

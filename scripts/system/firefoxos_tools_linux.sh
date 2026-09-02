@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.1.0 - Diagnóstico, inventario y lectura controlada de Firefox OS por USB.
+# v1.2.0 - Diagnóstico, verificación de base y lectura controlada de Firefox OS por USB.
 set -Eeuo pipefail
 
 umask 077
@@ -8,12 +8,16 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH
 
 readonly FIREFOXOS_USB_IDS=("05c6:9025" "05c6:9026")
 readonly EXPORT_ROOT="${HOME}/Documents/firefoxos-exports"
+readonly BASE_ARCHIVE_NAME="v18D.zip"
+readonly BASE_ARCHIVE_SHA512="2befa6d7c1202f8bc9e5dab75d644387cffa727b362ad0508981eac2a910f7dfbd3938d915d259476750d8a74af7de96c811788d35a1d3311d65e72ce5026076"
 
 ACTION="status"
 ACTION_EXPLICIT=0
 REMOTE_PATH="/"
 REMOTE_EXPLICIT=0
 TARGET_PATH=""
+BASE_ARCHIVE_PATH=""
+BASE_ARCHIVE_EXPLICIT=0
 
 ADB_COMMAND=""
 LSUSB_COMMAND=""
@@ -54,12 +58,14 @@ Uso:
   firefoxos_tools_linux.sh --devices
   firefoxos_tools_linux.sh --inventory
   firefoxos_tools_linux.sh --preflight
+  firefoxos_tools_linux.sh --verify-base --archive ~/Downloads/v18D.zip
   firefoxos_tools_linux.sh --list --remote <ruta-absoluta>
   firefoxos_tools_linux.sh --pull --remote <ruta-absoluta> \
     --target ~/Documents/firefoxos-exports
 
-Diagnóstico, inventario y lectura controlada de Firefox OS por USB. No ofrece
-shell remoto, adb push, borrado, reinicio, desbloqueo, flasheo ni ADB por red.
+Diagnóstico, verificación local de una base y lectura controlada de Firefox OS
+por USB. No ofrece shell remoto, adb push, borrado, reinicio, desbloqueo,
+flasheo ni ADB por red.
 EOF
 }
 
@@ -76,6 +82,7 @@ parse_args() {
       --devices) choose_action devices ;;
       --inventory) choose_action inventory ;;
       --preflight) choose_action preflight ;;
+      --verify-base) choose_action verify-base ;;
       --list) choose_action list ;;
       --pull) choose_action pull ;;
       --remote)
@@ -89,6 +96,12 @@ parse_args() {
         TARGET_PATH="$2"
         shift
         ;;
+      --archive)
+        (($# >= 2)) || die '--archive requiere la ruta del archivo ZIP local'
+        BASE_ARCHIVE_PATH="$2"
+        BASE_ARCHIVE_EXPLICIT=1
+        shift
+        ;;
       --help|-h) usage; exit 0 ;;
       *) die "opción desconocida: $1" ;;
     esac
@@ -100,6 +113,12 @@ parse_args() {
   fi
   if [[ "$ACTION" != pull && -n "$TARGET_PATH" ]]; then
     die '--target solo se puede usar con --pull'
+  fi
+  if [[ "$ACTION" != verify-base && "$BASE_ARCHIVE_EXPLICIT" -eq 1 ]]; then
+    die '--archive solo se puede usar con --verify-base'
+  fi
+  if [[ "$ACTION" == verify-base ]]; then
+    [[ "$BASE_ARCHIVE_EXPLICIT" -eq 1 ]] || die '--verify-base requiere --archive <archivo>'
   fi
   if [[ "$ACTION" == pull ]]; then
     [[ "$REMOTE_EXPLICIT" -eq 1 ]] || die '--pull requiere --remote <ruta-absoluta>'
@@ -418,9 +437,23 @@ show_device_storage() {
 }
 
 historical_base_version() {
-  if [[ "$DEVICE_BOOTLOADER" =~ ([0-9]{3})0$ ]]; then
+  local bootloader_suffix="${DEVICE_BOOTLOADER: -4}"
+  if [[ "$bootloader_suffix" =~ ^([0-9A-Fa-f]{3})0$ ]]; then
     printf 'v%s\n' "${BASH_REMATCH[1]}"
   fi
+}
+
+base_meets_v180() {
+  local base_version="$1" base_number
+
+  base_number="${base_version#v}"
+  if [[ "$base_number" =~ ^[0-9]+$ ]]; then
+    [[ "$base_number" -ge 180 ]]
+    return
+  fi
+
+  # The historical v18D suffix is hexadecimal-style and is newer than v180.
+  [[ "$base_number" =~ ^18[0-9A-Fa-f]$ ]]
 }
 
 show_inventory() {
@@ -450,7 +483,7 @@ show_inventory() {
 }
 
 show_preflight() {
-  local base_version base_number
+  local base_version
 
   collect_device_inventory
   printf '═══ Preflight Firefox OS (no destructivo) ═══\n'
@@ -460,10 +493,9 @@ show_preflight() {
   display_value 'Base histórica estimada' "$(historical_base_version || true)"
 
   base_version="$(historical_base_version || true)"
-  base_number="${base_version#v}"
-  if [[ "$base_number" =~ ^[0-9]+$ && "$base_number" -lt 180 ]]; then
+  if [[ -n "$base_version" ]] && ! base_meets_v180 "$base_version"; then
     warn "la base histórica $base_version es anterior a v180; la ruta legacy de actualización exige una base v180 o superior"
-  elif [[ "$base_number" =~ ^[0-9]+$ ]]; then
+  elif [[ -n "$base_version" ]]; then
     ok "la base histórica $base_version cumple el umbral legacy v180+; todavía no se ha verificado una imagen compatible"
   else
     warn 'no se pudo determinar la base histórica; no se asumirá compatibilidad'
@@ -488,6 +520,107 @@ show_preflight() {
   warn 'cualquier ruta Firefox OS 2.5 o JanOS requiere exportación respaldada, checksum, recuperación confirmada y autorización independiente para borrar datos'
   info 'JanOS para Flame queda como candidato comunitario documentado, no como sistema instalado ni validado en este teléfono'
   info 'la evaluación terminó sin escribir en el teléfono, el host, ADB, udev o USBGuard'
+}
+
+archive_entries() {
+  local archive="$1"
+  unzip -Z1 -- "$archive" 2>/dev/null
+}
+
+find_archive_entry() {
+  local entries="$1" filename="$2"
+  awk -F/ -v wanted="$filename" '$NF == wanted { print; exit }' <<< "$entries"
+}
+
+verify_archive_paths() {
+  local entries="$1"
+
+  ! awk '
+    $0 ~ /^\// || $0 == ".." || $0 ~ /(^|\/)\.\.\// { found = 1 }
+    END { exit(found ? 0 : 1) }
+  ' <<< "$entries"
+}
+
+verify_base_archive() {
+  local archive_path archive_real actual_sha entries flash_sh_entry flash_bat_entry
+  local flash_script image_count system_image_count has_flame=0
+
+  archive_path="$BASE_ARCHIVE_PATH"
+  [[ "$archive_path" != *$'\n'* && "$archive_path" != *$'\r'* ]] ||
+    die '--archive no puede contener saltos de línea'
+  [[ -f "$archive_path" ]] || die "no existe un archivo regular: $archive_path"
+  [[ -r "$archive_path" ]] || die "no se puede leer el archivo: $archive_path"
+  [[ "$(basename -- "$archive_path")" == "$BASE_ARCHIVE_NAME" ]] ||
+    die "el archivo debe llamarse exactamente $BASE_ARCHIVE_NAME"
+
+  archive_real="$(readlink -f -- "$archive_path" 2>/dev/null)" ||
+    die 'no se pudo resolver la ruta del archivo ZIP'
+  [[ -f "$archive_real" && -r "$archive_real" ]] ||
+    die 'la ruta resuelta no es un archivo legible'
+  command -v sha512sum >/dev/null 2>&1 || die 'sha512sum no está disponible'
+  command -v unzip >/dev/null 2>&1 || die 'unzip no está disponible'
+
+  printf '═══ Verificación local de base Firefox OS ═══\n'
+  printf 'Archivo: %s\n' "$archive_real"
+  printf 'Candidato: %s\n' "$BASE_ARCHIVE_NAME"
+  info 'calculando SHA512; no se ejecutará ningún contenido del archivo'
+  actual_sha="$(sha512sum -- "$archive_real" | awk '{print $1}')" ||
+    die 'no se pudo calcular SHA512'
+  if [[ "$actual_sha" != "$BASE_ARCHIVE_SHA512" ]]; then
+    printf 'SHA512 obtenido: %s\n' "$actual_sha"
+    die 'SHA512 no coincide con el candidato histórico v18D; no se considera utilizable'
+  fi
+  ok 'SHA512 coincide con el candidato histórico v18D'
+
+  unzip -tqq -- "$archive_real" >/dev/null ||
+    die 'la estructura ZIP está dañada o no puede probarse'
+  ok 'estructura ZIP legible y prueba de integridad completada'
+
+  entries="$(archive_entries "$archive_real")" || die 'no se pudo listar el contenido del ZIP'
+  [[ -n "$entries" ]] || die 'el ZIP no contiene entradas'
+  verify_archive_paths "$entries" ||
+    die 'el ZIP contiene rutas absolutas o segmentos ..; se rechaza'
+  ok 'las rutas internas del ZIP no contienen traversal'
+
+  flash_sh_entry="$(find_archive_entry "$entries" flash.sh)"
+  flash_bat_entry="$(find_archive_entry "$entries" flash.bat)"
+  [[ -n "$flash_sh_entry" ]] ||
+    die 'falta flash.sh; no se considera una base Linux compatible'
+  ok "flash.sh encontrado: $flash_sh_entry"
+  if [[ -n "$flash_bat_entry" ]]; then
+    ok "flash.bat encontrado: $flash_bat_entry"
+  else
+    warn 'flash.bat no está presente; el candidato sigue siendo evaluable para Linux'
+  fi
+
+  flash_script="$(unzip -p -- "$archive_real" "$flash_sh_entry" 2>/dev/null)" ||
+    die 'no se pudo leer flash.sh sin ejecutarlo'
+  grep -Eiq '(^|[^[:alnum:]_])fastboot([^[:alnum:]_]|$)' <<< "$flash_script" ||
+    die 'flash.sh no contiene una invocación reconocible de fastboot'
+  ok 'flash.sh referencia fastboot y solo fue inspeccionado como texto'
+  if grep -Eiq 'flame|flame-kk|t2mobile' <<< "$flash_script"; then
+    has_flame=1
+  fi
+
+  image_count="$(awk 'tolower($0) ~ /(^|\/)(boot|system|userdata|recovery|cache).*\.img$/ { count++ } END { print count + 0 }' <<< "$entries")"
+  system_image_count="$(awk 'tolower($0) ~ /(^|\/)system[^\/]*\.img$/ { count++ } END { print count + 0 }' <<< "$entries")"
+  if [[ "$image_count" -gt 0 ]]; then
+    ok "imágenes de partición reconocibles: $image_count"
+  else
+    die 'no se encontraron imágenes de partición esperadas'
+  fi
+  [[ "$system_image_count" -gt 0 ]] || die 'falta una imagen system*.img'
+  ok 'imagen system*.img encontrada'
+
+  if [[ "$has_flame" -eq 1 ]]; then
+    ok 'flash.sh contiene una referencia a Flame'
+  else
+    die 'flash.sh no contiene una referencia reconocible a Flame'
+  fi
+
+  printf 'Resultado: CANDIDATO VERIFICADO PARA PREPARACIÓN MANUAL\n'
+  warn 'esto no autoriza reiniciar, entrar en fastboot ni ejecutar un flasheo'
+  info 'la verificación no escribió en el teléfono ni descargó archivos'
 }
 
 require_readable_device() {
@@ -529,6 +662,7 @@ main() {
     devices) show_devices ;;
     inventory) show_inventory ;;
     preflight) show_preflight ;;
+    verify-base) verify_base_archive ;;
     list) list_remote ;;
     pull) pull_remote ;;
     *) die "acción interna no soportada: $ACTION" ;;

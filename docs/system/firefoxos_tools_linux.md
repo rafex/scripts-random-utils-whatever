@@ -11,13 +11,13 @@ tags:
 # firefoxos_tools_linux.sh
 
 Helper separado del flujo Android para diagnosticar un teléfono Firefox OS
-legado por USB, generar un inventario técnico de solo lectura y, únicamente
-cuando ADB está autorizado, listar o extraer archivos hacia un directorio
-privado del usuario.
+legado por USB, generar un inventario técnico de solo lectura, verificar un
+archivo local de base `v18D.zip` y, únicamente cuando ADB está autorizado,
+listar o extraer archivos hacia un directorio privado del usuario.
 
 - **Ruta:** `scripts/system/firefoxos_tools_linux.sh`
 - **SO requerido:** Linux (Debian)
-- **Dependencias:** `bash`, `adb`, `lsusb`, `lsblk`, `readlink`, `stat`; `gio` es opcional para GVfs/MTP.
+- **Dependencias:** `bash`, `adb`, `lsusb`, `lsblk`, `readlink`, `stat`; `sha512sum` y `unzip` son necesarios para `--verify-base`; `gio` es opcional para GVfs/MTP.
 
 ---
 
@@ -58,6 +58,7 @@ just firefoxos-tools --status
 just firefoxos-tools --devices
 just firefoxos-tools --inventory
 just firefoxos-tools --preflight
+just firefoxos-tools --verify-base --archive ~/Downloads/v18D.zip
 just firefoxos-tools --list --remote /
 just firefoxos-tools --pull --remote /data \
   --target ~/Documents/firefoxos-exports
@@ -73,8 +74,9 @@ El estado diferencia `sin USB`, `USB sin ADB`, `unauthorized`, `offline` y
 
 inventory es el primer diagnóstico recomendado después de autorizar ADB.
 preflight añade la interpretación de compatibilidad, pero no prepara ni
-descarga ninguna imagen. Ambas acciones son de solo lectura y no muestran
-números de serie.
+descarga ninguna imagen. `verify-base` lee un ZIP que ya existe en el equipo,
+comprueba su checksum y estructura, pero tampoco lo ejecuta ni lo instala.
+Estas acciones no muestran números de serie.
 
 ## Opciones
 
@@ -84,10 +86,12 @@ números de serie.
 | `--devices` | — | Consulta estados ADB sin mostrar números de serie. |
 | `--inventory` | — | Lee modelo, base, build, B2G/Gecko, Gaia, USB y almacenamiento del teléfono. |
 | `--preflight` | — | Evalúa, sin modificar, la compatibilidad histórica con Firefox OS 2.5 y JanOS. |
+| `--verify-base` | — | Verifica localmente el candidato histórico `v18D.zip`, sin reiniciar ni flashear. |
 | `--list` | — | Ejecuta únicamente `adb shell ls -la` sobre la ruta indicada. |
 | `--pull` | — | Extrae una ruta mediante `adb pull` al directorio permitido. |
 | `--remote <ruta>` | — | Ruta absoluta remota, obligatoria para `--list` y `--pull`. |
 | `--target <directorio>` | — | Directorio bajo `~/Documents/firefoxos-exports`, obligatorio para `--pull`. |
+| `--archive <archivo>` | — | Archivo local, obligatorio para `--verify-base`; debe llamarse `v18D.zip`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 Acciones nuevas:
@@ -96,6 +100,8 @@ Acciones nuevas:
   del teléfono.
 - preflight: evalúa, sin modificar, la compatibilidad histórica con Firefox OS
   2.5 y JanOS.
+- verify-base: verifica el checksum SHA512 y la estructura de una copia local
+  de `v18D.zip`; no descarga, reinicia ni flashea.
 
 ## Variables de entorno
 
@@ -121,6 +127,52 @@ mkdir -p ~/Documents/firefoxos-exports
 just firefoxos-tools --pull --remote /data \
   --target ~/Documents/firefoxos-exports
 ```
+
+### Verificación local de `v18D.zip`
+
+La fase histórica seleccionada para este equipo es la base estable `v18D.zip`.
+La suma SHA512 publicada en los archivos históricos de Firefox OS es:
+
+```text
+SHA512(v18D.zip)=2befa6d7c1202f8bc9e5dab75d644387cffa727b362ad0508981eac2a910f7dfbd3938d915d259476750d8a74af7de96c811788d35a1d3311d65e72ce5026076
+```
+
+Cuando consigas una copia por un medio externo, guárdala fuera del repositorio
+y ejecuta:
+
+```bash
+just firefoxos-tools --verify-base --archive ~/Downloads/v18D.zip
+```
+
+El verificador exige el nombre exacto `v18D.zip`, calcula SHA512, prueba que el
+ZIP sea legible, rechaza rutas internas peligrosas, busca `flash.sh`, revisa
+que el script solo se inspeccione como texto y comprueba referencias a
+`fastboot`, `Flame` e imágenes de partición. Un resultado verificado solo
+significa que el archivo coincide con el artefacto histórico conocido; no
+autoriza todavía reiniciar, entrar en fastboot o flashear.
+
+La guía histórica de Mozilla describe `v18D.zip` como una base estable de
+producción para Firefox OS 2.0 y confirma que las bases v180 y posteriores
+usan Android KitKat. También advierte que el flasheo completo sobrescribe los
+datos del teléfono:
+[guía histórica de actualización](https://devdoc.net/web/developer.mozilla.org/en-US/Firefox_OS/Developer_phone_guide/Flame/Updating_your_Flame.html).
+
+#### Candidato rechazado: `sjarb_android4.4r4`
+
+El elemento de [Archive.org](https://archive.org/details/sjarb_android4.4r4)
+contiene `android-x86-4.4-r4.iso`, una ISO para computadoras x86, no firmware
+para el Mozilla Flame ARM/Qualcomm. El release oficial de
+[Android-x86 4.4-r4](https://www.android-x86.org/releases/releasenote-4-4-r4.html)
+confirma ese formato y arquitectura. No contiene `v18D.zip`, `flash.sh`,
+particiones del Flame ni una imagen válida para `fastboot`; no debe usarse con
+este teléfono. Puede ser útil únicamente como ISO para una máquina virtual
+Android-x86 en la ThinkPad.
+
+La existencia de un archivo en Archive.org o de un checksum SHA-1 no demuestra
+compatibilidad con el Flame. Los mirrors comunitarios de firmware solo se
+considerarán si corresponden al nombre esperado, tienen una fuente
+identificable y coinciden con el checksum histórico. La investigación actual
+no ha confirmado una copia descargable y confiable de `v18D.zip`.
 
 ### Diagnóstico USB sin ADB
 
@@ -230,9 +282,10 @@ OS no son APK: suelen ser aplicaciones web hosted o empaquetadas compatibles
 con B2G/WebIDE.
 
 Las acciones inventory y preflight solo ejecutan consultas fijas: getprop,
-lectura de archivos de versión y df. No ofrecen shell remoto, adb push,
-borrado, reinicio, root, remount, desbloqueo de bootloader ni flasheo.
-Tampoco descargan imágenes ni modifican ADB, udev o USBGuard.
+lectura de archivos de versión y df. `verify-base` solo lee el archivo local y
+lo inspecciona sin ejecutarlo. Ninguna de estas acciones ofrece shell remoto,
+adb push, borrado, reinicio, root, remount, desbloqueo de bootloader ni
+flasheo. Tampoco descargan imágenes ni modifican ADB, udev o USBGuard.
 
 ## Fallos conocidos
 
@@ -304,8 +357,16 @@ desbloqueo de bootloader ni fastboot como parte de la evaluación actual.
 
 ### [Unreleased]
 
-- **feat:** añade inventario y preflight de compatibilidad histórica sin
-  modificar el teléfono.
+- Cambios pendientes de release.
+
+### v1.2.0 — 2026-09-02
+
+- **feat:** añade verificación local del candidato histórico `v18D.zip` sin
+  descarga, reinicio ni flasheo.
+- **fix:** reconoce sufijos de bootloader alfanuméricos como `v18D` además de
+  bases numéricas como `v123`.
+- **docs:** registra el candidato Android-x86 de Archive.org como incompatible
+  con el Flame.
 
 ### v1.1.0 — 2026-09-02
 
