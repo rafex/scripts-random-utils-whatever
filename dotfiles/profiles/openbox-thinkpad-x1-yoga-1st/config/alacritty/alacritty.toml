@@ -1,3 +1,4 @@
+[general]
 import = ["~/.config/rafex/themes/current/alacritty.toml"]
 
 [env]

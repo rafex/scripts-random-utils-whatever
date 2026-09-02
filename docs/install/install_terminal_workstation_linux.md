@@ -187,6 +187,17 @@ runtime-use --list java
 `$HOME/.local/bin/start-thinkpad-tmux`, o elimina la tabla después de guardar un
 respaldo y vuelve a ejecutar el instalador.
 
+### `[WARN] Config warning: import has been deprecated`
+
+**Causa:** Alacritty moderno requiere que la clave `import` esté dentro de la
+sección `[general]`. El perfil Openbox antiguo podía dejarla en la raíz del
+archivo TOML.
+
+**Solución:** actualiza el repositorio y ejecuta
+`just install-openbox-profile --apply`; el instalador conserva un respaldo y
+instala la forma compatible `[general] import = [...]`. No es necesario
+modificar manualmente los archivos de temas.
+
 ### `LazyVim no se instaló porque ~/.config/nvim todavía existe`
 
 **Causa:** otro proceso creó la ruta después del respaldo o el directorio es un
