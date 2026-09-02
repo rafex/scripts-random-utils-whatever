@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# eww_widgets_linux.sh v1.2.0
+# eww_widgets_linux.sh v1.2.1
 # Controla la columna EWW administrada por Rafex sin reservar espacio del WM.
 set -Eeuo pipefail
 umask 077
@@ -101,7 +101,8 @@ window_state() {
 ensure_daemon() {
   local eww_bin="$1"
   "$eww_bin" ping >/dev/null 2>&1 && return 0
-  "$eww_bin" daemon >/dev/null 2>&1 &
+  # El daemon es persistente: nunca debe heredar el bloqueo de la operación.
+  "$eww_bin" daemon 9>&- >/dev/null 2>&1 &
   for _ in {1..20}; do
     sleep 0.2
     "$eww_bin" ping >/dev/null 2>&1 && return 0
@@ -127,7 +128,7 @@ open_window() {
     notify_error 'no se pudo consultar las ventanas activas de EWW; no se abrirá otra instancia'
     return 1
   fi
-  "$eww_bin" open "$WINDOW" || { notify_error 'EWW no pudo abrir rafex-widgets'; return 1; }
+  "$eww_bin" open "$WINDOW" 9>&- || { notify_error 'EWW no pudo abrir rafex-widgets'; return 1; }
   ok 'widgets EWW abiertos'
 }
 
@@ -143,7 +144,7 @@ close_window() {
     notify_error 'no se pudo consultar las ventanas activas de EWW; no se cerrará ninguna ventana'
     return 1
   elif [[ "$state" -eq 0 ]]; then
-    "$eww_bin" close "$WINDOW" || { notify_error 'EWW no pudo cerrar rafex-widgets'; return 1; }
+    "$eww_bin" close "$WINDOW" 9>&- || { notify_error 'EWW no pudo cerrar rafex-widgets'; return 1; }
     ok 'widgets EWW cerrados'
   else
     info 'rafex-widgets ya estaba cerrado'
@@ -219,11 +220,11 @@ main() {
         return 1
       }
       if [[ "$state" -eq 0 ]]; then
-        "$eww_bin" close "$WINDOW" || { notify_error 'EWW no pudo cerrar rafex-widgets antes de recargar'; return 1; }
+        "$eww_bin" close "$WINDOW" 9>&- || { notify_error 'EWW no pudo cerrar rafex-widgets antes de recargar'; return 1; }
       fi
-      "$eww_bin" reload || { notify_error 'EWW no pudo recargar su configuración'; return 1; }
+      "$eww_bin" reload 9>&- || { notify_error 'EWW no pudo recargar su configuración'; return 1; }
       if [[ "$state" -eq 0 ]]; then
-        "$eww_bin" open "$WINDOW" || { notify_error 'EWW no pudo volver a abrir rafex-widgets'; return 1; }
+        "$eww_bin" open "$WINDOW" 9>&- || { notify_error 'EWW no pudo volver a abrir rafex-widgets'; return 1; }
       fi
       ok 'configuración EWW recargada'
       ;;

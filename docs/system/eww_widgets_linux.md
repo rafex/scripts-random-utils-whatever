@@ -128,6 +128,16 @@ espera hasta 15 segundos para que termine la otra operación. Si el problema
 continúa, revisa `eww-widgets --status` y elimina únicamente bloques EWW
 duplicados administrados, conservando el resto de la configuración.
 
+### `--reload` queda esperando el bloqueo
+
+**Causa:** una versión anterior permitía que el daemon EWW heredara el
+descriptor del bloqueo exclusivo del helper y lo mantuviera abierto durante
+toda la sesión.
+
+**Solución:** termina una sola vez el daemon administrado con
+`~/.local/bin/eww kill` y abre de nuevo el dashboard. La versión actual cierra
+explícitamente el descriptor en el daemon y en las operaciones de ventana.
+
 ### La ventana no aparece sobre una aplicación
 
 **Causa:** es intencional: el tipo `desktop` y `stacking bg` la colocan detrás
@@ -139,6 +149,7 @@ convertir en `dock` o `fg`, porque podría reservar espacio o quedar encima.
 ## Changelog
 
 ### [Unreleased]
+- **fix:** evitar que el daemon EWW herede el descriptor de `flock` y bloquee futuras operaciones.
 - **style:** añadir emojis e indicadores `−/+` a todos los controles rápidos del dashboard.
 - **fix:** evitar aperturas duplicadas con `exec` en i3 y un bloqueo exclusivo por usuario.
 - **fix:** consultar ventanas con `active-windows` de EWW v0.6 y evitar que el atajo vuelva a abrir el dashboard cuando no pudo leer su estado.

@@ -93,6 +93,15 @@ operaciones de apertura simultáneas antes de que EWW registrara la ventana.
 `i3-msg reload` o Openbox con `openbox --reconfigure`. El autostart actualizado
 usa `exec` y `eww-widgets.sh` usa un bloqueo exclusivo por usuario.
 
+### `--reload` queda esperando
+
+**Causa:** una versión anterior dejaba que el daemon EWW heredara el descriptor
+del bloqueo exclusivo del helper.
+
+**Solución:** termina una sola vez el daemon administrado con
+`~/.local/bin/eww kill` y abre de nuevo el dashboard. El helper actual cierra
+el descriptor antes de iniciar procesos EWW de larga duración.
+
 ### `error[E0282]: type annotations needed for Box<_>` en `time 0.3.34`
 
 **Causa:** el `Cargo.lock` de EWW `v0.6.0` puede resolver `time 0.3.34`, cuya
@@ -112,6 +121,7 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
+- **fix:** cerrar el descriptor de `flock` antes de iniciar el daemon y las ventanas EWW.
 - **style:** añadir emojis e indicadores `−/+` a las funciones de EWW.
 - **fix:** hacer el autostart y la apertura del dashboard idempotentes mediante `exec` y `flock`.
 - **fix:** recargar la ventana administrada de forma explícita para conservar el apilado X11 `desktop/bg` después de cambios de configuración.
