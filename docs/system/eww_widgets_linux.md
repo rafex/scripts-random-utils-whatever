@@ -36,7 +36,9 @@ La ventana usa el monitor primario (`<primary>`), `windowtype desktop`,
 `stacking bg` y no tiene `reserve`. Por
 eso queda detrás de ventanas normales, no mueve el área útil de i3 y vuelve a
 verse cuando el escritorio queda libre. Sus botones solo son utilizables
-cuando la columna está expuesta.
+cuando la columna está expuesta. Los controles muestran iconos Unicode: pantalla
+con sol y `−/+` para brillo, teclado con `−/+`, altavoz con `−/+` y mute, y
+símbolos específicos para red, micrófono, captura, bloqueo y energía.
 
 ## Uso
 
@@ -137,6 +139,7 @@ convertir en `dock` o `fg`, porque podría reservar espacio o quedar encima.
 ## Changelog
 
 ### [Unreleased]
+- **style:** añadir emojis e indicadores `−/+` a todos los controles rápidos del dashboard.
 - **fix:** evitar aperturas duplicadas con `exec` en i3 y un bloqueo exclusivo por usuario.
 - **fix:** consultar ventanas con `active-windows` de EWW v0.6 y evitar que el atajo vuelva a abrir el dashboard cuando no pudo leer su estado.
 - **fix:** cerrar y abrir únicamente `rafex-widgets` al recargar para aplicar de nuevo `desktop` y `stacking bg` sin afectar ventanas EWW ajenas.

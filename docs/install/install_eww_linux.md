@@ -39,6 +39,10 @@ Para iconos y símbolos recomienda instalar antes `just install-fonts --apply
 --profile nerd`; EWW usa `JetBrainsMono Nerd Font Mono` y deja `Noto Color
 Emoji` como fallback para emojis Unicode.
 
+Los controles rápidos incluyen iconos y `−/+` para distinguir visualmente cada
+acción: pantalla y sol, teclado, volumen y mute, radios, micrófono, captura,
+bloqueo y energía.
+
 ## Uso
 
 ```bash
@@ -108,6 +112,7 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
+- **style:** añadir emojis e indicadores `−/+` a las funciones de EWW.
 - **fix:** hacer el autostart y la apertura del dashboard idempotentes mediante `exec` y `flock`.
 - **fix:** recargar la ventana administrada de forma explícita para conservar el apilado X11 `desktop/bg` después de cambios de configuración.
 - **fix:** actualizar el diagnóstico y el helper al comando `active-windows` de EWW v0.6.

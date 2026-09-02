@@ -43,7 +43,7 @@
     (card :title "🔔 NOTIFICACIONES"
       (box :orientation "h" :space-evenly false
         (label :class "value" :text rafex-notifications :xalign 0)
-        (button :class "small-button" :onclick "$HOME/.local/bin/eww-actions.sh --action notifications-history" "historial")))
+        (button :class "small-button" :onclick "$HOME/.local/bin/eww-actions.sh --action notifications-history" "📜 Historial")))
 
     (card :title "🔌 DISPOSITIVOS"
       (box :orientation "v" :space-evenly false
@@ -57,30 +57,30 @@
     (card :title "⚙️ CONTROLES RÁPIDOS"
       (box :orientation "v" :space-evenly false
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Pantalla −" :action "$HOME/.local/bin/eww-actions.sh --action screen-down")
-          (quick-button :label "Pantalla +" :action "$HOME/.local/bin/eww-actions.sh --action screen-up"))
+          (quick-button :label "🖥️☀️ −" :action "$HOME/.local/bin/eww-actions.sh --action screen-down")
+          (quick-button :label "🖥️☀️ +" :action "$HOME/.local/bin/eww-actions.sh --action screen-up"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Teclado −" :action "$HOME/.local/bin/eww-actions.sh --action kbd-down")
-          (quick-button :label "Teclado +" :action "$HOME/.local/bin/eww-actions.sh --action kbd-up"))
+          (quick-button :label "⌨️ −" :action "$HOME/.local/bin/eww-actions.sh --action kbd-down")
+          (quick-button :label "⌨️ +" :action "$HOME/.local/bin/eww-actions.sh --action kbd-up"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Volumen −" :action "$HOME/.local/bin/eww-actions.sh --action volume-down")
-          (quick-button :label "Volumen +" :action "$HOME/.local/bin/eww-actions.sh --action volume-up")
-          (quick-button :label "Mute" :action "$HOME/.local/bin/eww-actions.sh --action volume-mute"))
+          (quick-button :label "🔊 −" :action "$HOME/.local/bin/eww-actions.sh --action volume-down")
+          (quick-button :label "🔊 +" :action "$HOME/.local/bin/eww-actions.sh --action volume-up")
+          (quick-button :label "🔇" :action "$HOME/.local/bin/eww-actions.sh --action volume-mute"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Wi‑Fi" :action "$HOME/.local/bin/eww-actions.sh --action wifi-toggle")
-          (quick-button :label "WWAN" :action "$HOME/.local/bin/eww-actions.sh --action wwan-toggle")
-          (quick-button :label "Bluetooth" :action "$HOME/.local/bin/eww-actions.sh --action bluetooth-toggle"))
+          (quick-button :label "📶 Wi‑Fi" :action "$HOME/.local/bin/eww-actions.sh --action wifi-toggle")
+          (quick-button :label "📡 WWAN" :action "$HOME/.local/bin/eww-actions.sh --action wwan-toggle")
+          (quick-button :label "🔵 Bluetooth" :action "$HOME/.local/bin/eww-actions.sh --action bluetooth-toggle"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Micrófono" :action "$HOME/.local/bin/eww-actions.sh --action microphone-toggle")
-          (quick-button :label "Panel Rafex" :action "$HOME/.local/bin/eww-actions.sh --action control-panel"))
+          (quick-button :label "🎙️ Micrófono" :action "$HOME/.local/bin/eww-actions.sh --action microphone-toggle")
+          (quick-button :label "⚙️ Panel Rafex" :action "$HOME/.local/bin/eww-actions.sh --action control-panel"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Captura" :action "$HOME/.local/bin/eww-actions.sh --action screenshot")
-          (quick-button :label "Bloquear" :action "$HOME/.local/bin/eww-actions.sh --action lock"))
+          (quick-button :label "📸 Captura" :action "$HOME/.local/bin/eww-actions.sh --action screenshot")
+          (quick-button :label "🔒 Bloquear" :action "$HOME/.local/bin/eww-actions.sh --action lock"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Suspender" :action "$HOME/.local/bin/eww-actions.sh --action suspend")
-          (quick-button :label "Hibernar" :action "$HOME/.local/bin/eww-actions.sh --action hibernate"))
+          (quick-button :label "💤 Suspender" :action "$HOME/.local/bin/eww-actions.sh --action suspend")
+          (quick-button :label "🛌 Hibernar" :action "$HOME/.local/bin/eww-actions.sh --action hibernate"))
         (box :class "button-row" :orientation "h" :space-evenly true
-          (quick-button :label "Reiniciar" :action "$HOME/.local/bin/eww-actions.sh --action reboot")
-          (quick-button :label "Apagar" :action "$HOME/.local/bin/eww-actions.sh --action poweroff")
-          (quick-button :label "Cerrar sesión" :action "$HOME/.local/bin/eww-actions.sh --action logout"))))))
+          (quick-button :label "🔄 Reiniciar" :action "$HOME/.local/bin/eww-actions.sh --action reboot")
+          (quick-button :label "⏻ Apagar" :action "$HOME/.local/bin/eww-actions.sh --action poweroff")
+          (quick-button :label "🚪 Salir" :action "$HOME/.local/bin/eww-actions.sh --action logout"))))))
 ;; END rafex EWW dashboard
