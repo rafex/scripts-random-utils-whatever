@@ -78,6 +78,18 @@ modo sólido sigue disponible como alternativa explícita.
 
 ## Fallos conocidos
 
+### `Duplicate keybinding ... Super+Shift+l`
+
+**Causa:** una instalación anterior podía dejar fuera del bloque administrado
+un binding de `Super+Shift+l` que llamaba a `lock-screen.sh --mode solid` (o a
+`i3lock`). i3 considera ambas líneas el mismo atajo y rechaza la configuración
+completa.
+
+**Solución:** ejecuta `just install-i3lock-color --apply`. El instalador
+respalda la configuración y elimina únicamente las variantes antiguas de ese
+atajo antes de escribir el binding administrado en modo imagen. Después recarga
+i3 con `Mod4+Shift+r` y comprueba `just install-i3lock-color --status`.
+
 ### `i3 sigue usando el bloqueador oficial`
 
 **Causa:** se instaló el binario paralelo, pero no se ejecutó de nuevo
@@ -97,3 +109,10 @@ binario oficial.
 
 ### [Unreleased]
 - **feat:** añadir compilación paralela, wrapper y activación idempotente en i3/Openbox.
+
+### v1.2.1 — 2026-09-02
+
+**fix:** eliminar bindings legacy de `Super+Shift+l` que provocaban duplicados.
+
+- Se limpian variantes antiguas que invocaban el modo sólido o `i3lock`.
+- El estado reporta el conflicto antes de volver a aplicar la configuración.

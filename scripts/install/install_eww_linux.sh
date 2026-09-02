@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_eww_linux.sh v1.1.1
+# install_eww_linux.sh v1.2.0
 # Compila EWW fijado para X11 e instala los widgets Rafex sin reservar espacio.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -34,7 +34,8 @@ OPENBOX_RC_BEGIN="    <!-- BEGIN rafex eww -->"
 OPENBOX_RC_END="    <!-- END rafex eww -->"
 
 BUILD_PACKAGES=(git cargo rustc build-essential pkg-config libgtk-3-dev libpango1.0-dev
-  libdbusmenu-gtk3-dev libcairo2-dev libglib2.0-dev libgdk-pixbuf-2.0-dev playerctl)
+  libdbusmenu-gtk3-dev libcairo2-dev libglib2.0-dev libgdk-pixbuf-2.0-dev playerctl
+  util-linux)
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -96,7 +97,12 @@ replace_block() {
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
       function emit(line) { while ((getline line < block_file) > 0) print line; close(block_file) }
-      $0 == begin { emit(); inside=1; found=1; next }
+      $0 == begin {
+        if (!found) emit()
+        inside=1
+        found=1
+        next
+      }
       inside && $0 == end { inside=0; next }
       !inside { print }
       END { if (!found) { print ""; emit() } }
@@ -146,7 +152,7 @@ configure_integrations() {
   i3_block="$(mktemp)"
   cat > "$i3_block" <<'EOF'
 # BEGIN rafex eww
-exec_always --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/eww-widgets.sh" ]; then "$HOME/.local/bin/eww-widgets.sh" --open dashboard >/dev/null 2>&1; fi'
+exec --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/eww-widgets.sh" ]; then "$HOME/.local/bin/eww-widgets.sh" --open dashboard >/dev/null 2>&1; fi'
 bindsym $mod+Control+w exec --no-startup-id ~/.local/bin/eww-widgets.sh --toggle dashboard
 # END rafex eww
 EOF

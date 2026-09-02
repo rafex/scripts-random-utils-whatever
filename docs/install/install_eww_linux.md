@@ -14,7 +14,7 @@ columna de widgets tipo dashboard para la ThinkPad.
 
 - **Ruta:** `scripts/install/install_eww_linux.sh`
 - **SO requerido:** Linux (Debian)
-- **Dependencias:** bash, git, cargo, rustc, compilador C, GTK3, `playerctl` y sudo solo para APT.
+- **Dependencias:** bash, git, cargo, rustc, compilador C, GTK3, `playerctl`, `util-linux` (`flock`) y sudo solo para APT.
 
 ---
 
@@ -31,8 +31,13 @@ columna de widgets tipo dashboard para la ThinkPad.
 
 La primera aplicación descarga el código oficial y compila. Después instala el
 dashboard `rafex-widgets`, sus helpers y bloques idempotentes de autostart para
-i3/Openbox. El dashboard se fija al monitor primario y el daemon solo se inicia
-dentro de la sesión gráfica del usuario.
+i3/Openbox. En i3 el autostart usa `exec`, no `exec_always`; el helper además
+serializa operaciones con `flock`, por lo que reaplicar la instalación o
+recargar i3 no abre una segunda instancia. El dashboard se fija al monitor
+primario y el daemon solo se inicia dentro de la sesión gráfica del usuario.
+Para iconos y símbolos recomienda instalar antes `just install-fonts --apply
+--profile nerd`; EWW usa `JetBrainsMono Nerd Font Mono` y deja `Noto Color
+Emoji` como fallback para emojis Unicode.
 
 ## Uso
 
@@ -75,6 +80,15 @@ just eww-widgets --close dashboard
 **Solución:** ejecuta `--check`, instala las dependencias con `--apply` y revisa
 la salida de Cargo.
 
+### `EWW se abre dos veces`
+
+**Causa:** una configuración anterior podía usar `exec_always` o lanzar dos
+operaciones de apertura simultáneas antes de que EWW registrara la ventana.
+
+**Solución:** ejecuta `just install-eww --apply` y recarga i3 con
+`i3-msg reload` o Openbox con `openbox --reconfigure`. El autostart actualizado
+usa `exec` y `eww-widgets.sh` usa un bloqueo exclusivo por usuario.
+
 ### `error[E0282]: type annotations needed for Box<_>` en `time 0.3.34`
 
 **Causa:** el `Cargo.lock` de EWW `v0.6.0` puede resolver `time 0.3.34`, cuya
@@ -94,6 +108,7 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
+- **fix:** hacer el autostart y la apertura del dashboard idempotentes mediante `exec` y `flock`.
 - **fix:** recargar la ventana administrada de forma explícita para conservar el apilado X11 `desktop/bg` después de cambios de configuración.
 - **fix:** actualizar el diagnóstico y el helper al comando `active-windows` de EWW v0.6.
 

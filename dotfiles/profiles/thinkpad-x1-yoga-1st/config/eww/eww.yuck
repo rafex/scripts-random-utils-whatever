@@ -32,7 +32,7 @@
       (label :class "date" :text rafex-date :xalign 0)
       (label :class "calendar" :text rafex-calendar :xalign 0 :wrap true))
 
-    (card :title "MULTIMEDIA"
+    (card :title "🎵 MULTIMEDIA"
       (box :orientation "v" :space-evenly false
         (label :class "media" :text rafex-media :xalign 0 :wrap true)
         (box :class "button-row" :orientation "h" :space-evenly true
@@ -40,21 +40,21 @@
           (button :class "media-button" :onclick "$HOME/.local/bin/eww-actions.sh --action media-play" "▶/Ⅱ")
           (button :class "media-button" :onclick "$HOME/.local/bin/eww-actions.sh --action media-next" "⏭"))))
 
-    (card :title "NOTIFICACIONES"
+    (card :title "🔔 NOTIFICACIONES"
       (box :orientation "h" :space-evenly false
         (label :class "value" :text rafex-notifications :xalign 0)
         (button :class "small-button" :onclick "$HOME/.local/bin/eww-actions.sh --action notifications-history" "historial")))
 
-    (card :title "DISPOSITIVOS"
+    (card :title "🔌 DISPOSITIVOS"
       (box :orientation "v" :space-evenly false
         (label :class "value" :text rafex-devices :xalign 0)
         (label :class "value compact" :text rafex-printers :xalign 0)
         (label :class "value compact" :text rafex-scanner :xalign 0)))
 
-    (card :title "SALUD DE BATERÍA"
+    (card :title "🔋 SALUD DE BATERÍA"
       (label :class "value compact" :text rafex-battery :xalign 0))
 
-    (card :title "CONTROLES RÁPIDOS"
+    (card :title "⚙️ CONTROLES RÁPIDOS"
       (box :orientation "v" :space-evenly false
         (box :class "button-row" :orientation "h" :space-evenly true
           (quick-button :label "Pantalla −" :action "$HOME/.local/bin/eww-actions.sh --action screen-down")

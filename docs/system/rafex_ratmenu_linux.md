@@ -9,7 +9,9 @@ tags:
 
 # rafex_ratmenu_linux.sh
 
-Abre el menú ligero de aplicaciones, controles, capturas y energía.
+Abre el menú ligero de aplicaciones, controles, capturas y energía mediante
+ratmenu. Si ratmenu no está disponible, usa el menú 9menu versionado como
+fallback.
 
 - **Ruta:** `scripts/system/rafex_ratmenu_linux.sh`
 - **SO requerido:** Linux (Debian con X11)
@@ -68,3 +70,4 @@ just rafex-ratmenu
 
 ### [Unreleased]
 - **feat:** crear menú activo ratmenu con respaldo 9menu.
+- **fix:** activar fallback automático a 9menu cuando ratmenu no está disponible.

@@ -64,7 +64,7 @@ se modifica y puede elegirse nuevamente como recuperación.
 | `Super+Shift+P` | Activar o desactivar picom |
 | `Super+Control+P` | Panel de control Rafex |
 
-El menú raíz de Openbox y 9menu ofrecen capturas de pantalla, CopyQ, cerrar
+El menú raíz de Openbox abre ratmenu; 9menu ofrece el fallback y ambos ofrecen capturas de pantalla, CopyQ, cerrar
 sesión, suspender, hibernar, reiniciar y apagar. Las acciones sensibles siempre
 piden confirmación mediante Rofi; la hibernación solo se intenta si
 `loginctl can-hibernate` la anuncia como disponible. El brillo usa
@@ -84,6 +84,16 @@ theme-toggle.sh --cycle
 El selector actualiza Openbox, tint2, Dunst, Rofi, Alacritty, rxvt-unicode,
 i3status, tmux y el estilo EWW cuando las configuraciones correspondientes
 existen.
+
+Las fuentes base y la fuente de iconos para EWW se instalan por separado:
+
+```bash
+just install-fonts --apply --profile web-programming
+just install-fonts --apply --profile nerd
+```
+
+Los emojis Unicode usan `Noto Color Emoji`; `JetBrains Mono Nerd Font` aporta
+los glifos de iconos y se instala únicamente en la cuenta del usuario.
 
 El panel GTK3 opcional se instala con `just install-rafex-control-panel --apply`.
 EWW es opcional y no activa servicios privilegiados. `i3lock-color` también es

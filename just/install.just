@@ -204,8 +204,8 @@ install-antivirus *args:
 install-multimedia *args:
     bash scripts/install/install_multimedia_linux.sh {{args}}
 
-# Instalar fuentes web/programación o la cobertura CJK opcional
-# Uso: just install-fonts --apply --profile web-programming|cjk|all
+# Instalar fuentes web/programación, Nerd Font para EWW o cobertura CJK opcional
+# Uso: just install-fonts --apply --profile web-programming|nerd|cjk|all
 install-fonts *args:
     bash scripts/install/install_fonts_linux.sh {{args}}
 

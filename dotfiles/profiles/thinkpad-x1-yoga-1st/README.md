@@ -67,6 +67,11 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   Alacritty, rxvt-unicode, Rofi y Dunst. Nord es el tema inicial; se alternan
   con `Mod+Shift+T` o desde el centro de control. El color del texto de i3status
   se adapta a la paleta activa para conservar contraste en i3bar.
+- Las fuentes base se instalan con `just install-fonts --apply --profile
+  web-programming`; para los iconos de EWW y glifos adicionales se puede
+  añadir `just install-fonts --apply --profile nerd`. Los emojis Unicode usan
+  `Noto Color Emoji` como fallback y las Nerd Fonts se instalan solo para el
+  usuario.
 - Los gaps son nativos de i3: 2 píxeles internos, 3 externos y `smart_gaps`.
   Se verifican con `just install-i3-gaps --check` y se aplican con
   `just install-i3-gaps --apply`.
@@ -89,8 +94,9 @@ just install-rafex-control-panel --apply
 `9menu` permanece como respaldo. EWW instala, de forma opcional, una columna
 derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante
 `playerctl`, dispositivos y controles; usa `desktop`/`stacking bg`, no reserva
-espacio y permanece detrás de las ventanas. Se inicia automáticamente y se
-alterna con `Super+Control+W` o `just eww-widgets --toggle dashboard`. Sus
+espacio y permanece detrás de las ventanas. Se inicia automáticamente una sola
+vez; el helper usa `flock` para impedir aperturas simultáneas y el autostart de
+i3 no se repite al recargar. Se alterna con `Super+Control+W` o `just eww-widgets --toggle dashboard`. Sus
 acciones pasan por una allowlist sin comandos libres; el panel GTK sigue siendo
 el centro administrativo completo. `i3lock-color` se instala en paralelo al
 `i3lock` de Debian, pero el instalador activa su wrapper en el atajo
@@ -233,7 +239,7 @@ just generate-terminal-themes --apply --theme all
 ~/.local/bin/theme-toggle.sh --toggle
 ```
 
-`Mod+Shift+T`, la entrada `Tema claro/oscuro` de 9menu y las opciones de tema
+`Mod+Shift+T`, la entrada `Tema claro/oscuro` de ratmenu y las opciones de tema
 del centro Rofi ejecutan el mismo selector. `light` sigue siendo alias de Nord
 y `dark` de Dracula. Alacritty conserva el tamaño `7` y rxvt usa tamaño `10`
 para mantener una lectura cómoda en la pantalla de la ThinkPad.

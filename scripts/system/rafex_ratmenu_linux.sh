@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rafex_ratmenu_linux.sh v1.0.0
+# rafex_ratmenu_linux.sh v1.1.0
 # Menú ligero de acciones del perfil ThinkPad usando ratmenu.
 # shellcheck disable=SC2016
 set -Eeuo pipefail
@@ -7,10 +7,14 @@ umask 077
 
 export LC_ALL=C
 
-command -v ratmenu >/dev/null 2>&1 || {
-  printf '✗ ERROR: ratmenu no está instalado; 9menu permanece disponible como respaldo.\n' >&2
+if ! command -v ratmenu >/dev/null 2>&1; then
+  fallback_menu="${XDG_CONFIG_HOME:-$HOME/.config}/9menu/laptop.menu"
+  if command -v 9menu >/dev/null 2>&1 && [[ -s "$fallback_menu" ]]; then
+    exec 9menu -popup -label 'Rafex ThinkPad (fallback)' -file "$fallback_menu"
+  fi
+  printf '✗ ERROR: ratmenu no está instalado y no hay fallback 9menu disponible.\n' >&2
   exit 1
-}
+fi
 
 theme_file="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/theme"
 theme="nord"

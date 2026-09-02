@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_i3lock_color_linux.sh v1.2.0
+# install_i3lock_color_linux.sh v1.2.1
 # Compila i3lock-color y lo activa mediante el wrapper del perfil.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -47,15 +47,44 @@ installed() { dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q 'install o
 candidate() { LC_ALL=C apt-cache policy "$1" 2>/dev/null | awk '$1 == "Candidate:" && $2 != "(none)" {ok=1} END {exit !ok}'; }
 backup() { [[ -e "$1" ]] && { cp -a -- "$1" "$1.bak.$STAMP"; info "respaldo: $1.bak.$STAMP"; } || true; }
 
+has_legacy_i3_lock_binding() {
+  [[ -f "$I3_CONFIG" ]] || return 1
+  awk -v begin='# BEGIN rafex i3lock-color' -v end='# END rafex i3lock-color' \
+    -v legacy_prefix='bindsym $mod+Shift+l exec --no-startup-id ' '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+    function is_legacy_lock_binding(line, clean) {
+      clean=trim(line)
+      if (index(clean, legacy_prefix) != 1) return 0
+      clean=substr(clean, length(legacy_prefix) + 1)
+      return index(clean, "~/.local/bin/lock-screen.sh") == 1 ||
+        index(clean, "$HOME/.local/bin/lock-screen.sh") == 1 ||
+        index(clean, "i3lock") == 1
+    }
+    $0 == begin { inside=1; next }
+    $0 == end { inside=0; next }
+    !inside && is_legacy_lock_binding($0) { found=1 }
+    END { exit found ? 0 : 1 }
+  ' "$I3_CONFIG"
+}
+
 show_status() {
   echo "═══ i3lock-color ${VERSION} ═══"
   [[ -x "$TARGET" ]] && ok "binario paralelo presente: $TARGET" || warn 'i3lock-color no está instalado'
   if command -v i3lock >/dev/null 2>&1; then ok "i3lock oficial se conserva: $(command -v i3lock)"; fi
   [[ -x "$WRAPPER_TARGET" ]] && ok "wrapper lock-screen presente: $WRAPPER_TARGET" || warn "wrapper lock-screen ausente: $WRAPPER_TARGET"
+  local legacy_i3_binding=0
+  has_legacy_i3_lock_binding && legacy_i3_binding=1 || true
   if [[ -f "$I3_CONFIG" ]] &&
     grep -Fq -- 'exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode image' "$I3_CONFIG" &&
-    grep -Fq -- "bindsym \$mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode image" "$I3_CONFIG"; then
+    grep -Fq -- "bindsym \$mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode image" "$I3_CONFIG" &&
+    ((legacy_i3_binding == 0)); then
     ok 'i3 usa el wrapper i3lock-color en modo imagen para el atajo y xss-lock'
+  elif ((legacy_i3_binding)); then
+    warn 'i3 conserva un binding legacy de Super+Shift+L; ejecuta --apply para eliminar el duplicado'
   else
     warn 'i3 todavía no usa el modo imagen del wrapper'
   fi
@@ -83,7 +112,21 @@ bindsym $mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode ima
 EOF
   temporary="$(mktemp)"
   if [[ -f "$I3_CONFIG" ]]; then
-    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" -v legacy_xss='exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork' -v legacy_binding='bindsym $mod+Shift+l exec --no-startup-id i3lock -c 000000' '
+    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" -v legacy_xss='exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork' -v legacy_binding='bindsym $mod+Shift+l exec --no-startup-id i3lock -c 000000' \
+      -v legacy_prefix='bindsym $mod+Shift+l exec --no-startup-id ' '
+      function trim(value) {
+        sub(/^[[:space:]]+/, "", value)
+        sub(/[[:space:]]+$/, "", value)
+        return value
+      }
+      function is_legacy_lock_binding(line, clean) {
+        clean=trim(line)
+        if (index(clean, legacy_prefix) != 1) return 0
+        clean=substr(clean, length(legacy_prefix) + 1)
+        return index(clean, "~/.local/bin/lock-screen.sh") == 1 ||
+          index(clean, "$HOME/.local/bin/lock-screen.sh") == 1 ||
+          index(clean, "i3lock") == 1
+      }
       function emit(line) {
         while ((getline line < block_file) > 0) print line
         close(block_file)
@@ -91,6 +134,8 @@ EOF
       $0 == begin { emit(); inside=1; found=1; next }
       inside && $0 == end { inside=0; next }
       !inside && ($0 == legacy_xss || $0 == legacy_binding) { next }
+      # Remove only old Super+Shift+L lock bindings; preserve every other user binding.
+      !inside && is_legacy_lock_binding($0) { next }
       { print }
       END { if (!found) { print ""; emit() } }
     ' "$I3_CONFIG" > "$temporary"

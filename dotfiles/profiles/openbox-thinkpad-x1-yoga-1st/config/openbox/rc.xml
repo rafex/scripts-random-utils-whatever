@@ -152,7 +152,9 @@
   <mouse>
     <context name="Root">
       <mousebind button="Right" action="Press">
-        <action name="ShowMenu"><menu>root-menu</menu></action>
+        <!-- BEGIN rafex ratmenu root -->
+        <action name="Execute"><command>~/.local/bin/rafex-ratmenu.sh</command></action>
+        <!-- END rafex ratmenu root -->
       </mousebind>
     </context>
     <context name="Frame">

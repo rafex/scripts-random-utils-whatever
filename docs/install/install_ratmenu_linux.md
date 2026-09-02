@@ -9,7 +9,9 @@ tags:
 
 # install_ratmenu_linux.sh
 
-Configura el menú ligero del perfil Rafex para i3 y Openbox.
+Configura el menú ligero del perfil Rafex para i3 y Openbox. Ratmenu queda
+activo en los atajos y en el menú raíz de Openbox; `9menu` se conserva como
+fallback automático.
 
 - **Ruta:** `scripts/install/install_ratmenu_linux.sh`
 - **SO requerido:** Linux (Debian con X11)
@@ -29,7 +31,9 @@ Configura el menú ligero del perfil Rafex para i3 y Openbox.
 ## Requisitos
 
 `9menu` se conserva instalado y `~/.config/9menu/laptop.menu` permanece como
-respaldo. `ratmenu` ejecuta solo las acciones definidas por el helper.
+respaldo. `ratmenu` ejecuta solo las acciones definidas por el helper. Si
+ratmenu no está disponible, el mismo helper usa 9menu y ese archivo como
+fallback.
 
 ## Uso
 
@@ -46,7 +50,7 @@ just install-ratmenu --status
 |---|---|---|
 | `--check` | — | Comprueba candidato e integración. |
 | `--plan` | `--dry-run` | Simula la migración. |
-| `--apply` | — | Instala ratmenu y migra los accesos conocidos. |
+| `--apply` | — | Instala ratmenu, migra los accesos y cambia el menú raíz de Openbox. |
 | `--status` | — | Muestra ratmenu y el fallback. |
 
 ## Variables de entorno
@@ -70,7 +74,15 @@ just install-ratmenu --apply
 
 **Solución:** ejecuta `just install-ratmenu --apply`; usa 9menu mientras tanto.
 
+### `el menú raíz de Openbox aún usa su menú nativo`
+
+**Causa:** el perfil todavía no se ha aplicado después de instalar ratmenu.
+
+**Solución:** ejecuta `just install-ratmenu --apply` y después
+`openbox --reconfigure`. El cambio conserva una copia fechada de `rc.xml`.
+
 ## Changelog
 
 ### [Unreleased]
 - **feat:** incorporar ratmenu sin retirar 9menu.
+- **fix:** migrar el menú raíz de Openbox y usar 9menu automáticamente como fallback.

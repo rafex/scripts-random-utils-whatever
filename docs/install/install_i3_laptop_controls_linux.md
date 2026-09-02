@@ -44,7 +44,8 @@ El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
 `XF86WakeUp` y `XF86Tools`. `XF86LaunchA` baja y
 `XF86Explorer` sube el brillo del teclado. Si el firmware expone
 `XF86KbdBrightnessDown` y `XF86KbdBrightnessUp`, también quedan enlazados al
-mismo helper. `XF86Tools` abre el menú 9menu;
+`mismo helper. `XF86Tools` abre el menú ratmenu y usa 9menu únicamente como
+respaldo;
 `Mod+F9` es su acceso alternativo y `XF86WakeUp` abre solo energía y sesión.
 El navegador conserva un atajo alternativo en `Mod+Shift+b` y también
 está disponible en Rofi. El centro incluye `Software — Synaptic`, que

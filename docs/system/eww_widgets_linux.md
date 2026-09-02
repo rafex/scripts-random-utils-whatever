@@ -12,7 +12,7 @@ Controla la columna interactiva `rafex-widgets` de EWW del perfil ThinkPad.
 
 - **Ruta:** `scripts/system/eww_widgets_linux.sh`
 - **SO requerido:** Linux (X11)
-- **Dependencias:** bash, `eww` instalado por `install_eww_linux.sh`, `DISPLAY` para abrir la ventana.
+- **Dependencias:** bash, `eww` instalado por `install_eww_linux.sh`, `flock` (`util-linux`) y `DISPLAY` para abrir la ventana.
 
 ---
 
@@ -48,8 +48,12 @@ just eww-widgets --toggle dashboard
 just eww-widgets --reload
 ```
 
-El autostart se instala en i3 y Openbox. El atajo `Super+Control+W` alterna la
-ventana sin iniciar una segunda instancia.
+El autostart se instala en i3 y Openbox. En i3 usa `exec` en lugar de
+`exec_always`, por lo que una recarga de la configuración no vuelve a lanzar
+el dashboard. El helper también usa un bloqueo exclusivo temporal para
+serializar aperturas, cierres, toggles y recargas; de esta forma dos llamadas
+simultáneas no crean una segunda instancia. El atajo `Super+Control+W` alterna
+la ventana sin duplicarla.
 
 ## Opciones
 
@@ -111,6 +115,17 @@ abre ni cierra ninguna ventana. Ejecuta `just eww-widgets --status` para ver
 las ventanas activas y `just eww-widgets --reload` para reconstruir la
 ventana administrada.
 
+### `EWW se abre dos veces al iniciar sesión`
+
+**Causa:** un autostart con `exec_always` o dos llamadas simultáneas podían
+consultar el estado antes de que EWW registrara la ventana.
+
+**Solución:** ejecuta `just install-eww --apply`, que instala el autostart
+idempotente con `exec`. El helper usa `flock` en una ruta temporal privada y
+espera hasta 15 segundos para que termine la otra operación. Si el problema
+continúa, revisa `eww-widgets --status` y elimina únicamente bloques EWW
+duplicados administrados, conservando el resto de la configuración.
+
 ### La ventana no aparece sobre una aplicación
 
 **Causa:** es intencional: el tipo `desktop` y `stacking bg` la colocan detrás
@@ -122,6 +137,7 @@ convertir en `dock` o `fg`, porque podría reservar espacio o quedar encima.
 ## Changelog
 
 ### [Unreleased]
+- **fix:** evitar aperturas duplicadas con `exec` en i3 y un bloqueo exclusivo por usuario.
 - **fix:** consultar ventanas con `active-windows` de EWW v0.6 y evitar que el atajo vuelva a abrir el dashboard cuando no pudo leer su estado.
 - **fix:** cerrar y abrir únicamente `rafex-widgets` al recargar para aplicar de nuevo `desktop` y `stacking bg` sin afectar ventanas EWW ajenas.
 

@@ -30,7 +30,7 @@ exec_always --no-startup-id setxkbmap es
 exec_always --no-startup-id ~/.local/bin/conky-launch.sh
 # END rafex conky
 # BEGIN rafex eww
-exec_always --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/eww-widgets.sh" ]; then "$HOME/.local/bin/eww-widgets.sh" --open dashboard >/dev/null 2>&1; fi'
+exec --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/eww-widgets.sh" ]; then "$HOME/.local/bin/eww-widgets.sh" --open dashboard >/dev/null 2>&1; fi'
 bindsym $mod+Control+w exec --no-startup-id ~/.local/bin/eww-widgets.sh --toggle dashboard
 # END rafex eww
 # BEGIN rafex feh wallpaper

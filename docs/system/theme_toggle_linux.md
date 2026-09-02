@@ -104,7 +104,7 @@ No se aceptan credenciales ni se usa `.env`.
 
 ### Alternar desde i3
 
-Pulsa `Mod+Shift+T`, elige `Tema claro/oscuro` o una paleta concreta en 9menu,
+Pulsa `Mod+Shift+T`, elige `Tema claro/oscuro` o una paleta concreta en ratmenu,
 o abre el centro Rofi y selecciona la paleta deseada.
 
 ### Simular una activación

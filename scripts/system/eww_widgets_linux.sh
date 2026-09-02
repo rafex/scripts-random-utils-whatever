@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# eww_widgets_linux.sh v1.1.1
+# eww_widgets_linux.sh v1.2.0
 # Controla la columna EWW administrada por Rafex sin reservar espacio del WM.
 set -Eeuo pipefail
 umask 077
@@ -7,6 +7,8 @@ umask 077
 ACTION=status
 WINDOW=rafex-widgets
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/eww"
+LOCK_ROOT="${XDG_RUNTIME_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}}"
+LOCK_FILE="$LOCK_ROOT/rafex-eww-widgets.lock"
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -56,6 +58,19 @@ resolve_eww() {
   elif [[ -x "$HOME/.local/bin/eww" ]]; then
     printf '%s\n' "$HOME/.local/bin/eww"
   else
+    return 1
+  fi
+}
+
+acquire_operation_lock() {
+  mkdir -p -- "$LOCK_ROOT"
+  command -v flock >/dev/null 2>&1 || {
+    notify_error 'falta flock; instala util-linux antes de iniciar EWW'
+    return 1
+  }
+  exec 9>"$LOCK_FILE"
+  if ! flock -w 15 9; then
+    notify_error 'otra operación de EWW sigue en curso; no se abrirá una segunda instancia'
     return 1
   fi
 }
@@ -162,6 +177,7 @@ main() {
     status
     return 0
   fi
+  acquire_operation_lock || return 1
   local eww_bin
   eww_bin="$(resolve_eww 2>/dev/null || true)"
   [[ -n "$eww_bin" ]] || { notify_error 'eww no está instalado'; return 1; }
