@@ -74,6 +74,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_runtime_switcher_linux.sh` | Linux | install-runtime-switcher | no | sí | bajo | [doc](install/install_runtime_switcher_linux.md) |
 | `scripts/install/install_terminal_workstation_linux.sh` | Linux | install-terminal-workstation | sí | sí | medio | [doc](install/install_terminal_workstation_linux.md) |
 | `scripts/install/install_security_lab_linux.sh` | Linux | install-security-lab | sí | sí | medio | [doc](install/install_security_lab_linux.md) |
+| `scripts/install/install_android_tools_linux.sh` | Linux | install-android-tools | sí | sí | medio | [doc](install/install_android_tools_linux.md) |
 | `scripts/install/install_graphics_linux.sh` | Linux | install-graphics | sí | sí | medio | [doc](install/install_graphics_linux.md) |
 | `scripts/install/install_office_linux.sh` | Linux | install-office | sí | sí | medio | [doc](install/install_office_linux.md) |
 | `scripts/install/install_antivirus_linux.sh` | Linux | install-antivirus | sí | sí | medio | [doc](install/install_antivirus_linux.md) |
@@ -149,6 +150,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/eww_widgets_linux.sh` | Linux | eww-widgets | no | sí | bajo | [doc](system/eww_widgets_linux.md) |
 | `scripts/system/lock_screen_linux.sh` | Linux | lock-screen | no | — | alto | [doc](system/lock_screen_linux.md) |
 | `scripts/system/rafex_control_panel.py` | Linux | rafex-control-panel | no | — | medio | [doc](system/rafex_control_panel.md) |
+| `scripts/system/android_tools_linux.sh` | Linux | android-tools | no | sí | medio | [doc](system/android_tools_linux.md) |
 
 ## Documentos suplementarios
 

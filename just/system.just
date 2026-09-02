@@ -81,3 +81,8 @@ lock-screen *args:
 # Uso: just rafex-control-panel
 rafex-control-panel *args:
     python3 scripts/system/rafex_control_panel.py {{args}}
+
+# Consultar teléfonos Android, instalar APKs explícitas o abrir scrcpy
+# Uso: just android-tools --status|--devices|--install-apk --path app.apk|--scrcpy
+android-tools *args:
+    bash scripts/system/android_tools_linux.sh {{args}}

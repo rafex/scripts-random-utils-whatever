@@ -179,6 +179,11 @@ harden-thinkpad *args:
 install-security-lab *args:
     bash scripts/install/install_security_lab_linux.sh {{args}}
 
+# Instalar ADB, fastboot, reglas udev Android y scrcpy desde Debian
+# Uso: just install-android-tools --check|--plan|--apply|--status
+install-android-tools *args:
+    bash scripts/install/install_android_tools_linux.sh {{args}}
+
 # Instalar herramientas creativas: GIMP, ayuda en español y Krita
 # Uso: just install-graphics --check|--apply
 install-graphics *args:

@@ -89,6 +89,22 @@ El panel GTK3 opcional se instala con `just install-rafex-control-panel --apply`
 EWW e i3lock-color también son componentes opcionales y no activan servicios ni
 reemplazan el bloqueo existente automáticamente.
 
+## Herramientas Android opcionales
+
+Para administrar teléfonos del laboratorio instala ADB, fastboot, las reglas
+udev de Debian y scrcpy:
+
+```bash
+just install-android-tools --apply
+just android-tools --devices
+just android-tools --install-apk --path ~/Android/lab-apks/app.apk
+just android-tools --scrcpy
+```
+
+Activa la depuración USB y acepta la huella RSA en cada teléfono. Las acciones
+se ejecutan como usuario normal, requieren un único dispositivo autorizado y
+no activan ADB por red ni permiten shell remoto o flasheo automático.
+
 ## Fallos conocidos
 
 - Las reglas por aplicación dependen de `WM_CLASS`; si una aplicación cambia

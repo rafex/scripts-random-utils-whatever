@@ -352,6 +352,33 @@ La auditoría `just audit-thinkpad --status` informa de estas capas sin tratarla
 como bloqueos de preparación: su ausencia no impide desarrollar, impartir
 cursos o realizar auditorías de red.
 
+## Herramientas Android para laboratorios
+
+La administración de teléfonos Android es una capa opcional e independiente
+del perfil base. Instala ADB, fastboot, las reglas udev de Debian y scrcpy con:
+
+```sh
+just install-android-tools --check
+just install-android-tools --plan
+just install-android-tools --apply
+just install-android-tools --status
+```
+
+Después de activar la depuración USB en el teléfono y aceptar su huella RSA:
+
+```sh
+just android-tools --devices
+just android-tools --install-apk --path ~/Android/lab-apks/app.apk
+just android-tools --scrcpy
+```
+
+El helper funciona como usuario normal, exige un único teléfono autorizado y
+no muestra su número de serie por defecto. `--replace` debe indicarse
+explícitamente para actualizar una APK existente. No se habilita ADB por Wi-Fi,
+no se ofrecen comandos de shell remoto ni operaciones de root, remount,
+desbloqueo o flasheo. USBGuard puede requerir una autorización manual para un
+teléfono nuevo; el instalador no la concede automáticamente.
+
 ## mDNS en la red local
 
 Avahi y `libnss-mdns` permiten resolver la ThinkPad como `thinkpad.local` y

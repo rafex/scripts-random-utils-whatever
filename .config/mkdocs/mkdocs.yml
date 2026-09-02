@@ -114,6 +114,7 @@ nav:
       - install_runtime_switcher_linux: install/install_runtime_switcher_linux.md
       - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
       - install_security_lab_linux: install/install_security_lab_linux.md
+      - install_android_tools_linux: install/install_android_tools_linux.md
       - install_graphics_linux: install/install_graphics_linux.md
       - install_office_linux: install/install_office_linux.md
       - install_antivirus_linux: install/install_antivirus_linux.md
@@ -186,6 +187,7 @@ nav:
       - eww_actions_linux: system/eww_actions_linux.md
       - lock_screen_linux: system/lock_screen_linux.md
       - rafex_control_panel: system/rafex_control_panel.md
+      - android_tools_linux: system/android_tools_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md
