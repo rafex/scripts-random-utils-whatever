@@ -12,6 +12,10 @@ tags:
 Helper de usuario para consultar dispositivos Android, instalar una APK
 individual de laboratorio o iniciar scrcpy. No es una consola ADB general.
 
+Este helper está destinado a Android. Para un teléfono Firefox OS legado utiliza
+el [helper Firefox OS](firefoxos_tools_linux.md), que mantiene una lista de
+operaciones aún más limitada y no ofrece instalación de APKs.
+
 - **Ruta:** `scripts/system/android_tools_linux.sh`
 - **SO requerido:** Linux (Debian, X11 para scrcpy)
 - **Dependencias:** `bash`, `adb`, `fastboot`, `scrcpy` y `realpath` para APKs.

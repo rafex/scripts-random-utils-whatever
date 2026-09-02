@@ -86,3 +86,8 @@ rafex-control-panel *args:
 # Uso: just android-tools --status|--devices|--install-apk --path app.apk|--scrcpy
 android-tools *args:
     bash scripts/system/android_tools_linux.sh {{args}}
+
+# Diagnosticar y leer Firefox OS por USB sin shell remoto ni modificaciones
+# Uso: just firefoxos-tools --status|--devices|--list --remote /ruta|--pull --remote /ruta --target ~/Documents/firefoxos-exports
+firefoxos-tools *args:
+    bash scripts/system/firefoxos_tools_linux.sh {{args}}

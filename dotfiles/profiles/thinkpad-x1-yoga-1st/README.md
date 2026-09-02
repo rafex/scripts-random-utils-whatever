@@ -389,6 +389,29 @@ no se ofrecen comandos de shell remoto ni operaciones de root, remount,
 desbloqueo o flasheo. USBGuard puede requerir una autorización manual para un
 teléfono nuevo; el instalador no la concede automáticamente.
 
+## Firefox OS legado por USB
+
+Firefox OS usa un flujo USB distinto al de Android. En el teléfono activa
+**Settings → Device Information → More Information → Developer Menu** y luego
+**Developer → Debugging via USB → ADB and DevTools**. Confirma la conexión y
+reconecta el cable antes de consultar:
+
+```sh
+just firefoxos-tools --status
+just firefoxos-tools --devices
+just firefoxos-tools --list --remote /
+just firefoxos-tools --pull --remote /data \
+  --target ~/Documents/firefoxos-exports
+```
+
+Si `lsusb` solo muestra `05c6:9026` con `File-CD Gadget` de `0B`, el perfil
+actual no ofrece ADB ni almacenamiento legible; se debe cambiar desde el propio
+teléfono. Al activar ADB, algunos modelos cambian a `05c6:9025`; el helper
+reconoce ambos perfiles y valida la interfaz ADB. No usa `adb shell` arbitrario, `adb push`, borrado,
+reinicio, ADB por red ni fastboot. `scrcpy` y las APK son herramientas de
+Android, no de Firefox OS. WebIDE/B2G es una vía legacy y debe ejecutarse en un
+perfil aislado o una máquina virtual; fue retirado de Firefox moderno.
+
 ## mDNS en la red local
 
 Avahi y `libnss-mdns` permiten resolver la ThinkPad como `thinkpad.local` y

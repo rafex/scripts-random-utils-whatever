@@ -151,6 +151,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/lock_screen_linux.sh` | Linux | lock-screen | no | — | alto | [doc](system/lock_screen_linux.md) |
 | `scripts/system/rafex_control_panel.py` | Linux | rafex-control-panel | no | — | medio | [doc](system/rafex_control_panel.md) |
 | `scripts/system/android_tools_linux.sh` | Linux | android-tools | no | sí | medio | [doc](system/android_tools_linux.md) |
+| `scripts/system/firefoxos_tools_linux.sh` | Linux | firefoxos-tools | no | sí | alto | [doc](system/firefoxos_tools_linux.md) |
 
 ## Documentos suplementarios
 
