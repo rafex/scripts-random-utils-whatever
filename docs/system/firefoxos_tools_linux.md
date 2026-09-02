@@ -146,8 +146,10 @@ just firefoxos-tools --verify-base --archive ~/Downloads/v18D.zip
 
 El verificador exige el nombre exacto `v18D.zip`, calcula SHA512, prueba que el
 ZIP sea legible, rechaza rutas internas peligrosas, busca `flash.sh`, revisa
-que el script solo se inspeccione como texto y comprueba referencias a
-`fastboot`, `Flame` e imágenes de partición. Un resultado verificado solo
+que el script solo se inspeccione como texto y comprueba invocaciones de
+`fastboot`, marcadores estructurales de Flame e imágenes de partición. El
+`flash.sh` histórico no necesita contener el texto `Flame`: la identidad queda
+confirmada por el checksum y el payload esperado. Un resultado verificado solo
 significa que el archivo coincide con el artefacto histórico conocido; no
 autoriza todavía reiniciar, entrar en fastboot o flashear.
 
@@ -171,8 +173,10 @@ Android-x86 en la ThinkPad.
 La existencia de un archivo en Archive.org o de un checksum SHA-1 no demuestra
 compatibilidad con el Flame. Los mirrors comunitarios de firmware solo se
 considerarán si corresponden al nombre esperado, tienen una fuente
-identificable y coinciden con el checksum histórico. La investigación actual
-no ha confirmado una copia descargable y confiable de `v18D.zip`.
+identificable y coinciden con el checksum histórico. En la ThinkPad se
+verificó una copia obtenida desde el archivo comunitario: el SHA512 confirma
+que coincide con el artefacto histórico conocido, pero no elimina el riesgo
+propio de haber usado un mirror de terceros.
 
 ### Diagnóstico USB sin ADB
 
@@ -358,6 +362,11 @@ desbloqueo de bootloader ni fastboot como parte de la evaluación actual.
 ### [Unreleased]
 
 - Cambios pendientes de release.
+
+### v1.2.1 — 2026-09-02
+
+- **fix:** valida `v18D.zip` por su checksum y sus marcadores estructurales de
+  Flame; el `flash.sh` histórico no necesita contener la palabra `Flame`.
 
 ### v1.2.0 — 2026-09-02
 

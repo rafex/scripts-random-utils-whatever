@@ -407,6 +407,24 @@ just firefoxos-tools --pull --remote /data \
   --target ~/Documents/firefoxos-exports
 ```
 
+La base `v18D.zip` ya fue localizada y verificada con SHA512. El flasheo es
+destructivo y se mantiene separado del helper de lectura. Antes de ejecutarlo
+debe existir una exportación validada y debe probarse fastboot sin escribir:
+
+```sh
+just firefoxos-flash-base --check --archive /tmp/v18D.zip
+just firefoxos-flash-base --plan --archive /tmp/v18D.zip
+adb reboot bootloader
+just firefoxos-flash-base --fastboot
+fastboot reboot
+```
+
+Solo después de confirmar el respaldo y aceptar la pérdida de datos se puede
+usar `just firefoxos-flash-base --apply --archive /tmp/v18D.zip`. El wrapper no
+ejecuta el `flash.sh` descargado, no usa sudo, exige que fastboot identifique un
+Flame y solicita la confirmación exacta `FLAME-V18D-WIPE`. No se deben usar ROMs
+Motorola o Android genéricas.
+
 Si `lsusb` solo muestra `05c6:9026` con `File-CD Gadget` de `0B`, el perfil
 actual no ofrece ADB ni almacenamiento legible; se debe cambiar desde el propio
 teléfono. Al activar ADB, algunos modelos cambian a `05c6:9025`; el helper

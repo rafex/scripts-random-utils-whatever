@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.2.0 - Diagnóstico, verificación de base y lectura controlada de Firefox OS por USB.
+# v1.2.1 - Diagnóstico, verificación de base y lectura controlada de Firefox OS por USB.
 set -Eeuo pipefail
 
 umask 077
@@ -543,7 +543,7 @@ verify_archive_paths() {
 
 verify_base_archive() {
   local archive_path archive_real actual_sha entries flash_sh_entry flash_bat_entry
-  local flash_script image_count system_image_count has_flame=0
+  local flash_script image_count system_image_count flame_file
 
   archive_path="$BASE_ARCHIVE_PATH"
   [[ "$archive_path" != *$'\n'* && "$archive_path" != *$'\r'* ]] ||
@@ -598,10 +598,6 @@ verify_base_archive() {
   grep -Eiq '(^|[^[:alnum:]_])fastboot([^[:alnum:]_]|$)' <<< "$flash_script" ||
     die 'flash.sh no contiene una invocación reconocible de fastboot'
   ok 'flash.sh referencia fastboot y solo fue inspeccionado como texto'
-  if grep -Eiq 'flame|flame-kk|t2mobile' <<< "$flash_script"; then
-    has_flame=1
-  fi
-
   image_count="$(awk 'tolower($0) ~ /(^|\/)(boot|system|userdata|recovery|cache).*\.img$/ { count++ } END { print count + 0 }' <<< "$entries")"
   system_image_count="$(awk 'tolower($0) ~ /(^|\/)system[^\/]*\.img$/ { count++ } END { print count + 0 }' <<< "$entries")"
   if [[ "$image_count" -gt 0 ]]; then
@@ -612,11 +608,11 @@ verify_base_archive() {
   [[ "$system_image_count" -gt 0 ]] || die 'falta una imagen system*.img'
   ok 'imagen system*.img encontrada'
 
-  if [[ "$has_flame" -eq 1 ]]; then
-    ok 'flash.sh contiene una referencia a Flame'
-  else
-    die 'flash.sh no contiene una referencia reconocible a Flame'
-  fi
+  for flame_file in gpt_both0.bin NON-HLOS.bin emmc_appsboot.mbn rawprogram0.xml patch0.xml; do
+    has_archive_entry "$entries" "$flame_file" ||
+      die "falta el marcador estructural de Flame: $flame_file"
+  done
+  ok 'marcadores estructurales de Flame encontrados'
 
   printf 'Resultado: CANDIDATO VERIFICADO PARA PREPARACIÓN MANUAL\n'
   warn 'esto no autoriza reiniciar, entrar en fastboot ni ejecutar un flasheo'

@@ -189,6 +189,7 @@ nav:
       - rafex_control_panel: system/rafex_control_panel.md
       - android_tools_linux: system/android_tools_linux.md
       - firefoxos_tools_linux: system/firefoxos_tools_linux.md
+      - firefoxos_flash_base_linux: system/firefoxos_flash_base_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md

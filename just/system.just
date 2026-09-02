@@ -91,3 +91,8 @@ android-tools *args:
 # Uso: just firefoxos-tools --status|--devices|--list --remote /ruta|--pull --remote /ruta --target ~/Documents/firefoxos-exports
 firefoxos-tools *args:
     bash scripts/system/firefoxos_tools_linux.sh {{args}}
+
+# Verificar y flashear de forma controlada la base v18D de un Mozilla Flame
+# Uso: just firefoxos-flash-base --check|--plan|--fastboot|--apply --archive /tmp/v18D.zip
+firefoxos-flash-base *args:
+    bash scripts/system/firefoxos_flash_base_linux.sh {{args}}
