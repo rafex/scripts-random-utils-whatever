@@ -14,7 +14,7 @@ respaldo.
 
 - **Ruta:** `scripts/system/lock_screen_linux.sh`
 - **SO requerido:** Linux (X11)
-- **Dependencias:** bash, i3lock-color local; `maim` y ImageMagick solo para `blur`.
+- **Dependencias:** bash, i3lock-color local; ImageMagick y `xdpyinfo` para `image`; `maim` e ImageMagick para `blur`.
 
 ---
 
@@ -31,8 +31,9 @@ respaldo.
 ## Requisitos
 
 Instala primero `i3lock-color` y ejecuta `just install-i3lock-color --apply`
-para activar el wrapper en el atajo y el bloqueo automático. El wrapper pasa
-`--nofork` para que `xss-lock` mantenga correctamente la sesión bloqueada.
+para activar el wrapper en el atajo y el bloqueo automático en modo imagen. El
+wrapper pasa `--nofork` para que `xss-lock` mantenga correctamente la sesión
+bloqueada.
 
 ## Uso
 
@@ -48,7 +49,7 @@ just lock-screen --status
 | Opción | Alias | Descripción |
 |---|---|---|
 | `--mode solid` | — | Fondo Nord sólido. |
-| `--mode image` | — | Usa el fondo de login del perfil. |
+| `--mode image` | — | Ajusta temporalmente el fondo de login a toda la pantalla (predeterminado). |
 | `--mode blur` | — | Captura temporal, desenfoque y borrado al salir. |
 | `--status` | — | Comprueba bloqueadores sin bloquear. |
 
@@ -62,8 +63,15 @@ just lock-screen --status
 
 ```bash
 just lock-screen --mode solid
+just lock-screen --mode image
 just lock-screen --mode blur
 ```
+
+El modo `image` detecta las dimensiones reales de la pantalla X11 y genera un
+PNG temporal con ImageMagick. Usa un ajuste tipo *cover*: conserva la
+proporción, llena toda la pantalla y recorta únicamente los bordes sobrantes.
+El archivo temporal se elimina al desbloquear; la imagen del perfil no se
+modifica.
 
 ## Protecciones de seguridad
 
@@ -77,6 +85,22 @@ elimina mediante `trap`; no se conserva una imagen permanente.
 **Causa:** solo se encuentra el bloqueador de Debian.
 
 **Solución:** ejecuta `just install-i3lock-color --apply`.
+
+### `image requiere ImageMagick (convert)`
+
+**Causa:** la versión fijada de i3lock-color no escala por sí misma la imagen;
+el wrapper necesita preparar un PNG del tamaño de la pantalla.
+
+**Solución:** ejecuta `just install-i3lock-color --apply` para instalar
+`imagemagick` y `x11-utils`, o instala ambos paquetes desde Debian.
+
+### `image requiere xdpyinfo (paquete x11-utils)`
+
+**Causa:** el bloqueo se ejecutó en X11 sin la herramienta que informa el
+tamaño del display.
+
+**Solución:** instala `x11-utils` y vuelve a ejecutar el modo imagen desde la
+sesión gráfica.
 
 ## Changelog
 

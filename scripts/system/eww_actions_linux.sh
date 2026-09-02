@@ -229,7 +229,7 @@ run_action() {
       ;;
     control-panel) run_helper rafex-control-panel.sh ;;
     screenshot) run_helper screenshot.sh --full ;;
-    lock) run_helper lock-screen.sh --mode solid ;;
+    lock) run_helper lock-screen.sh --mode image ;;
     logout|suspend|hibernate|reboot|poweroff) run_helper desktop-settings-menu.sh "$action" ;;
     *) die "acción no permitida: $action" ;;
   esac

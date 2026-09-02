@@ -137,7 +137,7 @@ case "${1:-}" in
     if command -v loginctl >/dev/null 2>&1 && loginctl lock-session; then
       exit 0
     elif [[ -x "$HOME/.local/bin/lock-screen.sh" ]]; then
-      exec "$HOME/.local/bin/lock-screen.sh" --mode solid
+      exec "$HOME/.local/bin/lock-screen.sh" --mode image
     elif command -v i3lock >/dev/null 2>&1; then
       exec i3lock -c 000000
     else

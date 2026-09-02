@@ -72,8 +72,8 @@ rafex-ratmenu *args:
 eww-widgets *args:
     bash scripts/system/eww_widgets_linux.sh {{args}}
 
-# Bloquear la sesión con i3lock-color en modo sólido, imagen o desenfoque
-# Uso: just lock-screen --mode solid|image|blur|--status
+# Bloquear la sesión con i3lock-color en modo imagen, sólido o desenfoque
+# Uso: just lock-screen --mode image|solid|blur|--status
 lock-screen *args:
     bash scripts/system/lock_screen_linux.sh {{args}}
 

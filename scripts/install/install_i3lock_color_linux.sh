@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_i3lock_color_linux.sh v1.1.0
+# install_i3lock_color_linux.sh v1.2.0
 # Compila i3lock-color y lo activa mediante el wrapper del perfil.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -24,6 +24,7 @@ BUILD_PACKAGES=(git autoconf gcc make pkg-config libpam0g-dev libcairo2-dev
   libfontconfig1-dev libxcb-composite0-dev libev-dev libx11-xcb-dev libxcb-xkb-dev
   libxcb-xinerama0-dev libxcb-randr0-dev libxcb-image0-dev libxcb-util-dev
   libxcb-xrm-dev libxkbcommon-dev libxkbcommon-x11-dev libjpeg-dev libgif-dev)
+RUNTIME_PACKAGES=(imagemagick x11-utils)
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -52,15 +53,15 @@ show_status() {
   if command -v i3lock >/dev/null 2>&1; then ok "i3lock oficial se conserva: $(command -v i3lock)"; fi
   [[ -x "$WRAPPER_TARGET" ]] && ok "wrapper lock-screen presente: $WRAPPER_TARGET" || warn "wrapper lock-screen ausente: $WRAPPER_TARGET"
   if [[ -f "$I3_CONFIG" ]] &&
-    grep -Fq -- 'exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode solid' "$I3_CONFIG" &&
-    grep -Fq -- "bindsym \$mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode solid" "$I3_CONFIG"; then
-    ok 'i3 usa el wrapper i3lock-color para el atajo y xss-lock'
+    grep -Fq -- 'exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode image' "$I3_CONFIG" &&
+    grep -Fq -- "bindsym \$mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode image" "$I3_CONFIG"; then
+    ok 'i3 usa el wrapper i3lock-color en modo imagen para el atajo y xss-lock'
   else
-    warn 'i3 todavía usa la configuración anterior del bloqueador'
+    warn 'i3 todavía no usa el modo imagen del wrapper'
   fi
   if [[ -f "$OPENBOX_AUTOSTART" ]] &&
-    grep -Fq -- "xss-lock --transfer-sleep-lock -- \"\$HOME/.local/bin/lock-screen.sh\" --mode solid &" "$OPENBOX_AUTOSTART"; then
-    ok 'Openbox usa el wrapper i3lock-color mediante xss-lock'
+    grep -Fq -- "xss-lock --transfer-sleep-lock -- \"\$HOME/.local/bin/lock-screen.sh\" --mode image &" "$OPENBOX_AUTOSTART"; then
+    ok 'Openbox usa el wrapper i3lock-color en modo imagen mediante xss-lock'
   else
     info 'Openbox no tiene autoinicio administrado por i3lock-color'
   fi
@@ -76,8 +77,8 @@ replace_i3_lock_block() {
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
 # BEGIN rafex i3lock-color
-exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode solid
-bindsym $mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode solid
+exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.sh --mode image
+bindsym $mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode image
 # END rafex i3lock-color
 EOF
   temporary="$(mktemp)"
@@ -117,7 +118,7 @@ replace_openbox_autostart() {
   cat > "$block_file" <<'EOF'
 # BEGIN rafex i3lock-color
 if [ -x "$HOME/.local/bin/lock-screen.sh" ] && command -v xss-lock >/dev/null 2>&1; then
-    xss-lock --transfer-sleep-lock -- "$HOME/.local/bin/lock-screen.sh" --mode solid &
+    xss-lock --transfer-sleep-lock -- "$HOME/.local/bin/lock-screen.sh" --mode image &
 fi
 # END rafex i3lock-color
 EOF
@@ -164,7 +165,7 @@ replace_openbox_keybind() {
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
     <!-- BEGIN rafex i3lock-color -->
-    <keybind key="W-Shift-l"><action name="Execute"><command>~/.local/bin/lock-screen.sh --mode solid</command></action></keybind>
+    <keybind key="W-Shift-l"><action name="Execute"><command>~/.local/bin/lock-screen.sh --mode image</command></action></keybind>
     <!-- END rafex i3lock-color -->
 EOF
   temporary="$(mktemp)"
@@ -207,13 +208,13 @@ main() {
     check)
       echo "═══ Comprobación i3lock-color ${VERSION} ═══"
       local p missing=()
-      for p in "${BUILD_PACKAGES[@]}"; do installed "$p" || missing+=("$p"); done
-      ((${#missing[@]} == 0)) && ok 'dependencias de compilación instaladas' || warn "dependencias pendientes: ${missing[*]}"
+      for p in "${BUILD_PACKAGES[@]}" "${RUNTIME_PACKAGES[@]}"; do installed "$p" || missing+=("$p"); done
+      ((${#missing[@]} == 0)) && ok 'dependencias de compilación y runtime instaladas' || warn "dependencias pendientes: ${missing[*]}"
       show_status
       ;;
     plan)
       echo "═══ Plan i3lock-color ${VERSION} ═══"
-      info '[plan] instalar dependencias de compilación disponibles mediante APT'
+      info '[plan] instalar dependencias de compilación y runtime disponibles mediante APT'
       info "[plan] clonar tag ${VERSION} bajo $SOURCE_ROOT"
       info '[plan] compilar con el método oficial del proyecto'
       info "[plan] instalar $TARGET y activar el wrapper en i3/Openbox mediante xss-lock"
@@ -221,7 +222,7 @@ main() {
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
       local apt_packages=() p
-      for p in "${BUILD_PACKAGES[@]}"; do
+      for p in "${BUILD_PACKAGES[@]}" "${RUNTIME_PACKAGES[@]}"; do
         if ! installed "$p"; then candidate "$p" || die "sin candidato APT: $p"; apt_packages+=("$p"); fi
       done
       if ((${#apt_packages[@]})); then sudo -v; sudo apt-get update; sudo apt-get install -y "${apt_packages[@]}"; fi

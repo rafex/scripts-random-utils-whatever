@@ -30,8 +30,9 @@ automático de i3/Openbox, y conserva `/usr/bin/i3lock` como respaldo.
 ## Requisitos
 
 La instalación compila el tag `2.12.c.5`. Durante `--apply` instala el wrapper
-`lock-screen.sh` y actualiza de forma idempotente los bloques administrados de
-i3 y Openbox para que el atajo y `xss-lock` utilicen `i3lock-color`.
+`lock-screen.sh`, sus dependencias de imagen (`imagemagick` y `x11-utils`) y
+actualiza de forma idempotente los bloques administrados de i3 y Openbox para
+que el atajo y `xss-lock` utilicen `i3lock-color` en modo imagen.
 
 ## Uso
 
@@ -40,7 +41,7 @@ just install-i3lock-color --check
 just install-i3lock-color --plan
 just install-i3lock-color --apply
 just install-i3lock-color --status
-just lock-screen --mode solid
+just lock-screen --mode image
 ```
 
 ## Opciones
@@ -72,7 +73,8 @@ just lock-screen --status
 
 Después de aplicar la configuración, recarga i3 con `Mod4+Shift+r` o
 reinicia Openbox con `openbox --reconfigure`. El atajo de i3/Openbox es
-`Super+Shift+l`; el bloqueo automático usa `xss-lock` y el modo sólido.
+`Super+Shift+l`; el bloqueo automático usa `xss-lock` y el modo imagen. El
+modo sólido sigue disponible como alternativa explícita.
 
 ## Fallos conocidos
 
