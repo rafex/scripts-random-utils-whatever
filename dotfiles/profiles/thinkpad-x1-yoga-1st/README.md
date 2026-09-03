@@ -470,6 +470,40 @@ la URL debe usarse únicamente en una red local autorizada. Firefox OS usa
 aplicaciones web, no APK Android. El ZIP se conserva como alternativa para
 WebIDE legacy o herramientas históricas de depuración remota.
 
+### Compatibilidad HTTPS del Flame
+
+El repositorio incluye un flujo separado para preparar el almacén NSS del
+Flame con raíces `serverAuth` del almacén Mozilla actual. Primero instala
+`certutil` en la ThinkPad y verifica la fuente fijada:
+
+```sh
+just install-firefoxos-ca-tools --apply
+just firefoxos-ca --acquire
+just firefoxos-ca --verify-source
+just firefoxos-ca --preflight
+just firefoxos-ca --plan
+```
+
+La escritura directa en `cert9.db` solo se ejecuta con la confirmación
+`FLAME-MOZILLA-CA-WIPE` y usa `adb root` temporal. Guarda únicamente un
+rollback mínimo de esa base; no es un respaldo de los datos del teléfono:
+
+```sh
+just firefoxos-ca --apply --confirm FLAME-MOZILLA-CA-WIPE
+just firefoxos-ca --test
+```
+
+Si el navegador continúa mostrando errores después de la prueba HTTPS, puede
+tratarse de una incompatibilidad de TLS o Gecko 44, no de una CA ausente. No
+aceptes excepciones permanentes. Para revertir solo el cambio NSS:
+
+```sh
+just firefoxos-ca --rollback --confirm FLAME-CA-ROLLBACK
+```
+
+Este flujo no compila B2G, no reemplaza `libnssckbi.so` y no convierte el
+Firefox OS legado en un sistema actualizado o seguro.
+
 ## mDNS en la red local
 
 Avahi y `libnss-mdns` permiten resolver la ThinkPad como `thinkpad.local` y

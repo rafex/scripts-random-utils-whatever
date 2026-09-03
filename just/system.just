@@ -92,6 +92,11 @@ android-tools *args:
 firefoxos-tools *args:
     bash scripts/system/firefoxos_tools_linux.sh {{args}}
 
+# Adquirir, verificar, instalar o revertir raíces Mozilla en cert9.db de Firefox OS
+# Uso: just firefoxos-ca --status|--acquire|--verify-source|--preflight|--plan|--apply --confirm ...|--test|--rollback --confirm ...
+firefoxos-ca *args:
+    bash scripts/system/firefoxos_ca_linux.sh {{args}}
+
 # Verificar y flashear de forma controlada la base v18D de un Mozilla Flame
 # Uso: just firefoxos-flash-base --check|--plan|--fastboot|--apply --archive /tmp/v18D.zip
 firefoxos-flash-base *args:

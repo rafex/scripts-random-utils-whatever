@@ -184,6 +184,11 @@ install-security-lab *args:
 install-android-tools *args:
     bash scripts/install/install_android_tools_linux.sh {{args}}
 
+# Instalar certutil para preparar el almacén NSS de un Flame
+# Uso: just install-firefoxos-ca-tools --check|--plan|--apply|--status
+install-firefoxos-ca-tools *args:
+    bash scripts/install/install_firefoxos_ca_tools_linux.sh {{args}}
+
 # Instalar herramientas creativas: GIMP, ayuda en español y Krita
 # Uso: just install-graphics --check|--apply
 install-graphics *args:

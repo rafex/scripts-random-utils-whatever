@@ -115,6 +115,7 @@ nav:
       - install_terminal_workstation_linux: install/install_terminal_workstation_linux.md
       - install_security_lab_linux: install/install_security_lab_linux.md
       - install_android_tools_linux: install/install_android_tools_linux.md
+      - install_firefoxos_ca_tools_linux: install/install_firefoxos_ca_tools_linux.md
       - install_graphics_linux: install/install_graphics_linux.md
       - install_office_linux: install/install_office_linux.md
       - install_antivirus_linux: install/install_antivirus_linux.md
@@ -192,6 +193,7 @@ nav:
       - firefoxos_flash_base_linux: system/firefoxos_flash_base_linux.md
       - firefoxos_flash_nightly_linux: system/firefoxos_flash_nightly_linux.md
       - firefoxos_hello_world_linux: system/firefoxos_hello_world_linux.md
+      - firefoxos_ca_linux: system/firefoxos_ca_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
       - Metadatos: macos/Metadatos.md
