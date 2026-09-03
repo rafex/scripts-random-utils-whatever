@@ -43,8 +43,8 @@ RUN make nss_build_all BUILD_OPT=1 USE_64=1 NSS_DISABLE_GTESTS=1 NSS_ENABLE_WERR
     && legacy_certutil="$(find /opt/b2g/security/nss -type f -name certutil -print -quit)" \
     && test -n "${legacy_certutil}" \
     && install --strip "${legacy_certutil}" /opt/legacy-nss/bin/certutil \
-    && test -d /opt/dist \
-    && find /opt/dist \( -type f -o -type l \) \
+    && test -d /opt/b2g/dist \
+    && find /opt/b2g/dist \( -type f -o -type l \) \
        \( -name '*.so' -o -name '*.so.*' -o -name '*.chk' \) \
        -exec cp --dereference --preserve=mode,timestamps {} /opt/legacy-nss/lib/ \;
 
