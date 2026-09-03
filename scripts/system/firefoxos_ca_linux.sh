@@ -447,11 +447,17 @@ identify_runtime() {
   source_stamp="$(adb_file_value /system/b2g/application.ini SourceStamp)"
   gaia="$(adb_fixed_file /system/b2g/gaia/profile/webapps/system.gaiamobile.org/manifest.webapp | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p' || true)"
   gonk="$(adb_prop ro.build.version.incremental)"
-  lib_hash="$(adb_fixed_file /system/b2g/libnss3.so | sha256sum | awk '{print $1}')"
   lib_size="$("$ADB_COMMAND" -s "$DEVICE_SERIAL" shell ls -ln /system/b2g/libnss3.so 2>/dev/null | tr -d '\r' | awk 'NR == 1 { if ($2 ~ /^[0-9]+$/) print $5; else print $4 }')"
   lib_temp="$(mktemp "${TMPDIR:-/tmp}/rafex-libnss3.XXXXXX")"
-  "$ADB_COMMAND" -s "$DEVICE_SERIAL" pull /system/b2g/libnss3.so "$lib_temp" >/dev/null || die 'no se pudo extraer temporalmente libnss3.so para identificar su arquitectura'
-  lib_arch="$(file -b -- "$lib_temp" | sed 's/[[:space:]]\+/ /g')"
+  if ! "$ADB_COMMAND" -s "$DEVICE_SERIAL" pull /system/b2g/libnss3.so "$lib_temp" >/dev/null; then
+    rm -f -- "$lib_temp"
+    die 'no se pudo extraer temporalmente libnss3.so para identificar su arquitectura'
+  fi
+  lib_hash="$(sha256sum -- "$lib_temp" | awk '{print $1}')"
+  if ! lib_arch="$(file -b -- "$lib_temp" | sed 's/[[:space:]]\+/ /g')"; then
+    rm -f -- "$lib_temp"
+    die 'no se pudo identificar la arquitectura de libnss3.so'
+  fi
   nss_string="$(strings -- "$lib_temp" | grep -E '^NSS [0-9]+\.[0-9]+\.[0-9]+$' | sed -n '1p' || true)"
   rm -f -- "$lib_temp"
   if [[ -n "$nss_string" ]]; then
