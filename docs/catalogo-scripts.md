@@ -153,6 +153,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/android_tools_linux.sh` | Linux | android-tools | no | sí | medio | [doc](system/android_tools_linux.md) |
 | `scripts/system/firefoxos_tools_linux.sh` | Linux | firefoxos-tools | no | sí | alto | [doc](system/firefoxos_tools_linux.md) |
 | `scripts/system/firefoxos_flash_base_linux.sh` | Linux | firefoxos-flash-base | no | sí | alto | [doc](system/firefoxos_flash_base_linux.md) |
+| `scripts/system/firefoxos_flash_nightly_linux.sh` | Linux | firefoxos-flash-nightly | no | sí | alto | [doc](system/firefoxos_flash_nightly_linux.md) |
 
 ## Documentos suplementarios
 

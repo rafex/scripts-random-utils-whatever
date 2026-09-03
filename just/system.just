@@ -96,3 +96,8 @@ firefoxos-tools *args:
 # Uso: just firefoxos-flash-base --check|--plan|--fastboot|--apply --archive /tmp/v18D.zip
 firefoxos-flash-base *args:
     bash scripts/system/firefoxos_flash_base_linux.sh {{args}}
+
+# Verificar y flashear de forma controlada la base v18D nightly v5 de Firefox OS 2.6
+# Uso: just firefoxos-flash-nightly --check|--plan|--fastboot|--apply --archive /tmp/v18D_nightly_v5.zip
+firefoxos-flash-nightly *args:
+    bash scripts/system/firefoxos_flash_nightly_linux.sh {{args}}
