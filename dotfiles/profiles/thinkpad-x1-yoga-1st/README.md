@@ -435,7 +435,7 @@ perfil aislado o una máquina virtual; fue retirado de Firefox moderno.
 
 ### Aplicación Firefox OS Hola Mundo
 
-El repositorio incluye una aplicación web empaquetada local de prueba en
+El repositorio incluye una aplicación web local de prueba en
 `examples/firefoxos/hello-world/`. Se puede validar y generar un ZIP sin usar
 ADB ni modificar el teléfono:
 
@@ -446,11 +446,29 @@ just firefoxos-hello-world --package \
   --output /tmp/rafex-firefoxos-hello-world.zip
 ```
 
-La aplicación está en español, no declara permisos y funciona sin red. Para
-probarla, abre el ZIP desde WebIDE en un perfil legacy aislado o una máquina
-virtual, selecciona el Flame en **Select Runtime → USB Devices** y ejecútala
-temporalmente con **Play**. Firefox OS usa aplicaciones web empaquetadas, no
-APK Android. El empaquetador no ejecuta WebIDE, ADB ni fastboot.
+La aplicación está en español, no declara permisos y funciona sin red una vez
+instalada. Como WebIDE no existe en Firefox moderno, el método recomendado es
+publicarla temporalmente como aplicación hospedada en un contenedor Podman
+rootless:
+
+```sh
+just firefoxos-hello-world --check
+just firefoxos-hello-world --plan --bind 192.168.3.91 --port 8765
+just firefoxos-hello-world --serve-podman --bind 192.168.3.91 --port 8765
+```
+
+Desde el Flame abre `http://192.168.3.91:8765/install.html` y confirma la
+instalación. Detén el servidor al terminar:
+
+```sh
+just firefoxos-hello-world --stop-podman
+```
+
+El contenedor solo lee la aplicación y no tiene acceso a ADB, al resto del
+repositorio ni a las capacidades del host. No se modifica UFW automáticamente;
+la URL debe usarse únicamente en una red local autorizada. Firefox OS usa
+aplicaciones web, no APK Android. El ZIP se conserva como alternativa para
+WebIDE legacy o herramientas históricas de depuración remota.
 
 ## mDNS en la red local
 

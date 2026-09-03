@@ -102,7 +102,7 @@ firefoxos-flash-base *args:
 firefoxos-flash-nightly *args:
     bash scripts/system/firefoxos_flash_nightly_linux.sh {{args}}
 
-# Validar y empaquetar la aplicación Firefox OS Hola Mundo sin ADB
-# Uso: just firefoxos-hello-world --check | --status | --package --output /tmp/app.zip
+# Validar, empaquetar o publicar localmente la aplicación Firefox OS Hola Mundo
+# Uso: just firefoxos-hello-world --check | --status | --package | --plan | --serve-podman | --stop-podman
 firefoxos-hello-world *args:
     bash scripts/system/firefoxos_hello_world_linux.sh {{args}}

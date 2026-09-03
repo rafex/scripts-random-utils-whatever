@@ -1,0 +1,15 @@
+FROM docker.io/library/python:3.13-alpine
+
+RUN addgroup -S -g 65532 rafex \
+    && adduser -S -D -H -u 65532 -G rafex rafex
+
+COPY server.py /opt/rafex/server.py
+
+RUN mkdir -p /srv/app \
+    && chown 65532:65532 /srv/app
+
+USER 65532:65532
+WORKDIR /srv/app
+EXPOSE 8080/tcp
+
+ENTRYPOINT ["python3", "/opt/rafex/server.py"]
