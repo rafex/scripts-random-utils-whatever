@@ -14,7 +14,6 @@ readonly BASELINE_IMAGE="localhost/rafex/firefoxos-ca:nss-3.21"
 readonly EXACT_IMAGE="localhost/rafex/firefoxos-ca:b2g46-flame"
 CONTEXT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../containers/firefoxos-ca" && pwd)"
 readonly CONTEXT_DIR
-readonly RUNTIME_MANIFEST="${CONTEXT_DIR}/runtime-manifest.env"
 readonly OBSERVED_RUNTIME_MANIFEST="${XDG_DATA_HOME:-${HOME}/.local/share}/rafex/firefoxos-ca/runtime/flame-runtime.env"
 readonly NSS_ARCHIVE_SHA256="23ea51e472ee2c1211d2ee89e1c5295990046b6a7a54b89afba1481a94713527"
 readonly EXPECTED_B2G_VERSION="46.0a1"
@@ -225,10 +224,10 @@ show_status() {
   else
     warn "$PODMAN_PACKAGE ausente (candidato: ${candidate:-(none)})"
   fi
-  if [[ -f "$RUNTIME_MANIFEST" ]]; then
+  if [[ -f "$OBSERVED_RUNTIME_MANIFEST" ]]; then
     ok 'manifiesto del build Flame observado presente'
-    printf 'build observado: %s / %s\n' "$(manifest_value "$RUNTIME_MANIFEST" B2G_VERSION)" "$(manifest_value "$RUNTIME_MANIFEST" B2G_BUILD_ID)"
-    printf 'libnss3.so SHA-256: %s\n' "$(manifest_value "$RUNTIME_MANIFEST" B2G_LIBNSS3_SHA256)"
+    printf 'build observado: %s / %s\n' "$(manifest_value "$OBSERVED_RUNTIME_MANIFEST" B2G_VERSION)" "$(manifest_value "$OBSERVED_RUNTIME_MANIFEST" B2G_BUILD_ID)"
+    printf 'libnss3.so SHA-256: %s\n' "$(manifest_value "$OBSERVED_RUNTIME_MANIFEST" B2G_LIBNSS3_SHA256)"
   else
     info 'manifiesto del runtime del Flame: aún no identificado'
   fi
