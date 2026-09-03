@@ -40,7 +40,7 @@ WORKDIR /opt/b2g/security/nss
 
 RUN make nss_build_all BUILD_OPT=1 USE_64=1 NSS_DISABLE_GTESTS=1 NSS_ENABLE_WERROR=0 \
     && install --directory /opt/legacy-nss/bin /opt/legacy-nss/lib \
-    && legacy_certutil="$(find /opt/b2g/security/nss -type f -name certutil -print -quit)" \
+    && legacy_certutil="$(find /opt/b2g/dist -type f -name certutil -print -quit)" \
     && test -n "${legacy_certutil}" \
     && install --strip "${legacy_certutil}" /opt/legacy-nss/bin/certutil \
     && test -d /opt/b2g/dist \
