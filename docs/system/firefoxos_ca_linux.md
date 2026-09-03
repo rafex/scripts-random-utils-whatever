@@ -229,7 +229,9 @@ como corrupción del archivo.
 **Solución:** la versión actual descarga `cert9.db.new` de vuelta a la
 ThinkPad y calcula el SHA-256 localmente. Si falla la validación, elimina el
 temporal creado por esa ejecución antes de reanudar B2G y no sustituye la
-base original.
+base original. Una ejecución posterior con la confirmación requerida también
+retira un `cert9.db.new` huérfano de esta operación antes de volver a preparar
+el archivo.
 
 ## Changelog
 
@@ -240,6 +242,8 @@ base original.
 - **fix:** bloquear NSS genérico y corregir la limpieza de ADB root.
 - **fix:** validar temporales mediante hash local y limpiar `cert9.db.new`
   cuando el Flame no dispone de `sha256sum`.
+- **fix:** retirar de forma controlada un temporal huérfano antes de reintentar
+  la operación confirmada.
 
 ### v1.1.0 — 2026-09-02
 

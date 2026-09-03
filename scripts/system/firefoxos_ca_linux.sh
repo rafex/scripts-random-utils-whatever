@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.3.1 - Valida el runtime NSS/B2G exacto antes de tocar un Flame.
+# v1.3.2 - Valida el runtime NSS/B2G exacto antes de tocar un Flame.
 set -Eeuo pipefail
 
 umask 077
@@ -638,6 +638,18 @@ verify_remote_stage_hash() {
   ok 'cert9.db.new verificado mediante descarga y hash local'
 }
 
+clear_stale_remote_stage() {
+  local staged_remote="${REMOTE_DB}.new"
+  if "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell test -e "$staged_remote" >/dev/null 2>&1; then
+    warn 'se encontró un cert9.db.new temporal de una ejecución anterior; se eliminará antes de continuar'
+    "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell rm -f "$staged_remote" >/dev/null 2>&1 ||
+      die 'no se pudo eliminar el cert9.db.new temporal anterior'
+    "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell test '!' -e "$staged_remote" >/dev/null 2>&1 ||
+      die 'el cert9.db.new temporal anterior sigue presente'
+    ok 'temporal cert9.db.new anterior eliminado; cert9.db original no fue tocado'
+  fi
+}
+
 push_database() {
   local db_dir="${WORK_DIR}/db" staged_remote="${REMOTE_DB}.new" expected_hash
   expected_hash="$(sha256sum -- "${db_dir}/cert9.db" | awk '{print $1}')"
@@ -677,6 +689,7 @@ apply_change() {
   find_remote_profile
   validate_remote_metadata
   stop_b2g
+  clear_stale_remote_stage
   prepare_database
   import_bundle
   imported="$(cat "${WORK_DIR}/imported-count")"
@@ -710,6 +723,7 @@ rollback_change() {
   find_remote_profile
   validate_remote_metadata
   stop_b2g
+  clear_stale_remote_stage
   staged_remote="${REMOTE_DB}.new"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell test '!' -e "$staged_remote" >/dev/null 2>&1 || die 'ya existe cert9.db.new; no se sobrescribirá'
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" push "$backup_path" "$staged_remote" >/dev/null || die 'no se pudo subir el rollback'
