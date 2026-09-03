@@ -38,8 +38,9 @@ RUN test -f /opt/b2g/security/nss/TAG-INFO \
 
 WORKDIR /opt/b2g/security/nss
 
-RUN make nss_build_all BUILD_OPT=1 USE_64=1 NSS_DISABLE_GTESTS=1 NSS_ENABLE_WERROR=0 \
-    && install --directory /opt/legacy-nss/bin /opt/legacy-nss/lib \
+RUN make nss_build_all BUILD_OPT=1 USE_64=1 NSS_DISABLE_GTESTS=1 NSS_ENABLE_WERROR=0
+
+RUN install --directory /opt/legacy-nss/bin /opt/legacy-nss/lib \
     && legacy_certutil="$(find /opt/b2g/security/dist -type f -name certutil -print -quit)" \
     && test -n "${legacy_certutil}" \
     && install --strip "${legacy_certutil}" /opt/legacy-nss/bin/certutil \
