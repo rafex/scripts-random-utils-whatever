@@ -189,6 +189,11 @@ install-android-tools *args:
 install-firefoxos-ca-tools *args:
     bash scripts/install/install_firefoxos_ca_tools_linux.sh {{args}}
 
+# Preparar el puente SMS rootless entre la ThinkPad y un Firefox OS Flame
+# Uso: just install-firefoxos-sms-bridge --check|--plan|--apply|--status
+install-firefoxos-sms-bridge *args:
+    bash scripts/install/install_firefoxos_sms_bridge_linux.sh {{args}}
+
 # Instalar herramientas creativas: GIMP, ayuda en español y Krita
 # Uso: just install-graphics --check|--apply
 install-graphics *args:

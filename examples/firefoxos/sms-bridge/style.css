@@ -1,0 +1,51 @@
+:root {
+  background: #18202b;
+  color: #f5f7fa;
+  font-family: sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: #18202b;
+  margin: 0;
+  min-height: 100vh;
+}
+
+.app-shell {
+  margin: 0 auto;
+  max-width: 34rem;
+  padding: 1.5rem;
+}
+
+.eyebrow { color: #ff9875; font-weight: 700; letter-spacing: .08em; }
+h1 { font-size: 2rem; margin: .4rem 0; }
+h2 { font-size: 1.25rem; margin-top: 0; }
+.lead { color: #d6dce5; line-height: 1.45; }
+
+.card {
+  background: #283546;
+  border: 1px solid #52647a;
+  border-radius: .65rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+label, dt { color: #aebbd0; display: block; font-size: .9rem; margin-top: .7rem; }
+input, button {
+  border-radius: .4rem;
+  font: inherit;
+  min-height: 2.7rem;
+  padding: .65rem .75rem;
+  width: 100%;
+}
+
+input { background: #101722; border: 1px solid #7889a0; color: #fff; margin-top: .35rem; }
+button { background: #ff7043; border: 0; color: #171d26; font-weight: 700; margin-top: .9rem; }
+button.secondary { background: #425269; color: #fff; }
+button:disabled { opacity: .55; }
+.status { color: #9fe3b1; min-height: 1.4rem; }
+.message-data { line-height: 1.45; }
+dd { margin: .15rem 0 .7rem; overflow-wrap: anywhere; }
+.footer { color: #9aa9bd; font-size: .85rem; margin-top: 1.5rem; }
+.hidden { display: none; }

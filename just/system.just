@@ -111,3 +111,8 @@ firefoxos-flash-nightly *args:
 # Uso: just firefoxos-hello-world --check | --status | --package | --plan | --serve-podman | --stop-podman
 firefoxos-hello-world *args:
     bash scripts/system/firefoxos_hello_world_linux.sh {{args}}
+
+# Administrar la cola SMS local y su publicador Podman para Firefox OS
+# Uso: just firefoxos-sms --serve-podman|--status|--pair|--enqueue|--history|--revoke|--purge
+firefoxos-sms *args:
+    bash scripts/system/firefoxos_sms_bridge_linux.sh {{args}}

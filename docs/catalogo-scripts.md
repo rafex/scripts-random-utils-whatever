@@ -76,6 +76,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_security_lab_linux.sh` | Linux | install-security-lab | sí | sí | medio | [doc](install/install_security_lab_linux.md) |
 | `scripts/install/install_android_tools_linux.sh` | Linux | install-android-tools | sí | sí | medio | [doc](install/install_android_tools_linux.md) |
 | `scripts/install/install_firefoxos_ca_tools_linux.sh` | Linux | install-firefoxos-ca-tools | sí | sí | medio | [doc](install/install_firefoxos_ca_tools_linux.md) |
+| `scripts/install/install_firefoxos_sms_bridge_linux.sh` | Linux | install-firefoxos-sms-bridge | sí | sí | medio | [doc](install/install_firefoxos_sms_bridge_linux.md) |
 | `scripts/install/install_graphics_linux.sh` | Linux | install-graphics | sí | sí | medio | [doc](install/install_graphics_linux.md) |
 | `scripts/install/install_office_linux.sh` | Linux | install-office | sí | sí | medio | [doc](install/install_office_linux.md) |
 | `scripts/install/install_antivirus_linux.sh` | Linux | install-antivirus | sí | sí | medio | [doc](install/install_antivirus_linux.md) |
@@ -157,6 +158,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/firefoxos_flash_base_linux.sh` | Linux | firefoxos-flash-base | no | sí | alto | [doc](system/firefoxos_flash_base_linux.md) |
 | `scripts/system/firefoxos_flash_nightly_linux.sh` | Linux | firefoxos-flash-nightly | no | sí | alto | [doc](system/firefoxos_flash_nightly_linux.md) |
 | `scripts/system/firefoxos_hello_world_linux.sh` | Linux | firefoxos-hello-world | no | sí | bajo | [doc](system/firefoxos_hello_world_linux.md) |
+| `scripts/system/firefoxos_sms_bridge_linux.sh` | Linux | firefoxos-sms | no | sí | medio | [doc](system/firefoxos_sms_bridge_linux.md) |
 
 ## Documentos suplementarios
 

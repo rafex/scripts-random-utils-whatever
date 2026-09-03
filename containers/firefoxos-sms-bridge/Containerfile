@@ -1,0 +1,10 @@
+FROM docker.io/library/python:3.13-alpine
+
+COPY server.py /opt/rafex/server.py
+
+RUN mkdir -p /srv/app /var/lib/rafex
+
+WORKDIR /srv/app
+EXPOSE 8786/tcp 8787/tcp
+
+ENTRYPOINT ["python3", "/opt/rafex/server.py"]

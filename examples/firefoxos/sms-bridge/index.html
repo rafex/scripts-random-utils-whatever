@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rafex · Puente SMS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <p class="eyebrow">RAFEX · FIREFOX OS</p>
+    <h1>Puente SMS</h1>
+    <p class="lead">La ThinkPad entrega el mensaje y tú confirmas el envío en Mensajes.</p>
+
+    <section id="pair-card" class="card" aria-labelledby="pair-title">
+      <h2 id="pair-title">Vincular ThinkPad</h2>
+      <p>Escribe el código temporal que muestra la ThinkPad.</p>
+      <label for="pair-code">Código de 8 dígitos</label>
+      <input id="pair-code" inputmode="numeric" maxlength="8" autocomplete="off">
+      <button id="pair-button" type="button">Vincular</button>
+    </section>
+
+    <section id="message-card" class="card hidden" aria-labelledby="message-title">
+      <h2 id="message-title">Mensaje pendiente</h2>
+      <p id="message-status" class="status" role="status" aria-live="polite">Consultando la cola…</p>
+      <dl id="message-data" class="message-data hidden">
+        <dt>Para</dt><dd id="message-recipient"></dd>
+        <dt>Texto</dt><dd id="message-body"></dd>
+      </dl>
+      <button id="open-button" type="button" disabled>Abrir en Mensajes</button>
+      <button id="cancel-button" class="secondary" type="button" disabled>Cancelar mensaje</button>
+    </section>
+
+    <section id="linked-card" class="card hidden" aria-labelledby="linked-title">
+      <h2 id="linked-title">ThinkPad vinculada</h2>
+      <p>La aplicación consulta mientras permanece abierta. No envía SMS automáticamente.</p>
+      <button id="unlink-button" class="secondary" type="button">Desvincular</button>
+    </section>
+
+    <p id="global-status" class="status" role="status" aria-live="polite">Listo.</p>
+    <p class="footer">Sin permisos SMS · sin ADB · confirmación manual obligatoria</p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
