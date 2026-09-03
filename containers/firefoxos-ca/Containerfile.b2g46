@@ -27,7 +27,7 @@ COPY b2g46-source/b2g/ /opt/b2g/
 # El build NSS histórico busca NSPR como hermano de security/nss. En el
 # árbol Gecko/B2G de origen el directorio se llama nsprpub; este enlace solo
 # adapta la topología del contexto de compilación y no modifica las fuentes.
-RUN ln -s ../../nsprpub /opt/b2g/security/nspr
+RUN ln -s ../nsprpub /opt/b2g/security/nspr
 
 RUN test -f /opt/b2g/security/nss/TAG-INFO \
     && test -f /opt/b2g/nsprpub/TAG-INFO \
