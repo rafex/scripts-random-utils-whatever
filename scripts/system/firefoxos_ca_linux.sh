@@ -447,7 +447,7 @@ identify_runtime() {
   source_stamp="$(adb_file_value /system/b2g/application.ini SourceStamp)"
   gaia="$(adb_fixed_file /system/b2g/gaia/profile/webapps/system.gaiamobile.org/manifest.webapp | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p' || true)"
   gonk="$(adb_prop ro.build.version.incremental)"
-  lib_size="$("$ADB_COMMAND" -s "$DEVICE_SERIAL" shell ls -ln /system/b2g/libnss3.so 2>/dev/null | tr -d '\r' | awk 'NR == 1 { if ($2 ~ /^[0-9]+$/) print $5; else print $4 }')"
+  lib_size="$("$ADB_COMMAND" -s "$DEVICE_SERIAL" shell ls -ln /system/b2g/libnss3.so 2>/dev/null | tr -d '\r' | awk 'NR == 1 { for (i = 2; i <= NF; i++) if ($i ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) { print $(i - 1); exit } }')"
   lib_temp="$(mktemp "${TMPDIR:-/tmp}/rafex-libnss3.XXXXXX")"
   if ! "$ADB_COMMAND" -s "$DEVICE_SERIAL" pull /system/b2g/libnss3.so "$lib_temp" >/dev/null; then
     rm -f -- "$lib_temp"
