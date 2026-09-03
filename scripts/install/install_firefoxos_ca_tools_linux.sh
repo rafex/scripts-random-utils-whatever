@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 - Instala certutil para preparar una base NSS de Firefox OS.
+# v1.1.0 - Prepara un runtime NSS legado aislado para Firefox OS.
 set -Eeuo pipefail
 
 umask 077
@@ -7,7 +7,12 @@ export LC_ALL=C
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 ACTION="check"
-readonly NSS_TOOLS_PACKAGE="libnss3-tools"
+readonly NSS_TOOLS_PACKAGE="podman"
+readonly CA_IMAGE="localhost/rafex/firefoxos-ca:nss-3.21"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+readonly SCRIPT_DIR REPO_ROOT
+readonly CONTAINER_CONTEXT="${REPO_ROOT}/containers/firefoxos-ca"
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -22,8 +27,9 @@ Uso:
   install_firefoxos_ca_tools_linux.sh --apply
   install_firefoxos_ca_tools_linux.sh --status
 
-Instala libnss3-tools para preparar y validar bases NSS de Firefox OS. No
-modifica el teléfono ni descarga certificados.
+Instala Podman y construye un runtime aislado con NSS 3.21 para preparar y
+validar bases NSS de Firefox OS. No modifica el teléfono ni descarga
+certificados raíz.
 EOF
 }
 
@@ -71,6 +77,19 @@ package_candidate() {
     awk -F': ' '/^[[:space:]]*Candidate:/ { print $2; exit }'
 }
 
+runtime_probe() {
+  podman run --rm \
+    --network=none \
+    --cap-drop=all \
+    --security-opt=no-new-privileges \
+    --read-only \
+    --userns=keep-id \
+    --user "$(id -u):$(id -g)" \
+    --tmpfs /tmp:rw,noexec,nosuid,nodev \
+    --entrypoint /opt/legacy-nss/bin/certutil \
+    "$CA_IMAGE" -H >/dev/null 2>&1
+}
+
 check_candidate() {
   local candidate
   candidate="$(package_candidate "$NSS_TOOLS_PACKAGE")"
@@ -88,30 +107,70 @@ show_status() {
   else
     warn "$NSS_TOOLS_PACKAGE ausente (candidato: ${candidate:-(none)})"
   fi
-  if command -v certutil >/dev/null 2>&1; then
-    ok "certutil disponible: $(command -v certutil)"
+  if command -v podman >/dev/null 2>&1; then
+    ok "Podman disponible: $(command -v podman)"
+    if podman image exists "$CA_IMAGE" >/dev/null 2>&1; then
+      if runtime_probe; then
+        ok "runtime NSS legado disponible y ejecutable: $CA_IMAGE"
+      else
+        warn "runtime NSS legado presente pero certutil no puede ejecutarse: $CA_IMAGE"
+      fi
+    else
+      info "runtime NSS legado ausente; se construirá con --apply"
+    fi
   else
-    info 'certutil no está disponible; se instalará con --apply'
+    info 'Podman no está disponible; se instalará con --apply'
   fi
+  if [[ -f "${CONTAINER_CONTEXT}/Containerfile" ]]; then
+    ok 'contexto de compilación del runtime presente en el repositorio'
+  else
+    warn 'falta containers/firefoxos-ca/Containerfile en el repositorio'
+  fi
+  info 'el runtime usa NSS 3.21 dentro de un contenedor sin red durante la operación'
   info 'no se modifica el teléfono ni se inicia adb'
 }
 
 show_plan() {
   check_candidate
+  [[ -f "${CONTAINER_CONTEXT}/Containerfile" ]] ||
+    die 'falta el contexto containers/firefoxos-ca/Containerfile'
   printf '═══ Plan herramientas CA Firefox OS ═══\n'
-  info "instalar con APT: $NSS_TOOLS_PACKAGE"
-  info 'proporcionar certutil para leer y escribir una copia de cert9.db'
-  info 'no compilar B2G/NSS, no descargar certificados y no tocar el teléfono'
+  if package_installed "$NSS_TOOLS_PACKAGE"; then
+    info "${NSS_TOOLS_PACKAGE} ya está instalado"
+  else
+    info "instalar con APT: $NSS_TOOLS_PACKAGE"
+  fi
+  if command -v podman >/dev/null 2>&1 && podman image exists "$CA_IMAGE" >/dev/null 2>&1; then
+    info "conservar el runtime existente: $CA_IMAGE"
+  else
+    info "construir $CA_IMAGE desde NSS 3.21 y verificar el SHA-256 oficial del archivo fuente"
+  fi
+  info 'ejecutar certutil solo dentro de Podman rootless, sin red y sin privilegios adicionales'
+  info 'no instalar certutil moderno en el host, no compilar B2G y no tocar el teléfono'
 }
 
 apply_install() {
   check_candidate
-  sudo -v
-  info 'actualizando índices APT'
-  sudo apt-get update
-  info "instalando $NSS_TOOLS_PACKAGE desde Debian"
-  sudo apt-get --no-remove install --no-install-recommends -y "$NSS_TOOLS_PACKAGE"
-  ok 'certutil y herramientas NSS instalados'
+  [[ -f "${CONTAINER_CONTEXT}/Containerfile" ]] ||
+    die 'falta el contexto containers/firefoxos-ca/Containerfile'
+  if ! package_installed "$NSS_TOOLS_PACKAGE"; then
+    sudo -v
+    info 'actualizando índices APT'
+    sudo apt-get update
+    info "instalando $NSS_TOOLS_PACKAGE desde Debian"
+    sudo apt-get --no-remove install --no-install-recommends -y "$NSS_TOOLS_PACKAGE"
+  else
+    info "$NSS_TOOLS_PACKAGE ya está instalado"
+  fi
+  command -v podman >/dev/null 2>&1 || die 'Podman no quedó disponible después de la instalación'
+  if podman image exists "$CA_IMAGE" >/dev/null 2>&1; then
+    ok "runtime NSS legado ya disponible: $CA_IMAGE"
+  else
+    info "construyendo runtime NSS legado: $CA_IMAGE"
+    podman build --pull=missing --tag "$CA_IMAGE" "$CONTAINER_CONTEXT"
+    ok "runtime NSS legado construido: $CA_IMAGE"
+  fi
+  runtime_probe || die "el runtime $CA_IMAGE no puede ejecutar certutil NSS 3.21"
   info 'la instalación de certificados requiere ejecutar después el helper Firefox OS'
 }
 
@@ -122,6 +181,8 @@ main() {
     check)
       show_status
       check_candidate
+      [[ -f "${CONTAINER_CONTEXT}/Containerfile" ]] ||
+        die 'falta el contexto containers/firefoxos-ca/Containerfile'
       ;;
     plan) show_plan ;;
     apply) apply_install ;;

@@ -1,6 +1,6 @@
 ---
 title: install_firefoxos_ca_tools_linux.sh
-description: Instala certutil para preparar una base NSS de Firefox OS en Debian.
+description: Prepara un runtime NSS legado aislado con Podman para Firefox OS en Debian.
 tags:
   - instalación
   - firefox-os
@@ -9,13 +9,13 @@ tags:
 
 # install_firefoxos_ca_tools_linux.sh
 
-Instala las herramientas NSS de Debian necesarias para validar y preparar una
-copia de `cert9.db`. No modifica el Flame, no descarga certificados y no
-inicia ADB.
+Instala Podman y construye un runtime aislado con `certutil` NSS 3.21 para
+validar y preparar una copia de `cert9.db`. No modifica el Flame, no descarga
+certificados raíz y no inicia ADB.
 
 - **Ruta:** `scripts/install/install_firefoxos_ca_tools_linux.sh`
 - **SO requerido:** Linux (Debian)
-- **Dependencias:** `bash`, `apt-cache`, `apt-get`, `dpkg-query`, `sudo` solo durante `--apply`.
+- **Dependencias:** `bash`, `apt-cache`, `apt-get`, `dpkg-query`, `podman`, `sudo` solo durante `--apply`.
 
 ---
 
@@ -33,12 +33,15 @@ inicia ADB.
 ## Requisitos
 
 - Debian o un derivado compatible con APT.
-- Candidato APT para `libnss3-tools`.
+- Candidato APT para `podman`.
 - Usuario normal con `sudo` disponible únicamente para `--apply`.
+- El repositorio debe incluir `containers/firefoxos-ca/Containerfile`.
 
-Debian proporciona `certutil`, `modutil` y otras herramientas NSS mediante
-[`libnss3-tools`](https://packages.debian.org/forky/libnss3-tools). Este
-instalador no instala un navegador antiguo, WebIDE ni un compilador ARM.
+El instalador no usa el `certutil` moderno del host. Construye con Podman un
+runtime rootless fijado a NSS 3.21, la generación histórica alineada con
+Gecko 44 del Flame. El archivo fuente oficial de NSS se verifica durante la
+construcción con SHA-256. No instala un navegador antiguo, WebIDE ni un
+compilador ARM.
 
 ## Uso
 
@@ -49,16 +52,16 @@ just install-firefoxos-ca-tools --apply
 just install-firefoxos-ca-tools --status
 ```
 
-La instalación de `certutil` es independiente de la adquisición y aplicación
+La construcción del runtime es independiente de la adquisición y aplicación
 de certificados. Después se utiliza `just firefoxos-ca`.
 
 ## Opciones
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `--check` | — | Comprueba Debian, el candidato APT y el estado local. |
+| `--check` | — | Comprueba Debian, el candidato APT, el contexto y el estado local. |
 | `--plan` | `--dry-run` | Muestra la instalación prevista sin usar `sudo`. |
-| `--apply` | — | Instala `libnss3-tools` mediante APT. |
+| `--apply` | — | Instala Podman mediante APT si falta y construye el runtime NSS 3.21. |
 | `--status` | — | Muestra el estado sin modificar el equipo ni el teléfono. |
 | `--help` | `-h` | Muestra la ayuda. |
 
@@ -81,8 +84,12 @@ just install-firefoxos-ca-tools --apply
 
 ```bash
 just install-firefoxos-ca-tools --status
-certutil -H | sed -n '1,8p'
+podman image inspect localhost/rafex/firefoxos-ca:nss-3.21
 ```
+
+La ejecución de `certutil` durante el procesamiento se realiza con una
+imagen rootless, sin red, sin capacidades y con solo el directorio temporal
+de trabajo montado.
 
 ### Siguiente fase
 
@@ -94,14 +101,17 @@ just firefoxos-ca --verify-source
 ## Protecciones de seguridad
 
 - `--check`, `--plan` y `--status` son de solo lectura.
-- `--apply` solo instala el paquete declarado mediante APT.
+- `--apply` solo instala el paquete declarado mediante APT y construye la
+  imagen desde el `Containerfile` versionado.
 - No se usa `sudo` para ADB ni para escribir el teléfono.
+- El runtime de operación usa `--network=none`, `--cap-drop=all`,
+  `--read-only` y `no-new-privileges`.
 - No se añaden grupos, reglas udev, certificados ni excepciones HTTPS.
 - No se compila ni se reemplaza `libnssckbi.so`.
 
 ## Fallos conocidos
 
-### `sin candidato APT: libnss3-tools`
+### `sin candidato APT: podman`
 
 **Causa:** las fuentes Debian no ofrecen el paquete en la configuración
 actual.
@@ -109,16 +119,33 @@ actual.
 **Solución:** revisa las fuentes APT y vuelve a ejecutar `--check`. No se
 descargan paquetes externos como sustituto.
 
-### `certutil no está disponible`
+### `falta el contexto containers/firefoxos-ca/Containerfile`
 
-**Causa:** la instalación todavía no se ha aplicado o el `PATH` no contiene
-`/usr/bin`.
+**Causa:** la ThinkPad no está sincronizada con la revisión del repositorio
+que contiene el runtime fijado.
 
-**Solución:** ejecuta `just install-firefoxos-ca-tools --apply` y abre una
-nueva shell si corresponde.
+**Solución:** sincroniza el repositorio y vuelve a ejecutar
+`just install-firefoxos-ca-tools --check`.
+
+### `runtime NSS legado ausente` o `la compilación del runtime falla`
+
+**Causa:** Podman aún no construyó la imagen, el archivo oficial no pudo
+descargarse o la compilación de NSS 3.21 es incompatible con el compilador
+disponible.
+
+**Solución:** revisa la salida de `just install-firefoxos-ca-tools --apply`.
+La compilación es local, verifica el SHA-256 oficial y no modifica el
+teléfono. No sustituyas la imagen por una etiqueta local no verificada.
 
 ## Changelog
 
 ### [Unreleased]
 
-- **feat:** añadir instalación separada de herramientas NSS para Firefox OS.
+- **feat:** ejecutar `certutil` NSS 3.21 dentro de un runtime Podman rootless.
+
+### v1.1.0 — 2026-09-02
+
+**feat:** preparar componentes NSS históricos en Podman.
+
+- Sustituir la dependencia host `libnss3-tools` por `podman`.
+- Construir NSS 3.21 desde una fuente oficial fijada y verificada.

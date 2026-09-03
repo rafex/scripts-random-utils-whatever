@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.5 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
+# v1.1.0 - Prepara e instala raíces Mozilla con NSS legado en Podman.
 set -Eeuo pipefail
 
 umask 077
@@ -9,6 +9,8 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH
 readonly NSS_RELEASE="NSS_3_128_RTM"
 readonly CERTDATA_URL="https://hg.mozilla.org/projects/nss/raw-file/${NSS_RELEASE}/lib/ckfw/builtins/certdata.txt"
 readonly CERTDATA_SHA256="81b7f2576333a2e360e673f912d7b0b7a765d836c731003e348a46cac5d37198"
+readonly NSS_COMPAT_VERSION="3.21"
+readonly CA_IMAGE="localhost/rafex/firefoxos-ca:nss-3.21"
 readonly STATE_ROOT="${HOME}/.local/share/rafex/firefoxos-ca"
 readonly SOURCE_ROOT="${STATE_ROOT}/sources"
 readonly ROLLBACK_ROOT="${STATE_ROOT}/rollback"
@@ -23,12 +25,13 @@ ACTION_EXPLICIT=0
 CONFIRMATION=""
 
 ADB_COMMAND=""
-CERTUTIL_COMMAND=""
+PODMAN_COMMAND=""
 CURL_COMMAND=""
 DEVICE_SERIAL=""
 PROFILE_PATH=""
 REMOTE_DB=""
 WORK_DIR=""
+LEGACY_RUNTIME_VERIFIED=0
 B2G_STOPPED=0
 ROOT_ADB_ACTIVE=0
 
@@ -155,13 +158,13 @@ require_commands() {
 
 resolve_commands() {
   ADB_COMMAND="$(command -v adb 2>/dev/null || true)"
-  CERTUTIL_COMMAND="$(command -v certutil 2>/dev/null || true)"
+  PODMAN_COMMAND="$(command -v podman 2>/dev/null || true)"
   CURL_COMMAND="$(command -v curl 2>/dev/null || true)"
 }
 
 package_state() {
   if command -v dpkg-query >/dev/null 2>&1 && \
-    dpkg-query -W -f='${Status}' libnss3-tools 2>/dev/null | \
+    dpkg-query -W -f='${Status}' podman 2>/dev/null | \
     grep -Fqx 'install ok installed'; then
     printf 'instalado\n'
   else
@@ -170,18 +173,28 @@ package_state() {
 }
 
 show_status() {
-  local state source_state source_hash
+  local state source_state source_hash image_version
   printf '═══ CA Mozilla para Firefox OS ═══\n'
   state="$(package_state)"
   if [[ "$state" == instalado ]]; then
-    ok 'libnss3-tools instalado'
+    ok 'podman instalado'
   else
-    warn 'libnss3-tools no está instalado; ejecuta just install-firefoxos-ca-tools --apply'
+    warn 'podman no está instalado; ejecuta just install-firefoxos-ca-tools --apply'
   fi
-  if [[ -n "$CERTUTIL_COMMAND" ]]; then
-    ok "certutil disponible: $CERTUTIL_COMMAND"
+  if [[ -n "$PODMAN_COMMAND" ]]; then
+    ok "Podman disponible: $PODMAN_COMMAND"
+    if podman image exists "$CA_IMAGE" >/dev/null 2>&1; then
+      image_version="$(podman image inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$CA_IMAGE" 2>/dev/null || true)"
+      if [[ "$image_version" == "$NSS_COMPAT_VERSION" ]]; then
+        ok "runtime NSS legado disponible: $CA_IMAGE (NSS ${NSS_COMPAT_VERSION})"
+      else
+        warn "runtime $CA_IMAGE tiene una versión no verificada"
+      fi
+    else
+      warn "runtime NSS legado ausente: $CA_IMAGE"
+    fi
   else
-    warn 'certutil no está disponible'
+    warn 'Podman no está disponible'
   fi
   if [[ -f "$SOURCE_FILE" ]]; then
     source_hash="$(sha256sum -- "$SOURCE_FILE" 2>/dev/null | awk '{print $1}' || true)"
@@ -204,7 +217,60 @@ show_status() {
   else
     info 'adb no está disponible; el estado del teléfono no se consulta'
   fi
-  info 'no se compila B2G, no se reemplaza libnssckbi.so y no se acepta una excepción HTTPS'
+  info 'certutil no se instala en el host; no se compila B2G, no se reemplaza libnssckbi.so y no se acepta una excepción HTTPS'
+}
+
+legacy_image_version() {
+  [[ -n "$PODMAN_COMMAND" ]] || return 1
+  "$PODMAN_COMMAND" image inspect \
+    --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' \
+    "$CA_IMAGE" 2>/dev/null
+}
+
+legacy_runtime_probe() {
+  "$PODMAN_COMMAND" run --rm \
+    --network=none \
+    --cap-drop=all \
+    --security-opt=no-new-privileges \
+    --read-only \
+    --userns=keep-id \
+    --user "$(id -u):$(id -g)" \
+    --tmpfs /tmp:rw,noexec,nosuid,nodev \
+    --entrypoint /opt/legacy-nss/bin/certutil \
+    "$CA_IMAGE" -H >/dev/null 2>&1
+}
+
+require_legacy_certutil() {
+  local image_version
+  [[ "$LEGACY_RUNTIME_VERIFIED" -eq 1 ]] && return 0
+  [[ -n "$PODMAN_COMMAND" ]] ||
+    die 'falta Podman; ejecuta just install-firefoxos-ca-tools --apply'
+  "$PODMAN_COMMAND" image exists "$CA_IMAGE" >/dev/null 2>&1 ||
+    die "falta el runtime NSS legado $CA_IMAGE; ejecuta just install-firefoxos-ca-tools --apply"
+  image_version="$(legacy_image_version || true)"
+  [[ "$image_version" == "$NSS_COMPAT_VERSION" ]] ||
+    die "el runtime NSS local no está verificado como NSS ${NSS_COMPAT_VERSION}; reconstruye la imagen con just install-firefoxos-ca-tools --apply"
+  legacy_runtime_probe ||
+    die "el runtime NSS local no puede ejecutar certutil ${NSS_COMPAT_VERSION}; reconstruye la imagen con just install-firefoxos-ca-tools --apply"
+  LEGACY_RUNTIME_VERIFIED=1
+}
+
+legacy_certutil() {
+  local mount_dir="$1"
+  shift
+  [[ -d "$mount_dir" && "$mount_dir" = /* ]] ||
+    die 'el directorio de trabajo del runtime NSS no es absoluto o no existe'
+  require_legacy_certutil
+  "$PODMAN_COMMAND" run --rm \
+    --network=none \
+    --cap-drop=all \
+    --security-opt=no-new-privileges \
+    --read-only \
+    --userns=keep-id \
+    --user "$(id -u):$(id -g)" \
+    --tmpfs /tmp:rw,noexec,nosuid,nodev \
+    --volume "${mount_dir}:/work:rw" \
+    "$CA_IMAGE" "$@"
 }
 
 show_adb_status() {
@@ -442,6 +508,7 @@ require_flame_device() {
 
 preflight_device() {
   local b2g_library
+  require_legacy_certutil
   require_flame_device
   if "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell test -r /system/b2g/libnssckbi.so >/dev/null 2>&1; then
     b2g_library=0
@@ -529,11 +596,11 @@ prepare_database() {
   printf '%s\n' "$rollback_dir" > "${WORK_DIR}/rollback-path"
   printf '%s\n' "$(sha256sum -- "$original_db" | awk '{print $1}')" > "${WORK_DIR}/original-sha256"
   ok 'rollback mínimo guardado fuera del repositorio'
-  if ! certutil_error="$("$CERTUTIL_COMMAND" -L -d "sql:${db_dir}" 2>&1)"; then
+  if ! certutil_error="$(legacy_certutil "$WORK_DIR" -L -d sql:/work/db 2>&1)"; then
     if grep -Fq 'SEC_ERROR_BAD_DATABASE' <<< "$certutil_error"; then
-      die 'cert9.db es una SQLite íntegra, pero su esquema NSS histórico es incompatible con certutil moderno; no se modificará el teléfono'
+      die "cert9.db es una SQLite íntegra, pero su esquema NSS histórico sigue siendo incompatible con NSS ${NSS_COMPAT_VERSION}; no se modificará el teléfono"
     fi
-    die 'certutil no puede leer la copia de cert9.db; no se modificará el teléfono'
+    die "certutil NSS ${NSS_COMPAT_VERSION} no puede leer la copia de cert9.db; no se modificará el teléfono"
   fi
 }
 
@@ -548,17 +615,18 @@ import_bundle() {
     [[ -f "$cert_path" ]] || die "falta certificado generado: $filename"
     current_digest="$(sha256sum -- "$cert_path" | awk '{print $1}')"
     [[ "$current_digest" == "$digest" ]] || die "hash inválido en certificado: $filename"
-    if "$CERTUTIL_COMMAND" -L -d "sql:${db_dir}" -n "$nickname" >/dev/null 2>&1; then
-      "$CERTUTIL_COMMAND" -D -d "sql:${db_dir}" -n "$nickname" >/dev/null 2>&1 ||
+    if legacy_certutil "$WORK_DIR" -L -d sql:/work/db -n "$nickname" >/dev/null 2>&1; then
+      legacy_certutil "$WORK_DIR" -D -d sql:/work/db -n "$nickname" >/dev/null 2>&1 ||
         die "no se pudo reemplazar el certificado administrado: $nickname"
     fi
-    "$CERTUTIL_COMMAND" -A -d "sql:${db_dir}" -n "$nickname" -t 'C,,' -i "$cert_path" >/dev/null 2>&1 ||
+    legacy_certutil "$WORK_DIR" -A -d sql:/work/db -n "$nickname" -t 'C,,' \
+      -i "/work/certs/${filename}" >/dev/null 2>&1 ||
       die "no se pudo importar el certificado: $nickname"
     count=$((count + 1))
   done < "$manifest"
   (( count > 0 )) || die 'no se importaron raíces Mozilla'
-  "$CERTUTIL_COMMAND" -L -d "sql:${db_dir}" >/dev/null 2>&1 ||
-    die 'la base NSS modificada no supera la lectura final con certutil'
+  legacy_certutil "$WORK_DIR" -L -d sql:/work/db >/dev/null 2>&1 ||
+    die "la base NSS modificada no supera la lectura final con NSS ${NSS_COMPAT_VERSION}"
   printf '%s\n' "$count" > "${WORK_DIR}/imported-count"
   ok "raíces Mozilla importadas en la copia: $count"
 }
@@ -603,7 +671,7 @@ apply_change() {
   local imported rollback_dir
   [[ "$CONFIRMATION" == "$CONFIRM_APPLY" ]] ||
     die "confirmación incorrecta; escribe exactamente $CONFIRM_APPLY"
-  require_commands adb python3 certutil sha256sum awk grep tr sed date seq sleep
+  require_commands adb python3 podman sha256sum awk grep tr sed date seq sleep
   [[ -f "$SOURCE_FILE" ]] || die 'falta la fuente; ejecuta --acquire antes de --apply'
   verify_source_file "$SOURCE_FILE" >/dev/null
   require_flame_device
@@ -668,7 +736,7 @@ rollback_change() {
 
 test_change() {
   local db_dir db_copy cert_count managed_count cert_list
-  require_commands adb certutil mktemp mkdir chmod sha256sum awk grep tr sed sleep
+  require_commands adb podman mktemp mkdir chmod sha256sum awk grep tr sed sleep
   require_flame_device
   start_root_adb
   find_remote_profile
@@ -678,8 +746,9 @@ test_change() {
   db_copy="${db_dir}/cert9.db"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" pull "$REMOTE_DB" "$db_copy" >/dev/null || die 'no se pudo extraer cert9.db para la prueba'
   chmod 600 -- "$db_copy"
-  cert_list="$("$CERTUTIL_COMMAND" -L -d "sql:$db_dir" 2>/dev/null)" ||
-    die 'certutil no pudo leer la copia de cert9.db'
+  require_legacy_certutil
+  cert_list="$(legacy_certutil "$db_dir" -L -d sql:/work 2>/dev/null)" ||
+    die "certutil NSS ${NSS_COMPAT_VERSION} no pudo leer la copia de cert9.db"
   cert_count="$(wc -l <<< "$cert_list" | awk '{print $1}')"
   managed_count="$(grep -Fc 'Rafex Mozilla ' <<< "$cert_list" || true)"
   printf '═══ Prueba de CA Firefox OS ═══\n'
@@ -697,7 +766,7 @@ show_plan() {
   printf 'SHA-256: %s\n' "$CERTDATA_SHA256"
   info 'descargar certdata.txt desde Mozilla y verificar su hash'
   info 'seleccionar únicamente raíces serverAuth confiables de Mozilla'
-  info 'extraer cert9.db, guardar rollback mínimo e importar con certutil'
+  info "extraer cert9.db, guardar rollback mínimo e importar con certutil NSS ${NSS_COMPAT_VERSION} en Podman"
   info 'detener B2G, subir cert9.db.new, validar hash, sustituir y reiniciar'
   info 'usar adb root temporal; volver a ADB normal tras reiniciar'
   info 'no compilar B2G, no reemplazar libnssckbi.so, no tocar particiones ni red'

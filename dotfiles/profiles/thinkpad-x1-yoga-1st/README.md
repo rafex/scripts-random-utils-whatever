@@ -474,7 +474,8 @@ WebIDE legacy o herramientas históricas de depuración remota.
 
 El repositorio incluye un flujo separado para preparar el almacén NSS del
 Flame con raíces `serverAuth` del almacén Mozilla actual. Primero instala
-`certutil` en la ThinkPad y verifica la fuente fijada:
+Podman y construye el runtime aislado con NSS 3.21, alineado con Gecko 44;
+`certutil` no se instala en el host:
 
 ```sh
 just install-firefoxos-ca-tools --apply

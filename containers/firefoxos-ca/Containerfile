@@ -1,0 +1,51 @@
+FROM debian:bookworm-slim AS build
+
+ARG NSS_ARCHIVE_URL=https://ftp.mozilla.org/pub/security/nss/releases/NSS_3_21_RTM/src/nss-3.21-with-nspr-4.10.10.tar.gz
+ARG NSS_ARCHIVE_SHA256=6e3e5914485a37ec206606e7e8fb4614524a8560ea7f249d28ecf8a89e242702
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+       ca-certificates \
+       curl \
+       gcc \
+       g++ \
+       make \
+       perl \
+       python3 \
+       zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+
+RUN curl --fail --silent --show-error --location --proto '=https' \
+      "${NSS_ARCHIVE_URL}" --output nss-3.21-with-nspr-4.10.10.tar.gz \
+    && printf '%s  %s\n' "${NSS_ARCHIVE_SHA256}" nss-3.21-with-nspr-4.10.10.tar.gz \
+       | sha256sum --check --strict \
+    && tar --extract --gzip --file nss-3.21-with-nspr-4.10.10.tar.gz \
+    && rm -- nss-3.21-with-nspr-4.10.10.tar.gz
+
+WORKDIR /opt/nss-3.21/nss
+
+RUN make nss_build_all BUILD_OPT=1 USE_64=1 NSS_DISABLE_GTESTS=1 NSS_ENABLE_WERROR=0 \
+    && install --directory /opt/legacy-nss/bin /opt/legacy-nss/lib \
+    && legacy_certutil="$(find /opt/nss-3.21 -type f -name certutil -print -quit)" \
+    && test -n "${legacy_certutil}" \
+    && install --strip "${legacy_certutil}" \
+       /opt/legacy-nss/bin/certutil \
+    && find /opt/nss-3.21/dist \( -type f -o -type l \) \
+       \( -name '*.so' -o -name '*.so.*' -o -name '*.chk' \) \
+       -exec cp --dereference --preserve=mode,timestamps {} /opt/legacy-nss/lib/ \;
+
+FROM debian:bookworm-slim
+
+LABEL org.opencontainers.image.title="Rafex legacy NSS certutil" \
+      org.opencontainers.image.description="NSS 3.21 certutil for Firefox OS Gecko 44 database compatibility" \
+      org.opencontainers.image.version="3.21"
+
+COPY --from=build /opt/legacy-nss /opt/legacy-nss
+
+ENV LD_LIBRARY_PATH=/opt/legacy-nss/lib
+
+ENTRYPOINT ["/opt/legacy-nss/bin/certutil"]
