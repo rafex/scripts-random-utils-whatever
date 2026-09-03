@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.3 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
+# v1.0.4 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
 set -Eeuo pipefail
 
 umask 077
@@ -421,8 +421,10 @@ validate_remote_database() {
   metadata="$("$ADB_COMMAND" -s "$DEVICE_SERIAL" shell ls -ln "$REMOTE_DB" 2>/dev/null | tr -d '\r')" ||
     die 'no se pudo leer la metadata de cert9.db'
   mode="$(awk 'NR == 1 { print $1 }' <<< "$metadata")"
-  uid="$(awk 'NR == 1 { print $3 }' <<< "$metadata")"
-  gid="$(awk 'NR == 1 { print $4 }' <<< "$metadata")"
+  # El `ls -ln` del Android antiguo no incluye contador de enlaces: modo,
+  # uid, gid, tamaño, fecha y nombre.
+  uid="$(awk 'NR == 1 { print $2 }' <<< "$metadata")"
+  gid="$(awk 'NR == 1 { print $3 }' <<< "$metadata")"
   [[ "$mode" == -rw------- && "$uid" == 0 && "$gid" == 0 ]] ||
     die 'cert9.db no tiene la metadata root:root 600 esperada; no se sobrescribirá'
 }

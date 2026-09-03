@@ -262,3 +262,10 @@ retirar el cambio y documenta el sitio como incompatible.
 
 - Reemplazar el `sh -c` frágil por `ls -d` sobre un glob fijo.
 - Evitar que mensajes de error del shell se interpreten como rutas remotas.
+
+### v1.0.4 — 2026-09-02
+
+**fix:** interpretar correctamente la metadata de archivos en Android antiguo.
+
+- Leer UID y GID desde las columnas reales de `ls -ln` del Flame.
+- Mantener la protección `root:root` y modo `600` antes de sobrescribir.
