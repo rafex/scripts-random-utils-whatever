@@ -218,13 +218,27 @@ El shell del Flame también interpreta de forma distinta `adb shell sh -c` con
 varios argumentos. El descubrimiento del perfil usa un glob remoto fijo con
 `ls -d` y rechaza cualquier salida que no sea una ruta `.default` segura.
 
+### `cert9.db es una SQLite íntegra, pero su esquema NSS histórico es incompatible con certutil moderno`
+
+**Causa:** el `cert9.db` del Flame puede ser una base SQLite íntegra y, aun así,
+usar el esquema NSS histórico que corresponde al Gecko/B2G del dispositivo.
+`certutil` moderno puede responder `SEC_ERROR_BAD_DATABASE` aunque SQLite pueda
+validar la estructura. No es evidencia de corrupción.
+
+**Solución:** el wrapper detiene el proceso antes de subir o sustituir archivos.
+No se debe editar la base con SQLite ni crear una base nueva con el NSS moderno.
+La siguiente fase requiere obtener o compilar, de forma aislada, un `certutil`
+compatible con la versión NSS de Gecko 44 y repetir primero la validación local.
+Mientras esa herramienta no exista, el Flame permanece intacto y ADB vuelve a
+modo normal mediante la limpieza controlada del script.
+
 ### `certutil no puede leer la copia de cert9.db`
 
 **Causa:** la base está bloqueada, tiene un formato incompatible o falta una
 herramienta NSS compatible.
 
-**Solución:** no se sube la copia. Mantén el Flame intacto y evalúa una
-recompilación compatible de NSS como proyecto independiente.
+**Solución:** no se sube la copia. Mantén el Flame intacto y revisa el mensaje
+específico anterior antes de continuar.
 
 ### `la CA aparece instalada pero el navegador continúa fallando`
 
@@ -241,6 +255,14 @@ retirar el cambio y documenta el sitio como incompatible.
 - **feat:** añadir adquisición y validación reproducible del almacén Mozilla NSS.
 - **feat:** añadir instalación reversible de raíces serverAuth en `cert9.db`.
 - **docs:** documentar ADB root temporal, límites de Gecko legado y rollback.
+
+### v1.0.5 — 2026-09-02
+
+**fix:** distinguir un esquema NSS histórico incompatible de una base corrupta.
+
+- Detener la aplicación antes de cualquier subida cuando `certutil` devuelve
+  `SEC_ERROR_BAD_DATABASE`.
+- Documentar que no se debe modificar `cert9.db` directamente con SQLite.
 
 ### v1.0.1 — 2026-09-02
 

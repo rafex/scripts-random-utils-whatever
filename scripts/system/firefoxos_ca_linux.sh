@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.4 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
+# v1.0.5 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
 set -Eeuo pipefail
 
 umask 077
@@ -513,7 +513,7 @@ stop_b2g() {
 }
 
 prepare_database() {
-  local original_db="$WORK_DIR/original-cert9.db" db_dir="$WORK_DIR/db" rollback_dir
+  local original_db="$WORK_DIR/original-cert9.db" db_dir="$WORK_DIR/db" rollback_dir certutil_error
   mkdir -p -- "$ROLLBACK_ROOT"
   rollback_dir="$(mktemp -d "${ROLLBACK_ROOT}/$(date +%Y%m%d-%H%M%S).XXXXXX")"
   mkdir -p -- "$rollback_dir" "$db_dir"
@@ -529,8 +529,12 @@ prepare_database() {
   printf '%s\n' "$rollback_dir" > "${WORK_DIR}/rollback-path"
   printf '%s\n' "$(sha256sum -- "$original_db" | awk '{print $1}')" > "${WORK_DIR}/original-sha256"
   ok 'rollback mínimo guardado fuera del repositorio'
-  "$CERTUTIL_COMMAND" -L -d "sql:${db_dir}" >/dev/null 2>&1 ||
+  if ! certutil_error="$("$CERTUTIL_COMMAND" -L -d "sql:${db_dir}" 2>&1)"; then
+    if grep -Fq 'SEC_ERROR_BAD_DATABASE' <<< "$certutil_error"; then
+      die 'cert9.db es una SQLite íntegra, pero su esquema NSS histórico es incompatible con certutil moderno; no se modificará el teléfono'
+    fi
     die 'certutil no puede leer la copia de cert9.db; no se modificará el teléfono'
+  fi
 }
 
 import_bundle() {
