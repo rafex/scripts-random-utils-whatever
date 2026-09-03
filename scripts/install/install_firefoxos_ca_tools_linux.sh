@@ -130,7 +130,7 @@ validate_source_bundle() {
     [[ "$manifest_line" != *'..'* && "$manifest_line" != *'//'* ]] ||
       die 'NO-GO: b2g-source.sha256 contiene una ruta insegura'
   done < "$source_manifest"
-  (cd -- "$SOURCE_BUNDLE" && sha256sum --check --strict -- "$source_manifest") ||
+  (cd -- "$SOURCE_BUNDLE" && sha256sum --check --strict -- "$source_manifest" >/dev/null) ||
     die 'NO-GO: el manifiesto del árbol B2G no coincide con el bundle'
   source_hash="$(sha256sum -- "$source_manifest" | awk '{print $1}')"
   expected="$(manifest_value "$manifest" B2G_SOURCE_TREE_SHA256)"
