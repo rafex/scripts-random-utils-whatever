@@ -236,8 +236,9 @@ legacy_runtime_probe() {
     --userns=keep-id \
     --user "$(id -u):$(id -g)" \
     --tmpfs /tmp:rw,noexec,nosuid,nodev \
-    --entrypoint /opt/legacy-nss/bin/certutil \
-    "$CA_IMAGE" -H >/dev/null 2>&1
+    --entrypoint /bin/sh \
+    "$CA_IMAGE" -c \
+    'mkdir /tmp/probe && /opt/legacy-nss/bin/certutil -N -d sql:/tmp/probe --empty-password && /opt/legacy-nss/bin/certutil -L -d sql:/tmp/probe >/dev/null'
 }
 
 require_legacy_certutil() {
