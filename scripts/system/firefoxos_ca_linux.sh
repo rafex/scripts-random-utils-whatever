@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.1 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
+# v1.0.2 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
 set -Eeuo pipefail
 
 umask 077
@@ -44,7 +44,7 @@ restore_normal_adb() {
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" unroot >/dev/null 2>&1 || true
   for ((attempt = 1; attempt <= 10; attempt++)); do
     if "$ADB_COMMAND" -s "$DEVICE_SERIAL" get-state >/dev/null 2>&1; then
-      uid="$(adb_prop_shell id -u || true)"
+      uid="$(adb_uid || true)"
       if [[ "$uid" == 2000 ]]; then
         ROOT_ADB_ACTIVE=0
         return 0
@@ -59,7 +59,7 @@ restore_normal_adb() {
     "$ADB_COMMAND" -s "$DEVICE_SERIAL" reboot >/dev/null 2>&1 || return 1
     for ((attempt = 1; attempt <= 30; attempt++)); do
       if "$ADB_COMMAND" -s "$DEVICE_SERIAL" get-state >/dev/null 2>&1; then
-        uid="$(adb_prop_shell id -u || true)"
+        uid="$(adb_uid || true)"
         if [[ "$uid" == 2000 ]]; then
           ROOT_ADB_ACTIVE=0
           return 0
@@ -480,7 +480,7 @@ start_root_adb() {
   # segundos en reaparecer; no se debe interpretar esa ventana como un fallo.
   for ((attempt = 1; attempt <= 10; attempt++)); do
     if "$ADB_COMMAND" -s "$DEVICE_SERIAL" get-state >/dev/null 2>&1; then
-      root_uid="$(adb_prop_shell id -u || true)"
+      root_uid="$(adb_uid || true)"
       if [[ "$root_uid" == 0 ]]; then
         ok 'adb root habilitado temporalmente para la operación explícita'
         return 0
@@ -494,6 +494,12 @@ start_root_adb() {
 adb_prop_shell() {
   local command_text="$*"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell "$command_text" 2>/dev/null | tr -d '\r' | sed -n '1p'
+}
+
+adb_uid() {
+  local identity
+  identity="$(adb_prop_shell id || true)"
+  sed -n 's/^uid=\([0-9][0-9]*\).*/\1/p' <<< "$identity"
 }
 
 stop_b2g() {
@@ -573,7 +579,7 @@ wait_for_normal_adb() {
   local attempt uid
   for ((attempt = 1; attempt <= 30; attempt++)); do
     if "$ADB_COMMAND" wait-for-device >/dev/null 2>&1; then
-      uid="$(adb_prop_shell id -u || true)"
+      uid="$(adb_uid || true)"
       if [[ "$uid" == 2000 ]]; then
         ROOT_ADB_ACTIVE=0
         ok 'ADB volvió al modo normal después del reinicio'

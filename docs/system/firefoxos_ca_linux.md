@@ -210,6 +210,10 @@ ocurrió mientras el daemon todavía reaparecía.
 una operación aborta después de activar ADB root, intenta `unroot` y, si ese
 firmware no lo acepta, reinicia de forma controlada para volver a uid 2000.
 
+En el Flame antiguo, `adb shell id -u` puede devolver la línea completa de
+identidad en lugar de un número. El wrapper extrae el UID desde `uid=...` para
+aceptar correctamente tanto `uid=0(root)` como `uid=2000(shell)`.
+
 ### `certutil no puede leer la copia de cert9.db`
 
 **Causa:** la base está bloqueada, tiene un formato incompatible o falta una
@@ -240,3 +244,10 @@ retirar el cambio y documenta el sitio como incompatible.
 
 - Evitar falsos fallos durante el reinicio causado por `adb root`.
 - Documentar el comportamiento de recuperación en firmwares Flame antiguos.
+
+### v1.0.2 — 2026-09-02
+
+**fix:** interpretar la salida de identidad de los firmwares Android antiguos.
+
+- Extraer el UID desde la salida completa de `adb shell id`.
+- Confirmar y restaurar correctamente ADB normal en el flujo temporal root.
