@@ -1,6 +1,6 @@
 # create_retro_podcast_sounds
 
-Genera dos efectos sonoros originales en formato WAV para una cortinilla de podcast: un handshake de módem para separar secciones y una cortinilla chiptune de inspiración retro.
+Genera efectos sonoros originales en formato WAV para una cortinilla de podcast: un handshake de módem para separar secciones y una cortinilla chiptune de inspiración retro. Incluye cinco variantes alternativas del handshake para comparar.
 
 - **Ruta:** `scripts/audio/create_retro_podcast_sounds.py`
 - **SO requerido:** macOS, Linux
@@ -30,7 +30,7 @@ Genera dos efectos sonoros originales en formato WAV para una cortinilla de podc
 python3 scripts/audio/create_retro_podcast_sounds.py
 ```
 
-Genera archivos mono WAV PCM de 44.1 kHz y 16 bits en `assets/audio/`.
+Genera archivos mono WAV PCM de 44.1 kHz y 16 bits en `assets/audio/`. Conserva `modem_section_transition.wav` y además crea `modem_section_transition_v1.wav` a `modem_section_transition_v5.wav`.
 
 ## Opciones
 
@@ -54,11 +54,12 @@ python3 scripts/audio/create_retro_podcast_sounds.py
 
 ### Uso con Audacity
 
-Importa `assets/audio/modem_section_transition.wav` y `assets/audio/retro_chiptune_curtain.wav` en Audacity. Mezcla la cortinilla chiptune bajo la voz y usa el efecto de módem entre secciones.
+Importa `assets/audio/modem_section_transition.wav`, cualquiera de sus cinco variantes y `assets/audio/retro_chiptune_curtain.wav` en Audacity. Mezcla la cortinilla chiptune bajo la voz y usa el efecto de módem entre secciones.
 
 ## Protecciones de seguridad
 
-- Solo escribe dos archivos dentro de `assets/audio/`.
+- Solo escribe los archivos de audio generados dentro de `assets/audio/`.
+- No sobrescribe los archivos originales `modem_section_transition.wav` ni `retro_chiptune_curtain.wav` si ya existen.
 - No modifica ni elimina proyectos existentes de Audacity.
 - Los sonidos son sintetizados y no contienen grabaciones de terceros.
 

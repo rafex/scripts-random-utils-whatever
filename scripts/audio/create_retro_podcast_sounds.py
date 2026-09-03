@@ -89,6 +89,95 @@ def modem_transition() -> list[float]:
     return buffer
 
 
+def modem_variant(version: int) -> list[float]:
+    """Create one of five alternative modem handshakes for comparison."""
+    configurations = {
+        1: {
+            "duration": 2.20,
+            "tones": [
+                (0.00, 0.09, 425, 0.24, "sine", None),
+                (0.00, 0.09, 625, 0.18, "sine", None),
+                (0.13, 0.16, 697, 0.24, "sine", None),
+                (0.13, 0.16, 1_209, 0.20, "sine", None),
+                (0.34, 0.30, 1_500, 0.26, "sine", 2_400),
+                (0.70, 0.12, 2_400, 0.25, "sine", None),
+                (0.85, 0.11, 1_200, 0.23, "sine", None),
+                (1.00, 0.11, 2_400, 0.23, "sine", None),
+                (1.16, 0.25, 2_100, 0.18, "sine", 1_050),
+                (1.52, 0.22, 1_900, 0.18, "sine", 2_700),
+                (1.82, 0.25, 2_100, 0.15, "sine", None),
+            ],
+            "noise": [(1.48, 0.18, 0.06)],
+        },
+        2: {
+            "duration": 1.75,
+            "tones": [
+                (0.00, 0.08, 440, 0.22, "sine", None),
+                (0.10, 0.20, 1_800, 0.25, "sine", 2_600),
+                (0.34, 0.07, 1_200, 0.24, "sine", None),
+                (0.43, 0.07, 2_400, 0.24, "sine", None),
+                (0.52, 0.07, 1_200, 0.23, "sine", None),
+                (0.61, 0.07, 2_400, 0.23, "sine", None),
+                (0.72, 0.28, 2_250, 0.22, "sine", 1_100),
+                (1.08, 0.12, 3_000, 0.18, "sine", None),
+                (1.24, 0.25, 2_050, 0.16, "sine", None),
+            ],
+            "noise": [(0.82, 0.30, 0.08)],
+        },
+        3: {
+            "duration": 2.90,
+            "tones": [
+                (0.00, 0.15, 350, 0.20, "sine", None),
+                (0.00, 0.15, 440, 0.16, "sine", None),
+                (0.20, 0.35, 1_050, 0.22, "sine", 2_100),
+                (0.66, 0.20, 1_100, 0.18, "sine", None),
+                (0.91, 0.20, 2_200, 0.18, "sine", None),
+                (1.16, 0.20, 1_100, 0.18, "sine", None),
+                (1.43, 0.42, 1_950, 0.16, "sine", 1_000),
+                (2.00, 0.13, 1_650, 0.18, "sine", None),
+                (2.18, 0.13, 2_500, 0.16, "sine", None),
+                (2.38, 0.30, 2_100, 0.14, "sine", None),
+            ],
+            "noise": [(0.56, 0.72, 0.10), (1.94, 0.43, 0.07)],
+        },
+        4: {
+            "duration": 2.35,
+            "tones": [
+                (0.00, 0.10, 480, 0.22, "sine", None),
+                (0.14, 0.38, 2_800, 0.24, "sine", 1_300),
+                (0.58, 0.08, 1_600, 0.22, "sine", None),
+                (0.69, 0.08, 2_900, 0.22, "sine", None),
+                (0.80, 0.08, 1_600, 0.22, "sine", None),
+                (0.91, 0.08, 2_900, 0.22, "sine", None),
+                (1.05, 0.32, 1_250, 0.20, "sine", 2_500),
+                (1.45, 0.11, 3_300, 0.17, "sine", None),
+                (1.60, 0.11, 2_700, 0.17, "sine", None),
+                (1.78, 0.34, 2_100, 0.16, "sine", None),
+            ],
+            "noise": [(1.25, 0.20, 0.05)],
+        },
+        5: {
+            "duration": 1.35,
+            "tones": [
+                (0.00, 0.08, 410, 0.22, "sine", None),
+                (0.11, 0.22, 1_600, 0.25, "sine", 2_400),
+                (0.38, 0.09, 1_200, 0.23, "sine", None),
+                (0.50, 0.09, 2_400, 0.23, "sine", None),
+                (0.62, 0.09, 1_200, 0.22, "sine", None),
+                (0.76, 0.25, 2_100, 0.18, "sine", 1_050),
+                (1.08, 0.19, 2_700, 0.14, "sine", None),
+            ],
+            "noise": [],
+        },
+    }[version]
+    buffer = [0.0] * int(configurations["duration"] * SAMPLE_RATE)
+    for tone in configurations["tones"]:
+        add_tone(buffer, *tone)
+    for start, duration, amplitude in configurations["noise"]:
+        add_noise(buffer, start, duration, amplitude)
+    return buffer
+
+
 def chiptune_curtain() -> list[float]:
     duration = 4.05
     buffer = [0.0] * int(duration * SAMPLE_RATE)
@@ -123,8 +212,17 @@ def main() -> None:
     random.seed(20260902)
     output_dir = Path(__file__).resolve().parents[2] / "assets" / "audio"
     output_dir.mkdir(parents=True, exist_ok=True)
-    write_wav(output_dir / "modem_section_transition.wav", modem_transition())
-    write_wav(output_dir / "retro_chiptune_curtain.wav", chiptune_curtain())
+    original_modem = output_dir / "modem_section_transition.wav"
+    original_chiptune = output_dir / "retro_chiptune_curtain.wav"
+    if not original_modem.exists():
+        write_wav(original_modem, modem_transition())
+    for version in range(1, 6):
+        write_wav(
+            output_dir / f"modem_section_transition_v{version}.wav",
+            modem_variant(version),
+        )
+    if not original_chiptune.exists():
+        write_wav(original_chiptune, chiptune_curtain())
     print(f"Created WAV assets in {output_dir}")
 
 
