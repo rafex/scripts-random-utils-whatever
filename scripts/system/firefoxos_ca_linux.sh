@@ -595,7 +595,7 @@ legacy_certutil() {
 }
 
 import_bundle() {
-  local db_dir="${WORK_DIR}/db" cert_dir="${WORK_DIR}/certs" manifest="${WORK_DIR}/manifest.tsv"
+  local db_dir="${WORK_DIR}/db" cert_dir="${WORK_DIR}/db/certs" manifest="${WORK_DIR}/manifest.tsv"
   local digest filename nickname label cert_path current_digest count=0
   generate_bundle "$SOURCE_FILE" "$cert_dir" "$manifest" >/dev/null
   while IFS=$'\t' read -r digest filename nickname label; do
