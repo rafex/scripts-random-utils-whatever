@@ -1,0 +1,90 @@
+FROM debian:bookworm-slim AS build
+
+ARG NSS_VERSION=3.22.3
+ARG NSPR_VERSION=4.12
+ARG NSS_ARCHIVE_SHA256=23ea51e472ee2c1211d2ee89e1c5295990046b6a7a54b89afba1481a94713527
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+COPY b2g46-source/ /opt/b2g46-source/
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+       ca-certificates \
+       gcc \
+       g++ \
+       make \
+       patch \
+       perl \
+       python3 \
+       tar \
+       zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+
+RUN test -f /opt/b2g46-source/source-manifest.env \
+    && test -f /opt/b2g46-source/nss-3.22.3-with-nspr-4.12.tar.gz \
+    && test -d /opt/b2g46-source/patches \
+    && test -s /opt/b2g46-source/patches.sha256 \
+    && test -d /opt/b2g46-source/b2g \
+    && test -s /opt/b2g46-source/b2g-source.sha256 \
+    && (cd /opt/b2g46-source && sha256sum --check --strict -- patches.sha256) \
+    && (cd /opt/b2g46-source && sha256sum --check --strict -- b2g-source.sha256) \
+    && printf '%s  %s\n' "${NSS_ARCHIVE_SHA256}" \
+       /opt/b2g46-source/nss-3.22.3-with-nspr-4.12.tar.gz \
+       | sha256sum --check --strict \
+    && tar --extract --gzip \
+       --file /opt/b2g46-source/nss-3.22.3-with-nspr-4.12.tar.gz \
+    && test -d "/opt/nss-${NSS_VERSION}" \
+    && if find /opt/b2g46-source/patches -maxdepth 1 -type f -name '*.patch' \
+       -print -quit 2>/dev/null | grep -q .; then \
+         for patch_file in /opt/b2g46-source/patches/*.patch; do \
+           patch --directory "/opt/nss-${NSS_VERSION}" --strip=1 \
+             --forward --batch < "${patch_file}"; \
+         done; \
+       fi
+
+WORKDIR /opt/nss-3.22.3/nss
+
+RUN make nss_build_all BUILD_OPT=1 USE_64=1 NSS_DISABLE_GTESTS=1 NSS_ENABLE_WERROR=0 \
+    && install --directory /opt/legacy-nss/bin /opt/legacy-nss/lib \
+    && legacy_certutil="$(find /opt/nss-3.22.3 -type f -name certutil -print -quit)" \
+    && test -n "${legacy_certutil}" \
+    && install --strip "${legacy_certutil}" /opt/legacy-nss/bin/certutil \
+    && find /opt/nss-3.22.3/dist \( -type f -o -type l \) \
+       \( -name '*.so' -o -name '*.so.*' -o -name '*.chk' \) \
+       -exec cp --dereference --preserve=mode,timestamps {} /opt/legacy-nss/lib/ \;
+
+FROM debian:bookworm-slim
+
+ARG NSS_VERSION=3.22.3
+ARG NSPR_VERSION=4.12
+ARG B2G_VERSION=46.0a1
+ARG B2G_BUILD_ID=20151221215202
+ARG B2G_SOURCE_REPOSITORY=4a4a0bcf45995fdc29caefba2766932dfc25be7d
+ARG B2G_LIBNSS3_SHA256=unresolved
+ARG B2G_PATCHES_SHA256=unresolved
+ARG B2G_SOURCE_TREE_SHA256=unresolved
+ARG RUNTIME_STATUS=unresolved
+
+LABEL org.opencontainers.image.title="Rafex B2G Flame NSS certutil" \
+      org.opencontainers.image.description="NSS certutil built from the verified B2G 46 Flame source bundle" \
+      org.opencontainers.image.version="${NSS_VERSION}" \
+      org.rafex.firefoxos.runtime="b2g46-flame" \
+      org.rafex.firefoxos.runtime-status="${RUNTIME_STATUS}" \
+      org.rafex.firefoxos.target="flame" \
+      org.rafex.firefoxos.b2g-version="${B2G_VERSION}" \
+      org.rafex.firefoxos.build-id="${B2G_BUILD_ID}" \
+      org.rafex.firefoxos.source-repository="${B2G_SOURCE_REPOSITORY}" \
+      org.rafex.firefoxos.libnss3-sha256="${B2G_LIBNSS3_SHA256}" \
+      org.rafex.firefoxos.nss-patches-sha256="${B2G_PATCHES_SHA256}" \
+      org.rafex.firefoxos.b2g-source-tree-sha256="${B2G_SOURCE_TREE_SHA256}" \
+      org.rafex.firefoxos.nss="${NSS_VERSION}" \
+      org.rafex.firefoxos.nspr="${NSPR_VERSION}"
+
+COPY --from=build /opt/legacy-nss /opt/legacy-nss
+
+ENV LD_LIBRARY_PATH=/opt/legacy-nss/lib
+
+ENTRYPOINT ["/opt/legacy-nss/bin/certutil"]

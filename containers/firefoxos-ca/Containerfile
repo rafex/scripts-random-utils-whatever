@@ -42,7 +42,14 @@ FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.title="Rafex legacy NSS certutil" \
       org.opencontainers.image.description="NSS 3.21 certutil for Firefox OS Gecko 44 database compatibility" \
-      org.opencontainers.image.version="3.21"
+      org.opencontainers.image.version="3.21" \
+      org.rafex.firefoxos.runtime="legacy-baseline" \
+      org.rafex.firefoxos.runtime-status="baseline-only" \
+      org.rafex.firefoxos.target="flame" \
+      org.rafex.firefoxos.b2g-version="unresolved" \
+      org.rafex.firefoxos.build-id="unresolved" \
+      org.rafex.firefoxos.source-repository="unresolved" \
+      org.rafex.firefoxos.nss-patch-status="not-applicable"
 
 COPY --from=build /opt/legacy-nss /opt/legacy-nss
 

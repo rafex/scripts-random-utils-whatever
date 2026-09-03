@@ -92,8 +92,9 @@ android-tools *args:
 firefoxos-tools *args:
     bash scripts/system/firefoxos_tools_linux.sh {{args}}
 
-# Adquirir, verificar, instalar o revertir raíces Mozilla en cert9.db de Firefox OS
-# Uso: just firefoxos-ca --status|--acquire|--verify-source|--preflight|--plan|--apply --confirm ...|--test|--rollback --confirm ...
+# Adquirir, identificar, verificar, instalar o revertir raíces Mozilla en el
+# conjunto NSS del perfil Firefox OS; --apply exige runtime B2G exacto.
+# Uso: just firefoxos-ca --status|--acquire|--verify-source|--identify-runtime|--preflight|--plan|--apply --confirm ...|--test|--rollback --confirm ...
 firefoxos-ca *args:
     bash scripts/system/firefoxos_ca_linux.sh {{args}}
 

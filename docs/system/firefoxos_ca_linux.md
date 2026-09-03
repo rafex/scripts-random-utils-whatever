@@ -1,6 +1,6 @@
 ---
 title: firefoxos_ca_linux.sh
-description: Actualiza de forma reversible el almacén NSS de un Mozilla Flame mediante ADB y un runtime Podman legado.
+description: Identifica el runtime NSS del Flame y prepara un cambio reversible sin usar NSS genérico.
 tags:
   - sistema
   - firefox-os
@@ -10,13 +10,13 @@ tags:
 
 # firefoxos_ca_linux.sh
 
-Prepara el almacén raíz Mozilla para el navegador legado del Flame y, con una
-confirmación explícita, instala las raíces serverAuth dentro de `cert9.db`.
-No compila B2G, no reemplaza `libnssckbi.so` y no modifica particiones.
+Valida el runtime real del Mozilla Flame antes de actualizar sus raíces CA.
+La operación se limita al perfil NSS y solo puede continuar con una imagen
+Podman construida desde el árbol NSS/B2G y los parches coincidentes del build.
 
 - **Ruta:** `scripts/system/firefoxos_ca_linux.sh`
 - **SO requerido:** Linux (Debian)
-- **Dependencias:** `bash`, `adb`, `podman` con la imagen NSS 3.21, `curl` solo para `--acquire`, `python3`, `sha256sum`, `find`, `mktemp` y utilidades POSIX.
+- **Dependencias:** `bash`, `adb`, `podman`, `python3`, `curl` solo para `--acquire`, `sha256sum`, `awk`, `grep`, `sed`, `find`, `mktemp` y utilidades POSIX.
 
 ---
 
@@ -33,62 +33,54 @@ No compila B2G, no reemplaza `libnssckbi.so` y no modifica particiones.
 
 ## Requisitos
 
-- ThinkPad con Debian y `adb` funcionando.
-- Teléfono Mozilla Flame con ADB autorizado y `ro.debuggable=1`.
-- Podman instalado y runtime `localhost/rafex/firefoxos-ca:nss-3.21` construido
-  con `just install-firefoxos-ca-tools --apply`.
-- Conexión USB directa, un solo dispositivo ADB y batería suficiente.
-- Conectividad HTTPS a Mozilla solo para `--acquire`.
+- Un Mozilla Flame autorizado en ADB normal (`uid=2000(shell)`).
+- Build observado: `46.0a1`, Build ID `20151221215202`,
+  `SourceRepository=4a4a0bcf45995fdc29caefba2766932dfc25be7d`.
+- Podman con `localhost/rafex/firefoxos-ca:b2g46-flame` etiquetado
+  `runtime-status=matched` y cuyo hash de `libnss3.so` coincida.
+- La fuente de raíces NSS moderna adquirida mediante `--acquire`.
 
-La fuente actual de raíces se fija en NSS `3.128` (`NSS_3_128_RTM`) y se descarga desde el
-árbol oficial de Mozilla:
+La selección de NSS 3.22.3/NSPR 4.12 es una referencia histórica de Firefox
+46, no una prueba de que una build genérica sea idéntica al Flame. La evidencia
+del build `46.0a1` del dispositivo se conserva separada mediante [Bugzilla
+1232399](https://bugzilla.mozilla.org/show_bug.cgi?id=1232399) y la tabla de
+correspondencias de [Mozilla NSS:Versions](https://wiki.mozilla.org/NSS%3AVersions).
+Solo el hash de `libnss3.so`, el Build ID, el `SourceRepository` y un bundle de
+fuentes/parches reproducible pueden autorizar el runtime `b2g46-flame`.
+
+El perfil se trata como un conjunto indivisible:
 
 ```text
-https://hg.mozilla.org/projects/nss/raw-file/NSS_3_128_RTM/lib/ckfw/builtins/certdata.txt
-SHA-256: 81b7f2576333a2e360e673f912d7b0b7a765d836c731003e348a46cac5d37198
+cert9.db · key4.db · pkcs11.txt
 ```
 
-Mozilla documenta que `certdata.txt` es la fuente autoritativa del almacén
-raíz NSS y que el módulo tradicional `libnssckbi` se genera a partir de ella:
-[NSS Root Store](https://firefox-source-docs.mozilla.org/security/nss/runbooks/rootstore.html).
-
-La base del Flame corresponde a Gecko 44 y puede rechazar el `certutil`
-moderno del host con `SEC_ERROR_BAD_DATABASE`. Por eso el helper utiliza NSS
-3.21, compilado desde la fuente oficial dentro de Podman. El contenedor se
-ejecuta como usuario normal, sin red, sin capacidades y con solo el directorio
-temporal de trabajo montado. Esto mejora la compatibilidad de formato; no
-garantiza que todas las variantes de `cert9.db` sean editables.
-
-El navegador Firefox OS es software legado. Mozilla-B2G está archivado y no
-recibe mantenimiento moderno: [Mozilla-B2G](https://github.com/mozilla-b2g/B2G).
+El runtime debe leer los tres. El baseline `nss-3.21` se conserva únicamente
+como diagnóstico histórico; no es una aproximación autorizada para escribir.
 
 ## Uso
 
-Instala primero las herramientas del host:
+Primero identifica el teléfono, sin root y sin modificarlo:
 
 ```bash
-just install-firefoxos-ca-tools --check
-just install-firefoxos-ca-tools --plan
-just install-firefoxos-ca-tools --apply
+just firefoxos-ca --identify-runtime
 ```
 
-Después, con el teléfono desbloqueado y ADB autorizado:
+Después prepara y verifica la fuente raíz:
 
 ```bash
-just firefoxos-ca --status
 just firefoxos-ca --acquire
 just firefoxos-ca --verify-source
 just firefoxos-ca --preflight
 just firefoxos-ca --plan
 ```
 
-La aplicación directa requiere:
+La aplicación queda bloqueada hasta que exista el runtime exacto:
 
 ```bash
 just firefoxos-ca --apply --confirm FLAME-MOZILLA-CA-WIPE
 ```
 
-La prueba y la reversión son explícitas:
+La lectura no destructiva del conjunto y la reversión son explícitas:
 
 ```bash
 just firefoxos-ca --test
@@ -99,222 +91,141 @@ just firefoxos-ca --rollback --confirm FLAME-CA-ROLLBACK
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `--status` | `--check` | Muestra herramientas, fuente y estado ADB sin escribir. |
-| `--plan` | `--dry-run` | Detalla la operación sin descargar ni modificar. |
-| `--acquire` | — | Descarga la fuente NSS fijada y verifica su SHA-256. |
-| `--verify-source` | — | Valida la fuente ya adquirida sin modificar el teléfono. |
-| `--preflight` | — | Comprueba un Flame, ADB, la imagen NSS 3.21, `ro.debuggable` y la biblioteca B2G. |
-| `--apply` | — | Instala las raíces en `cert9.db` con confirmación exacta. |
-| `--test` | — | Lee una copia de `cert9.db` y busca raíces administradas. |
-| `--rollback` | — | Restaura el rollback más reciente con confirmación exacta. |
-| `--confirm <texto>` | — | Requerido para `--apply` o `--rollback`; no se guarda. |
+| `--status` | `--check` | Muestra Podman, imágenes, manifiesto local y estado ADB. |
+| `--plan` | `--dry-run` | Describe la operación sin tocar el teléfono. |
+| `--acquire` | — | Descarga `certdata.txt` de NSS 3.128 y verifica SHA-256. |
+| `--verify-source` | — | Valida la fuente ya adquirida y sus raíces `serverAuth`. |
+| `--identify-runtime` | — | Lee Build ID, Gaia/Gonk, hash/arquitectura de `libnss3.so` y guarda un manifiesto local. |
+| `--preflight` | — | Exige Flame, ADB normal, runtime `matched`, fuente verificada y `libnss3.so`. |
+| `--apply` | — | Detiene B2G, valida y sustituye únicamente `cert9.db`, con confirmación exacta. |
+| `--test` | — | Extrae y lee el conjunto NSS completo; detiene B2G y usa `adb root` temporalmente, pero no sustituye archivos. |
+| `--rollback` | — | Restaura el `cert9.db` del rollback más reciente. |
+| `--confirm <texto>` | — | Requerido para `--apply` o `--rollback`; nunca se almacena. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
 
-El script no lee variables de configuración ni archivos `.env`. Las rutas de
-fuente y rollback son fijas y privadas:
+No se leen variables de configuración ni archivos `.env`. El estado privado se
+guarda bajo:
 
 ```text
+~/.local/share/rafex/firefoxos-ca/runtime/flame-runtime.env
 ~/.local/share/rafex/firefoxos-ca/sources/
-~/.local/share/rafex/firefoxos-ca/rollback/
+~/.local/share/rafex/firefoxos-ca/rollback/<fecha>/
 ```
 
 ## Ejemplos
 
-### Forma explícita/recomendada
+### Identificación reproducible
+
+```bash
+just firefoxos-ca --identify-runtime
+just firefoxos-ca --status
+```
+
+El hash de `libnss3.so` se conserva; la biblioteca no queda almacenada en el
+estado. La función `NSS_GetVersion()` no se ejecuta sobre el binario ARM
+extraído desde una ThinkPad x86_64: si aparece una cadena de versión, se marca
+solo como indicio. El manifiesto conserva `unresolved` para la llamada real y
+la imagen exacta no se autoriza por inferencia.
+
+### Fuente Mozilla
 
 ```bash
 just firefoxos-ca --acquire
 just firefoxos-ca --verify-source
+```
+
+Se fija `NSS_3_128_RTM` con SHA-256
+`81b7f2576333a2e360e673f912d7b0b7a765d836c731003e348a46cac5d37198`.
+
+### Prueba y reversión
+
+```bash
 just firefoxos-ca --preflight
-just firefoxos-ca --plan
-just firefoxos-ca --apply --confirm FLAME-MOZILLA-CA-WIPE
-```
-
-### Comprobación posterior
-
-```bash
 just firefoxos-ca --test
-```
-
-Después de reiniciar el Flame, prueba manualmente `support.mozilla.org`,
-`letsencrypt.org`, `www.mozilla.org` y `example.com`, sin iniciar sesión ni
-aceptar excepciones permanentes. El certificado `ISRG Root X1` puede
-consultarse en [Let’s Encrypt](https://letsencrypt.org/certs/isrgrootx1.pem),
-pero la primera instalación usa el conjunto validado por Mozilla NSS.
-
-### Reversión
-
-```bash
 just firefoxos-ca --rollback --confirm FLAME-CA-ROLLBACK
 ```
 
-La reversión restaura solo `cert9.db`; no es un respaldo de fotos, contactos,
-mensajes, aplicaciones ni configuraciones.
+La prueba HTTPS del navegador se realiza manualmente y sin excepciones
+permanentes. Una base NSS legible no corrige limitaciones de TLS, HSTS,
+JavaScript o APIs del Gecko antiguo.
 
 ## Protecciones de seguridad
 
-- No se ejecuta el `flash.sh` del teléfono ni se usan `fastboot`, `adb push`
-  arbitrario, `adb shell` arbitrario, `adb kill-server` o ADB por red.
-- Solo se aceptan los comandos ADB fijos necesarios para identificar el Flame,
-  controlar B2G, copiar `cert9.db`, validar hashes, reiniciar y revertir.
-- `--apply` exige exactamente `FLAME-MOZILLA-CA-WIPE`.
-- `--rollback` exige exactamente `FLAME-CA-ROLLBACK`.
-- Se exige un único dispositivo ADB autorizado y `ro.product.device=flame`.
-- `adb root` se usa temporalmente y se comprueba que vuelva a uid 2000 tras el
-  reinicio.
-- La fuente Mozilla se valida por SHA-256 antes y durante la aplicación.
-- Solo se importan raíces marcadas por Mozilla para autenticación web
-  `serverAuth`; no se importan certificados arbitrarios ni intermediarios.
-- Todas las lecturas y escrituras locales de NSS pasan por `certutil` NSS 3.21
-  dentro de Podman con `--network=none`; el host no necesita `certutil`.
-- La copia de rollback contiene únicamente `cert9.db`, queda fuera del
-  repositorio y se crea con permisos restrictivos.
-- El archivo original se reemplaza mediante `cert9.db.new` y una operación
-  `mv` después de comparar su hash remoto.
-- No se modifica `/system`, `libnssckbi.so`, particiones, bootloader, red ni
-  configuraciones de seguridad.
-- Una CA instalada no corrige limitaciones de TLS, JavaScript, HSTS o
-  compatibilidad del motor Gecko 44.
+- El script no usa el `flash.sh` del teléfono, `fastboot`, `adb kill-server`,
+  `adb shell` arbitrario, ADB por red ni `sudo`.
+- `--identify-runtime`, `--preflight`, `--plan` y `--verify-source` son de solo
+  lectura. `--test` tampoco sustituye archivos, pero detiene B2G y usa `adb
+  root` temporalmente para comprobar el conjunto real; siempre intenta devolver
+  ADB a `uid=2000`.
+- `--apply` exige exactamente `FLAME-MOZILLA-CA-WIPE`, un único Flame y ADB
+  normal antes de activar `adb root` temporalmente.
+- Se extraen `cert9.db`, `key4.db` y `pkcs11.txt`; el rollback conserva los
+  tres, con permisos restrictivos.
+- Solo se modifica `cert9.db`, porque es el único archivo cambiado por
+  `certutil`; los otros dos se validan y permanecen intactos.
+- El runtime se ejecuta rootless, sin red, sin capacidades, con filesystem de
+  solo lectura y solo el directorio temporal montado.
+- La limpieza intenta primero `adb unroot`. Si el adbd antiguo no lo acepta,
+  usa un reinicio controlado; nunca usa `stop adbd` como mecanismo principal.
+- Si el teléfono desaparece de USB, se detiene el flujo y se solicita
+  desconectar/reconectar el cable.
+- No se reemplaza `libnssckbi.so`, no se toca `/system`, el módem, particiones,
+  bootloader, red ni la configuración de seguridad.
 
 ## Fallos conocidos
 
-### `fuente no adquirida`
+### `NO-GO: la imagen no corresponde al runtime B2G/Flame identificado`
 
-**Causa:** `--verify-source`, `--preflight` o `--apply` se ejecutó antes de
-adquirir la fuente.
+**Causa:** el contenedor es NSS genérico, usa otro Build ID, otro
+`SourceRepository` o un hash distinto de `libnss3.so`.
 
-**Solución:** ejecuta `just firefoxos-ca --acquire` y después
-`--verify-source`.
+**Solución:** no fuerces etiquetas. Obtén el árbol NSS/B2G y sus parches
+coincidentes, prepara el bundle en la ruta documentada por el instalador y
+reconstruye el runtime.
 
-### `SHA-256 de certdata.txt no coincide`
+### `NO-GO: falta el bundle B2G exacto`
 
-**Causa:** la descarga no corresponde exactamente a NSS 3.128 fijado o fue
-alterada.
+**Causa:** no se encontró una fuente reproducible del runtime B2G 46 del Flame.
 
-**Solución:** no fuerces la operación ni uses el archivo. Conserva la fuente
-solo si vuelve a coincidir con el hash documentado.
+**Solución:** el resultado correcto es detenerse sin modificar el teléfono.
+El baseline 3.21 y una build genérica 3.22.x solo sirven para diagnóstico.
 
-### `se requiere exactamente un Flame autorizado`
+### `NO-GO: el runtime B2G no puede leer el conjunto NSS completo`
 
-**Causa:** ADB no ve un dispositivo, hay varios dispositivos o falta aceptar
-la autorización en el teléfono.
+**Causa:** `cert9.db`, `key4.db` y `pkcs11.txt` no corresponden al runtime o
+alguno fue omitido.
 
-**Solución:** desconecta otros dispositivos, activa **ADB and DevTools**,
-acepta la autorización RSA y ejecuta `adb devices`.
+**Solución:** no uses SQLite ni `certutil` moderno para forzar la base; revisa
+el bundle y conserva el Flame intacto.
 
-### `adb root no está disponible`
+### `NSS_GetVersion: unresolved`
 
-**Causa:** el firmware no es root-capable o no anuncia `ro.debuggable=1`.
+**Causa:** el `libnss3.so` ARM está despojado y no contiene una cadena de
+versión demostrable mediante lectura no destructiva.
 
-**Solución:** detener el proceso. No se intentará desbloquear el bootloader ni
-se escribirá `cert9.db` por otra vía automática.
+**Solución:** documenta el hash y proporciona el árbol/parche exacto que lo
+produjo. La coincidencia de año o de versión Firefox no basta.
 
-### `adb root no confirmó uid 0 después de esperar la reconexión`
+### `adb unroot no fue aceptado`
 
-**Causa:** el `adbd` antiguo del Flame reinició la conexión y la comprobación
-ocurrió mientras el daemon todavía reaparecía.
+**Causa:** algunos `adbd` antiguos cierran la conexión y no implementan
+`unroot` correctamente.
 
-**Solución:** el wrapper espera la reconexión y reintenta la comprobación. Si
-una operación aborta después de activar ADB root, intenta `unroot` y, si ese
-firmware no lo acepta, reinicia de forma controlada para volver a uid 2000.
-
-En el Flame antiguo, `adb shell id -u` puede devolver la línea completa de
-identidad en lugar de un número. El wrapper extrae el UID desde `uid=...` para
-aceptar correctamente tanto `uid=0(root)` como `uid=2000(shell)`.
-
-El shell del Flame también interpreta de forma distinta `adb shell sh -c` con
-varios argumentos. El descubrimiento del perfil usa un glob remoto fijo con
-`ls -d` y rechaza cualquier salida que no sea una ruta `.default` segura.
-
-### `cert9.db es una SQLite íntegra, pero su esquema NSS histórico es incompatible con NSS 3.21`
-
-**Causa:** el `cert9.db` del Flame puede ser una base SQLite íntegra y, aun así,
-usar un esquema distinto del esperado por la generación NSS del dispositivo.
-Incluso el `certutil` legado NSS 3.21 puede responder
-`SEC_ERROR_BAD_DATABASE`; una base SQLite íntegra no es evidencia de
-corrupción.
-
-**Solución:** el wrapper detiene el proceso antes de subir o sustituir archivos.
-No se debe editar la base con SQLite ni crear una base nueva con NSS moderno.
-Revisa la compatibilidad del perfil y conserva el Flame intacto; el runtime
-no sustituirá el archivo remoto si falla la validación local.
-
-### `certutil NSS 3.21 no puede leer la copia de cert9.db`
-
-**Causa:** la base está bloqueada, el perfil usa otra variante de NSS o el
-runtime no tiene una biblioteca compatible.
-
-**Solución:** no se sube la copia. Mantén el Flame intacto y revisa el mensaje
-específico anterior. Comprueba también `just install-firefoxos-ca-tools
---status`; no uses SQLite ni `certutil` moderno para forzar la operación.
-
-### `falta el runtime NSS legado`
-
-**Causa:** Podman no está instalado, la imagen no se construyó o su etiqueta
-no tiene el metadato NSS 3.21 esperado.
-
-**Solución:** ejecuta `just install-firefoxos-ca-tools --apply` en la revisión
-sincronizada del repositorio. El helper no construye imágenes implícitamente
-durante `--preflight` ni `--apply` del teléfono.
-
-### `la CA aparece instalada pero el navegador continúa fallando`
-
-**Causa:** Gecko 44 no soporta el TLS, algoritmo, cadena, HSTS o JavaScript
-que requiere el sitio.
-
-**Solución:** no añadas excepciones permanentes. Usa `--rollback` si deseas
-retirar el cambio y documenta el sitio como incompatible.
+**Solución:** el wrapper espera la reconexión y usa un reinicio controlado si
+la conexión sigue disponible. Si no aparece, reconecta el cable y comprueba
+`adb shell id`; no ejecutes `stop adbd` manualmente.
 
 ## Changelog
 
 ### [Unreleased]
 
-- **feat:** añadir adquisición y validación reproducible del almacén Mozilla NSS.
-- **feat:** añadir instalación reversible de raíces serverAuth en `cert9.db`.
-- **feat:** usar NSS 3.21 dentro de Podman para leer el esquema legado del Flame.
-- **docs:** documentar ADB root temporal, límites de Gecko legado y rollback.
+- **feat:** identificar el build B2G, la biblioteca NSS y el conjunto completo
+  de bases del perfil Flame.
+- **fix:** bloquear NSS genérico y corregir la limpieza de ADB root.
 
 ### v1.1.0 — 2026-09-02
 
-**feat:** ejecutar la preparación NSS histórica sin depender del host.
-
-- Añadir un runtime Podman rootless basado en NSS 3.21.
-- Aislar las operaciones de `certutil` con red desactivada y sin capacidades.
-
-### v1.0.5 — 2026-09-02
-
-**fix:** distinguir un esquema NSS histórico incompatible de una base corrupta.
-
-- Detener la aplicación antes de cualquier subida cuando `certutil` devuelve
-  `SEC_ERROR_BAD_DATABASE`.
-- Documentar que no se debe modificar `cert9.db` directamente con SQLite.
-
-### v1.0.1 — 2026-09-02
-
-**fix:** esperar la reconexión de `adbd` y restaurar ADB normal tras un fallo.
-
-- Evitar falsos fallos durante el reinicio causado por `adb root`.
-- Documentar el comportamiento de recuperación en firmwares Flame antiguos.
-
-### v1.0.2 — 2026-09-02
-
-**fix:** interpretar la salida de identidad de los firmwares Android antiguos.
-
-- Extraer el UID desde la salida completa de `adb shell id`.
-- Confirmar y restaurar correctamente ADB normal en el flujo temporal root.
-
-### v1.0.3 — 2026-09-02
-
-**fix:** localizar el perfil NSS con el shell compatible del Flame.
-
-- Reemplazar el `sh -c` frágil por `ls -d` sobre un glob fijo.
-- Evitar que mensajes de error del shell se interpreten como rutas remotas.
-
-### v1.0.4 — 2026-09-02
-
-**fix:** interpretar correctamente la metadata de archivos en Android antiguo.
-
-- Leer UID y GID desde las columnas reales de `ls -ln` del Flame.
-- Mantener la protección `root:root` y modo `600` antes de sobrescribir.
+**feat:** instalar raíces Mozilla de forma reversible mediante un runtime
+NSS legado aislado.

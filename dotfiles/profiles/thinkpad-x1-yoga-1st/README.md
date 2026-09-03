@@ -473,12 +473,14 @@ WebIDE legacy o herramientas históricas de depuración remota.
 ### Compatibilidad HTTPS del Flame
 
 El repositorio incluye un flujo separado para preparar el almacén NSS del
-Flame con raíces `serverAuth` del almacén Mozilla actual. Primero instala
-Podman y construye el runtime aislado con NSS 3.21, alineado con Gecko 44;
-`certutil` no se instala en el host:
+Flame con raíces `serverAuth` del almacén Mozilla actual. El baseline NSS 3.21
+se conserva solo para diagnóstico; no se usa para escribir el teléfono. Antes
+de cualquier cambio se identifica el build real y el hash de `libnss3.so`:
 
 ```sh
-just install-firefoxos-ca-tools --apply
+just install-firefoxos-ca-tools --check
+just firefoxos-ca --identify-runtime
+just install-firefoxos-ca-tools --status
 just firefoxos-ca --acquire
 just firefoxos-ca --verify-source
 just firefoxos-ca --preflight
@@ -486,12 +488,16 @@ just firefoxos-ca --plan
 ```
 
 La escritura directa en `cert9.db` solo se ejecuta con la confirmación
-`FLAME-MOZILLA-CA-WIPE` y usa `adb root` temporal. Guarda únicamente un
-rollback mínimo de esa base; no es un respaldo de los datos del teléfono:
+`FLAME-MOZILLA-CA-WIPE`, un runtime Podman `b2g46-flame` construido desde el
+árbol/parches exactos y `adb root` temporal. El conjunto
+`cert9.db`/`key4.db`/`pkcs11.txt` se valida completo y se guarda como rollback;
+solo se sustituye `cert9.db`. Si no existe el bundle B2G exacto, el resultado
+correcto es `NO-GO` y el teléfono permanece intacto:
 
 ```sh
+just firefoxos-ca --identify-runtime
+just firefoxos-ca --test   # prueba lectura; detiene B2G temporalmente y restaura ADB
 just firefoxos-ca --apply --confirm FLAME-MOZILLA-CA-WIPE
-just firefoxos-ca --test
 ```
 
 Si el navegador continúa mostrando errores después de la prueba HTTPS, puede
