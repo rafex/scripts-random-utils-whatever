@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.2 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
+# v1.0.3 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
 set -Eeuo pipefail
 
 umask 077
@@ -397,11 +397,12 @@ adb_prop() {
 
 find_remote_profile() {
   local listing profile count=0
-  # shellcheck disable=SC2016
+  # El shell del Flame no conserva correctamente `sh -c` al pasar varios
+  # argumentos por adb. `ls -d` usa únicamente el glob remoto fijo y no
+  # interpreta ninguna entrada proporcionada por el usuario.
   listing="$(
-    "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell sh -c \
-      'for p in /data/b2g/mozilla/*.default*; do [ -d "$p" ] && printf "%s\n" "$p"; done' \
-      2>/dev/null
+    "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell ls -d \
+      /data/b2g/mozilla/*.default* 2>/dev/null
   )" || die 'no se pudo consultar el perfil de Firefox OS'
   while IFS= read -r profile; do
     profile="${profile//$'\r'/}"

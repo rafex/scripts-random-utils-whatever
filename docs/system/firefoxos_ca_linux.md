@@ -214,6 +214,10 @@ En el Flame antiguo, `adb shell id -u` puede devolver la línea completa de
 identidad en lugar de un número. El wrapper extrae el UID desde `uid=...` para
 aceptar correctamente tanto `uid=0(root)` como `uid=2000(shell)`.
 
+El shell del Flame también interpreta de forma distinta `adb shell sh -c` con
+varios argumentos. El descubrimiento del perfil usa un glob remoto fijo con
+`ls -d` y rechaza cualquier salida que no sea una ruta `.default` segura.
+
 ### `certutil no puede leer la copia de cert9.db`
 
 **Causa:** la base está bloqueada, tiene un formato incompatible o falta una
@@ -251,3 +255,10 @@ retirar el cambio y documenta el sitio como incompatible.
 
 - Extraer el UID desde la salida completa de `adb shell id`.
 - Confirmar y restaurar correctamente ADB normal en el flujo temporal root.
+
+### v1.0.3 — 2026-09-02
+
+**fix:** localizar el perfil NSS con el shell compatible del Flame.
+
+- Reemplazar el `sh -c` frágil por `ls -d` sobre un glob fijo.
+- Evitar que mensajes de error del shell se interpreten como rutas remotas.
