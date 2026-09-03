@@ -154,6 +154,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/firefoxos_tools_linux.sh` | Linux | firefoxos-tools | no | sí | alto | [doc](system/firefoxos_tools_linux.md) |
 | `scripts/system/firefoxos_flash_base_linux.sh` | Linux | firefoxos-flash-base | no | sí | alto | [doc](system/firefoxos_flash_base_linux.md) |
 | `scripts/system/firefoxos_flash_nightly_linux.sh` | Linux | firefoxos-flash-nightly | no | sí | alto | [doc](system/firefoxos_flash_nightly_linux.md) |
+| `scripts/system/firefoxos_hello_world_linux.sh` | Linux | firefoxos-hello-world | no | sí | bajo | [doc](system/firefoxos_hello_world_linux.md) |
 
 ## Documentos suplementarios
 

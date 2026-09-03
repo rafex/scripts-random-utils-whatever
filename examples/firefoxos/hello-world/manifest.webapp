@@ -1,0 +1,11 @@
+{
+  "name": "Rafex Hola Mundo",
+  "description": "Aplicación local de prueba para Mozilla Firefox OS Flame.",
+  "launch_path": "/index.html",
+  "default_locale": "es",
+  "version": "1.0.0",
+  "developer": {
+    "name": "Rafex",
+    "url": "https://github.com/rafex"
+  }
+}

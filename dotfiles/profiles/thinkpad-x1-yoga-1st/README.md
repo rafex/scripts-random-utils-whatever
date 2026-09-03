@@ -433,6 +433,25 @@ reinicio, ADB por red ni fastboot. `scrcpy` y las APK son herramientas de
 Android, no de Firefox OS. WebIDE/B2G es una vía legacy y debe ejecutarse en un
 perfil aislado o una máquina virtual; fue retirado de Firefox moderno.
 
+### Aplicación Firefox OS Hola Mundo
+
+El repositorio incluye una aplicación web empaquetada local de prueba en
+`examples/firefoxos/hello-world/`. Se puede validar y generar un ZIP sin usar
+ADB ni modificar el teléfono:
+
+```sh
+just firefoxos-hello-world --check
+just firefoxos-hello-world --status
+just firefoxos-hello-world --package \
+  --output /tmp/rafex-firefoxos-hello-world.zip
+```
+
+La aplicación está en español, no declara permisos y funciona sin red. Para
+probarla, abre el ZIP desde WebIDE en un perfil legacy aislado o una máquina
+virtual, selecciona el Flame en **Select Runtime → USB Devices** y ejecútala
+temporalmente con **Play**. Firefox OS usa aplicaciones web empaquetadas, no
+APK Android. El empaquetador no ejecuta WebIDE, ADB ni fastboot.
+
 ## mDNS en la red local
 
 Avahi y `libnss-mdns` permiten resolver la ThinkPad como `thinkpad.local` y
