@@ -11,7 +11,7 @@ tags:
 
 Instala Podman y conserva un baseline NSS histórico para diagnóstico. El
 runtime que puede editar el Flame solo se construye con un bundle local que
-contenga el árbol NSS/B2G y los parches exactos del build observado.
+contenga los subárboles NSS/NSPR del commit exacto de Gecko/B2G observado.
 
 - **Ruta:** `scripts/install/install_firefoxos_ca_tools_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -44,15 +44,18 @@ El runtime exacto esperado es:
 
 ```text
 localhost/rafex/firefoxos-ca:b2g46-flame
-B2G 46.0a1 · Build ID 20151221215202 · NSS 3.22.3 · NSPR 4.12
+B2G 46.0a1 · Build ID 20151221215202 · NSS 3.21 · NSPR 4.11
 ```
 
-La correspondencia Firefox 46 → NSS 3.22.3/NSPR 4.12 se usa únicamente como
-baseline histórica y se contrasta con [Mozilla
-NSS:Versions](https://wiki.mozilla.org/NSS%3AVersions). El build concreto del
-Flame se documenta en [Bugzilla
-1232399](https://bugzilla.mozilla.org/show_bug.cgi?id=1232399); una imagen
-Debian del mismo periodo no es suficiente para autorizar la aplicación.
+El teléfono declara el commit `4a4a0bcf45995fdc29caefba2766932dfc25be7d` en
+`application.ini`. Ese commit del repositorio archivado
+[mozilla-b2g/gecko-b2g](https://github.com/mozilla-b2g/gecko-b2g) contiene
+NSS 3.21 y NSPR 4.11 (`TAG-INFO` y cabeceras del árbol). Por eso se usa la
+fuente exacta, no una imagen Debian elegida por año ni la correspondencia
+genérica Firefox 46 → otra versión de NSS. El build concreto del Flame se
+documenta en [Bugzilla 1232399](https://bugzilla.mozilla.org/show_bug.cgi?id=1232399);
+una imagen Debian del mismo periodo no es suficiente para autorizar la
+aplicación.
 
 ## Uso
 
@@ -65,6 +68,31 @@ just install-firefoxos-ca-tools --status
 
 Por diseño, el instalador no descarga fuentes B2G ni crea un runtime “parecido”
 si el bundle exacto no está disponible.
+
+El bundle debe prepararse desde el repositorio oficial archivado, fijando el
+commit que el propio Flame declara. La descarga se realiza fuera del
+repositorio de scripts y se valida antes de construir:
+
+```bash
+bundle="$HOME/.local/share/rafex/firefoxos-ca/b2g46-source"
+work="$(mktemp -d)"
+git -C "$work" init
+git -C "$work" remote add origin https://github.com/mozilla-b2g/gecko-b2g.git
+git -C "$work" fetch --filter=blob:none --depth=1 origin \
+  4a4a0bcf45995fdc29caefba2766932dfc25be7d
+git -C "$work" sparse-checkout set security/nss nsprpub
+git -C "$work" checkout --detach FETCH_HEAD
+mkdir -p "$bundle/b2g"
+cp -a "$work/security" "$bundle/b2g/"
+cp -a "$work/nsprpub" "$bundle/b2g/"
+(cd "$bundle" && find b2g/security/nss b2g/nsprpub -type f -print0 \
+  | sort -z | xargs -0 sha256sum > b2g-source.sha256)
+```
+
+El `source-manifest.env` debe declarar el Build ID, `B2G_SOURCE_COMMIT`, el
+hash de `libnss3.so` observado y el hash de `b2g-source.sha256`; el instalador lo
+comprueba junto con la lista exacta de rutas antes de invocar Podman. No se
+debe copiar el repositorio Git completo ni añadir fuentes no relacionadas.
 
 ## Opciones
 
@@ -99,11 +127,13 @@ just install-firefoxos-ca-tools --status
 ### Bundle exacto proporcionado manualmente
 
 El directorio debe contener `source-manifest.env`,
-`nss-3.22.3-with-nspr-4.12.tar.gz`, el árbol `b2g/`,
-`b2g-source.sha256`, `patches.sha256` y uno o más parches `patches/*.patch`.
-Los dos manifiestos de hashes deben validar todo el árbol/parches. El
-manifiesto principal debe declarar el Build ID, SourceRepository, hash de
-`libnss3.so`, NSS 3.22.3, NSPR 4.12 y estados `matched`.
+`b2g-source.sha256` y los subárboles sin enlaces simbólicos
+`b2g/security/nss/` y `b2g/nsprpub/`. El manifiesto de hashes debe validar
+todos sus archivos. El manifiesto principal debe declarar el Build ID,
+SourceRepository/`B2G_SOURCE_COMMIT`, hash de `libnss3.so`, NSS 3.21, NSPR 4.11,
+`B2G_PATCH_STATUS=embedded-in-source` y `B2G_PATCHES_SHA256=embedded-in-source`.
+Las correcciones históricas no se aplican como parches externos: ya forman
+parte del commit de Gecko/B2G fijado.
 
 ```bash
 just install-firefoxos-ca-tools --apply \
@@ -129,11 +159,11 @@ podman image inspect localhost/rafex/firefoxos-ca:b2g46-flame
 
 ### `NO-GO: falta el bundle B2G exacto`
 
-**Causa:** no se ha localizado el árbol NSS/B2G y sus parches del build
-`20151221215202`; NSS genérico 3.21–3.23 no demuestra compatibilidad exacta.
+**Causa:** no se han localizado los subárboles NSS/NSPR del commit Gecko/B2G
+del build `20151221215202`; NSS genérico no demuestra compatibilidad exacta.
 
 **Solución:** no fuerces etiquetas ni uses el baseline para aplicar cambios.
-Proporciona un bundle con origen, hashes y parches verificables.
+Proporciona un bundle con origen, commit y hashes verificables.
 
 ### `sin candidato APT: podman`
 
@@ -143,8 +173,8 @@ Proporciona un bundle con origen, hashes y parches verificables.
 
 ### `la compilación del runtime exacto falla`
 
-**Causa:** el bundle no coincide con NSS 3.22.3/NSPR 4.12, sus parches no
-aplican o el toolchain no puede reproducirlo.
+**Causa:** el bundle no coincide con NSS 3.21/NSPR 4.11 del commit fijado, o
+el toolchain no puede reproducirlo.
 
 **Solución:** conserva el teléfono intacto, revisa el manifiesto y no continúes
 con `firefoxos-ca --apply`.
@@ -155,6 +185,7 @@ con `firefoxos-ca --apply`.
 
 - **feat:** añadir validación de bundle y etiquetas del runtime B2G/Flame.
 - **fix:** impedir que una imagen NSS genérica se use durante la aplicación.
+- **fix:** reproducir NSS 3.21/NSPR 4.11 desde el commit Gecko/B2G exacto del Flame.
 
 ### v1.1.0 — 2026-09-02
 

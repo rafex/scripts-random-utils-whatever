@@ -489,7 +489,7 @@ just firefoxos-ca --plan
 
 La escritura directa en `cert9.db` solo se ejecuta con la confirmación
 `FLAME-MOZILLA-CA-WIPE`, un runtime Podman `b2g46-flame` construido desde el
-árbol/parches exactos y `adb root` temporal. El conjunto
+subárboles exactos de NSS/NSPR del commit B2G observado y `adb root` temporal. El conjunto
 `cert9.db`/`key4.db`/`pkcs11.txt` se valida completo y se guarda como rollback;
 solo se sustituye `cert9.db`. Si no existe el bundle B2G exacto, el resultado
 correcto es `NO-GO` y el teléfono permanece intacto:

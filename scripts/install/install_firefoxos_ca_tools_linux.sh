@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.2.0 - Prepara runtimes NSS históricos y el runtime B2G exacto del Flame.
+# v1.3.0 - Prepara runtimes NSS históricos y el runtime B2G exacto del Flame.
 set -Eeuo pipefail
 
 umask 077
@@ -15,12 +15,11 @@ readonly EXACT_IMAGE="localhost/rafex/firefoxos-ca:b2g46-flame"
 CONTEXT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../containers/firefoxos-ca" && pwd)"
 readonly CONTEXT_DIR
 readonly OBSERVED_RUNTIME_MANIFEST="${XDG_DATA_HOME:-${HOME}/.local/share}/rafex/firefoxos-ca/runtime/flame-runtime.env"
-readonly NSS_ARCHIVE_SHA256="23ea51e472ee2c1211d2ee89e1c5295990046b6a7a54b89afba1481a94713527"
 readonly EXPECTED_B2G_VERSION="46.0a1"
 readonly EXPECTED_B2G_BUILD_ID="20151221215202"
 readonly EXPECTED_B2G_SOURCE_REPOSITORY="4a4a0bcf45995fdc29caefba2766932dfc25be7d"
-readonly EXPECTED_NSS_VERSION="3.22.3"
-readonly EXPECTED_NSPR_VERSION="4.12"
+readonly EXPECTED_NSS_VERSION="3.21"
+readonly EXPECTED_NSPR_VERSION="4.11"
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -37,8 +36,9 @@ Uso:
 
 Instala Podman y prepara un baseline NSS histórico. El runtime autorizado
 para editar el Flame solo se construye si se proporciona un bundle local con
-el árbol NSS/B2G y los parches exactos del build observado. No modifica el
-teléfono ni descarga fuentes B2G automáticamente.
+los subárboles NSS/NSPR del commit exacto de Gecko/B2G observado. Los parches
+históricos ya están integrados en ese commit; no se aplican parches externos.
+No modifica el teléfono ni descarga fuentes B2G automáticamente.
 EOF
 }
 
@@ -97,28 +97,26 @@ manifest_value() {
 }
 
 validate_source_bundle() {
-  local manifest archive patches_manifest source_manifest patches_hash source_hash expected archive_hash
-  local manifest_line patch_paths actual_patch_paths b2g_paths actual_b2g_paths
+  local manifest source_manifest source_hash expected manifest_line b2g_paths actual_b2g_paths
   [[ -d "$SOURCE_BUNDLE" && ! -L "$SOURCE_BUNDLE" ]] ||
     die "NO-GO: no existe el bundle local B2G exacto: $SOURCE_BUNDLE"
   manifest="${SOURCE_BUNDLE}/source-manifest.env"
-  archive="${SOURCE_BUNDLE}/nss-3.22.3-with-nspr-4.12.tar.gz"
-  patches_manifest="${SOURCE_BUNDLE}/patches.sha256"
   source_manifest="${SOURCE_BUNDLE}/b2g-source.sha256"
   [[ -f "$manifest" && ! -L "$manifest" ]] || die 'NO-GO: falta source-manifest.env verificable'
-  [[ -f "$archive" && ! -L "$archive" ]] || die 'NO-GO: falta el archivo NSS/NSPR fijado del bundle'
-  [[ -f "$patches_manifest" && ! -L "$patches_manifest" ]] || die 'NO-GO: falta patches.sha256'
   [[ -f "$source_manifest" && ! -L "$source_manifest" ]] || die 'NO-GO: falta b2g-source.sha256'
-  [[ -d "${SOURCE_BUNDLE}/b2g" && ! -L "${SOURCE_BUNDLE}/b2g" ]] || die 'NO-GO: falta el árbol B2G del bundle'
+  [[ -d "${SOURCE_BUNDLE}/b2g/security/nss" && ! -L "${SOURCE_BUNDLE}/b2g/security/nss" ]] || die 'NO-GO: falta security/nss del árbol B2G'
+  [[ -d "${SOURCE_BUNDLE}/b2g/nsprpub" && ! -L "${SOURCE_BUNDLE}/b2g/nsprpub" ]] || die 'NO-GO: falta nsprpub del árbol B2G'
   find "$SOURCE_BUNDLE" -type l -print -quit 2>/dev/null | grep -q . && die 'NO-GO: el bundle no puede contener enlaces simbólicos'
 
   [[ "$(manifest_value "$manifest" B2G_VERSION)" == "$EXPECTED_B2G_VERSION" ]] || die 'NO-GO: B2G_VERSION no coincide'
   [[ "$(manifest_value "$manifest" B2G_BUILD_ID)" == "$EXPECTED_B2G_BUILD_ID" ]] || die 'NO-GO: B2G_BUILD_ID no coincide'
   [[ "$(manifest_value "$manifest" B2G_SOURCE_REPOSITORY)" == "$EXPECTED_B2G_SOURCE_REPOSITORY" ]] || die 'NO-GO: SourceRepository no coincide'
+  [[ "$(manifest_value "$manifest" B2G_SOURCE_COMMIT)" == "$EXPECTED_B2G_SOURCE_REPOSITORY" ]] || die 'NO-GO: B2G_SOURCE_COMMIT no coincide'
   [[ "$(manifest_value "$manifest" NSS_VERSION)" == "$EXPECTED_NSS_VERSION" ]] || die 'NO-GO: NSS_VERSION no coincide'
   [[ "$(manifest_value "$manifest" NSPR_VERSION)" == "$EXPECTED_NSPR_VERSION" ]] || die 'NO-GO: NSPR_VERSION no coincide'
   [[ "$(manifest_value "$manifest" B2G_SOURCE_STATUS)" == matched ]] || die 'NO-GO: el estado de fuentes B2G no es matched'
-  [[ "$(manifest_value "$manifest" B2G_PATCH_STATUS)" == matched ]] || die 'NO-GO: el estado de parches B2G no es matched'
+  [[ "$(manifest_value "$manifest" B2G_PATCH_STATUS)" == embedded-in-source ]] || die 'NO-GO: el estado de parches B2G no es embedded-in-source'
+  [[ "$(manifest_value "$manifest" B2G_PATCHES_SHA256)" == embedded-in-source ]] || die 'NO-GO: B2G_PATCHES_SHA256 no indica parches integrados en el commit'
   [[ "$(manifest_value "$manifest" B2G_LIBNSS3_SHA256)" =~ ^[[:xdigit:]]{64}$ ]] || die 'NO-GO: falta el hash de libnss3.so del Flame'
   [[ -f "$OBSERVED_RUNTIME_MANIFEST" ]] || die 'NO-GO: identifica primero el runtime del Flame con firefoxos-ca --identify-runtime'
   [[ "$(manifest_value "$manifest" B2G_VERSION)" == "$(manifest_value "$OBSERVED_RUNTIME_MANIFEST" B2G_VERSION)" ]] || die 'NO-GO: la versión B2G del bundle no coincide con el teléfono'
@@ -126,36 +124,22 @@ validate_source_bundle() {
   [[ "$(manifest_value "$manifest" B2G_SOURCE_REPOSITORY)" == "$(manifest_value "$OBSERVED_RUNTIME_MANIFEST" B2G_SOURCE_REPOSITORY)" ]] || die 'NO-GO: SourceRepository del bundle no coincide con el teléfono'
   [[ "$(manifest_value "$manifest" B2G_LIBNSS3_SHA256)" == "$(manifest_value "$OBSERVED_RUNTIME_MANIFEST" B2G_LIBNSS3_SHA256)" ]] || die 'NO-GO: el hash de libnss3.so del bundle no coincide con el teléfono observado'
 
-  archive_hash="$(sha256sum -- "$archive" | awk '{print $1}')"
-  [[ "$archive_hash" == "$NSS_ARCHIVE_SHA256" ]] || die 'NO-GO: SHA-256 del archivo NSS/NSPR no coincide'
   while IFS= read -r manifest_line; do
-    [[ "$manifest_line" =~ ^[[:xdigit:]]{64}[[:space:]][[:space:]]patches/[A-Za-z0-9._/-]+\.patch$ ]] ||
-      die 'NO-GO: patches.sha256 contiene una ruta no permitida'
-    [[ "$manifest_line" != *'..'* && "$manifest_line" != *'//'* ]] ||
-      die 'NO-GO: patches.sha256 contiene una ruta insegura'
-  done < "$patches_manifest"
-  while IFS= read -r manifest_line; do
-    [[ "$manifest_line" =~ ^[[:xdigit:]]{64}[[:space:]][[:space:]]b2g/[A-Za-z0-9._/-]+$ ]] ||
+    [[ "$manifest_line" =~ ^[[:xdigit:]]{64}[[:space:]][[:space:]]b2g/(security/nss|nsprpub)/[A-Za-z0-9._/-]+$ ]] ||
       die 'NO-GO: b2g-source.sha256 contiene una ruta no permitida'
     [[ "$manifest_line" != *'..'* && "$manifest_line" != *'//'* ]] ||
       die 'NO-GO: b2g-source.sha256 contiene una ruta insegura'
   done < "$source_manifest"
-  (cd -- "$SOURCE_BUNDLE" && sha256sum --check --strict -- "$patches_manifest") ||
-    die 'NO-GO: el manifiesto de parches no coincide con el bundle'
   (cd -- "$SOURCE_BUNDLE" && sha256sum --check --strict -- "$source_manifest") ||
     die 'NO-GO: el manifiesto del árbol B2G no coincide con el bundle'
-  patches_hash="$(sha256sum -- "$patches_manifest" | awk '{print $1}')"
   source_hash="$(sha256sum -- "$source_manifest" | awk '{print $1}')"
-  expected="$(manifest_value "$manifest" B2G_PATCHES_SHA256)"
-  [[ "$expected" == "$patches_hash" ]] || die 'NO-GO: B2G_PATCHES_SHA256 no coincide'
   expected="$(manifest_value "$manifest" B2G_SOURCE_TREE_SHA256)"
   [[ "$expected" == "$source_hash" ]] || die 'NO-GO: B2G_SOURCE_TREE_SHA256 no coincide'
-  patch_paths="$(sed -n 's/^[[:xdigit:]]\{64\}[[:space:]][[:space:]]//p' "$patches_manifest" | sort)"
-  actual_patch_paths="$(find "$SOURCE_BUNDLE/patches" -maxdepth 1 -type f -name '*.patch' -printf 'patches/%f\n' 2>/dev/null | sort)"
-  [[ -n "$patch_paths" && "$patch_paths" == "$actual_patch_paths" ]] ||
-    die 'NO-GO: el bundle no contiene un manifiesto completo de parches B2G'
   b2g_paths="$(sed -n 's/^[[:xdigit:]]\{64\}[[:space:]][[:space:]]//p' "$source_manifest" | sort)"
-  actual_b2g_paths="$(find "$SOURCE_BUNDLE/b2g" -type f -printf 'b2g/%P\n' 2>/dev/null | sort)"
+  actual_b2g_paths="$({
+    find "$SOURCE_BUNDLE/b2g/security/nss" -type f -printf 'b2g/security/nss/%P\n'
+    find "$SOURCE_BUNDLE/b2g/nsprpub" -type f -printf 'b2g/nsprpub/%P\n'
+  } 2>/dev/null | sort)"
   [[ -n "$b2g_paths" && "$b2g_paths" == "$actual_b2g_paths" ]] ||
     die 'NO-GO: el bundle no contiene un manifiesto completo del árbol B2G'
 
@@ -185,12 +169,12 @@ build_baseline() {
 }
 
 build_exact_runtime() (
-  local build_context build_manifest patches_hash source_hash lib_hash
+  local build_context build_manifest patches_status source_hash lib_hash
   validate_source_bundle
   build_manifest="${SOURCE_BUNDLE}/source-manifest.env"
-  patches_hash="$(sha256sum -- "${SOURCE_BUNDLE}/patches.sha256" | awk '{print $1}')"
   source_hash="$(sha256sum -- "${SOURCE_BUNDLE}/b2g-source.sha256" | awk '{print $1}')"
   lib_hash="$(manifest_value "$build_manifest" B2G_LIBNSS3_SHA256)"
+  patches_status="$(manifest_value "$build_manifest" B2G_PATCHES_SHA256)"
   build_context="$(mktemp -d "${TMPDIR:-/tmp}/rafex-firefoxos-ca-build.XXXXXX")"
   trap 'rm -rf -- "$build_context"' EXIT
   mkdir -p -- "${build_context}/b2g46-source"
@@ -204,7 +188,7 @@ build_exact_runtime() (
     --build-arg "B2G_BUILD_ID=${EXPECTED_B2G_BUILD_ID}" \
     --build-arg "B2G_SOURCE_REPOSITORY=${EXPECTED_B2G_SOURCE_REPOSITORY}" \
     --build-arg "B2G_LIBNSS3_SHA256=${lib_hash}" \
-    --build-arg "B2G_PATCHES_SHA256=${patches_hash}" \
+    --build-arg "B2G_PATCHES_SHA256=${patches_status}" \
     --build-arg "B2G_SOURCE_TREE_SHA256=${source_hash}" \
     --build-arg 'RUNTIME_STATUS=matched' \
     "$build_context"
@@ -264,10 +248,10 @@ show_plan() {
   printf '═══ Plan runtime NSS exacto del Flame ═══\n'
   info "conservar o construir el baseline NSS 3.21: $BASELINE_IMAGE (diagnóstico únicamente)"
   info "buscar bundle local verificado en: $SOURCE_BUNDLE"
-  info 'validar Build ID, SourceRepository, SHA-256 de NSS/NSPR, parches y libnss3.so'
+  info 'validar Build ID, SourceRepository, SHA-256 del árbol NSS/NSPR y libnss3.so'
   info "construir $EXACT_IMAGE solo con ese bundle; ejecutar certutil rootless, sin red y sin capacidades"
   info 'el helper CA rechazará cualquier imagen baseline o NSS genérica durante --apply'
-  info 'si falta el árbol/parche exacto, el resultado será NO-GO sin escribir el Flame'
+  info 'si falta el árbol exacto, el resultado será NO-GO sin escribir el Flame'
 }
 
 apply_install() {

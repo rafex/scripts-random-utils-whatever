@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.2.0 - Valida el runtime NSS/B2G exacto antes de tocar un Flame.
+# v1.3.0 - Valida el runtime NSS/B2G exacto antes de tocar un Flame.
 set -Eeuo pipefail
 
 umask 077
@@ -9,8 +9,8 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH
 readonly NSS_RELEASE="NSS_3_128_RTM"
 readonly CERTDATA_URL="https://hg.mozilla.org/projects/nss/raw-file/${NSS_RELEASE}/lib/ckfw/builtins/certdata.txt"
 readonly CERTDATA_SHA256="81b7f2576333a2e360e673f912d7b0b7a765d836c731003e348a46cac5d37198"
-readonly NSS_VERSION="3.22.3"
-readonly NSPR_VERSION="4.12"
+readonly NSS_VERSION="3.21"
+readonly NSPR_VERSION="4.11"
 readonly CA_IMAGE="localhost/rafex/firefoxos-ca:b2g46-flame"
 readonly BASELINE_IMAGE="localhost/rafex/firefoxos-ca:nss-3.21"
 readonly EXPECTED_B2G_VERSION="46.0a1"
@@ -222,7 +222,7 @@ require_exact_runtime() {
   source_tree_hash="$(image_label "$CA_IMAGE" org.rafex.firefoxos.b2g-source-tree-sha256)"
   image_nss="$(image_label "$CA_IMAGE" org.rafex.firefoxos.nss)"
   image_nspr="$(image_label "$CA_IMAGE" org.rafex.firefoxos.nspr)"
-  [[ "$patches_hash" =~ ^[[:xdigit:]]{64}$ && "$source_tree_hash" =~ ^[[:xdigit:]]{64}$ ]] || die 'NO-GO: la imagen no conserva hashes verificables de parches y árbol B2G'
+  [[ "$patches_hash" == embedded-in-source && "$source_tree_hash" =~ ^[[:xdigit:]]{64}$ ]] || die 'NO-GO: la imagen no conserva el estado de parches integrado y el hash verificable del árbol B2G'
   [[ "$runtime_status" == matched && "$target" == flame && "$b2g_version" == "$EXPECTED_B2G_VERSION" && "$build_id" == "$EXPECTED_B2G_BUILD_ID" && "$repository" == "$EXPECTED_B2G_SOURCE_REPOSITORY" && "$image_lib_hash" == "$lib_hash" && "$image_nss" == "$NSS_VERSION" && "$image_nspr" == "$NSPR_VERSION" ]] ||
     die 'NO-GO: la imagen no corresponde al runtime B2G/Flame identificado; no se usará una NSS genérica'
   legacy_runtime_probe || die "NO-GO: $CA_IMAGE no puede ejecutar certutil"
@@ -268,7 +268,7 @@ show_status() {
   if [[ -f "$SOURCE_FILE" ]]; then ok "certdata ${NSS_RELEASE} adquirida"; else info "certdata ${NSS_RELEASE} aún no adquirida"; fi
   if [[ -n "$ADB_COMMAND" ]]; then show_adb_status; else info 'adb no está disponible'; fi
   info 'el baseline y cualquier runtime se ejecutan rootless, sin red y sin capacidades'
-  info 'la aplicación CA queda bloqueada hasta demostrar el árbol/parches B2G exactos'
+  info 'la aplicación CA queda bloqueada hasta demostrar el árbol B2G exacto'
 }
 
 verify_source_file() {
@@ -734,7 +734,7 @@ show_plan() {
   printf '═══ Plan CA Mozilla para Firefox OS ═══\n'
   printf 'runtime requerido: %s | NSS: %s | NSPR: %s\n' "$CA_IMAGE" "$NSS_VERSION" "$NSPR_VERSION"
   info 'identificar Build ID, Gaia, Gonk, SourceRepository y hash de libnss3.so'
-  info 'rechazar imágenes NSS genéricas; exigir un bundle B2G/parches matched'
+  info 'rechazar imágenes NSS genéricas; exigir un bundle B2G del commit matched'
   info 'leer el conjunto cert9.db, key4.db y pkcs11.txt con certutil dentro de Podman rootless'
   info 'guardar rollback mínimo del conjunto; modificar únicamente cert9.db si la prueba final pasa'
   info 'usar adb root temporal, detener B2G y devolver ADB a uid 2000 con unroot o reinicio controlado'

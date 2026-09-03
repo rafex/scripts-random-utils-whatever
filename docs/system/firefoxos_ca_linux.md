@@ -12,7 +12,8 @@ tags:
 
 Valida el runtime real del Mozilla Flame antes de actualizar sus raíces CA.
 La operación se limita al perfil NSS y solo puede continuar con una imagen
-Podman construida desde el árbol NSS/B2G y los parches coincidentes del build.
+Podman construida desde los subárboles NSS/NSPR del commit exacto de
+Gecko/B2G que declara el build.
 
 - **Ruta:** `scripts/system/firefoxos_ca_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -40,13 +41,15 @@ Podman construida desde el árbol NSS/B2G y los parches coincidentes del build.
   `runtime-status=matched` y cuyo hash de `libnss3.so` coincida.
 - La fuente de raíces NSS moderna adquirida mediante `--acquire`.
 
-La selección de NSS 3.22.3/NSPR 4.12 es una referencia histórica de Firefox
-46, no una prueba de que una build genérica sea idéntica al Flame. La evidencia
-del build `46.0a1` del dispositivo se conserva separada mediante [Bugzilla
-1232399](https://bugzilla.mozilla.org/show_bug.cgi?id=1232399) y la tabla de
-correspondencias de [Mozilla NSS:Versions](https://wiki.mozilla.org/NSS%3AVersions).
-Solo el hash de `libnss3.so`, el Build ID, el `SourceRepository` y un bundle de
-fuentes/parches reproducible pueden autorizar el runtime `b2g46-flame`.
+El árbol exacto del teléfono declara NSS 3.21 y NSPR 4.11 en el commit
+`4a4a0bcf45995fdc29caefba2766932dfc25be7d` de
+[mozilla-b2g/gecko-b2g](https://github.com/mozilla-b2g/gecko-b2g). Las
+correcciones históricas se consideran integradas en ese commit; no se aplica
+un conjunto externo de parches. La evidencia del build `46.0a1` del
+dispositivo se conserva separada mediante [Bugzilla
+1232399](https://bugzilla.mozilla.org/show_bug.cgi?id=1232399). Solo el hash
+de `libnss3.so`, el Build ID, el `SourceRepository` y un bundle reproducible
+de ese árbol pueden autorizar el runtime `b2g46-flame`.
 
 El perfil se trata como un conjunto indivisible:
 
@@ -181,16 +184,16 @@ JavaScript o APIs del Gecko antiguo.
 **Causa:** el contenedor es NSS genérico, usa otro Build ID, otro
 `SourceRepository` o un hash distinto de `libnss3.so`.
 
-**Solución:** no fuerces etiquetas. Obtén el árbol NSS/B2G y sus parches
-coincidentes, prepara el bundle en la ruta documentada por el instalador y
-reconstruye el runtime.
+**Solución:** no fuerces etiquetas. Obtén los subárboles `security/nss` y
+`nsprpub` del commit exacto, prepara el bundle en la ruta documentada por el
+instalador y reconstruye el runtime.
 
 ### `NO-GO: falta el bundle B2G exacto`
 
 **Causa:** no se encontró una fuente reproducible del runtime B2G 46 del Flame.
 
 **Solución:** el resultado correcto es detenerse sin modificar el teléfono.
-El baseline 3.21 y una build genérica 3.22.x solo sirven para diagnóstico.
+El baseline 3.21 sin el commit exacto solo sirve para diagnóstico.
 
 ### `NO-GO: el runtime B2G no puede leer el conjunto NSS completo`
 
@@ -205,8 +208,8 @@ el bundle y conserva el Flame intacto.
 **Causa:** el `libnss3.so` ARM está despojado y no contiene una cadena de
 versión demostrable mediante lectura no destructiva.
 
-**Solución:** documenta el hash y proporciona el árbol/parche exacto que lo
-produjo. La coincidencia de año o de versión Firefox no basta.
+**Solución:** documenta el hash y proporciona el árbol exacto que lo produjo.
+La coincidencia de año o de versión Firefox no basta.
 
 ### `adb unroot no fue aceptado`
 
