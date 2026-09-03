@@ -275,8 +275,8 @@ apply_install() {
   check_candidate
   [[ -f "${CONTEXT_DIR}/Containerfile" && -f "${CONTEXT_DIR}/Containerfile.b2g46" ]] ||
     die 'falta el contexto Podman versionado de Firefox OS'
-  sudo -v
   if ! package_installed "$PODMAN_PACKAGE"; then
+    sudo -v
     info 'actualizando índices APT'
     sudo apt-get update
     info "instalando $PODMAN_PACKAGE desde Debian"
