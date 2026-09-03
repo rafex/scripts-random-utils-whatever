@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.3.0 - Valida el runtime NSS/B2G exacto antes de tocar un Flame.
+# v1.3.1 - Valida el runtime NSS/B2G exacto antes de tocar un Flame.
 set -Eeuo pipefail
 
 umask 077
@@ -41,6 +41,7 @@ REMOTE_PKCS11=""
 WORK_DIR=""
 B2G_STOPPED=0
 ROOT_ADB_ACTIVE=0
+STAGED_REMOTE_CREATED=0
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -173,6 +174,11 @@ restore_normal_adb() {
 
 cleanup() {
   local cleanup_status=$?
+  if [[ "$STAGED_REMOTE_CREATED" -eq 1 && "$ROOT_ADB_ACTIVE" -eq 1 && -n "$ADB_COMMAND" && -n "$DEVICE_SERIAL" && -n "$REMOTE_DB" ]]; then
+    "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell rm -f "${REMOTE_DB}.new" >/dev/null 2>&1 ||
+      warn 'no se pudo retirar el temporal cert9.db.new; no se volverá a intentar automáticamente'
+    STAGED_REMOTE_CREATED=0
+  fi
   if [[ "$B2G_STOPPED" -eq 1 && -n "$ADB_COMMAND" && -n "$DEVICE_SERIAL" ]]; then
     "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell start b2g >/dev/null 2>&1 || true
   fi
@@ -617,17 +623,32 @@ import_bundle() {
   ok "raíces Mozilla importadas en la copia: $count"
 }
 
+verify_remote_stage_hash() {
+  local staged_remote="$1" expected_hash="$2" downloaded_path="$3" actual_hash
+  rm -f -- "$downloaded_path"
+  "$ADB_COMMAND" -s "$DEVICE_SERIAL" pull "$staged_remote" "$downloaded_path" >/dev/null ||
+    die 'no se pudo descargar el temporal para verificarlo localmente'
+  [[ -s "$downloaded_path" ]] || die 'el temporal descargado está vacío'
+  actual_hash="$(sha256sum -- "$downloaded_path" | awk '{print $1}')"
+  if [[ "$actual_hash" != "$expected_hash" ]]; then
+    warn "hash local esperado: $expected_hash"
+    warn "hash local extraído: $actual_hash"
+    die 'el hash local de cert9.db.new no coincide'
+  fi
+  ok 'cert9.db.new verificado mediante descarga y hash local'
+}
+
 push_database() {
-  local db_dir="${WORK_DIR}/db" staged_remote="${REMOTE_DB}.new" expected_hash actual_hash
+  local db_dir="${WORK_DIR}/db" staged_remote="${REMOTE_DB}.new" expected_hash
   expected_hash="$(sha256sum -- "${db_dir}/cert9.db" | awk '{print $1}')"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell test '!' -e "$staged_remote" >/dev/null 2>&1 || die 'ya existe cert9.db.new; no se sobrescribirá'
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" push "${db_dir}/cert9.db" "$staged_remote" >/dev/null || die 'no se pudo subir cert9.db.new'
+  STAGED_REMOTE_CREATED=1
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell chown 0:0 "$staged_remote" >/dev/null 2>&1 || die 'no se pudo asignar root:root'
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell chmod 600 "$staged_remote" >/dev/null 2>&1 || die 'no se pudieron restaurar permisos 600'
-  actual_hash="$($ADB_COMMAND -s "$DEVICE_SERIAL" shell sha256sum "$staged_remote" 2>/dev/null | tr -d '\r' | awk '{print $1}')"
-  [[ "$actual_hash" == "$expected_hash" ]] || die 'el hash remoto de cert9.db.new no coincide'
+  verify_remote_stage_hash "$staged_remote" "$expected_hash" "${WORK_DIR}/cert9.db.remote"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell mv "$staged_remote" "$REMOTE_DB" >/dev/null 2>&1 || die 'no se pudo sustituir cert9.db de forma atómica'
-  B2G_STOPPED=0
+  STAGED_REMOTE_CREATED=0
   ok 'cert9.db sustituido; key4.db y pkcs11.txt fueron validados y no se modificaron'
 }
 
@@ -677,7 +698,7 @@ latest_rollback() {
 }
 
 rollback_change() {
-  local backup_path staged_remote expected_hash actual_hash
+  local backup_path staged_remote expected_hash
   [[ "$CONFIRMATION" == "$CONFIRM_ROLLBACK" ]] || die "confirmación incorrecta; escribe exactamente $CONFIRM_ROLLBACK"
   require_commands adb sha256sum awk grep tr sed date seq sleep find sort stat
   require_flame_device
@@ -692,12 +713,12 @@ rollback_change() {
   staged_remote="${REMOTE_DB}.new"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell test '!' -e "$staged_remote" >/dev/null 2>&1 || die 'ya existe cert9.db.new; no se sobrescribirá'
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" push "$backup_path" "$staged_remote" >/dev/null || die 'no se pudo subir el rollback'
+  STAGED_REMOTE_CREATED=1
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell chown 0:0 "$staged_remote" >/dev/null 2>&1 || die 'no se pudo asignar root:root al rollback'
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell chmod 600 "$staged_remote" >/dev/null 2>&1 || die 'no se pudieron restaurar permisos del rollback'
-  actual_hash="$($ADB_COMMAND -s "$DEVICE_SERIAL" shell sha256sum "$staged_remote" 2>/dev/null | tr -d '\r' | awk '{print $1}')"
-  [[ "$actual_hash" == "$expected_hash" ]] || die 'el hash remoto del rollback no coincide'
+  verify_remote_stage_hash "$staged_remote" "$expected_hash" "${WORK_DIR}/cert9.db.rollback.remote"
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell mv "$staged_remote" "$REMOTE_DB" >/dev/null 2>&1 || die 'no se pudo restaurar cert9.db'
-  B2G_STOPPED=0
+  STAGED_REMOTE_CREATED=0
   "$ADB_COMMAND" -s "$DEVICE_SERIAL" reboot >/dev/null 2>&1 || die 'no se pudo reiniciar tras el rollback'
   wait_for_normal_adb || return 1
   ok 'cert9.db restaurado desde el rollback mínimo'

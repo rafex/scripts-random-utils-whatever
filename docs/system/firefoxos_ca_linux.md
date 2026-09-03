@@ -220,6 +220,17 @@ La coincidencia de año o de versión Firefox no basta.
 la conexión sigue disponible. Si no aparece, reconecta el cable y comprueba
 `adb shell id`; no ejecutes `stop adbd` manualmente.
 
+### `el hash remoto de cert9.db.new no coincide`
+
+**Causa:** las versiones antiguas de Android del Flame no incluyen
+`sha256sum` en su shell. Un hash remoto vacío se interpretaba erróneamente
+como corrupción del archivo.
+
+**Solución:** la versión actual descarga `cert9.db.new` de vuelta a la
+ThinkPad y calcula el SHA-256 localmente. Si falla la validación, elimina el
+temporal creado por esa ejecución antes de reanudar B2G y no sustituye la
+base original.
+
 ## Changelog
 
 ### [Unreleased]
@@ -227,6 +238,8 @@ la conexión sigue disponible. Si no aparece, reconecta el cable y comprueba
 - **feat:** identificar el build B2G, la biblioteca NSS y el conjunto completo
   de bases del perfil Flame.
 - **fix:** bloquear NSS genérico y corregir la limpieza de ADB root.
+- **fix:** validar temporales mediante hash local y limpiar `cert9.db.new`
+  cuando el Flame no dispone de `sha256sum`.
 
 ### v1.1.0 — 2026-09-02
 
