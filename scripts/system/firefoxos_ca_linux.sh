@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
+# v1.0.1 - Prepara e instala raíces Mozilla en el perfil NSS de Firefox OS.
 set -Eeuo pipefail
 
 umask 077
@@ -37,13 +37,48 @@ ok() { printf '✓ %s\n' "$*"; }
 warn() { printf '⚠ %s\n' "$*" >&2; }
 die() { printf '✗ ERROR: %s\n' "$*" >&2; exit 1; }
 
+restore_normal_adb() {
+  local attempt uid=""
+  [[ "$ROOT_ADB_ACTIVE" -eq 1 && -n "$ADB_COMMAND" && -n "$DEVICE_SERIAL" ]] || return 0
+
+  "$ADB_COMMAND" -s "$DEVICE_SERIAL" unroot >/dev/null 2>&1 || true
+  for ((attempt = 1; attempt <= 10; attempt++)); do
+    if "$ADB_COMMAND" -s "$DEVICE_SERIAL" get-state >/dev/null 2>&1; then
+      uid="$(adb_prop_shell id -u || true)"
+      if [[ "$uid" == 2000 ]]; then
+        ROOT_ADB_ACTIVE=0
+        return 0
+      fi
+    fi
+    sleep 1
+  done
+
+  if [[ "$uid" == 0 ]]; then
+    # Algunos adbd antiguos cierran la conexión y no aceptan `unroot`; un
+    # reinicio controlado es la única forma de devolverlos al modo normal.
+    "$ADB_COMMAND" -s "$DEVICE_SERIAL" reboot >/dev/null 2>&1 || return 1
+    for ((attempt = 1; attempt <= 30; attempt++)); do
+      if "$ADB_COMMAND" -s "$DEVICE_SERIAL" get-state >/dev/null 2>&1; then
+        uid="$(adb_prop_shell id -u || true)"
+        if [[ "$uid" == 2000 ]]; then
+          ROOT_ADB_ACTIVE=0
+          return 0
+        fi
+      fi
+      sleep 2
+    done
+  fi
+
+  return 1
+}
+
 cleanup() {
   local cleanup_status=$?
   if [[ "$B2G_STOPPED" -eq 1 && -n "$ADB_COMMAND" && -n "$DEVICE_SERIAL" ]]; then
     "$ADB_COMMAND" -s "$DEVICE_SERIAL" shell start b2g >/dev/null 2>&1 || true
   fi
   if [[ "$ROOT_ADB_ACTIVE" -eq 1 && -n "$ADB_COMMAND" && -n "$DEVICE_SERIAL" ]]; then
-    "$ADB_COMMAND" -s "$DEVICE_SERIAL" unroot >/dev/null 2>&1 || true
+    restore_normal_adb || true
   fi
   if [[ -n "$WORK_DIR" && -d "$WORK_DIR" ]]; then
     rm -rf -- "$WORK_DIR"
@@ -435,16 +470,25 @@ create_work_dir() {
 }
 
 start_root_adb() {
-  local root_output root_uid
+  local root_output root_uid="" attempt
   root_output="$($ADB_COMMAND -s "$DEVICE_SERIAL" root 2>&1)" || {
     printf '%s\n' "$root_output" >&2
     die 'adb root no está disponible para este firmware'
   }
   ROOT_ADB_ACTIVE=1
-  sleep 2
-  root_uid="$(adb_prop_shell id -u)"
-  [[ "$root_uid" == 0 ]] || die 'adb root no confirmó uid 0'
-  ok 'adb root habilitado temporalmente para la operación explícita'
+  # `adb root` reinicia adbd. En el Flame la conexión puede tardar varios
+  # segundos en reaparecer; no se debe interpretar esa ventana como un fallo.
+  for ((attempt = 1; attempt <= 10; attempt++)); do
+    if "$ADB_COMMAND" -s "$DEVICE_SERIAL" get-state >/dev/null 2>&1; then
+      root_uid="$(adb_prop_shell id -u || true)"
+      if [[ "$root_uid" == 0 ]]; then
+        ok 'adb root habilitado temporalmente para la operación explícita'
+        return 0
+      fi
+    fi
+    sleep 1
+  done
+  die 'adb root no confirmó uid 0 después de esperar la reconexión'
 }
 
 adb_prop_shell() {
@@ -629,8 +673,7 @@ test_change() {
   printf 'entradas NSS legibles: %s\n' "$cert_count"
   printf 'raíces administradas detectadas: %s\n' "$managed_count"
   (( managed_count > 0 )) || die 'no se detectan raíces Rafex en cert9.db'
-  "$ADB_COMMAND" -s "$DEVICE_SERIAL" unroot >/dev/null 2>&1 || die 'no se pudo devolver ADB al modo normal'
-  ROOT_ADB_ACTIVE=0
+  restore_normal_adb || die 'no se pudo devolver ADB al modo normal'
   ok 'cert9.db legible y contiene raíces administradas'
   info 'la prueba HTTPS del navegador debe hacerse manualmente sin aceptar excepciones'
 }

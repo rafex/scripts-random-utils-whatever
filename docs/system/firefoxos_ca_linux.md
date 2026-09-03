@@ -201,6 +201,15 @@ acepta la autorización RSA y ejecuta `adb devices`.
 **Solución:** detener el proceso. No se intentará desbloquear el bootloader ni
 se escribirá `cert9.db` por otra vía automática.
 
+### `adb root no confirmó uid 0 después de esperar la reconexión`
+
+**Causa:** el `adbd` antiguo del Flame reinició la conexión y la comprobación
+ocurrió mientras el daemon todavía reaparecía.
+
+**Solución:** el wrapper espera la reconexión y reintenta la comprobación. Si
+una operación aborta después de activar ADB root, intenta `unroot` y, si ese
+firmware no lo acepta, reinicia de forma controlada para volver a uid 2000.
+
 ### `certutil no puede leer la copia de cert9.db`
 
 **Causa:** la base está bloqueada, tiene un formato incompatible o falta una
@@ -224,3 +233,10 @@ retirar el cambio y documenta el sitio como incompatible.
 - **feat:** añadir adquisición y validación reproducible del almacén Mozilla NSS.
 - **feat:** añadir instalación reversible de raíces serverAuth en `cert9.db`.
 - **docs:** documentar ADB root temporal, límites de Gecko legado y rollback.
+
+### v1.0.1 — 2026-09-02
+
+**fix:** esperar la reconexión de `adbd` y restaurar ADB normal tras un fallo.
+
+- Evitar falsos fallos durante el reinicio causado por `adb root`.
+- Documentar el comportamiento de recuperación en firmwares Flame antiguos.
