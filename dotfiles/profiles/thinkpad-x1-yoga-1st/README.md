@@ -7,6 +7,10 @@ instalación genérica del perfil.
 
 ## Instalación
 
+El teclado usa español latinoamericano (`latam`), igual que la configuración
+del sistema. El inicio o la recarga de i3 no debe cambiarlo a español de España
+(`es`). El idioma `es_MX.UTF-8` se configura por separado.
+
 ```sh
 just install-profile thinkpad-x1-yoga-1st
 ```

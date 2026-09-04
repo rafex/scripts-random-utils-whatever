@@ -6,6 +6,10 @@ predeterminada de LightDM.
 
 ## Características
 
+El inicio de sesión selecciona el teclado español latinoamericano (`latam`),
+coherente con el sistema y el perfil i3. El idioma `es_MX.UTF-8` es independiente
+de la distribución del teclado.
+
 - Openbox con comportamiento híbrido: ventanas flotantes y reglas automáticas
   por aplicación.
 - tint2 en la parte superior con escritorios, tareas, bandeja, reloj y estado

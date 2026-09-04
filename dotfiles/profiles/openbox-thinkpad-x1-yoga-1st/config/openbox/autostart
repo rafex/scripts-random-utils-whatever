@@ -6,7 +6,7 @@ if command -v xrdb >/dev/null 2>&1 && [ -f "$HOME/.Xresources" ]; then
 fi
 
 if command -v setxkbmap >/dev/null 2>&1; then
-    setxkbmap es
+    setxkbmap -layout latam
 fi
 
 # BEGIN rafex feh wallpaper

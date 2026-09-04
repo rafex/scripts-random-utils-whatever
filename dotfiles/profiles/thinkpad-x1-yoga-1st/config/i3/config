@@ -25,7 +25,7 @@ smart_gaps on
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
 exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
-exec_always --no-startup-id setxkbmap es
+exec_always --no-startup-id setxkbmap -layout latam
 # BEGIN rafex conky
 exec_always --no-startup-id ~/.local/bin/conky-launch.sh
 # END rafex conky
