@@ -32,6 +32,11 @@ configure-thinkpad-s2idle *args:
 configure-fstrim *args:
     bash scripts/hardware/configure_fstrim_linux.sh {{args}}
 
+# Configurar la compresión del initramfs sin recompilar vmlinuz ni modificar GRUB
+# Uso: just configure-initramfs-compression --check | --plan | --apply --compression zstd
+configure-initramfs-compression *args:
+    bash scripts/hardware/configure_initramfs_compression_linux.sh {{args}}
+
 # Configurar límites TLP 75/80 y carga completa temporal para viajes
 # Uso: just configure-tlp-battery --check | --plan | --apply | --fullcharge
 configure-tlp-battery *args:

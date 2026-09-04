@@ -75,6 +75,7 @@ nav:
       - screen_projector_linux: display/screen_projector_linux.md
   - Hardware:
       - autorotate_x1_yoga_linux: hardware/autorotate_x1_yoga_linux.md
+      - configure_initramfs_compression_linux: hardware/configure_initramfs_compression_linux.md
       - configure_fstrim_linux: hardware/configure_fstrim_linux.md
       - configure_thinkpad_s2idle_linux: hardware/configure_thinkpad_s2idle_linux.md
       - configure_tlp_battery_linux: hardware/configure_tlp_battery_linux.md
