@@ -209,7 +209,7 @@ check_conflicts() {
 
 required_commands_missing() {
   local command missing=0
-  for command in update-initramfs mkinitramfs lsinitramfs file find sort stat df sha256sum paste; do
+  for command in update-initramfs mkinitramfs lsinitramfs find sort stat df sha256sum paste grep sed awk tail; do
     if ! command -v "$command" >/dev/null 2>&1; then
       printf '%s\n' "$command"
       missing=1
@@ -248,16 +248,42 @@ validate_kernel_support() {
   done < <(installed_kernels)
 }
 
-image_compression() {
-  local image="$1" description
-  description="$(file -b -- "$image" 2>/dev/null || true)"
-  case "$description" in
-    *Zstandard*) printf '%s\n' zstd ;;
-    *XZ*|*LZMA*) printf '%s\n' xz ;;
-    *LZ4*) printf '%s\n' lz4 ;;
-    *gzip*|*GZip*) printf '%s\n' gzip ;;
-    *) printf '%s\n' desconocida ;;
+compression_magic() {
+  case "$1" in
+    zstd) printf '%b' '\x28\xb5\x2f\xfd' ;;
+    xz) printf '%b' '\xfd\x37\x7a\x58\x5a' ;;
+    lz4) printf '%b' '\x04\x22\x4d\x18' ;;
+    gzip) printf '%b' '\x1f\x8b' ;;
+    *) return 1 ;;
   esac
+}
+
+valid_compressed_stream() {
+  local algorithm="$1" image="$2" offset="$3" start
+  start=$((offset + 1))
+  case "$algorithm" in
+    zstd) tail -c "+$start" "$image" | zstd -q -t - >/dev/null 2>&1 ;;
+    xz) tail -c "+$start" "$image" | xz -q -t - >/dev/null 2>&1 ;;
+    lz4) tail -c "+$start" "$image" | lz4 -q -t - >/dev/null 2>&1 ;;
+    gzip) tail -c "+$start" "$image" | gzip -q -t - >/dev/null 2>&1 ;;
+    *) return 1 ;;
+  esac
+}
+
+image_compression() {
+  local image="$1" algorithm pattern offset ignored
+  for algorithm in zstd xz lz4 gzip; do
+    pattern="$(compression_magic "$algorithm")"
+    while IFS=: read -r offset ignored; do
+      : "$ignored"
+      [[ "$offset" =~ ^[0-9]+$ ]] || continue
+      if valid_compressed_stream "$algorithm" "$image" "$offset"; then
+        printf '%s\n' "$algorithm"
+        return 0
+      fi
+    done < <(LC_ALL=C grep -aobF -- "$pattern" "$image" 2>/dev/null || true)
+  done
+  printf '%s\n' desconocida
 }
 
 show_status() {

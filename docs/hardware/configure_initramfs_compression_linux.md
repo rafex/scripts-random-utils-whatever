@@ -15,7 +15,7 @@ Usa `zstd` por defecto y permite seleccionar `xz`, `lz4` o
 
 - **Ruta:** `scripts/hardware/configure_initramfs_compression_linux.sh`
 - **SO requerido:** Linux (Debian con initramfs-tools)
-- **Dependencias:** `bash`, `initramfs-tools`, `file`, `find`, `sudo`; `zstd`, `xz-utils` o `lz4` según la opción
+- **Dependencias:** `bash`, `initramfs-tools`, `grep`, `tail`, `sudo`; `zstd`, `xz-utils` o `lz4` según la opción
 
 El script no cambia la compresión de `vmlinuz`: esa propiedad pertenece a la
 compilación del kernel (`CONFIG_KERNEL_XZ` o `CONFIG_KERNEL_ZSTD`).
@@ -115,7 +115,7 @@ just configure-initramfs-compression --rollback --latest
 - Directivas `COMPRESS=` manuales que entren en conflicto detienen la operación
   y no se sobrescriben.
 - Se valida el soporte `CONFIG_RD_*` de todos los kernels instalados.
-- Si `update-initramfs` o `lsinitramfs` falla, se restaura automáticamente el
+- Si `update-initramfs`, `lsinitramfs` o la validación del stream comprimido falla, se restaura automáticamente el
   respaldo creado en esa ejecución.
 - No se modifican `vmlinuz`, GRUB, particiones, módulos ni parámetros de
   arranque.
@@ -142,8 +142,10 @@ sobrescribe para preservar configuraciones ajenas.
 
 ### La imagen conserva otra compresión después de `--apply`
 
-**Causa:** `update-initramfs` no aplicó el drop-in o la detección de formato no
-coincide con la herramienta instalada.
+**Causa:** `update-initramfs` no aplicó el drop-in o la validación del stream
+comprimido no coincide con la herramienta instalada. Algunas imágenes empiezan
+con un CPIO temprano sin comprimir, por lo que `file` puede informar CPIO aunque
+el initramfs contenga después un stream `zstd`, `xz`, `lz4` o `gzip`.
 
 **Solución:** el script revierte automáticamente; revisa el diagnóstico y no
 reinicies hasta resolverlo.
@@ -161,3 +163,4 @@ dañado por una interrupción externa.
 ### [Unreleased]
 
 - **feat:** añadir configuración reversible de initramfs con zstd, xz, lz4 y gzip.
+- **fix:** validar streams comprimidos después de cabeceras CPIO tempranas.
