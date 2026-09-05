@@ -1,6 +1,6 @@
 ---
 title: ThinkPad X1 Yoga — investigación de apagado incompleto y TPM
-description: Evidencia de septiembre de 2026 y prueba pendiente Intel PTT frente a Discrete TPM
+description: Evidencia de septiembre de 2026, TPM deshabilitado y primer encendido normal confirmado por el usuario
 tags:
   - thinkpad
   - hardware
@@ -11,7 +11,9 @@ tags:
 
 ## Estado de la investigación — 2026-09-04
 
-**Causa aún no confirmada. Security Chip deshabilitado; prueba de apagado pendiente.** Este informe
+**Causa aún no confirmada. Discrete TPM seleccionado y Security Chip deshabilitado;
+primer encendido normal sin cargador confirmado por el usuario.** Faltan ciclos
+repetidos y medición de consumo durante el apagado. Este informe
 conserva extractos de las consultas realizadas por SSH y en `thinkpad:0`, junto
 con observaciones del usuario. No contiene seriales, UUID de discos, claves,
 direcciones de red ni capturas completas de la terminal.
@@ -169,7 +171,11 @@ desactivar esos controladores integrados.
 Estos casos justifican probar la hipótesis TPM, no garantizan que sea la causa
 de este equipo. El fracaso desde una sola Live USB no demuestra una avería física.
 
-## Prueba manual acordada y reversión
+## Propuesta inicial de prueba manual (histórica, no ejecutar ahora)
+
+Esta propuesta quedó sustituida por la desactivación de Security Chip descrita
+más abajo. Se conserva para explicar la secuencia, no como instrucción para
+habilitar ahora el TPM ni volver a borrar claves.
 
 1. Apagar el sistema de forma ordenada; observar el estado físico por separado.
 2. Entrar en BIOS y cambiar únicamente Security → Security Chip → Security Chip
@@ -186,8 +192,8 @@ Si la prueba no mejora el comportamiento, evaluar regresar a Intel PTT. No se
 ha demostrado aún reversibilidad de claves tras cambiar la selección; leer
 cualquier advertencia de firmware. Esta prueba no necesita limpiar ningún TPM.
 
-**Resultado pendiente:** no marcar como corregido hasta validar apagado físico
-y encendido normal. La prueba de autonomía requiere medición separada.
+**Criterio de cierre:** un primer encendido normal no basta para marcar la causa
+como confirmada. La prueba de autonomía requiere medición separada.
 
 ## Lecciones para siguientes diagnósticos
 
@@ -196,7 +202,7 @@ y encendido normal. La prueba de autonomía requiere medición separada.
 Al intentar seleccionar Discrete TPM, BIOS mostró: `All encryption keys will
 be cleared in the security chip`. Se indicó cancelar esa operación. Como
 alternativa, el usuario deshabilitó Security Chip sin recibir advertencia de
-borrado y volvió a arrancar Debian. No se probó Discrete TPM.
+borrado y volvió a arrancar Debian. Hasta ese momento no se había probado Discrete TPM.
 
 Consulta del arranque de las 18:11 con el mismo kernel `7.1.12+deb14-amd64`:
 
@@ -210,6 +216,71 @@ El filtro del journal de kernel no devolvió los anteriores timeouts TPM,
 el error -62 ni el fallo DMAR. Esto confirma el cambio de disponibilidad del
 TPM; no confirma todavía que el apagado físico y posterior encendido funcionen.
 Se procederá a un apagado normal y observación manual del usuario.
+
+### Resultado posterior y configuración final — 2026-09-04
+
+Después de ese apagado, el usuario confirmó que el equipo encendió a la primera
+sin conectar el cargador y sin usar emergency reset. Esto apoya la hipótesis de
+una interacción con TPM/PTT, pero no demuestra todavía una solución permanente
+ni cuantifica el consumo residual.
+
+Posteriormente, el usuario informó que seleccionó Discrete TPM y aceptó el
+borrado de claves solicitado por BIOS. Confirmó después que dejó **Security Chip
+deshabilitado**. El borrado es un hecho reportado por el usuario; no se verificó
+el contenido interno del chip ni se afirma que las claves borradas sean recuperables.
+
+La consulta posterior por SSH, alrededor de las 18:16 CST, mostró:
+
+```text
+Kernel: 7.1.12+deb14-amd64
+ima: No TPM chip found, activating TPM-bypass!
+/sys/class/tpm y /dev/tpm*: sin dispositivos
+systemctl --failed: sin unidades fallidas
+LUKS token types: []
+```
+
+No se ha validado el funcionamiento de **Discrete TPM habilitado**. No confundir
+la selección del chip con su activación: el sistema observado no tiene un TPM
+disponible. No se requiere otro borrado para continuar las pruebas de encendido.
+
+### Qué hace el TPM y si se necesita en este perfil
+
+El TPM protege operaciones criptográficas y claves; puede sellar material de
+claves para permitir su recuperación solamente bajo determinadas condiciones,
+como mediciones del arranque. Entre sus usos están el desbloqueo de discos
+cifrados, la protección de credenciales y la atestación del estado de arranque.
+No todas las claves tienen que residir físicamente en el chip: pueden conservarse
+fuera de él como objetos cifrados o sellados. Véase la
+[documentación de claves confiables del kernel Linux](https://cdn.kernel.org/doc/html/latest/security/keys/trusted-encrypted.html).
+
+El TPM no cifra automáticamente el disco, no es un antivirus y no sustituye
+al firewall. Habilitarlo por sí solo no configura esos usos.
+
+| Ajuste de este BIOS | Significado |
+|---|---|
+| Intel PTT | Implementación de firmware con TPM 2.0. |
+| Discrete TPM | Selecciona el chip físico TPM 1.2 de este modelo. |
+| Security Chip: Disabled | Mantiene el chip deshabilitado, independientemente de la selección. |
+
+**Para la configuración inspeccionada no se encontró necesidad de habilitarlo.**
+El disco conserva su cifrado LUKS y desbloqueo por contraseña. No hay tokens TPM
+registrados en LUKS ni dependencias TPM en los archivos revisados anteriormente.
+Esto no es un inventario exhaustivo de todas las aplicaciones o credenciales.
+Deshabilitar TPM no descifra el disco ni elimina su contraseña.
+
+La contrapartida es que no estarán disponibles las funciones que requieran el
+TPM físico. El desbloqueo mediante TPM2 de `systemd-cryptenroll`, por ejemplo,
+requiere TPM 2.0 y un enrolamiento explícito; el chip discreto TPM 1.2 no equivale
+a esa funcionalidad. Véase
+[systemd-cryptenroll](https://manpages.debian.org/unstable/systemd/systemd-cryptenroll.1.en.html).
+Los TPM virtuales de swtpm son un mecanismo separado.
+
+**Decisión actual:** conservar Discrete TPM seleccionado y Security Chip
+deshabilitado. No habilitarlo ni limpiar claves como parte de esta documentación.
+Repetir apagados y encendidos normales, con y sin cargador, registrando resultados;
+medir por separado la pérdida de carga durante un intervalo conocido apagado.
+Si en el futuro se necesita una función TPM, revisar primero compatibilidad,
+recuperación del cifrado y estabilidad del apagado antes de cambiar BIOS.
 
 ### Criterios de interpretación
 
