@@ -110,6 +110,19 @@ La configuración administrada excluye Conky, EWW, i3bar y las ventanas de
 escritorio del blur y las sombras. Si el controlador gráfico presenta
 artefactos, `just picom-toggle --disable` deja i3 operativo.
 
+Si no deseas compilar Picom upstream, usa el paquete Debian con la misma
+configuración visual y los shaders versionados:
+
+```sh
+just picom-debian --check
+just picom-debian --plan
+just picom-debian --apply
+just picom-debian --reload
+```
+
+Esta ruta fuerza `/usr/bin/picom`, conserva el binario del sistema y no
+instala ni usa `~/.local/bin/picom`.
+
 `feh` aplica el fondo mediante un helper común. `ratmenu` es el menú activo y
 `9menu` permanece como respaldo. EWW instala, de forma opcional, una columna
 derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante

@@ -27,6 +27,11 @@ desktop-settings-menu *args:
 picom-toggle *args:
     bash scripts/system/picom_toggle_linux.sh {{args}}
 
+# Usar Picom Debian con la configuración y shaders visuales del perfil Rafex
+# Uso: just picom-debian --check|--plan|--apply|--status|--reload
+picom-debian *args:
+    bash scripts/system/picom_debian_linux.sh {{args}}
+
 # Mostrar el estado compacto usado por tint2
 # Uso: just tint2-status
 tint2-status *args:

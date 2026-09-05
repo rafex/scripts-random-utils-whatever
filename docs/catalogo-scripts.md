@@ -143,6 +143,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/dunst_smart_start_linux.sh` | Linux | dunst-smart | no | sí | bajo | [doc](system/dunst_smart_start_linux.md) |
 | `scripts/system/desktop_settings_menu_linux.sh` | Linux | desktop-settings-menu | no | — | bajo | [doc](system/desktop_settings_menu_linux.md) |
 | `scripts/system/picom_toggle_linux.sh` | Linux | picom-toggle | no | sí | bajo | [doc](system/picom_toggle_linux.md) |
+| `scripts/system/picom_debian_linux.sh` | Linux | picom-debian | no | sí | bajo | [doc](system/picom_debian_linux.md) |
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
