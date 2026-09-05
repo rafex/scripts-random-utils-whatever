@@ -1,6 +1,6 @@
 ---
 title: theme_toggle_linux.sh
-description: Selector de cuatro paletas para i3, Openbox, tint2, Conky, EWW, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
+description: Selector de cuatro paletas para i3, Openbox, tint2, Polybar, Conky, EWW, tmux, Alacritty, rxvt-unicode, Rofi y Dunst en ThinkPad.
 tags:
   - i3
   - temas
@@ -10,12 +10,12 @@ tags:
 # theme_toggle_linux.sh
 
 Activa las paletas `paper`, `nord`, `everforest` y `dracula` del perfil
-ThinkPad para i3, Openbox, tint2, i3status, Conky, EWW, tmux, Alacritty,
+ThinkPad para i3, Openbox, tint2, Polybar, i3status, Conky, EWW, tmux, Alacritty,
 rxvt-unicode, Rofi y Dunst sin usar `sudo`.
 
 - **Ruta:** `scripts/system/theme_toggle_linux.sh`
 - **SO requerido:** Linux (Xorg/i3 u Openbox)
-- **Dependencias:** `bash`; opcionales `i3-msg`, `openbox`, `tmux`, `tint2`, `dunstctl`, `conky-launch.sh`, `pgrep`
+- **Dependencias:** `bash`; opcionales `i3-msg`, `openbox`, `tmux`, `tint2`, `polybar`, `dunstctl`, `conky-launch.sh`, `pgrep`
 
 ---
 
@@ -55,6 +55,9 @@ El estado se guarda en `~/.config/rafex/theme` y el selector apunta
 `~/.config/i3/config`; esto evita depender de la expansión de `~` en la
 directiva `include` de algunas versiones de i3. Los colores de i3status se
 sincronizan en `~/.config/i3status/config` para conservar contraste en la barra.
+Si existe la configuración administrada, también actualiza el bloque de
+colores de Polybar en `~/.config/rafex/i3-bars/polybar.ini` y el Tint2
+específico de i3.
 La paleta X11 se sincroniza en `~/.Xresources` y se aplica con `xrdb` cuando
 existe una sesión gráfica. Si la sesión activa es Openbox, también actualiza
 su tema `~/.themes/Rafex-*/openbox-3/themerc`, el bloque administrado de
@@ -161,6 +164,14 @@ ejecutar `i3-msg reload`; en Openbox, `openbox --reconfigure`.
 **Solución:** reinicia esa aplicación; el selector solo recarga i3, tmux y
 Dunst de forma controlada.
 
+### `Polybar conserva la paleta anterior`
+
+**Causa:** Polybar no está seleccionado o falta su bloque de colores
+administrado en `~/.config/rafex/i3-bars/polybar.ini`.
+
+**Solución:** ejecuta `just i3-bar --set polybar` y después
+`theme-toggle.sh --set nord` dentro de la sesión gráfica.
+
 ### `i3bar muestra texto invisible o colores como $theme_bar_fg`
 
 **Causa:** una configuración anterior usaba `include
@@ -186,5 +197,5 @@ configuración local después de probar la nueva ventana.
 
 ### [Unreleased]
 
-**feat:** añadir cuatro paletas centralizadas, colores contrastados de i3status
-y soporte Xresources para ThinkPad.
+**feat:** añadir cuatro paletas centralizadas, colores contrastados de i3status,
+Polybar y soporte Xresources para ThinkPad.

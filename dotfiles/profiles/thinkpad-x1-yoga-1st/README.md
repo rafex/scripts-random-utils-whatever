@@ -84,6 +84,31 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 - Incluye `.tmux.conf` basado en el perfil `developer` de
   `development-environment-rafex`, con navegación tipo Vim, OSC52 y TPM.
 
+## Perfiles de barra para i3
+
+La configuración ofrece tres perfiles, pero solo uno se activa a la vez:
+
+```sh
+just install-i3-bar-profiles --check
+just install-i3-bar-profiles --apply
+just i3-bar --status
+```
+
+- `i3bar`: perfil inicial y recuperación; conserva `i3status`, la bandeja
+  primaria y los módulos actuales.
+- `tint2`: panel superior completo con escritorios, tareas, bandeja, reloj y
+  estado compacto. Su configuración para i3 es independiente de la de
+  Openbox.
+- `polybar`: panel completo con escritorios i3, ventana activa, red, audio,
+  brillo, batería, teclado, fecha y controles hacia los helpers Rafex.
+
+Selecciona una variante con `just i3-bar --set i3bar|tint2|polybar` y recarga
+con `just i3-bar --reload`. Polybar se instala desde Debian únicamente cuando
+se elige ese perfil. El selector conserva una sola inclusión administrada en
+`~/.config/i3/rafex-bar-active.conf`, usa lock/PID files para las barras
+externas y rechaza configuraciones manuales conflictivas. Conky, EWW, Picom,
+Openbox e i3status no se reemplazan ni se duplican.
+
 ## Herramientas visuales opcionales
 
 Para mantener el perfil base ligero, estas piezas se instalan por separado:

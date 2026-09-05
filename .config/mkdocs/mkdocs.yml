@@ -50,6 +50,8 @@ nav:
   - Inicio: index.md
   - Catálogo de scripts: catalogo-scripts.md
   - Comandos útiles: comandos-utiles.md
+  - Audio:
+      - create_retro_podcast_sounds: audio/create_retro_podcast_sounds.md
   - Respaldos:
       - backup_thinkpad_recovery_linux: backup/backup_thinkpad_recovery_linux.md
       - backup_thinkpad_restic_linux: backup/backup_thinkpad_restic_linux.md
@@ -110,6 +112,7 @@ nav:
       - install_i3_gaps_linux: install/install_i3_gaps_linux.md
       - configure_thinkpad_xorg_dri3_linux: install/configure_thinkpad_xorg_dri3_linux.md
       - install_openbox_profile_linux: install/install_openbox_profile_linux.md
+      - install_i3_bar_profiles_linux: install/install_i3_bar_profiles_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_node_runtime_linux: install/install_node_runtime_linux.md
       - install_build_runtime_linux: install/install_build_runtime_linux.md
@@ -184,6 +187,8 @@ nav:
       - picom_debian_linux: system/picom_debian_linux.md
       - picom_shaders_linux: system/picom_shaders_linux.md
       - tint2_status_linux: system/tint2_status_linux.md
+      - i3_bar_profile_linux: system/i3_bar_profile_linux.md
+      - rafex_i3_bar_runtime_linux: system/rafex_i3_bar_runtime_linux.md
       - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
       - scan_document_linux: system/scan_document_linux.md
       - clipboard_menu_linux: system/clipboard_menu_linux.md

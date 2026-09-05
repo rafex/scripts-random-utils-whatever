@@ -3,13 +3,14 @@ title: tint2_status_linux.sh
 description: Genera el estado compacto de red, audio, batería y recursos para tint2.
 tags:
   - sistema
-  - openbox
+  - i3
   - tint2
 ---
 
 # tint2_status_linux.sh
 
 Produce una línea de texto para el executor de tint2 sin privilegios elevados.
+Se puede usar tanto en Openbox como en el perfil i3+tint2.
 
 - **Ruta:** `scripts/system/tint2_status_linux.sh`
 - **SO requerido:** Linux

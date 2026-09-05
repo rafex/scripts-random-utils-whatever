@@ -185,19 +185,4 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
-bar {
-        status_command i3status
-        position top
-        tray_output primary
-        font pango:DejaVu Sans Mono 10, Font Awesome 7 Free 10
-        colors {
-                background $theme_bar_bg
-                statusline $theme_bar_fg
-                separator $theme_separator
-                focused_workspace $theme_active_bg $theme_active_bg $theme_active_fg
-                active_workspace $theme_inactive_bg $theme_inactive_bg $theme_bar_fg
-                inactive_workspace $theme_inactive_bg $theme_inactive_bg $theme_inactive_fg
-                urgent_workspace $theme_urgent_bg $theme_urgent_bg $theme_urgent_fg
-                binding_mode $theme_active_bg $theme_active_bg $theme_active_fg
-        }
-}
+include ~/.config/i3/rafex-bar-active.conf

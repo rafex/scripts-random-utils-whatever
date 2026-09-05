@@ -1,3 +1,12 @@
+---
+title: create_retro_podcast_sounds.py
+description: Genera efectos sonoros retro originales en WAV para podcast.
+tags:
+  - audio
+  - podcast
+  - herramientas
+---
+
 # create_retro_podcast_sounds
 
 Genera efectos sonoros originales en formato WAV para una cortinilla de podcast: un handshake de módem para separar secciones y una cortinilla chiptune de inspiración retro. Incluye cinco variantes alternativas del handshake para comparar.

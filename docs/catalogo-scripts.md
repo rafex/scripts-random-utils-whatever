@@ -21,6 +21,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 
 | Script | Plataforma | Tarea Just | sudo | Seguro | Riesgo | Documentación |
 |---|---|---|---|---|---|---|
+| `scripts/audio/create_retro_podcast_sounds.py` | macOS/Linux | — | no | — | bajo | [doc](audio/create_retro_podcast_sounds.md) |
 | `scripts/backup/backup_thinkpad_recovery_linux.sh` | Linux | backup-thinkpad | sí | sí | alto | [doc](backup/backup_thinkpad_recovery_linux.md) |
 | `scripts/backup/backup_thinkpad_restic_linux.sh` | Linux | backup-thinkpad-restic | no | sí | alto | [doc](backup/backup_thinkpad_restic_linux.md) |
 | `scripts/dev/commons_deploy_verify_unix.sh` | macOS/Linux | — | no | — | medio | [doc](dev/commons_deploy_verify_unix.md) |
@@ -115,6 +116,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
 | `scripts/install/configure_thinkpad_xorg_dri3_linux.sh` | Linux | configure-thinkpad-xorg-dri3 | sí | sí | alto | [doc](install/configure_thinkpad_xorg_dri3_linux.md) |
 | `scripts/install/install_openbox_profile_linux.sh` | Linux | install-openbox-profile | sí | sí | medio | [doc](install/install_openbox_profile_linux.md) |
+| `scripts/install/install_i3_bar_profiles_linux.sh` | Linux | install-i3-bar-profiles | sí | sí | medio | [doc](install/install_i3_bar_profiles_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/harden_thinkpad_linux.sh` | Linux | harden-thinkpad | sí | sí | alto | [doc](install/harden_thinkpad_linux.md) |
 | `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
@@ -145,6 +147,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/picom_toggle_linux.sh` | Linux | picom-toggle | no | sí | bajo | [doc](system/picom_toggle_linux.md) |
 | `scripts/system/picom_debian_linux.sh` | Linux | picom-debian | no | sí | bajo | [doc](system/picom_debian_linux.md) |
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
+| `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
+| `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
 | `scripts/system/clipboard_menu_linux.sh` | Linux | clipboard-menu | no | sí | bajo | [doc](system/clipboard_menu_linux.md) |

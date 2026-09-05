@@ -164,6 +164,11 @@ configure-thinkpad-xorg-dri3 *args:
 install-openbox-profile *args:
     bash scripts/install/install_openbox_profile_linux.sh {{args}}
 
+# Preparar los tres perfiles de barra para i3: i3bar, tint2 y Polybar
+# Uso: just install-i3-bar-profiles --check|--plan|--apply|--status
+install-i3-bar-profiles *args:
+    bash scripts/install/install_i3_bar_profiles_linux.sh {{args}}
+
 # Instalar y configurar UFW con SSH/Mosh y perfiles opcionales de desarrollo/media
 # Uso: just install-ufw --apply [--profile base|dev|media|all]
 install-ufw *args:

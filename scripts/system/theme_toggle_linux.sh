@@ -18,6 +18,8 @@ I3_CONFIG="$CONFIG_HOME/i3/config"
 I3STATUS_CONFIG="$CONFIG_HOME/i3status/config"
 OPENBOX_CONFIG="$CONFIG_HOME/openbox/rc.xml"
 TINT2_CONFIG="$CONFIG_HOME/tint2/tint2rc"
+I3_TINT2_CONFIG="$CONFIG_HOME/rafex/i3-bars/tint2rc"
+POLYBAR_CONFIG="$CONFIG_HOME/rafex/i3-bars/polybar.ini"
 CONKY_CONFIG="$CONFIG_HOME/conky/conky.conf"
 EWW_CONFIG="$CONFIG_HOME/eww/eww.scss"
 XRESOURCES="$HOME/.Xresources"
@@ -30,6 +32,8 @@ OPENBOX_THEME_BEGIN='    <!-- BEGIN rafex theme -->'
 OPENBOX_THEME_END='    <!-- END rafex theme -->'
 TINT2_THEME_BEGIN='# BEGIN rafex theme'
 TINT2_THEME_END='# END rafex theme'
+POLYBAR_THEME_BEGIN='# BEGIN rafex polybar theme'
+POLYBAR_THEME_END='# END rafex polybar theme'
 CONKY_THEME_BEGIN='    -- BEGIN rafex theme'
 CONKY_THEME_END='    -- END rafex theme'
 THEME_NAMES=(paper nord everforest dracula)
@@ -122,7 +126,7 @@ validate_mode() {
   local file
   mode="$(canonical_theme "$1")" || die "tema inválido: $1"
   [[ -d "$THEME_HOME/$mode" ]] || die "no existe la paleta: $THEME_HOME/$mode"
-  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf conky.conf eww.scss; do
+  for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf conky.conf eww.scss polybar.conf; do
     [[ -f "$THEME_HOME/$mode/$file" ]] || die "falta $THEME_HOME/$mode/$file"
   done
   if [[ -f "$OPENBOX_CONFIG" ]]; then
@@ -157,6 +161,16 @@ show_status() {
     printf 'tint2-config=present\n'
   else
     printf 'tint2-config=missing-or-inactive\n'
+  fi
+  if [[ -f "$I3_TINT2_CONFIG" ]]; then
+    printf 'i3-tint2-config=present\n'
+  else
+    printf 'i3-tint2-config=missing-or-inactive\n'
+  fi
+  if [[ -f "$POLYBAR_CONFIG" ]]; then
+    printf 'polybar-config=present\n'
+  else
+    printf 'polybar-config=missing-or-inactive\n'
   fi
   if [[ -f "$CONKY_CONFIG" ]] && grep -Fq "$CONKY_THEME_BEGIN" "$CONKY_CONFIG"; then
     printf 'conky-theme-block=present\n'
@@ -319,15 +333,51 @@ sync_openbox_theme() {
 }
 
 sync_tint2_theme() {
-  local temporary source_file
-  [[ -f "$TINT2_CONFIG" ]] || return 0
+  local target temporary source_file
   source_file="$CURRENT_LINK/tint2.conf"
   [[ -f "$source_file" ]] || {
     warn "no existe la plantilla tint2 del tema: $source_file"
     return 0
   }
+  for target in "$TINT2_CONFIG" "$I3_TINT2_CONFIG"; do
+    [[ -f "$target" ]] || continue
+    temporary="$(mktemp)"
+    awk -v begin="$TINT2_THEME_BEGIN" -v end="$TINT2_THEME_END" -v source_file="$source_file" '
+      function emit_theme(line) {
+        while ((getline line < source_file) > 0) print line
+        close(source_file)
+      }
+      $0 == begin { emit_theme(); inside=1; found=1; next }
+      inside && $0 == end { inside=0; next }
+      !inside { print }
+      END { if (!found) { print ""; emit_theme() } }
+    ' "$target" > "$temporary"
+    if cmp -s "$target" "$temporary"; then
+      rm -f -- "$temporary"
+    else
+      backup_file "$target"
+      chmod --reference="$target" "$temporary" 2>/dev/null || true
+      mv -- "$temporary" "$target"
+    fi
+  done
+  if [[ -x "$HOME/.local/bin/rafex-i3-bar-runtime.sh" ]] && [[ -n "${DISPLAY:-}" ]] &&
+      [[ -f "$CONFIG_HOME/rafex/i3-bar-profile" ]] &&
+      [[ "$(head -n 1 "$CONFIG_HOME/rafex/i3-bar-profile")" == tint2 ]]; then
+    "$HOME/.local/bin/rafex-i3-bar-runtime.sh" --reload >/dev/null 2>&1 ||
+      warn 'Tint2 administrado no pudo recargar el tema'
+  fi
+}
+
+sync_polybar_theme() {
+  local source_file temporary
+  [[ -f "$POLYBAR_CONFIG" ]] || return 0
+  source_file="$CURRENT_LINK/polybar.conf"
+  [[ -f "$source_file" ]] || {
+    warn "no existe la plantilla Polybar del tema: $source_file"
+    return 0
+  }
   temporary="$(mktemp)"
-  awk -v begin="$TINT2_THEME_BEGIN" -v end="$TINT2_THEME_END" -v source_file="$source_file" '
+  awk -v begin="$POLYBAR_THEME_BEGIN" -v end="$POLYBAR_THEME_END" -v source_file="$source_file" '
     function emit_theme(line) {
       while ((getline line < source_file) > 0) print line
       close(source_file)
@@ -336,16 +386,19 @@ sync_tint2_theme() {
     inside && $0 == end { inside=0; next }
     !inside { print }
     END { if (!found) { print ""; emit_theme() } }
-  ' "$TINT2_CONFIG" > "$temporary"
-  if cmp -s "$TINT2_CONFIG" "$temporary"; then
+  ' "$POLYBAR_CONFIG" > "$temporary"
+  if cmp -s "$POLYBAR_CONFIG" "$temporary"; then
     rm -f -- "$temporary"
   else
-    backup_file "$TINT2_CONFIG"
-    chmod --reference="$TINT2_CONFIG" "$temporary" 2>/dev/null || true
-    mv -- "$temporary" "$TINT2_CONFIG"
+    backup_file "$POLYBAR_CONFIG"
+    chmod --reference="$POLYBAR_CONFIG" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$POLYBAR_CONFIG"
   fi
-  if command -v pkill >/dev/null 2>&1 && pgrep -x tint2 >/dev/null 2>&1; then
-    pkill -USR1 -x tint2 2>/dev/null || warn 'tint2 no pudo recargar el tema'
+  if [[ -x "$HOME/.local/bin/rafex-i3-bar-runtime.sh" ]] && [[ -n "${DISPLAY:-}" ]] &&
+      [[ -f "$CONFIG_HOME/rafex/i3-bar-profile" ]] &&
+      [[ "$(head -n 1 "$CONFIG_HOME/rafex/i3-bar-profile")" == polybar ]]; then
+    "$HOME/.local/bin/rafex-i3-bar-runtime.sh" --reload >/dev/null 2>&1 ||
+      warn 'Polybar administrado no pudo recargar el tema'
   fi
 }
 
@@ -533,6 +586,7 @@ apply_mode() {
   sync_xresources
   sync_openbox_theme
   sync_tint2_theme
+  sync_polybar_theme
   sync_conky_theme
   sync_eww_theme
   reload_desktop
