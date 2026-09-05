@@ -7,6 +7,8 @@ instalación genérica del perfil.
 
 ## Instalación
 
+Diagnóstico pendiente: [apagado incompleto y TPM — evidencia y prueba BIOS](../../../docs/hardware/thinkpad_shutdown_tpm_investigation.md).
+
 El teclado usa español latinoamericano (`latam`), igual que la configuración
 del sistema. El inicio o la recarga de i3 no debe cambiarlo a español de España
 (`es`). El idioma `es_MX.UTF-8` se configura por separado.

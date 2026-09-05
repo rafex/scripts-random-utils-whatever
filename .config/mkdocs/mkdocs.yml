@@ -74,6 +74,7 @@ nav:
       - screen_mirror_linux: display/screen_mirror_linux.md
       - screen_projector_linux: display/screen_projector_linux.md
   - Hardware:
+      - Investigación apagado y TPM: hardware/thinkpad_shutdown_tpm_investigation.md
       - autorotate_x1_yoga_linux: hardware/autorotate_x1_yoga_linux.md
       - configure_initramfs_compression_linux: hardware/configure_initramfs_compression_linux.md
       - configure_thinkpad_keyboard_linux: hardware/configure_thinkpad_keyboard_linux.md
