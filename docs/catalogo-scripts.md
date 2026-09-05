@@ -34,6 +34,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/dev/podman_recover_linux.sh` | Linux | podman-recover | no | sí | medio | [doc](dev/podman_recover_linux.md) |
 | `scripts/dev/update_copilot_chat_linux.sh` | Linux | — | no | — | medio | [doc](dev/update_copilot_chat_linux.md) |
 | `scripts/dev/update_copilot_linux.sh` | Linux | — | no | — | medio | [doc](dev/update_copilot_linux.md) |
+| `scripts/dev/update_opencode_unix.sh` | macOS, Linux | curl, OpenCode | no | — | medio | [doc](dev/update_opencode_unix.md) |
 | `scripts/dev/validate_script_docs.py` | macOS/Linux | validate-script-docs | no | sí | bajo | [doc](dev/validate_script_docs.md) |
 | `scripts/display/hidpi_xorg_linux.sh` | Linux | — | opcional | sí | medio | [doc](display/hidpi_xorg_linux.md) |
 | `scripts/display/screen_auto_edge_mirror_linux.sh` | Linux | — | no | — | medio | [doc](display/screen_auto_edge_mirror_linux.md) |

@@ -1,5 +1,9 @@
 # ── md2pdf ────────────────────────────────────────────────────────────────────
 
+# Actualiza OpenCode local con respaldo, sin sudo (macOS/Linux).
+update-opencode *args:
+    bash scripts/dev/update_opencode_unix.sh {{args}}
+
 # Convierte Markdown a PDF con pandoc + weasyprint/xelatex.
 # Temas: podcast (sans-serif cálido) y academic (serif formal).
 # Auto-detecta CSS local, título YAML, fallback de motor e idempotencia.

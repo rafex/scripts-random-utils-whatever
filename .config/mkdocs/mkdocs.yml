@@ -65,6 +65,7 @@ nav:
       - Podman recover: dev/podman_recover_linux.md
       - update_copilot_chat_linux: dev/update_copilot_chat_linux.md
       - update_copilot_linux: dev/update_copilot_linux.md
+      - update_opencode_unix: dev/update_opencode_unix.md
       - validate_script_docs: dev/validate_script_docs.md
   - Pantallas:
       - hidpi_xorg_linux: display/hidpi_xorg_linux.md

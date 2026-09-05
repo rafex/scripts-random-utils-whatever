@@ -208,6 +208,10 @@ configuración anterior y vuelve a ejecutar la etapa `editor`.
 
 ### `mise`, `boda` u `opencode` no aparecen en el PATH
 
+Para actualizar OpenCode ya instalado, usa `just update-opencode --apply`;
+repetir la etapa de instalación omite el binario existente. Consulta el
+[actualizador con respaldo](../dev/update_opencode_unix.md).
+
 **Causa:** la shell actual todavía no cargó el bloque administrado de `.bashrc`.
 
 **Solución:** abre una nueva shell o ejecuta `source ~/.bashrc`; verifica que
