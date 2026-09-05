@@ -80,6 +80,7 @@ nav:
       - configure_initramfs_compression_linux: hardware/configure_initramfs_compression_linux.md
       - configure_thinkpad_keyboard_linux: hardware/configure_thinkpad_keyboard_linux.md
       - configure_fstrim_linux: hardware/configure_fstrim_linux.md
+      - configure_lid_suspend_linux: hardware/configure_lid_suspend_linux.md
       - configure_thinkpad_s2idle_linux: hardware/configure_thinkpad_s2idle_linux.md
       - configure_tlp_battery_linux: hardware/configure_tlp_battery_linux.md
       - notify_brightness_linux: hardware/notify_brightness_linux.md

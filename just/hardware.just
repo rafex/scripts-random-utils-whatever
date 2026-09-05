@@ -41,6 +41,10 @@ configure-fstrim *args:
 configure-initramfs-compression *args:
     bash scripts/hardware/configure_initramfs_compression_linux.sh {{args}}
 
+# Suspender al cerrar la tapa (batería, cargador y dock configurable).
+configure-lid-suspend *args:
+    bash scripts/hardware/configure_lid_suspend_linux.sh {{args}}
+
 # Configurar límites TLP 75/80 y carga completa temporal para viajes
 # Uso: just configure-tlp-battery --check | --plan | --apply | --fullcharge
 configure-tlp-battery *args:

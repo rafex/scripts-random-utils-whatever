@@ -45,6 +45,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/autorotate_x1_yoga_linux.sh` | Linux | — | no | sí | medio | [doc](hardware/autorotate_x1_yoga_linux.md) |
 | `scripts/hardware/configure_thinkpad_s2idle_linux.sh` | Linux | configure-thinkpad-s2idle | sí | sí | alto | [doc](hardware/configure_thinkpad_s2idle_linux.md) |
 | `scripts/hardware/configure_fstrim_linux.sh` | Linux | configure-fstrim | sí | sí | medio | [doc](hardware/configure_fstrim_linux.md) |
+| `scripts/hardware/configure_lid_suspend_linux.sh` | Linux | configure-lid-suspend | sí | no | medio | [doc](hardware/configure_lid_suspend_linux.md) |
 | `scripts/hardware/configure_initramfs_compression_linux.sh` | Linux | configure-initramfs-compression | sí | sí | alto | [doc](hardware/configure_initramfs_compression_linux.md) |
 | `scripts/hardware/configure_thinkpad_keyboard_linux.sh` | Linux | configure-thinkpad-keyboard | sí | sí | medio | [doc](hardware/configure_thinkpad_keyboard_linux.md) |
 | `scripts/hardware/configure_tlp_battery_linux.sh` | Linux | configure-tlp-battery | sí | sí | medio | [doc](hardware/configure_tlp_battery_linux.md) |
