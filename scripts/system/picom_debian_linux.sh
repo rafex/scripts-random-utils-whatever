@@ -21,6 +21,7 @@ SHADER_FILES=(neutral.glsl nord.glsl paper.glsl everforest.glsl dracula.glsl)
 CONFIG_MARKER='# Managed by rafex install_picom_upstream_linux.sh'
 MANIFEST_MARKER='managed by rafex picom-debian'
 CHOSEN=false
+REPLACE_UNMANAGED=false
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -30,7 +31,7 @@ die() { printf '✗ ERROR: %s\n' "$*" >&2; exit 1; }
 usage() {
   cat <<'EOF'
 Uso:
-  picom_debian_linux.sh --check|--plan|--apply|--status
+  picom_debian_linux.sh --check|--plan|--apply|--status [--replace-unmanaged]
   picom_debian_linux.sh --enable|--disable|--toggle|--reload
 
 Acciones:
@@ -42,6 +43,8 @@ Acciones:
   --disable     detener la instancia de picom y desactivar su autoinicio
   --toggle      alternar picom usando /usr/bin/picom
   --reload      reiniciar picom para cargar la configuración actual
+  --replace-unmanaged
+                permitir reemplazar una configuración no administrada, con respaldo
 EOF
 }
 
@@ -53,6 +56,7 @@ parse_args() {
         ACTION="${1#--}"
         CHOSEN=true
         ;;
+      --replace-unmanaged) REPLACE_UNMANAGED=true ;;
       --help|-h) usage; exit 0 ;;
       *) die "opción desconocida: $1" ;;
     esac
@@ -138,6 +142,10 @@ managed_target_allowed() {
     return 0
   fi
   if [[ -f "$MANIFEST_TARGET" ]] && grep -Fqx "$MANIFEST_MARKER" "$MANIFEST_TARGET"; then
+    return 0
+  fi
+  if [[ "$REPLACE_UNMANAGED" == true ]]; then
+    warn "se reemplazará con respaldo la configuración no administrada: $target"
     return 0
   fi
   die "se rehúsa sobrescribir una configuración no administrada: $target"

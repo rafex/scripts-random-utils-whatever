@@ -70,6 +70,7 @@ Después de `--apply`, `--reload` detiene la instancia actual y vuelve a iniciar
 | `--disable` | — | Detiene Picom y desactiva la preferencia de autoinicio de Openbox. |
 | `--toggle` | — | Alterna Picom usando el binario Debian. |
 | `--reload` | — | Detiene y vuelve a iniciar Picom para cargar la configuración actual. |
+| `--replace-unmanaged` | — | Permite a `--apply` reemplazar un destino no administrado, conservando antes un respaldo fechado. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -95,6 +96,10 @@ just picom-debian --status
 
 # Recuperación rápida si GLX o blur producen artefactos.
 just picom-debian --disable
+
+# Migrar una configuración manual existente después de revisar el plan.
+just picom-debian --apply --replace-unmanaged
+just picom-debian --reload
 ```
 
 ## Protecciones de seguridad
@@ -106,6 +111,9 @@ just picom-debian --disable
 - No sobrescribe una configuración no administrada: si un destino diferente no
   contiene el marcador del perfil ni coincide con la fuente versionada, se
   detiene.
+- Para migrar una configuración manual existente se requiere indicar
+  explícitamente `--replace-unmanaged`; el archivo anterior se conserva como
+  respaldo fechado antes del reemplazo.
 - Los reemplazos se hacen mediante archivos temporales y conservan respaldos
   fechados.
 - `--reload` reinicia la instancia de Picom para que lea el archivo nuevo; no
