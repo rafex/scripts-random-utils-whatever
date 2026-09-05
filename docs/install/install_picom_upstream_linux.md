@@ -40,6 +40,13 @@ obtenido coincide exactamente con `d87a5ba3af7a9ee3c4e040ee29b2dea7e9e46317`.
 El binario final se instala en `~/.local/bin/picom`, de modo que el paquete del sistema continúa disponible
 como fallback.
 
+También instala los shaders GLSL versionados en
+`~/.config/picom/shaders/`. La configuración activa `nord.glsl` únicamente
+para Alacritty; el resto de las ventanas usa el renderizado normal de Picom.
+`neutral.glsl` es el fallback sin gradación y `paper.glsl`,
+`everforest.glsl` y `dracula.glsl` son variantes disponibles para pruebas
+manuales.
+
 ## Uso
 
 ```bash
@@ -101,6 +108,9 @@ just picom-toggle --check
 - La configuración usa GLX, transparencia moderada, blur dual-kawase y una
   sombra pequeña (`radius=5`, `opacity=0.22`). Conky, EWW, barras y ventanas
   de escritorio quedan sin sombra ni blur para preservar su comportamiento.
+- Los shaders conservan el canal alfa y llaman a
+  `default_post_processing()`; no ejecutan comandos, no acceden a la red y no
+  alteran Conky, EWW ni las ventanas del escritorio.
 
 ## Fallos conocidos
 
@@ -130,6 +140,16 @@ sesión concreta; también puede existir otra instancia activa.
 **Solución:** vuelve a `just picom-toggle --disable` y prueba la configuración
 con blur desactivado temporalmente. El paquete de Debian no se elimina y el
 binario anterior queda disponible en los respaldos fechados.
+
+### `shader compilation failed` o colores inesperados
+
+**Causa:** el driver GLX no admite la versión GLSL solicitada o se seleccionó
+una variante de paleta que no corresponde al tema actual.
+
+**Solución:** cambia temporalmente la regla de Alacritty a
+`shader = "shaders/neutral.glsl";`, reinicia Picom y revisa los logs. Si el
+problema persiste, desactiva el compositor; blur, transparencia y Picom no son
+requisitos para que i3 siga funcionando.
 
 ## Changelog
 

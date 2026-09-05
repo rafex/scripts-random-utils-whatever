@@ -181,6 +181,7 @@ nav:
       - dunst_smart_start_linux: system/dunst_smart_start_linux.md
       - desktop_settings_menu_linux: system/desktop_settings_menu_linux.md
       - picom_toggle_linux: system/picom_toggle_linux.md
+      - picom_shaders_linux: system/picom_shaders_linux.md
       - tint2_status_linux: system/tint2_status_linux.md
       - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
       - scan_document_linux: system/scan_document_linux.md
