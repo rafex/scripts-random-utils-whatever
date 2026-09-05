@@ -16,6 +16,9 @@ BUILD_DIR="$SOURCE_DIR/build"
 BIN_TARGET="$HOME/.local/bin/picom"
 CONFIG_SOURCE="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/picom.conf"
 CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/picom/picom.conf"
+SHADER_SOURCE_DIR="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/shaders"
+SHADER_TARGET_DIR="${CONFIG_TARGET%/*}/shaders"
+SHADER_FILES=(neutral.glsl nord.glsl paper.glsl everforest.glsl dracula.glsl)
 chosen=false
 
 BUILD_PACKAGES=(
@@ -65,6 +68,12 @@ require_base() {
   (( EUID != 0 )) || die 'Ejecuta como usuario normal, no como root'
   [[ "$HOME" == /* && "$HOME" != / ]] || die 'HOME inválido'
   [[ -f "$CONFIG_SOURCE" ]] || die "falta configuración versionada: $CONFIG_SOURCE"
+  [[ -d "$SHADER_SOURCE_DIR" ]] || die "falta directorio de shaders: $SHADER_SOURCE_DIR"
+  local shader_file
+  for shader_file in "${SHADER_FILES[@]}"; do
+    [[ -f "$SHADER_SOURCE_DIR/$shader_file" ]] \
+      || die "falta shader versionado: $SHADER_SOURCE_DIR/$shader_file"
+  done
   for command_name in git meson ninja pkg-config; do
     command -v "$command_name" >/dev/null 2>&1 || warn "falta herramienta: $command_name"
   done
@@ -105,6 +114,7 @@ show_status() {
     printf 'commit: %s\n' "$(git -C "$SOURCE_DIR" rev-parse --short HEAD)"
   fi
   printf 'config: %s\n' "$CONFIG_TARGET"
+  printf 'shaders: %s\n' "$SHADER_TARGET_DIR"
   if [[ -f "$CONFIG_TARGET" ]]; then
     grep -qF '# Managed by rafex install_picom_upstream_linux.sh' "$CONFIG_TARGET" \
       && printf '%s\n' 'configuración: administrada por Rafex' \
@@ -118,6 +128,7 @@ show_plan() {
   printf 'compilación: %s\n' "$BUILD_DIR"
   printf 'binario: %s\n' "$BIN_TARGET"
   printf 'configuración: %s\n' "$CONFIG_TARGET"
+  printf 'shaders: %s (%s)\n' "$SHADER_TARGET_DIR" "${SHADER_FILES[*]}"
   printf 'dependencias APT faltantes: %s\n' "$(show_missing_packages)"
   printf '%s\n' 'No iniciará Picom, no cambiará i3/Openbox y no ejecutará sudo fuera de APT.'
 }
@@ -166,7 +177,12 @@ backup_file() {
 install_results() {
   local temporary='' config_temporary='' bin_backup config_backup
   local had_bin=false had_config=false
+  local had_shader_dir=false
+  local shader_file shader_path shader_temp index
+  local -a shader_temps=() shader_backups=() shader_had=()
   mkdir -p -- "${BIN_TARGET%/*}" "${CONFIG_TARGET%/*}"
+  [[ -d "$SHADER_TARGET_DIR" ]] && had_shader_dir=true
+  mkdir -p -- "$SHADER_TARGET_DIR"
   if [[ -e "$BIN_TARGET" ]]; then
     backup_file "$BIN_TARGET"
     bin_backup="$BIN_TARGET.bak.$STAMP"
@@ -177,12 +193,30 @@ install_results() {
     config_backup="$CONFIG_TARGET.bak.$STAMP"
     had_config=true
   fi
+  for shader_file in "${SHADER_FILES[@]}"; do
+    shader_temps+=('')
+    shader_backups+=('')
+    shader_had+=(false)
+  done
 
   restore_install() {
-    local status="$1"
+    local status="$1" index
     set +e
     [[ -z "$temporary" ]] || rm -f -- "$temporary"
     [[ -z "$config_temporary" ]] || rm -f -- "$config_temporary"
+    for index in "${!SHADER_FILES[@]}"; do
+      shader_path="$SHADER_TARGET_DIR/${SHADER_FILES[$index]}"
+      shader_temp="${shader_temps[$index]}"
+      [[ -z "$shader_temp" ]] || rm -f -- "$shader_temp"
+      if [[ "${shader_had[$index]}" == true && -e "${shader_backups[$index]}" ]]; then
+        mv -f -- "${shader_backups[$index]}" "$shader_path"
+      else
+        rm -f -- "$shader_path"
+      fi
+    done
+    if [[ "$had_shader_dir" == false ]]; then
+      rmdir --ignore-fail-on-non-empty "$SHADER_TARGET_DIR" 2>/dev/null || true
+    fi
     if [[ "$had_bin" == true && -e "$bin_backup" ]]; then
       mv -f -- "$bin_backup" "$BIN_TARGET"
     else
@@ -206,11 +240,28 @@ install_results() {
   [[ "$("$temporary" --version)" == "$VERSION" ]] || die 'el binario compilado no supera la validación'
   grep -qF '# Managed by rafex install_picom_upstream_linux.sh' "$config_temporary" \
     || die 'la configuración fuente no contiene su marcador'
+  for index in "${!SHADER_FILES[@]}"; do
+    shader_file="${SHADER_FILES[$index]}"
+    shader_path="$SHADER_TARGET_DIR/$shader_file"
+    if [[ -e "$shader_path" ]]; then
+      backup_file "$shader_path"
+      shader_backups[index]="$shader_path.bak.$STAMP"
+      shader_had[index]=true
+    fi
+    shader_temp=$(mktemp "$SHADER_TARGET_DIR/.$shader_file.XXXXXX")
+    shader_temps[index]="$shader_temp"
+    install -m 0644 -- "$SHADER_SOURCE_DIR/$shader_file" "$shader_temp"
+  done
   mv -f -- "$temporary" "$BIN_TARGET"
   mv -f -- "$config_temporary" "$CONFIG_TARGET"
+  for index in "${!SHADER_FILES[@]}"; do
+    shader_file="${SHADER_FILES[$index]}"
+    mv -f -- "${shader_temps[$index]}" "$SHADER_TARGET_DIR/$shader_file"
+  done
   trap - ERR
   ok "Picom $VERSION instalado en $BIN_TARGET"
   ok "configuración visual instalada en $CONFIG_TARGET"
+  ok "shaders instalados en $SHADER_TARGET_DIR"
   info 'Picom no se inició automáticamente; reinícialo solo después de revisar el resultado.'
 }
 
