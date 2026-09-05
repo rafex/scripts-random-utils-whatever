@@ -102,6 +102,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_eww_linux.sh` | Linux | install-eww | sí | sí | medio | [doc](install/install_eww_linux.md) |
 | `scripts/install/install_i3lock_color_linux.sh` | Linux | install-i3lock-color | sí | sí | alto | [doc](install/install_i3lock_color_linux.md) |
 | `scripts/install/install_rafex_control_panel_linux.sh` | Linux | install-rafex-control-panel | sí | sí | medio | [doc](install/install_rafex_control_panel_linux.md) |
+| `scripts/install/install_picom_upstream_linux.sh` | Linux | install-picom-upstream | sí | sí | medio | [doc](install/install_picom_upstream_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |

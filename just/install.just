@@ -169,6 +169,11 @@ install-openbox-profile *args:
 install-ufw *args:
     bash scripts/install/install_ufw_linux.sh {{args}}
 
+# Compilar Picom upstream v13 con GLX, blur y transparencia en ~/.local
+# Uso: just install-picom-upstream --check|--plan|--apply|--status
+install-picom-upstream *args:
+    bash scripts/install/install_picom_upstream_linux.sh {{args}}
+
 # Endurecer SSH y controles de seguridad de la ThinkPad por fases
 # Uso: just harden-thinkpad --apply --stage ssh|local|all
 harden-thinkpad *args:

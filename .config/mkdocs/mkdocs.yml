@@ -143,6 +143,7 @@ nav:
       - install_eww_linux: install/install_eww_linux.md
       - install_i3lock_color_linux: install/install_i3lock_color_linux.md
       - install_rafex_control_panel_linux: install/install_rafex_control_panel_linux.md
+      - install_picom_upstream_linux: install/install_picom_upstream_linux.md
       - install_ufw_linux: install/install_ufw_linux.md
       - install_vscodium_linux: install/install_vscodium_linux.md
       - install_rustdesk_linux: install/install_rustdesk_linux.md

@@ -64,6 +64,10 @@ if command -v tint2 >/dev/null 2>&1; then
 fi
 
 # Picom permanece apagado por defecto. Usa picom-toggle.sh o el centro de control.
-if [ -f "$HOME/.config/rafex/openbox-picom-enabled" ] && command -v picom >/dev/null 2>&1; then
-    picom &
+if [ -f "$HOME/.config/rafex/openbox-picom-enabled" ] && { [ -x "$HOME/.local/bin/picom" ] || command -v picom >/dev/null 2>&1; }; then
+    if [ -x "$HOME/.local/bin/picom-toggle.sh" ]; then
+        "$HOME/.local/bin/picom-toggle.sh" --enable &
+    else
+        picom --config "$HOME/.config/picom/picom.conf" &
+    fi
 fi

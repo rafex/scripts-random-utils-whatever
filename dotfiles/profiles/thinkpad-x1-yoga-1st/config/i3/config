@@ -107,7 +107,7 @@ bindsym Print exec --no-startup-id ~/.local/bin/screenshot.sh --full
 bindsym Shift+Print exec --no-startup-id ~/.local/bin/screenshot.sh --select
 bindsym Ctrl+Print exec --no-startup-id ~/.local/bin/screenshot.sh --window
 # END rafex screenshots
-bindsym $mod+Shift+p exec --no-startup-id sh -c 'pgrep picom && pkill picom && notify-send "Picom" "Desactivado" || (picom & notify-send "Picom" "Activado")'
+bindsym $mod+Shift+p exec --no-startup-id ~/.local/bin/picom-toggle.sh --toggle
 
 set $ws1 "1:term"
 set $ws2 "2:code"

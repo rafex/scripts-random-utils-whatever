@@ -29,6 +29,10 @@ de la distribución del teclado.
   Se instalan por separado con `just install-clipboard --apply` y
   `just install-screenshot --apply`.
 - Picom no se inicia por defecto; se puede activar desde el centro de control.
+- Picom upstream v13 es opcional: se puede compilar en `~/.local` con GLX,
+  blur moderado, transparencia y sombras pequeñas. La configuración excluye
+  Conky, EWW, tint2 y las ventanas de escritorio; si el controlador presenta
+  artefactos, `just picom-toggle --disable` deja Openbox operativo.
 - EWW es opcional: `just install-eww --apply` instala una columna derecha
   `rafex-widgets` con calendario, multimedia mediante `playerctl`, dispositivos
   y controles rápidos. Usa `windowtype desktop`, `stacking bg`, no reserva

@@ -6,6 +6,7 @@ set -Eeuo pipefail
 ACTION="toggle"
 STATE_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/openbox-picom-enabled"
 CONFIG_FILE="${PICOM_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/picom/picom.conf}"
+PICOM_BIN="${PICOM_BIN:-}"
 
 usage() {
   cat <<'EOF'
@@ -32,6 +33,16 @@ parse_args() {
 
 running() { pgrep -x picom >/dev/null 2>&1; }
 
+picom_command() {
+  if [[ -n "$PICOM_BIN" ]]; then
+    printf '%s\n' "$PICOM_BIN"
+  elif [[ -x "$HOME/.local/bin/picom" ]]; then
+    printf '%s\n' "$HOME/.local/bin/picom"
+  else
+    command -v picom
+  fi
+}
+
 notify() {
   command -v notify-send >/dev/null 2>&1 || return 0
   notify-send -t 1500 "Picom" "$1" || true
@@ -49,12 +60,14 @@ set_state() {
 }
 
 start_picom() {
-  command -v picom >/dev/null 2>&1 || { echo "picom no está instalado." >&2; return 1; }
+  local binary
+  binary="$(picom_command 2>/dev/null || true)"
+  [[ -x "$binary" ]] || { echo "picom no está instalado." >&2; return 1; }
   if running; then return 0; fi
   if [[ -f "$CONFIG_FILE" ]]; then
-    picom --config "$CONFIG_FILE" >/dev/null 2>&1 &
+    "$binary" --config "$CONFIG_FILE" >/dev/null 2>&1 &
   else
-    picom >/dev/null 2>&1 &
+    "$binary" >/dev/null 2>&1 &
   fi
 }
 

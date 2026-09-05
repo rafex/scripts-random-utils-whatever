@@ -96,6 +96,20 @@ just install-i3lock-color --apply
 just install-rafex-control-panel --apply
 ```
 
+Picom upstream v13 se puede compilar opcionalmente en `~/.local` con GLX,
+transparencia moderada, blur y sombras pequeñas:
+
+```sh
+just install-picom-upstream --check
+just install-picom-upstream --plan
+just install-picom-upstream --apply
+just picom-toggle --enable
+```
+
+La configuración administrada excluye Conky, EWW, i3bar y las ventanas de
+escritorio del blur y las sombras. Si el controlador gráfico presenta
+artefactos, `just picom-toggle --disable` deja i3 operativo.
+
 `feh` aplica el fondo mediante un helper común. `ratmenu` es el menú activo y
 `9menu` permanece como respaldo. EWW instala, de forma opcional, una columna
 derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante
