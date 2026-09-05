@@ -19,6 +19,8 @@ RUNTIME_SOURCE="$REPO_ROOT/scripts/system/rafex_i3_bar_runtime_linux.sh"
 RUNTIME_TARGET="$HOME/.local/bin/rafex-i3-bar-runtime.sh"
 SELECTOR_SOURCE="$REPO_ROOT/scripts/system/i3_bar_profile_linux.sh"
 SELECTOR_TARGET="$HOME/.local/bin/i3-bar-profile.sh"
+WINDOW_TASKS_SOURCE="$REPO_ROOT/scripts/system/i3_window_tasks_polybar_linux.sh"
+WINDOW_TASKS_TARGET="$HOME/.local/bin/i3-window-tasks-polybar.sh"
 MODES=(i3bar tint2 polybar)
 
 if [[ ! -d "$BAR_SOURCE_DIR" && -d "$BAR_TARGET_DIR" ]]; then
@@ -29,6 +31,9 @@ if [[ ! -f "$RUNTIME_SOURCE" && -f "$RUNTIME_TARGET" ]]; then
 fi
 if [[ ! -f "$SELECTOR_SOURCE" && -f "$SELECTOR_TARGET" ]]; then
   SELECTOR_SOURCE="$SELECTOR_TARGET"
+fi
+if [[ ! -f "$WINDOW_TASKS_SOURCE" && -f "$WINDOW_TASKS_TARGET" ]]; then
+  WINDOW_TASKS_SOURCE="$WINDOW_TASKS_TARGET"
 fi
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
@@ -94,6 +99,7 @@ validate_sources() {
   done
   [[ -f "$RUNTIME_SOURCE" ]] || die "falta el runtime: $RUNTIME_SOURCE"
   [[ -f "$SELECTOR_SOURCE" ]] || die "falta el selector: $SELECTOR_SOURCE"
+  [[ -f "$WINDOW_TASKS_SOURCE" ]] || die "falta helper de ventanas: $WINDOW_TASKS_SOURCE"
 }
 
 extract_bar_block() {
@@ -198,7 +204,7 @@ install_materialized_files() {
     fi
   done
   if [[ "$ACTION" == plan ]]; then
-    info "[plan] instalar $RUNTIME_TARGET y $SELECTOR_TARGET"
+    info "[plan] instalar $RUNTIME_TARGET, $SELECTOR_TARGET y $WINDOW_TASKS_TARGET"
   else
     mkdir -p -- "$HOME/.local/bin"
     if [[ ! -f "$RUNTIME_TARGET" ]] || ! cmp -s "$RUNTIME_SOURCE" "$RUNTIME_TARGET"; then
@@ -208,6 +214,10 @@ install_materialized_files() {
     if [[ ! -f "$SELECTOR_TARGET" ]] || ! cmp -s "$SELECTOR_SOURCE" "$SELECTOR_TARGET"; then
       backup_file "$SELECTOR_TARGET"
       install -m 0755 -- "$SELECTOR_SOURCE" "$SELECTOR_TARGET"
+    fi
+    if [[ ! -f "$WINDOW_TASKS_TARGET" ]] || ! cmp -s "$WINDOW_TASKS_SOURCE" "$WINDOW_TASKS_TARGET"; then
+      backup_file "$WINDOW_TASKS_TARGET"
+      install -m 0755 -- "$WINDOW_TASKS_SOURCE" "$WINDOW_TASKS_TARGET"
     fi
   fi
 }

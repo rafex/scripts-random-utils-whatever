@@ -189,6 +189,7 @@ nav:
       - tint2_status_linux: system/tint2_status_linux.md
       - i3_bar_profile_linux: system/i3_bar_profile_linux.md
       - rafex_i3_bar_runtime_linux: system/rafex_i3_bar_runtime_linux.md
+      - i3_window_tasks_polybar_linux: system/i3_window_tasks_polybar_linux.md
       - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
       - scan_document_linux: system/scan_document_linux.md
       - clipboard_menu_linux: system/clipboard_menu_linux.md

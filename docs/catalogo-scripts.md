@@ -149,6 +149,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 | `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
 | `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |
+| `scripts/system/i3_window_tasks_polybar_linux.sh` | Linux | i3-window-tasks | no | — | bajo | [doc](system/i3_window_tasks_polybar_linux.md) |
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
 | `scripts/system/clipboard_menu_linux.sh` | Linux | clipboard-menu | no | sí | bajo | [doc](system/clipboard_menu_linux.md) |

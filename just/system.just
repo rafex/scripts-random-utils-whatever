@@ -40,8 +40,14 @@ tint2-status *args:
 # Seleccionar la única barra activa de i3: i3bar, tint2 o polybar
 # Uso: just i3-bar --check|--plan --set polybar|--status|--reload|--rollback
 # Runtime interno: scripts/system/rafex_i3_bar_runtime_linux.sh
+# Helper de ventanas del módulo Polybar: scripts/system/i3_window_tasks_polybar_linux.sh
 i3-bar *args:
     bash scripts/system/i3_bar_profile_linux.sh {{args}}
+
+# Mostrar las ventanas normales del workspace actual para Polybar
+# Uso: just i3-window-tasks
+i3-window-tasks *args:
+    bash scripts/system/i3_window_tasks_polybar_linux.sh {{args}}
 
 # Mostrar el estado seguro que consume el panel Conky
 # Uso: just conky-status [--section network|power|temperature|audio|lab|security]

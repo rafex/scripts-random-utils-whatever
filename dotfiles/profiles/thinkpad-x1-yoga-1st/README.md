@@ -99,8 +99,9 @@ just i3-bar --status
 - `tint2`: panel superior completo con escritorios, tareas, bandeja, reloj y
   estado compacto. Su configuración para i3 es independiente de la de
   Openbox.
-- `polybar`: panel completo con escritorios i3, ventana activa, red, audio,
-  brillo, batería, teclado, fecha y controles hacia los helpers Rafex.
+- `polybar`: panel completo con escritorios i3, ventanas del workspace actual,
+  red, audio, brillo, batería, teclado, fecha y controles hacia los helpers
+  Rafex.
 
 Selecciona una variante con `just i3-bar --set i3bar|tint2|polybar` y recarga
 con `just i3-bar --reload`. Polybar se instala desde Debian únicamente cuando
@@ -108,6 +109,12 @@ se elige ese perfil. El selector conserva una sola inclusión administrada en
 `~/.config/i3/rafex-bar-active.conf`, usa lock/PID files para las barras
 externas y rechaza configuraciones manuales conflictivas. Conky, EWW, Picom,
 Openbox e i3status no se reemplazan ni se duplican.
+
+Tint2 muestra los iconos reales y títulos de las ventanas mediante su taskbar
+nativo. Polybar genera el listado con
+`~/.local/bin/i3-window-tasks-polybar.sh`, usando glifos semánticos y un clic
+izquierdo limitado a enfocar; no se añaden acciones de cierre o minimización.
+`i3bar` permanece como fallback sin este listado.
 
 ## Herramientas visuales opcionales
 

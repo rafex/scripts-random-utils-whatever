@@ -16,8 +16,10 @@ ACTIVE_CONFIG="$CONFIG_HOME/i3/rafex-bar-active.conf"
 STATE_FILE="$CONFIG_HOME/rafex/i3-bar-profile"
 RUNTIME_SOURCE="$REPO_ROOT/scripts/system/rafex_i3_bar_runtime_linux.sh"
 SELECTOR_SOURCE="$REPO_ROOT/scripts/system/i3_bar_profile_linux.sh"
+WINDOW_TASKS_SOURCE="$REPO_ROOT/scripts/system/i3_window_tasks_polybar_linux.sh"
 RUNTIME_TARGET="$HOME/.local/bin/rafex-i3-bar-runtime.sh"
 SELECTOR_TARGET="$HOME/.local/bin/i3-bar-profile.sh"
+WINDOW_TASKS_TARGET="$HOME/.local/bin/i3-window-tasks-polybar.sh"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
@@ -62,6 +64,7 @@ validate_sources() {
   done
   [[ -f "$RUNTIME_SOURCE" ]] || die "falta runtime: $RUNTIME_SOURCE"
   [[ -f "$SELECTOR_SOURCE" ]] || die "falta selector: $SELECTOR_SOURCE"
+  [[ -f "$WINDOW_TASKS_SOURCE" ]] || die "falta helper de ventanas: $WINDOW_TASKS_SOURCE"
 }
 
 extract_bar_block() {
@@ -156,12 +159,13 @@ install_files() {
     fi
   done
   if [[ "$ACTION" == plan ]]; then
-    info "[plan] instalar $RUNTIME_TARGET y $SELECTOR_TARGET"
+    info "[plan] instalar $RUNTIME_TARGET, $SELECTOR_TARGET y $WINDOW_TASKS_TARGET"
     info "[plan] activar el perfil $mode"
   else
     mkdir -p -- "$HOME/.local/bin"
     backup_file "$RUNTIME_TARGET"; install -m 0755 -- "$RUNTIME_SOURCE" "$RUNTIME_TARGET"
     backup_file "$SELECTOR_TARGET"; install -m 0755 -- "$SELECTOR_SOURCE" "$SELECTOR_TARGET"
+    backup_file "$WINDOW_TASKS_TARGET"; install -m 0755 -- "$WINDOW_TASKS_SOURCE" "$WINDOW_TASKS_TARGET"
     printf '%s\n' "$mode" > "$STATE_FILE"
     chmod 0644 "$STATE_FILE"
     backup_file "$ACTIVE_CONFIG"

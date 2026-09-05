@@ -9,7 +9,8 @@ tags:
 
 # install_i3_bar_profiles_linux.sh
 
-Instala las plantillas y helpers de los tres perfiles de barra de i3. Migra
+Instala las plantillas y helpers de los tres perfiles de barra de i3, incluido
+el listado seguro de ventanas para Polybar. Migra
 el bloque `bar` administrado a una única inclusión y deja `i3bar` como
 predeterminado.
 
@@ -88,6 +89,8 @@ just install-i3-bar-profiles --check
 - Usa archivos temporales y respaldos fechados para los destinos modificados.
 - No modifica Conky, EWW, Picom, Openbox ni el contenido de `i3status`.
 - No inicia procesos externos ni reinicia la sesión automáticamente.
+- El helper de ventanas de Polybar se instala como
+  `~/.local/bin/i3-window-tasks-polybar.sh`.
 
 ## Fallos conocidos
 

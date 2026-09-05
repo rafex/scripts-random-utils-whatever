@@ -10,7 +10,8 @@ tags:
 # i3_bar_profile_linux.sh
 
 Selecciona `i3bar`, `tint2` o `polybar` en i3 sin duplicar barras ni tocar
-Conky, EWW, Picom u Openbox.
+Conky, EWW, Picom u Openbox. Tint2 muestra el taskbar nativo del workspace
+actual; Polybar usa el helper de ventanas administrado por Rafex.
 
 - **Ruta:** `scripts/system/i3_bar_profile_linux.sh`
 - **SO requerido:** Linux
@@ -92,6 +93,8 @@ just i3-bar --set polybar
 - La selección usa reemplazo atómico y respalda el estado anterior.
 - La recarga se ejecuta solo cuando existe `DISPLAY` e `i3-msg`.
 - Las acciones de Polybar apuntan únicamente a helpers versionados del perfil.
+- Tint2 y Polybar solo enfocan ventanas con clic izquierdo; no añaden cierres ni
+  minimización.
 - El selector no usa `pkill` global ni detiene procesos Tint2/Polybar ajenos.
 
 ## Fallos conocidos

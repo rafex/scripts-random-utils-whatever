@@ -423,6 +423,7 @@ install_profile_scripts() {
             "$SCRIPT_DIR/../scripts/system/screenshot_linux.sh:screenshot.sh"
             "$SCRIPT_DIR/../scripts/system/rafex_i3_bar_runtime_linux.sh:rafex-i3-bar-runtime.sh"
             "$SCRIPT_DIR/../scripts/system/i3_bar_profile_linux.sh:i3-bar-profile.sh"
+            "$SCRIPT_DIR/../scripts/system/i3_window_tasks_polybar_linux.sh:i3-window-tasks-polybar.sh"
         )
         for direct_script in "${direct_scripts[@]}"; do
             direct_name="${direct_script##*:}"

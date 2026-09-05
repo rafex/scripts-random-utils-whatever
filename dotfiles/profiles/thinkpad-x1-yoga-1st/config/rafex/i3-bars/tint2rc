@@ -25,7 +25,7 @@ background_color2 = #5e81ac 100
 background_color3 = #bf616a 100
 # END rafex theme
 
-taskbar_mode = multi_desktop
+taskbar_mode = single_desktop
 taskbar_padding = 2 2 2
 taskbar_name = 1
 taskbar_name_padding = 6 3
@@ -34,8 +34,15 @@ taskbar_name_active_background_id = 2
 taskbar_name_urgent_background_id = 3
 taskbar_name_icon = 1
 task_icon = 1
-task_icon_size = 18
+task_text = 1
+task_tooltip = 1
+task_padding = 4 3 3
 task_maximum_size = 0 0
+mouse_left = none
+mouse_middle = none
+mouse_right = none
+mouse_scroll_up = none
+mouse_scroll_down = none
 systray_padding = 4 0
 systray_icon_size = 16
 systray_sort = ascending
