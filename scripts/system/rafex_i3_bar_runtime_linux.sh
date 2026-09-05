@@ -34,6 +34,7 @@ require_user_session() {
   [[ -n "${DISPLAY:-}" ]] || die 'DISPLAY no está disponible'
   [[ -n "${XDG_RUNTIME_DIR:-}" ]] || warn "XDG_RUNTIME_DIR no está definido; se usará /run/user/$UID"
   command -v flock >/dev/null 2>&1 || die 'falta flock'
+  command -v pgrep >/dev/null 2>&1 || die 'falta pgrep'
   command -v ps >/dev/null 2>&1 || die 'falta ps'
   mkdir -p -- "$RUNTIME_DIR"
   chmod 700 -- "$RUNTIME_DIR"
@@ -57,13 +58,16 @@ command_line() {
 }
 
 managed_pid_for_config() {
-  local config="$1" process_line pid matches=0 found=''
-  while read -r pid process_line; do
-    [[ -n "$pid" ]] || continue
-    [[ "$process_line" == *"$config"* ]] || continue
-    matches=$((matches + 1))
-    found="$pid"
-  done < <(pgrep -a -f -- "(^|[[:space:]])(tint2|polybar)([[:space:]]|$)" 2>/dev/null || true)
+  local config="$1" process_name pid process_line matches=0 found=''
+  for process_name in tint2 polybar; do
+    while read -r pid; do
+      [[ -n "$pid" ]] || continue
+      process_line="$(command_line "$pid")"
+      [[ "$process_line" == *"$config"* ]] || continue
+      matches=$((matches + 1))
+      found="$pid"
+    done < <(pgrep -x -u "$UID" "$process_name" 2>/dev/null || true)
+  done
   if (( matches > 1 )); then
     die "hay varias instancias externas usando una configuración Rafex: $config"
   fi
@@ -131,7 +135,7 @@ adopt_or_start_polybar() {
     ok 'Polybar administrado ya estaba activo'
     return 0
   fi
-  polybar --config "$POLYBAR_CONFIG" rafex >/dev/null 2>&1 &
+  polybar --config="$POLYBAR_CONFIG" rafex >/dev/null 2>&1 &
   pid=$!
   sleep 0.3
   pid_alive "$pid" || die 'Polybar terminó al iniciar; revisa su log o ejecuta polybar -l info'
