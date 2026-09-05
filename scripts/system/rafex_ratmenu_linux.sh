@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rafex_ratmenu_linux.sh v1.1.0
+# rafex_ratmenu_linux.sh v1.1.1
 # Menú ligero de acciones del perfil ThinkPad usando ratmenu.
 # shellcheck disable=SC2016
 set -Eeuo pipefail
@@ -60,5 +60,7 @@ menu=(
   'Cerrar menu' 'exit'
 )
 
-exec ratmenu -label 'Rafex ThinkPad' -font 'DejaVu Sans Mono-11' \
+# ratmenu usa XCreateFontSet (fuentes X11), no nombres Fontconfig/Xft.
+# El alias fixed está disponible en el servidor X11 de la ThinkPad.
+exec ratmenu -label 'Rafex ThinkPad' -font fixed \
   -fg "$fg" -bg "$bg" -style dreary -align left "${menu[@]}"

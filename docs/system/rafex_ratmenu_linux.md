@@ -26,7 +26,30 @@ fallback.
 ## Variables de entorno
 ## Ejemplos
 ## Fallos conocidos
+
+### `ratmenu: fatal: cannot load font DejaVu Sans Mono-11`
+
+**Causa:** el lanzador pasaba un nombre estilo Fontconfig/Xft a ratmenu, que
+utiliza fuentes X11 mediante XCreateFontSet. En la ThinkPad el lanzamiento directo
+terminó con código 1 y ese error; `xlsfonts -fn fixed` sí encontró el alias.
+El atajo parecía no responder porque el menú terminaba antes de mostrarse.
+
+**Solución:** desde v1.1.1 el lanzador usa `-font fixed`. Aplicar desde el
+repositorio actualizado con `just install-ratmenu --apply`. No requiere reiniciar
+ni cambiar bindings: los existentes ejecutan el mismo helper instalado.
+Si `fixed` tampoco existe en otro servidor X11, revisar sus fuentes antes de
+cambiar atajos o instalar fuentes Nerd/Fontconfig, que no resuelven este fallo.
+
+Validación manual: abrir `~/.local/bin/rafex-ratmenu.sh`, cerrar con Escape y
+probar `Super+F9` y la tecla multimedia `XF86Tools`. La corrección del lanzamiento
+no demuestra por sí sola qué keysym emite la tecla física; si solo falla esta
+última, observar el evento antes de modificar bindings.
 ## Changelog
+
+### v1.1.1 — 2026-09-05
+
+**fix:** usar el alias X11 `fixed` en lugar de una fuente que impedía abrir
+ratmenu en la ThinkPad. Sin cambios en suspensión ni bindings.
 
 ## Requisitos
 
