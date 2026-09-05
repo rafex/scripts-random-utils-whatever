@@ -1,11 +1,43 @@
 #!/usr/bin/env bash
-# rafex_ratmenu_linux.sh v1.1.1
+# rafex_ratmenu_linux.sh v1.2.0
 # Menú ligero de acciones del perfil ThinkPad usando ratmenu.
 # shellcheck disable=SC2016
 set -Eeuo pipefail
 umask 077
 
 export LC_ALL=C
+
+managed_menu_running() {
+  local uid pid process cmdline
+  uid="$(id -u)"
+  for process in ratmenu 9menu; do
+    while read -r pid; do
+      [[ -n "$pid" && "$pid" != "$$" ]] || continue
+      [[ -r "/proc/$pid/cmdline" ]] || continue
+      cmdline="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)"
+      case "$cmdline" in
+        *"Rafex ThinkPad"*) return 0 ;;
+      esac
+    done < <(pgrep -u "$uid" -x "$process" 2>/dev/null || true)
+  done
+  return 1
+}
+
+runtime_dir="${XDG_RUNTIME_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/rafex}"
+mkdir -p -- "$runtime_dir"
+chmod 700 -- "$runtime_dir" 2>/dev/null || true
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"$runtime_dir/ratmenu.lock"
+  if ! flock -n 9; then
+    printf 'ratmenu de Rafex ya está en proceso de apertura; no se duplica.\n'
+    exit 0
+  fi
+fi
+
+if managed_menu_running; then
+  printf 'ratmenu de Rafex ya está abierto; no se duplica.\n'
+  exit 0
+fi
 
 if ! command -v ratmenu >/dev/null 2>&1; then
   fallback_menu="${XDG_CONFIG_HOME:-$HOME/.config}/9menu/laptop.menu"

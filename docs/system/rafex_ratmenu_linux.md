@@ -40,6 +40,16 @@ ni cambiar bindings: los existentes ejecutan el mismo helper instalado.
 Si `fixed` tampoco existe en otro servidor X11, revisar sus fuentes antes de
 cambiar atajos o instalar fuentes Nerd/Fontconfig, que no resuelven este fallo.
 
+### `ratmenu de Rafex ya está abierto; no se duplica`
+
+**Causa:** `XF86Tools` o `Super+F9` se pulsó otra vez mientras el menú seguía
+abierto. El lanzador identifica únicamente ventanas propias por su etiqueta
+`Rafex ThinkPad` y mantiene un lock de usuario durante la apertura.
+
+**Solución:** no se abre otra ventana. Selecciona una entrada o cierra el menú
+existente. Ratmenu de otro usuario o sin la etiqueta de Rafex no se considera
+administrado ni se cierra.
+
 Validación manual: abrir `~/.local/bin/rafex-ratmenu.sh`, cerrar con Escape y
 probar `Super+F9` y la tecla multimedia `XF86Tools`. La corrección del lanzamiento
 no demuestra por sí sola qué keysym emite la tecla física; si solo falla esta
@@ -50,6 +60,11 @@ no demuestra por sí sola qué keysym emite la tecla física; si solo falla esta
 
 **fix:** usar el alias X11 `fixed` en lugar de una fuente que impedía abrir
 ratmenu en la ThinkPad. Sin cambios en suspensión ni bindings.
+
+### v1.2.0 — 2026-09-05
+
+**fix:** evitar ventanas duplicadas al pulsar repetidamente los accesos de
+ratmenu, con detección de procesos administrados y lock por usuario.
 
 ## Requisitos
 
