@@ -117,7 +117,7 @@ adopt_or_start_tint2() {
     ok 'Tint2 administrado ya estaba activo'
     return 0
   fi
-  tint2 -c "$TINT2_CONFIG" >/dev/null 2>&1 &
+  tint2 -c "$TINT2_CONFIG" 9>&- >/dev/null 2>&1 &
   pid=$!
   sleep 0.2
   pid_alive "$pid" || die 'Tint2 terminó al iniciar'
@@ -135,7 +135,7 @@ adopt_or_start_polybar() {
     ok 'Polybar administrado ya estaba activo'
     return 0
   fi
-  polybar --config="$POLYBAR_CONFIG" rafex >/dev/null 2>&1 &
+  polybar --config="$POLYBAR_CONFIG" rafex 9>&- >/dev/null 2>&1 &
   pid=$!
   sleep 0.3
   pid_alive "$pid" || die 'Polybar terminó al iniciar; revisa su log o ejecuta polybar -l info'

@@ -81,6 +81,8 @@ just i3-bar --set i3bar
 - Registra PID files privados con permisos `0700`.
 - Verifica que la línea de comandos del PID contenga la configuración esperada.
 - Adopta como máximo una instancia que use la configuración Rafex; si hay varias, se detiene.
+- El descriptor del lock no se hereda a Tint2 ni Polybar, para que las recargas
+  posteriores no queden bloqueadas por la propia barra.
 - Nunca mata procesos por nombre global ni usa sudo.
 - No administra i3bar, porque i3 lo inicia y controla nativamente.
 
@@ -103,3 +105,5 @@ just i3-bar --set i3bar
 ### [Unreleased]
 
 - **feat:** añadir runtime idempotente con lock y PID files para barras externas de i3.
+- **fix:** cerrar el descriptor del lock en los procesos hijos de Tint2 y
+  Polybar.
