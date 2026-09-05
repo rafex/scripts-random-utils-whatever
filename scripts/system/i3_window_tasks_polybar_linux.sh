@@ -68,11 +68,12 @@ def focused_workspace(root):
 
 
 def is_window(node):
+    scratchpad_state = node.get("scratchpad_state")
     return (
         node.get("type") == "con"
         and isinstance(node.get("id"), int)
         and node.get("window") is not None
-        and not node.get("scratchpad_state")
+        and scratchpad_state in (None, "", "none")
     )
 
 
