@@ -11,7 +11,7 @@ tags:
 
 ## Estado de la investigación — 2026-09-04
 
-**Causa aún no confirmada. Prueba de Discrete TPM pendiente.** Este informe
+**Causa aún no confirmada. Security Chip deshabilitado; prueba de apagado pendiente.** Este informe
 conserva extractos de las consultas realizadas por SSH y en `thinkpad:0`, junto
 con observaciones del usuario. No contiene seriales, UUID de discos, claves,
 direcciones de red ni capturas completas de la terminal.
@@ -190,6 +190,28 @@ cualquier advertencia de firmware. Esta prueba no necesita limpiar ningún TPM.
 y encendido normal. La prueba de autonomía requiere medición separada.
 
 ## Lecciones para siguientes diagnósticos
+
+### Actualización de la prueba — 2026-09-04, 18:12 CST
+
+Al intentar seleccionar Discrete TPM, BIOS mostró: `All encryption keys will
+be cleared in the security chip`. Se indicó cancelar esa operación. Como
+alternativa, el usuario deshabilitó Security Chip sin recibir advertencia de
+borrado y volvió a arrancar Debian. No se probó Discrete TPM.
+
+Consulta del arranque de las 18:11 con el mismo kernel `7.1.12+deb14-amd64`:
+
+```text
+ima: No TPM chip found, activating TPM-bypass!
+/sys/class/tpm: sin dispositivos
+systemctl --failed: 0 loaded units listed
+```
+
+El filtro del journal de kernel no devolvió los anteriores timeouts TPM,
+el error -62 ni el fallo DMAR. Esto confirma el cambio de disponibilidad del
+TPM; no confirma todavía que el apagado físico y posterior encendido funcionen.
+Se procederá a un apagado normal y observación manual del usuario.
+
+### Criterios de interpretación
 
 - No confundir desaparición de SSH, pantalla negra o `poweroff.target` con
   confirmación física de apagado.
