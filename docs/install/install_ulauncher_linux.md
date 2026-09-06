@@ -89,6 +89,14 @@ La aplicación se puede abrir como usuario normal (`ulauncher`) o, tras
 `--i3-shortcut`, con `$mod+u` (usa `ulauncher-toggle`, el binario propio
 de Ulauncher para alternar la ventana sin relanzar el proceso).
 
+`ulauncher-toggle` necesita que el daemon `ulauncher.service` esté
+corriendo (es quien realmente mantiene la ventana y responde por D-Bus);
+`--apply` lo habilita y arranca (`systemctl --user enable --now
+ulauncher.service`) para la sesión actual, y `--apply --i3-shortcut`
+además agrega un `exec --no-startup-id systemctl --user start
+ulauncher.service` en i3 para que siga arrancando en sesiones futuras —
+ver [Fallos conocidos](#fallos-conocidos) para el porqué de este paso.
+
 ## Opciones
 
 | Opción | Alias | Descripción |
@@ -160,8 +168,11 @@ ulauncher --version
   antes de modificarlo — reconocible por
   [find_safety_backups_unix.sh](../dev/find_safety_backups_unix.md).
 - No modifica `$mod+space` (rofi) ni ningún otro binding existente.
-- No gestiona ningún servicio systemd (Ulauncher no lo requiere).
-- `--check`, `--plan` y `--status` no escriben archivos ni solicitan sudo.
+- `--apply` habilita y arranca `ulauncher.service` (`systemctl --user
+  enable --now`); nunca deshabilita ni detiene servicios existentes.
+- `--check`/`--plan`/`--status` no escriben archivos ni solicitan sudo;
+  `--check` sí consulta `systemctl --user is-active` (solo lectura) para
+  diagnosticar si el daemon está corriendo.
 
 ## Fallos conocidos
 
@@ -206,9 +217,33 @@ dotfiles (i3 aún no tiene configuración propia).
 thinkpad-x1-yoga-1st` o equivalente) y vuelve a correr `--apply
 --i3-shortcut`.
 
+### `$mod+u` no hace nada / `ulauncher-toggle` falla con `org.freedesktop.DBus.Error.ServiceUnknown: The name net.launchpad.ulauncher was not provided by any .service files`
+
+**Causa (corregida, observada en vivo el 2026-09-06):** el paquete de
+Ulauncher trae `ulauncher.service` con `WantedBy=graphical-session.target`,
+pero en una sesión i3 sin systemd-logind/GNOME de por medio ese target
+nunca se activa solo — así que el daemon nunca arrancaba, y
+`ulauncher-toggle` no tenía nada que alternar. Versiones anteriores de
+este script instalaban el paquete y el atajo de i3, pero nunca tocaban el
+servicio, así que el atajo quedaba configurado y silenciosamente inútil.
+
+**Solución:** vuelve a correr `--apply --i3-shortcut` con esta versión
+del script: habilita y arranca `ulauncher.service` para la sesión actual,
+y agrega un `exec --no-startup-id systemctl --user start
+ulauncher.service` en i3 para sesiones futuras. Si el servicio sigue sin
+levantar, revisa `systemctl --user status ulauncher.service` y
+`journalctl --user -u ulauncher.service`.
+
 ## Changelog
 
 ### [Unreleased]
 
 - **feat:** instalador Debian idempotente para Ulauncher 5.16.1 desde el
   DEB oficial de GitHub, con atajo de prueba opcional en i3.
+- **fix:** `--apply` ahora habilita y arranca `ulauncher.service`
+  (`systemctl --user enable --now`), y `--i3-shortcut` agrega un `exec`
+  de autostart del servicio en i3 — antes el paquete y el atajo se
+  instalaban pero el daemon nunca arrancaba (`WantedBy=graphical-session.target`
+  nunca se activa en una sesión i3 sin systemd-logind/GNOME), así que
+  `ulauncher-toggle` fallaba en silencio con
+  `org.freedesktop.DBus.Error.ServiceUnknown`.

@@ -150,6 +150,12 @@ check_local_installation() {
   else
     warn 'sin atajo de prueba en i3 (usa --apply --i3-shortcut para agregarlo)'
   fi
+
+  if systemctl --user is-active --quiet ulauncher.service 2>/dev/null; then
+    ok 'ulauncher.service activo (ulauncher-toggle funcionará)'
+  else
+    warn 'ulauncher.service no está activo; ulauncher-toggle no tiene nada que mostrar (usa --apply para iniciarlo)'
+  fi
 }
 
 check_dependencies() {
@@ -175,8 +181,10 @@ show_plan() {
   info "verificar tamaño ${EXPECTED_SIZE_BYTES} bytes y SHA-256 $EXPECTED_SHA256"
   info "verificar Package=ulauncher, Version=${VERSION} y Architecture=${ARCHITECTURE}"
   info 'instalar el DEB local con sudo apt-get; APT resolverá dependencias Debian'
+  info 'systemctl --user enable --now ulauncher.service (el paquete trae el daemon, pero no lo arranca solo)'
   if [[ "$CONFIGURE_I3" -eq 1 ]]; then
     info "agregar bindsym \$mod+u (Ulauncher) en $I3_CONFIG"
+    info "agregar exec --no-startup-id systemctl --user start ulauncher.service en $I3_CONFIG"
   fi
   info 'no se escribirá nada en modo plan'
 }
@@ -260,6 +268,20 @@ install_ulauncher() {
   check_local_installation
 }
 
+# El paquete trae ulauncher.service (WantedBy=graphical-session.target), pero
+# en una sesión i3 sin ese target activo (sin GNOME/systemd-logind de por
+# medio) nunca arranca solo: ulauncher-toggle fallaría con
+# "org.freedesktop.DBus.Error.ServiceUnknown" porque no hay ningún daemon
+# escuchando. Lo habilitamos y arrancamos explícitamente para esta sesión.
+enable_ulauncher_service() {
+  systemctl --user daemon-reload 2>/dev/null || true
+  if systemctl --user enable --now ulauncher.service; then
+    ok 'ulauncher.service habilitado e iniciado'
+  else
+    warn 'no se pudo iniciar ulauncher.service; ulauncher-toggle no funcionará hasta resolverlo'
+  fi
+}
+
 backup_colocated() {
   local file="$1"
   [[ -e "$file" || -L "$file" ]] || return 0
@@ -301,6 +323,7 @@ configure_i3_shortcut() {
   block="$(mktemp)"
   cat > "$block" <<EOF
 $I3_BEGIN
+exec --no-startup-id systemctl --user start ulauncher.service
 bindsym \$mod+u exec --no-startup-id ulauncher-toggle
 $I3_END
 EOF
@@ -321,6 +344,7 @@ main() {
       sudo -v
       install_prerequisites
       install_ulauncher
+      enable_ulauncher_service
       configure_i3_shortcut
       ;;
   esac

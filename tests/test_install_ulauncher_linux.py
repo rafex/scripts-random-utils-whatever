@@ -17,6 +17,19 @@ SCRIPT = Path(__file__).resolve().parents[1] / "scripts/install/install_ulaunche
 
 SUDO_MOCK = '#!/bin/sh\ncase "$1" in\n  -v) exit 0 ;;\nesac\nexec "$@"\n'
 LOGGING_NOOP_MOCK = '#!/bin/sh\necho "{name} $*" >> "$LOG"\nexit 0\n'
+# El paquete real trae ulauncher.service (WantedBy=graphical-session.target),
+# pero ese target nunca se activa en una sesión i3 sin systemd-logind/GNOME
+# de por medio, así que sin --enable --now el daemon nunca corre: por
+# defecto simulamos "inactivo" para que check_local_installation() tome la
+# rama de aviso, salvo que un test lo sobrescriba.
+SYSTEMCTL_MOCK = (
+    '#!/bin/sh\n'
+    'echo "systemctl $*" >> "$LOG"\n'
+    'case "$*" in\n'
+    '  "--user is-active --quiet ulauncher.service") exit 1 ;;\n'
+    '  *) exit 0 ;;\n'
+    'esac\n'
+)
 
 CURL_MOCK = '''#!/bin/sh
 dest=""
@@ -73,6 +86,22 @@ class InstallUlauncherLinux(unittest.TestCase):
         for name in ("apt-get",):
             self.write(self.mock_bin / name, LOGGING_NOOP_MOCK.format(name=name))
         self.write(self.mock_bin / "curl", CURL_MOCK)
+        self.write(self.mock_bin / "systemctl", SYSTEMCTL_MOCK)
+        # Sin mockear, dpkg-query lee el estado real de la máquina de prueba
+        # (en el ThinkPad, ulauncher 5.16.1 ya está instalado), lo que
+        # rompería should_install() para los casos que necesitan ejercitar
+        # la descarga/verificación. Por defecto simulamos ca-certificates
+        # instalado (para no disparar install_prerequisites de más) y
+        # ulauncher no instalado; los tests que necesitan lo contrario
+        # llaman a self._mock_already_installed().
+        self.write(
+            self.mock_bin / "dpkg-query",
+            "#!/bin/sh\n"
+            "case \"$*\" in\n"
+            "  *ca-certificates*Status*) printf 'install ok installed'; exit 0 ;;\n"
+            "esac\n"
+            "exit 1\n",
+        )
         self.env = dict(
             os.environ,
             LOG=str(self.log),
@@ -104,7 +133,13 @@ class InstallUlauncherLinux(unittest.TestCase):
     def test_check_makes_no_mutating_calls(self):
         result = self.run_script("--check")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(self.log_lines(), [])
+        # "systemctl ... is-active" es un diagnóstico de solo lectura;
+        # cualquier otra llamada (apt-get, curl, enable, start) sería una
+        # mutación indebida en modo --check.
+        self.assertEqual(
+            self.log_lines(),
+            ["systemctl --user is-active --quiet ulauncher.service"],
+        )
 
     def test_plan_makes_no_mutating_calls_and_announces_install(self):
         result = self.run_script("--plan")
@@ -126,7 +161,8 @@ class InstallUlauncherLinux(unittest.TestCase):
         result = self.run_script("--apply", env=env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("tamaño inesperado", result.stderr)
-        self.assertFalse(any(line.startswith("apt-get install") for line in self.log_lines()))
+        self.assertFalse(any("ulauncher_" in line for line in self.log_lines()
+                              if line.startswith("apt-get install")))
 
     def test_verify_asset_rejects_wrong_package_name(self):
         env = dict(self.env, FIXTURE_DEB=str(self.wrong_package_deb))
@@ -134,19 +170,25 @@ class InstallUlauncherLinux(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         # El tamaño del fixture también difiere del pineado, así que basta
         # con confirmar que nunca se llega a instalar.
-        self.assertFalse(any(line.startswith("apt-get install") for line in self.log_lines()))
+        self.assertFalse(any("ulauncher_" in line for line in self.log_lines()
+                              if line.startswith("apt-get install")))
 
-    def test_no_systemctl_calls_are_made(self):
-        # Regresión: a diferencia de install_rustdesk_linux.sh, este
-        # instalador no debe tocar ningún servicio systemd.
+    def test_check_reports_inactive_service_without_starting_it(self):
+        # Regresión inversa a una versión anterior de esta prueba: se
+        # descubrió en vivo que ulauncher-toggle fallaba con
+        # "org.freedesktop.DBus.Error.ServiceUnknown" porque nada arrancaba
+        # ulauncher.service (WantedBy=graphical-session.target, que nunca se
+        # activa en una sesión i3 sin systemd-logind/GNOME de por medio).
+        # --check ahora sí toca systemctl, pero solo para diagnosticar
+        # (is-active), nunca para habilitar ni arrancar nada.
         result = self.run_script("--check")
-        self.assertNotIn("systemctl", result.stdout)
-        self.assertNotIn("systemctl", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("no está activo", result.stdout + result.stderr)
+        lines = self.log_lines()
+        self.assertTrue(any("is-active" in line for line in lines))
+        self.assertFalse(any("enable" in line or " start " in line for line in lines))
 
-    def test_apply_i3_shortcut_when_already_installed(self):
-        # should_install() debe saltarse la descarga/verificación cuando
-        # la versión pineada ya está instalada, permitiendo probar el
-        # parchado de i3 sin depender de un asset real coincidente.
+    def _mock_already_installed(self):
         dpkg_query_mock = (
             "#!/bin/sh\n"
             "case \"$*\" in\n"
@@ -156,6 +198,12 @@ class InstallUlauncherLinux(unittest.TestCase):
             "exit 1\n"
         )
         self.write(self.mock_bin / "dpkg-query", dpkg_query_mock)
+
+    def test_apply_i3_shortcut_when_already_installed(self):
+        # should_install() debe saltarse la descarga/verificación cuando
+        # la versión pineada ya está instalada, permitiendo probar el
+        # parchado de i3 sin depender de un asset real coincidente.
+        self._mock_already_installed()
         i3_dir = Path(self.temp.name) / "config/i3"
         i3_dir.mkdir(parents=True)
         i3_config = i3_dir / "config"
@@ -168,7 +216,27 @@ class InstallUlauncherLinux(unittest.TestCase):
         content = i3_config.read_text()
         self.assertIn("# BEGIN rafex ulauncher", content)
         self.assertIn("bindsym $mod+u exec --no-startup-id ulauncher-toggle", content)
+        self.assertIn("exec --no-startup-id systemctl --user start ulauncher.service", content)
         self.assertIn("bindsym $mod+Return exec alacritty", content)
+
+    def test_apply_enables_and_starts_the_service(self):
+        self._mock_already_installed()
+        result = self.run_script("--apply")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        lines = self.log_lines()
+        self.assertTrue(any("daemon-reload" in line for line in lines))
+        self.assertTrue(any("enable --now ulauncher.service" in line for line in lines))
+
+    def test_apply_without_i3_shortcut_does_not_touch_i3_config(self):
+        self._mock_already_installed()
+        i3_dir = Path(self.temp.name) / "config/i3"
+        i3_dir.mkdir(parents=True)
+        i3_config = i3_dir / "config"
+        i3_config.write_text("set $mod Mod4\n")
+        env = dict(self.env, XDG_CONFIG_HOME=str(Path(self.temp.name) / "config"))
+        result = self.run_script("--apply", env=env)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(i3_config.read_text(), "set $mod Mod4\n")
 
 
 if __name__ == "__main__":

@@ -160,6 +160,28 @@ dotfiles (i3 aún no tiene configuración propia).
 thinkpad-x1-yoga-1st` o equivalente) y vuelve a correr `--apply
 --i3-shortcut`.
 
+### `sudo apt-get install -y albert` falla con dependencias incumplidas (`libstdc++6 (>= 16.2.0-2) pero 16.2.0-1 va a ser instalado`)
+
+**Causa (observada en vivo el 2026-09-06 en la ThinkPad):** el build de
+Albert publicado en OBS para `Debian_Unstable` está compilado contra una
+instantánea de Debian sid ligeramente más nueva que la que reflejan los
+espejos de APT en ese momento (`libstdc++6` y varias libs de Qt6 aún no
+alcanzaban la versión exigida). El repositorio y la clave sí quedan
+configurados correctamente (`--check` los reporta `ok`); es únicamente el
+paso `apt-get install` el que falla, y `set -e` aborta el script ahí
+mismo — antes de llegar a `configure_i3_shortcut()`, así que tampoco
+queda el atajo `$mod+a` en i3.
+
+**Solución:** no es un bug de este script ni algo que debas forzar
+(evita `--allow-downgrades`/pinning manual). Es un desfase temporal de
+paquetes en Debian sid; repite `sudo apt-get update && sudo apt-get
+install -y albert` en unos días, cuando sid absorba esas versiones más
+nuevas. Puedes ver el detalle exacto de qué dependencia falta con:
+
+```sh
+apt-get install -s albert
+```
+
 ## Changelog
 
 ### [Unreleased]

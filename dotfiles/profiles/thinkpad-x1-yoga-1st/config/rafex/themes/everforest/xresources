@@ -1,5 +1,5 @@
 ! Rafex Everforest para rxvt-unicode.
-URxvt.font: xft:DejaVu Sans Mono:size=10
+URxvt.font: xft:DejaVu Sans Mono:size=11
 URxvt.termName: rxvt-unicode-256color
 URxvt.scrollBar: false
 URxvt.saveLines: 50000
