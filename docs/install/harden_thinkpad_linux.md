@@ -288,6 +288,23 @@ Los logs de aplicación se guardan por defecto en:
 **Solución:** revisar `/etc/sysctl.d/99-thinkpad-hardening.conf`, restaurar el
   respaldo y ejecutar `sudo sysctl --system` después de revertirlo.
 
+### `setlocale: LC_CTYPE: no se puede cambiar el local (UTF-8)` al conectar por SSH
+
+**Causa:** el `sshd_config` de stock de Debian trae `AcceptEnv LANG LC_*`, y
+  macOS reenvía por SSH un `LC_CTYPE=UTF-8` propio del sistema (no un nombre
+  de locale real; no existe forma de "generarlo" con `locale-gen`). El
+  ThinkPad ya tiene su propio locale correcto por defecto
+  (`es_MX.UTF-8`), pero ese valor recibido lo pisa en cada shell.
+**Solución:** desde esta versión, el drop-in agrega `AcceptEnv COLORTERM
+  NO_COLOR` (sin `LANG`/`LC_*`). Como `/etc/ssh/sshd_config.d/*.conf` se
+  incluye al inicio del archivo principal, esta línea gana sobre el
+  `AcceptEnv LANG LC_*` de stock y el ThinkPad deja de aceptar el locale del
+  cliente. Confirmado que no hay forma de arreglar esto solo del lado del
+  cliente (macOS) sin editar su `/etc/ssh/ssh_config` de sistema completo:
+  el mecanismo de exclusión `SendEnv -patrón` de OpenSSH solo limpia
+  patrones "previamente establecidos", y el `SendEnv LANG LC_*` global de
+  macOS se lee después del `~/.ssh/config` del usuario.
+
 ## Changelog
 
 ### [Unreleased]
@@ -295,3 +312,6 @@ Los logs de aplicación se guardan por defecto en:
 - **feat:** añadir hardening ThinkPad por fases SSH y local.
 - **security:** incorporar UFW, fail2ban, AppArmor en auditoría, auditd mínimo,
   actualizaciones de seguridad, sysctl compatible y USBGuard no bloqueante.
+- **security:** el drop-in SSH deja de aceptar `LANG`/`LC_*` del cliente
+  (`AcceptEnv COLORTERM NO_COLOR`), evitando que un `LC_CTYPE=UTF-8` de
+  macOS produzca warnings de `setlocale` en cada sesión.

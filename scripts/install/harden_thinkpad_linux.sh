@@ -205,6 +205,7 @@ LoginGraceTime 20
 MaxStartups 10:30:60
 ClientAliveInterval 300
 ClientAliveCountMax 2
+AcceptEnv COLORTERM NO_COLOR
 EOF
 }
 
