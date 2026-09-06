@@ -438,7 +438,7 @@ neutralize_stock_acceptenv() {
   fi
   backup_file "$SSHD_MAIN_CONFIG"
   ACCEPTENV_BACKUP="$BACKUP_DEST"
-  sudo sed -i "${line_number}s/^/# Neutralizado por harden_thinkpad_linux.sh -ver AcceptEnv en ${SSH_DROPIN}-: /" \
+  sudo sed -i "${line_number}s|^|# Neutralizado por harden_thinkpad_linux.sh (ver AcceptEnv en el drop-in): |" \
     "$SSHD_MAIN_CONFIG"
   ACCEPTENV_CHANGED=1
   ok "AcceptEnv de stock neutralizado en $SSHD_MAIN_CONFIG (línea $line_number)"
