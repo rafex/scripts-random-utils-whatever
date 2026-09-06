@@ -33,8 +33,9 @@ corto y una única acción: enfocar la ventana con clic izquierdo.
 ## Requisitos
 
 Debe ejecutarse dentro de i3, con `i3-msg -t get_tree` disponible y acceso al
-socket IPC de la sesión. Polybar debe tener una fuente Font Awesome instalada
-para mostrar los glifos semánticos. Si no hay ventanas normales, se muestra
+socket IPC de la sesión. Polybar debe tener instaladas las familias `Font
+Awesome 7 Free Solid` y `Font Awesome 7 Brands Regular` para mostrar todos los
+glifos semánticos. Si no hay ventanas normales, se muestra
 `Escritorio`.
 
 Tint2 usa su taskbar nativo y puede mostrar el icono real publicado por cada
@@ -117,10 +118,23 @@ es JSON.
 **Solución:** comprueba `i3-msg -t get_tree` y revisa el log de i3; Polybar
 volverá a consultar el helper en el siguiente intervalo.
 
+### Los iconos de Firefox o Chromium no aparecen
+
+**Causa:** Firefox y Chromium usan glifos de la familia de marcas (`Brands`),
+no de `Font Awesome 7 Free Solid`. La plantilla administrada debe declarar
+`Font Awesome 7 Brands Regular` como `font-2`.
+
+**Solución:** reinstala la configuración administrada y recarga Polybar:
+
+```bash
+just install-i3-bar-profiles --apply
+just i3-bar --set polybar
+```
+
 ### Los glifos aparecen como cuadrados
 
-**Causa:** falta Font Awesome o Polybar no está usando la fuente configurada en
-`font-1`.
+**Causa:** falta Font Awesome o Polybar no está usando las fuentes configuradas
+en `font-1` y `font-2`.
 
 **Solución:** instala la fuente administrada por el perfil y recarga Polybar.
 Tint2 seguirá usando sus iconos reales independientemente de este mapeo.
@@ -131,3 +145,5 @@ Tint2 seguirá usando sus iconos reales independientemente de este mapeo.
 
 - **feat:** añadir listado de ventanas del workspace actual para Polybar con
   enfoque seguro mediante clic izquierdo.
+- **fix:** declarar también `Font Awesome 7 Brands Regular` para que los
+  iconos de Firefox y Chromium se rendericen en Polybar.
