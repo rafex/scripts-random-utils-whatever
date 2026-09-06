@@ -18,6 +18,13 @@ md2pdf *args:
 disk-usage *args:
     bash scripts/dev/disk_usage_linux.sh {{args}}
 
+# ── find-safety-backups ────────────────────────────────────────────────────────
+
+# Encuentra y borra respaldos .bak.<fecha> colocados junto a configs
+# Uso: just find-safety-backups --check | just find-safety-backups --plan --include-system | just find-safety-backups --apply --all | just find-safety-backups --apply
+find-safety-backups *args:
+    bash scripts/dev/find_safety_backups_unix.sh {{args}}
+
 # ── podman-cleanup ─────────────────────────────────────────────────────────────
 
 # Limpia almacenamiento de Podman/Docker por niveles (0=análisis, 5=nuclear)

@@ -60,6 +60,7 @@ nav:
       - deploy_configs_unix: dev/deploy_configs_unix.md
       - deploy_verify_unix: dev/deploy_verify_unix.md
       - disk_usage_linux: dev/disk_usage_linux.md
+      - find_safety_backups_unix: dev/find_safety_backups_unix.md
       - jdtls_linux: dev/jdtls_linux.md
       - md2pdf_unix: dev/md2pdf_unix.md
       - Podman cleanup: dev/podman_cleanup_linux.md

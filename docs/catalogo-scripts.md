@@ -28,6 +28,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/dev/deploy_configs_unix.sh` | macOS/Linux | deploy-configs | opcional | sí | alto | [doc](dev/deploy_configs_unix.md) |
 | `scripts/dev/deploy_verify_unix.sh` | macOS/Linux | deploy-verify | no | sí | medio | [doc](dev/deploy_verify_unix.md) |
 | `scripts/dev/disk_usage_linux.sh` | Linux | disk-usage | sí | no | medio | [doc](dev/disk_usage_linux.md) |
+| `scripts/dev/find_safety_backups_unix.sh` | macOS/Linux | find-safety-backups | sí | sí | alto | [doc](dev/find_safety_backups_unix.md) |
 | `scripts/dev/jdtls_linux.sh` | Linux | — | no | — | bajo | [doc](dev/jdtls_linux.md) |
 | `scripts/dev/md2pdf_unix.sh` | macOS/Linux | md2pdf | no | sí | bajo | [doc](dev/md2pdf_unix.md) |
 | `scripts/dev/podman_cleanup_linux.sh` | Linux | podman-cleanup | no | sí | alto | [doc](dev/podman_cleanup_linux.md) |
