@@ -51,6 +51,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/configure_initramfs_compression_linux.sh` | Linux | configure-initramfs-compression | sí | sí | alto | [doc](hardware/configure_initramfs_compression_linux.md) |
 | `scripts/hardware/configure_thinkpad_keyboard_linux.sh` | Linux | configure-thinkpad-keyboard | sí | sí | medio | [doc](hardware/configure_thinkpad_keyboard_linux.md) |
 | `scripts/hardware/configure_tlp_battery_linux.sh` | Linux | configure-tlp-battery | sí | sí | medio | [doc](hardware/configure_tlp_battery_linux.md) |
+| `scripts/hardware/configure_xrandr_brightness_linux.sh` | Linux | configure-xrandr-brightness | sí | sí | bajo | [doc](hardware/configure_xrandr_brightness_linux.md) |
 | `scripts/hardware/notify_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_brightness_linux.md) |
 | `scripts/hardware/notify_kbd_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_kbd_brightness_linux.md) |
 | `scripts/hardware/notify_microphone_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_microphone_linux.md) |

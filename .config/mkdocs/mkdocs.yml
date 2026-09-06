@@ -86,6 +86,7 @@ nav:
       - configure_lid_suspend_linux: hardware/configure_lid_suspend_linux.md
       - configure_thinkpad_s2idle_linux: hardware/configure_thinkpad_s2idle_linux.md
       - configure_tlp_battery_linux: hardware/configure_tlp_battery_linux.md
+      - configure_xrandr_brightness_linux: hardware/configure_xrandr_brightness_linux.md
       - notify_brightness_linux: hardware/notify_brightness_linux.md
       - notify_kbd_brightness_linux: hardware/notify_kbd_brightness_linux.md
       - notify_microphone_linux: hardware/notify_microphone_linux.md

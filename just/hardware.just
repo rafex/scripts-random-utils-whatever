@@ -54,3 +54,8 @@ configure-lid-suspend *args:
 # Uso: just configure-tlp-battery --check | --plan | --apply | --fullcharge
 configure-tlp-battery *args:
     bash scripts/hardware/configure_tlp_battery_linux.sh {{args}}
+
+# Fijar brillo xrandr en i3 y reaplicarlo tras suspender/reanudar (systemd-sleep)
+# Uso: just configure-xrandr-brightness --check | --plan | --apply --brightness 1.1
+configure-xrandr-brightness *args:
+    bash scripts/hardware/configure_xrandr_brightness_linux.sh {{args}}
