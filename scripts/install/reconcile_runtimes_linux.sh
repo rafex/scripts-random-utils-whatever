@@ -79,6 +79,29 @@ replacement_for() {
   return 1
 }
 
+# A diferencia de replacement_for() (una sola fila, la primera que matchea,
+# usada solo para "¿existe algún reemplazo?"), esta lista TODAS las rutas
+# propias verificadas para ese tool/provider — el registro puede tener más
+# de una versión instalada a la vez (p. ej. dos GraalVM), y un alias legacy
+# de mise ("25", "25.0", "latest", ...) puede apuntar legítimamente a
+# cualquiera de ellas, no solo a la primera fila del archivo.
+replacement_targets_for() {
+  local tool="$1" command_name found=1
+  command_name="$(runtime_command "$tool")"
+  [[ -f "$REGISTRY_FILE" ]] || return 1
+  while IFS=$'\t' read -r registered_tool provider _version path _checksum _source; do
+    if [[ "$tool" == graalvm ]]; then
+      [[ "$registered_tool" == java && "$provider" == graalvm-* ]] || continue
+    else
+      [[ "$registered_tool" == "$tool" ]] || continue
+    fi
+    [[ -x "$path/bin/$command_name" ]] || continue
+    printf '%s\n' "$path"
+    found=0
+  done < "$REGISTRY_FILE"
+  return "$found"
+}
+
 legacy_paths() {
   cat <<EOF
 java|${LEGACY_ROOT}/java/temurin-21.0.12+101.0.LTS
@@ -155,12 +178,39 @@ legacy_identifier() {
 }
 
 validate_purge_candidates() {
-  local tool path replacement identifier active canonical_legacy canonical_active
+  local tool path replacement identifier active
+  local canonical_legacy canonical_active candidate matched
   while IFS='|' read -r tool path; do
     [[ -e "$path" || -L "$path" ]] || continue
     replacement="$(replacement_for "$tool" 2>/dev/null || true)"
     [[ -n "$replacement" ]] || die "no se elimina $path: falta reemplazo verificado"
     [[ "$path" != "$replacement" ]] || die "no se elimina $path: coincide con el reemplazo"
+
+    if [[ -L "$path" ]]; then
+      # integrate_registry() ya reemplazó esta ruta legacy por un symlink
+      # hacia algún reemplazo propio (mise link --force). Borrarla con
+      # rm -rf solo quita el symlink, nunca el directorio real al que
+      # apunta. El registro puede tener más de una versión instalada del
+      # mismo tool (p. ej. dos GraalVM) y un alias legacy de mise puede
+      # apuntar legítimamente a cualquiera de ellas, así que basta con que
+      # coincida con AL MENOS una fila verificada — no necesariamente con
+      # la primera (replacement_for solo devuelve una).
+      canonical_legacy="$(readlink -f -- "$path" 2>/dev/null || true)"
+      matched=1
+      if [[ -n "$canonical_legacy" ]]; then
+        while IFS= read -r candidate; do
+          [[ "$(readlink -f -- "$candidate" 2>/dev/null || true)" == "$canonical_legacy" ]] || continue
+          matched=0
+          break
+        done < <(replacement_targets_for "$tool" 2>/dev/null || true)
+      fi
+      [[ "$matched" -eq 0 ]] || \
+        die "no se elimina $path: symlink legacy apunta a un destino inesperado"
+      continue
+    fi
+
+    # $path sigue siendo un directorio real: el único caso de peligro
+    # genuino es que mise todavía lo considere el runtime activo.
     identifier="$(legacy_identifier "$tool" "$path" 2>/dev/null || true)"
     if [[ -n "$identifier" ]]; then
       active="$(mise where "$identifier" 2>/dev/null | awk 'NF { print; exit }' || true)"
@@ -254,6 +304,12 @@ main() {
     "$(find_mise)" reshim
     if [[ "$PURGE_LEGACY" -eq 1 ]]; then
       purge_legacy
+      # Borrar una ruta legacy desregistra esa versión de mise (sus shims
+      # resuelven en vivo contra mise/installs/<tool>/<version>): sin este
+      # segundo enlace, node/java/mvn/gradle dejarían de resolver hasta la
+      # siguiente corrida. Se re-crea de inmediato en la misma invocación.
+      integrate_registry
+      "$(find_mise)" reshim
       show_registry
       audit_legacy
     else
