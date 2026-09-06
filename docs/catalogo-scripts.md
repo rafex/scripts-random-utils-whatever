@@ -107,6 +107,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_picom_upstream_linux.sh` | Linux | install-picom-upstream | sí | sí | medio | [doc](install/install_picom_upstream_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
+| `scripts/install/install_albert_linux.sh` | Linux | install-albert | sí | sí | medio | [doc](install/install_albert_linux.md) |
+| `scripts/install/install_ulauncher_linux.sh` | Linux | install-ulauncher | sí | sí | medio | [doc](install/install_ulauncher_linux.md) |
 | `scripts/install/migrate_laptop_linux.sh` | Linux | migrate-laptop | sí | sí | alto | [doc](install/migrate_laptop_linux.md) |
 | `scripts/install/scrape_eclipse_packages.py` | Linux | scrape-eclipse-packages | no | — | bajo | [doc](install/scrape_eclipse_packages.md) |
 | `scripts/install/scrape_java_runtimes.py` | Linux | scrape-java-runtimes | no | — | bajo | [doc](install/scrape_java_runtimes.md) |

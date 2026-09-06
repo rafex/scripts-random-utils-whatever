@@ -57,6 +57,16 @@ install-vscodium *args:
 install-rustdesk *args:
     bash scripts/install/install_rustdesk_linux.sh {{args}}
 
+# Configurar el repositorio OBS oficial e instalar Albert (launcher agnóstico de escritorio)
+# Uso: just install-albert --check|--plan|--apply [--i3-shortcut]
+install-albert *args:
+    bash scripts/install/install_albert_linux.sh {{args}}
+
+# Descargar, verificar e instalar Ulauncher desde el DEB oficial de GitHub
+# Uso: just install-ulauncher --check|--plan|--apply|--status [--i3-shortcut]
+install-ulauncher *args:
+    bash scripts/install/install_ulauncher_linux.sh {{args}}
+
 # Extraer versiones/enlaces oficiales de Eclipse IDE Java y Enterprise Java
 # Uso: just scrape-eclipse-packages --package all --pretty
 scrape-eclipse-packages *args:
