@@ -48,6 +48,22 @@ El enlace activo queda como `current-<proveedor>-<imagen>`.
 just install-java-runtime --provider temurin --version 25 --image jdk --apply
 ```
 
+Para elegir rápidamente el proveedor:
+
+```bash
+# Java general
+just install-java-runtime --provider temurin --version 25 --image jdk --apply
+
+# GraalVM Community
+just install-java-runtime --provider graalvm-community --version latest --image jdk --apply
+
+# IBM Semeru
+just install-java-runtime --provider semeru --version latest --image jdk --apply
+```
+
+La guía completa de selección, verificación y reparación está en
+[Guía de runtimes Java, GraalVM y Node.js](runtime_runtimes_linux.md).
+
 Después de instalar, el script registra automáticamente Temurin, GraalVM Community, Oracle GraalVM o Semeru en el backend correspondiente de `mise` si está disponible, ejecutando únicamente `mise link`, `mise use` y `mise reshim`. También actualiza el manifiesto propio y `current-java`. Para omitir el registro automático usa `--no-mise`; en ese caso el runtime queda instalado localmente, pero no estará disponible para `runtime-use` hasta integrarlo.
 
 ## Opciones
@@ -86,7 +102,10 @@ just install-java-runtime --provider temurin --version 17 --plan
 just install-java-runtime --provider temurin --version 25 --image jdk --apply
 
 # Instalar GraalVM Community actual
-just install-java-runtime --provider graalvm-community --version latest --apply
+just install-java-runtime --provider graalvm-community --version latest --image jdk --apply
+
+# Instalar una versión fija de GraalVM Community
+just install-java-runtime --provider graalvm-community --version 25.3.4.1 --image jdk --apply
 
 # Instalar IBM Semeru JDK actual
 just install-java-runtime --provider semeru --version latest --image jdk --apply

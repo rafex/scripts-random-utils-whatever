@@ -47,6 +47,21 @@ just reconcile-runtimes --apply
 just reconcile-runtimes --apply --purge-legacy
 ```
 
+Para reparar una instalación directa de GraalVM hecha anteriormente con
+`mise`, usa primero únicamente:
+
+```bash
+just reconcile-runtimes --check
+just reconcile-runtimes --plan
+just reconcile-runtimes --apply
+```
+
+`--apply` vuelve a registrar las rutas propias, corrige la selección global y
+regenera los shims sin eliminar runtimes. No uses `--purge-legacy` si solo
+quieres reparar GraalVM: esa opción puede purgar también rutas legacy de
+Node.js, Maven y Gradle. Consulta la [guía central de runtimes](runtime_runtimes_linux.md)
+para verificación y selección mediante `runtime-use`.
+
 ## Opciones
 
 | Opción | Alias | Descripción |

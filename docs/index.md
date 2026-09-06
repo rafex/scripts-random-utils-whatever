@@ -57,4 +57,5 @@ Consulta el [catálogo de scripts](catalogo-scripts.md) para conocer dependencia
 
 - [Instalación segura de Ether-rules MCP](install/install_ether_rules_mcp_unix.md).
 - [Instalación de la estación de terminal](install/install_terminal_workstation_linux.md).
+- [Guía de runtimes Java, GraalVM y Node.js](install/runtime_runtimes_linux.md).
 - [Migración segura de laptop](install/migrate_laptop_linux.md).

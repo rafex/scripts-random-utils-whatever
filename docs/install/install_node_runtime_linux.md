@@ -38,6 +38,15 @@ con mise.
 just install-node-runtime --version lts --apply
 ```
 
+Para una versión fija:
+
+```bash
+just install-node-runtime --version 24.20.0 --apply
+```
+
+La guía completa de instalación, selección y verificación está en
+[Guía de runtimes Java, GraalVM y Node.js](runtime_runtimes_linux.md).
+
 La instalación se guarda bajo `~/.local/share/node-runtimes/` y se registra en
 `~/.local/share/rafex-runtimes/registry.tsv`.
 
@@ -64,6 +73,14 @@ just install-node-runtime --version 24.20.0 --plan
 just install-node-runtime --version 24.20.0 --apply
 runtime-use --list node
 runtime-use node 24.20.0
+```
+
+Comprueba que la shell usa el runtime gestionado:
+
+```bash
+mise current
+mise which node
+node --version
 ```
 
 ## Protecciones de seguridad
