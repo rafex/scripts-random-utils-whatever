@@ -8,6 +8,13 @@
 set -Eeuo pipefail
 umask 077
 
+# Si se ejecuta desde una shell no gráfica (tmux/SSH) que no exportó
+# DISPLAY, se asume :0 -la sesión Xorg real de un laptop de un solo
+# monitor-. Si no hay servidor X ahí, xrandr simplemente falla en
+# silencio (2>/dev/null) y las funciones de abajo devuelven vacío, igual
+# que si DISPLAY nunca hubiera estado definida.
+export DISPLAY="${DISPLAY:-:0}"
+
 ACTION='check'
 OUTPUT="${XRANDR_BRIGHTNESS_OUTPUT:-}"
 BRIGHTNESS="${XRANDR_BRIGHTNESS_VALUE:-1.1}"

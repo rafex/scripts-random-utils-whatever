@@ -123,7 +123,21 @@ class ConfigureXrandrBrightness(unittest.TestCase):
         backups = list(i3_dir.glob("config.bak.*"))
         self.assertEqual(len(backups), 1, "solo el primer parchado debe generar respaldo")
 
-    def test_no_output_detected_without_display(self):
+    def test_detects_output_even_without_display_exported(self):
+        # Regresión: una shell de tmux/SSH normal no exporta DISPLAY aunque
+        # la sesión gráfica real (:0) sí esté corriendo -el script debe
+        # asumir :0 por defecto en vez de rendirse de inmediato.
+        env = dict(self.env)
+        env.pop("DISPLAY", None)
+        result = subprocess.run(["bash", str(SCRIPT), "--check"], env=env,
+                                 capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("salida detectada: eDP-1", result.stdout)
+
+    def test_no_output_detected_when_no_real_x_session(self):
+        # Caso genuino sin sesión gráfica: xrandr falla incluso contra :0.
+        failing_xrandr = '#!/bin/sh\nexit 1\n'
+        self.write(self.mock_bin / "xrandr", failing_xrandr)
         env = dict(self.env)
         env.pop("DISPLAY", None)
         result = subprocess.run(["bash", str(SCRIPT), "--check"], env=env,

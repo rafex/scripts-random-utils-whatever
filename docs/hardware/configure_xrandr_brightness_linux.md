@@ -125,11 +125,14 @@ cat /lib/systemd/system-sleep/rafex-xrandr-brightness.sh
 
 ### `no se pudo determinar la salida xrandr`
 
-**Causa:** no hay sesión Xorg activa (`DISPLAY` sin definir) o no se detectó
-ninguna salida `eDP-*`/`LVDS-*`/`DSI-*` conectada.
+**Causa:** el script ya asume `DISPLAY=:0` si no está definida (una shell de
+tmux/SSH normal no la exporta aunque la sesión gráfica real sí esté
+corriendo), así que este error significa que no hay ningún servidor X en
+`:0` o no se detectó ninguna salida `eDP-*`/`LVDS-*`/`DSI-*` conectada.
 
-**Solución:** ejecuta el comando dentro de la sesión gráfica, o indica la
-salida exacta con `--output` (revisa `xrandr --query`).
+**Solución:** ejecuta el comando dentro de la sesión gráfica real (o con
+`DISPLAY` apuntando a la correcta si usas otra distinta de `:0`), o indica
+la salida exacta con `--output` (revisa `xrandr --query`).
 
 ### El brillo vuelve a `1.0` después de reanudar
 
@@ -154,3 +157,7 @@ real de backlight usa `notify_brightness_linux.sh` en su lugar.
 
 - **feat:** agregar configuración idempotente de brillo xrandr en i3, con
   hook de systemd-sleep para reaplicarlo tras suspender/reanudar.
+- **fix:** asumir `DISPLAY=:0` cuando no está exportada, para que `--check`/
+  `--plan`/`--apply` funcionen desde una shell de tmux/SSH normal (donde la
+  sesión gráfica real sí está corriendo, pero no exporta `DISPLAY`), no
+  solo desde dentro de la sesión X directamente.
