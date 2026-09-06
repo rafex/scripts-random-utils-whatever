@@ -31,10 +31,10 @@ test-wacom-pen *args:
 power-control *args:
     bash scripts/hardware/power_control_linux.sh {{args}}
 
-# Hacer permanente s2idle para mejorar la reanudación de la ThinkPad X1 Yoga
-# Uso: just configure-thinkpad-s2idle --check | --plan | --apply
-configure-thinkpad-s2idle *args:
-    bash scripts/hardware/configure_thinkpad_s2idle_linux.sh {{args}}
+# Hacer permanente un modo de suspensión (s2idle o deep) en la ThinkPad X1 Yoga
+# Uso: just configure-thinkpad-mem-sleep --check | --plan | --apply [--mode s2idle|deep]
+configure-thinkpad-mem-sleep *args:
+    bash scripts/hardware/configure_thinkpad_mem_sleep_linux.sh {{args}}
 
 # Activar TRIM periódico para SSD/NVMe mediante systemd
 # Uso: just configure-fstrim --check | --plan | --apply | --status

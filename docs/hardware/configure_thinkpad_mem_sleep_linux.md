@@ -1,20 +1,25 @@
 ---
-title: configure_thinkpad_s2idle_linux.sh
-description: Hace permanente el modo s2idle para mejorar la reanudación de la ThinkPad X1 Yoga.
+title: configure_thinkpad_mem_sleep_linux.sh
+description: Hace permanente un modo de suspensión (s2idle o deep) para la ThinkPad X1 Yoga.
 tags:
   - hardware
   - energia
   - thinkpad
 ---
 
-# configure_thinkpad_s2idle_linux.sh
+# configure_thinkpad_mem_sleep_linux.sh
 
-Configura `mem_sleep_default=s2idle` en GRUB para que la ThinkPad use de forma
-persistente el modo de suspensión con más ciclos reales observados en esta
-máquina (ver [Evidencia de pruebas](#evidencia-de-pruebas)). No reinicia la
-computadora automáticamente.
+Configura `mem_sleep_default=<modo>` en GRUB (`s2idle` o `deep`) para que la
+ThinkPad use ese modo de suspensión de forma persistente. Un solo script
+administra el parámetro para que dos configuraciones no compitan por la
+misma línea de `GRUB_CMDLINE_LINUX_DEFAULT`. No reinicia la computadora
+automáticamente.
 
-- **Ruta:** `scripts/hardware/configure_thinkpad_s2idle_linux.sh`
+Antes de elegir un modo, revisa la
+[Evidencia de pruebas](#evidencia-de-pruebas): ambos modos tienen ciclos
+reales de suspensión/reanudación confirmados en esta máquina.
+
+- **Ruta:** `scripts/hardware/configure_thinkpad_mem_sleep_linux.sh`
 - **SO requerido:** Linux (Debian con GRUB)
 - **Dependencias:** Bash, `sudo`, `sed`, `grep`, `systemctl`, `update-grub`
 
@@ -36,10 +41,11 @@ computadora automáticamente.
 
 - ThinkPad X1 Yoga con GRUB instalado.
 - Acceso `sudo` para modificar `/etc/default/grub` y ejecutar `update-grub`.
-- Haber probado previamente la suspensión con:
+- Haber probado previamente el modo elegido en runtime (no persiste, no
+  toca GRUB):
 
   ```bash
-  echo s2idle | sudo tee /sys/power/mem_sleep
+  echo <modo> | sudo tee /sys/power/mem_sleep   # s2idle o deep
   systemctl suspend
   ```
 
@@ -66,12 +72,15 @@ o si el teclado no es una fuente de wake válida en `deep` en este hardware
 
 **Ambos modos despertaron correctamente** en esta prueba — no se reprodujo
 ningún fallo de reanudación con `deep` en esta ronda. La elección de
-`s2idle` como persistente sigue siendo razonable (más ciclos observados,
-incluida una suspensión real de casi 7 horas, sin siquiera el ruido menor
-de USB/Bluetooth que sí apareció con `deep`), pero **la evidencia de esta
-prueba no muestra que `deep` esté roto en este hardware** con el TPM ya
-deshabilitado (ver nota siguiente y
+`s2idle` como persistente por defecto sigue siendo razonable (más ciclos
+observados, incluida una suspensión real de casi 7 horas, sin siquiera el
+ruido menor de USB/Bluetooth que sí apareció con `deep`), pero **la
+evidencia de esta prueba no muestra que `deep` esté roto en este
+hardware** con el TPM ya deshabilitado (ver nota siguiente y
 [thinkpad_shutdown_tpm_investigation.md](thinkpad_shutdown_tpm_investigation.md)).
+Si prefieres `deep` (por ejemplo, para evitar el consumo residual típico
+de `s2idle` en cargas largas), este script lo persiste igual de bien con
+`--mode deep`.
 
 > **Nota sobre TPM (hipótesis del usuario, no verificada con una prueba
 > A/B):** el usuario reporta que, antes de deshabilitar por completo el
@@ -100,9 +109,10 @@ echo s2idle | sudo tee /sys/power/mem_sleep   # regresa al runtime persistido
 Desde la raíz del repositorio:
 
 ```bash
-just configure-thinkpad-s2idle --check
-just configure-thinkpad-s2idle --plan
-just configure-thinkpad-s2idle --apply
+just configure-thinkpad-mem-sleep --check
+just configure-thinkpad-mem-sleep --plan
+just configure-thinkpad-mem-sleep --apply                 # persiste s2idle (default)
+just configure-thinkpad-mem-sleep --apply --mode deep      # persiste deep
 ```
 
 Después de aplicar y cuando sea conveniente:
@@ -112,7 +122,8 @@ sudo reboot
 cat /sys/power/mem_sleep
 ```
 
-La salida esperada después del reinicio es:
+La salida esperada después del reinicio muestra el modo elegido entre
+corchetes, por ejemplo:
 
 ```text
 [s2idle] deep
@@ -124,7 +135,8 @@ La salida esperada después del reinicio es:
 |---|---|---|
 | `--check` | — | Muestra el modo actual, el parámetro del kernel y el contenido relevante de GRUB; un parámetro pendiente se informa como aviso y no produce fallo. |
 | `--plan` | `--dry-run` | Muestra cambios previstos sin usar `sudo` ni modificar archivos; termina correctamente aunque falte aplicar la configuración. |
-| `--apply` | — | Respalda GRUB, configura `mem_sleep_default=s2idle` y ejecuta `update-grub`. |
+| `--apply` | — | Respalda GRUB, configura `mem_sleep_default=<modo>` y ejecuta `update-grub`. |
+| `--mode s2idle\|deep` | — | Modo a persistir; por defecto `s2idle`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -138,14 +150,15 @@ alterar otro sistema por accidente.
 ### Forma explícita recomendada
 
 ```bash
-just configure-thinkpad-s2idle --check
-just configure-thinkpad-s2idle --apply
+just configure-thinkpad-mem-sleep --check
+just configure-thinkpad-mem-sleep --apply
 ```
 
-### Ver el plan sin cambios
+### Persistir deep en vez de s2idle
 
 ```bash
-just configure-thinkpad-s2idle --plan
+just configure-thinkpad-mem-sleep --plan --mode deep
+just configure-thinkpad-mem-sleep --apply --mode deep
 ```
 
 ### Validar después de reiniciar
@@ -159,11 +172,16 @@ systemctl suspend
 ## Protecciones de seguridad
 
 - `--check`, `--plan` y `--dry-run` no modifican el sistema.
+- Rechaza cualquier `--mode` que no sea `s2idle` o `deep`.
+- Avisa (sin fallar) si el kernel no ofrece el modo pedido en
+  `/sys/power/mem_sleep`.
 - `--apply` solicita la contraseña únicamente mediante `sudo -v`.
-- Crea un respaldo fechado en `/var/backups/rafex-thinkpad-s2idle/` antes de
-  cambiar `/etc/default/grub`.
+- Crea un respaldo fechado en `/var/backups/rafex-thinkpad-mem-sleep/`
+  antes de cambiar `/etc/default/grub` (los respaldos previos a esta
+  generalización quedan en `/var/backups/rafex-thinkpad-s2idle/`, sin
+  tocar).
 - Reemplaza de forma idempotente un valor previo de `mem_sleep_default` y no
-  duplica el parámetro.
+  duplica el parámetro, sin importar cuál de los dos modos estaba antes.
 - Ejecuta `update-grub` después del cambio y restaura automáticamente el
   respaldo si `update-grub` falla.
 - No reinicia automáticamente, no modifica particiones, `fstab`, LUKS ni
@@ -179,7 +197,14 @@ en la configuración de arranque.
 **Solución:** no continúes con el cambio; revisa `sudo update-grub` y conserva
 el respaldo. El script restaura `/etc/default/grub` si la ejecución falla.
 
-### La salida sigue siendo `s2idle [deep]`
+### `modo no soportado`
+
+**Causa:** se pasó `--mode` con un valor distinto de `s2idle`/`deep` (por
+ejemplo `shallow`, que este equipo no ofrece — ver `cat /sys/power/mem_sleep`).
+
+**Solución:** usa `--mode s2idle` o `--mode deep`.
+
+### La salida sigue mostrando el modo anterior entre corchetes
 
 **Causa:** todavía no se ha reiniciado el equipo o el gestor de arranque no
 aplicó el parámetro.
@@ -188,7 +213,9 @@ aplicó el parámetro.
 
 ### El equipo vuelve a fallar al despertar
 
-**Causa:** algún dispositivo o controlador puede fallar incluso con `s2idle`.
+**Causa:** algún dispositivo o controlador puede fallar incluso con un modo
+que antes funcionó (ver la tabla de evidencia arriba para el historial
+observado de cada modo en esta máquina).
 
 **Solución:** usa el respaldo para revertir el cambio desde la consola local y
 recopila `sudo journalctl -b -1 -k` antes de probar otro modo.
@@ -204,3 +231,7 @@ recopila `sudo journalctl -b -1 -k` antes de probar otro modo.
   `s2idle` y `deep` con el TPM ya deshabilitado — ambos modos reanudaron
   limpio; reemplaza la afirmación previa sin evidencia de que solo
   `s2idle` "fue probado con éxito".
+- **feat:** generalizar `configure_thinkpad_s2idle_linux.sh` en
+  `configure_thinkpad_mem_sleep_linux.sh` con `--mode s2idle|deep`, para
+  que un solo script administre `mem_sleep_default` y ambas
+  configuraciones no compitan por la misma línea de GRUB.

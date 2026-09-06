@@ -304,7 +304,7 @@ intentos previos de suspensión en modo `deep` (`/sys/power/mem_sleep`) no
 lograban reanudar correctamente — máquina que no despertaba. El
 2026-09-06, con el TPM ya desactivado, se ejecutó una prueba dirigida de
 `deep` (ver
-[configure_thinkpad_s2idle_linux.md § Evidencia de pruebas](configure_thinkpad_s2idle_linux.md#evidencia-de-pruebas))
+[configure_thinkpad_mem_sleep_linux.md § Evidencia de pruebas](configure_thinkpad_mem_sleep_linux.md#evidencia-de-pruebas))
 que sí reanudó limpio, sin errores en el journal más allá de ruido menor
 de USB/Bluetooth auto-recuperado.
 

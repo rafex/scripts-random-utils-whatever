@@ -45,7 +45,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/display/screen_mirror_linux.sh` | Linux | — | no | — | medio | [doc](display/screen_mirror_linux.md) |
 | `scripts/display/screen_projector_linux.sh` | Linux | screen-projector | no | sí | medio | [doc](display/screen_projector_linux.md) |
 | `scripts/hardware/autorotate_x1_yoga_linux.sh` | Linux | — | no | sí | medio | [doc](hardware/autorotate_x1_yoga_linux.md) |
-| `scripts/hardware/configure_thinkpad_s2idle_linux.sh` | Linux | configure-thinkpad-s2idle | sí | sí | alto | [doc](hardware/configure_thinkpad_s2idle_linux.md) |
+| `scripts/hardware/configure_thinkpad_mem_sleep_linux.sh` | Linux | configure-thinkpad-mem-sleep | sí | sí | alto | [doc](hardware/configure_thinkpad_mem_sleep_linux.md) |
 | `scripts/hardware/configure_fstrim_linux.sh` | Linux | configure-fstrim | sí | sí | medio | [doc](hardware/configure_fstrim_linux.md) |
 | `scripts/hardware/configure_lid_suspend_linux.sh` | Linux | configure-lid-suspend | sí | no | medio | [doc](hardware/configure_lid_suspend_linux.md) |
 | `scripts/hardware/configure_initramfs_compression_linux.sh` | Linux | configure-initramfs-compression | sí | sí | alto | [doc](hardware/configure_initramfs_compression_linux.md) |

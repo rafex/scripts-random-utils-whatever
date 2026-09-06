@@ -66,9 +66,9 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   copia el `20-intel.conf` de la MacBook.
 - La autorrotación y las pruebas Wacom se activan con la etapa `tablet` de la
   migración; no se inician desde `.bashrc`.
-- La suspensión se probó con el modo `s2idle`; para hacerlo
-  permanente en GRUB ejecuta `just configure-thinkpad-s2idle --apply` y
-  reinicia cuando puedas.
+- La suspensión se probó con los modos `s2idle` y `deep`; para hacer
+  permanente uno de los dos en GRUB ejecuta `just configure-thinkpad-mem-sleep
+  --apply [--mode s2idle|deep]` y reinicia cuando puedas.
 - Incluye las paletas Paper, Nord, Everforest y Dracula para i3, tmux,
   Alacritty, rxvt-unicode, Rofi y Dunst. Nord es el tema inicial; se alternan
   con `Mod+Shift+T` o desde el centro de control. El color del texto de i3status
