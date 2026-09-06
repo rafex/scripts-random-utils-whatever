@@ -278,3 +278,8 @@ tmux refresh-client -S
 - **fix:** declarar RGB/TrueColor para clientes `xterm-kitty` y conservar la
   configuración completa de tmux al actualizar el instalador.
 - **feat:** instalar el selector `runtime-use` junto con la etapa de runtimes.
+- **fix:** `configure_build_runtimes()` ya no fija GraalVM Community en
+  `25.0.2`; usa `--version latest` (igual que Maven y Gradle en la misma
+  etapa) para que vuelva a resolver la versión oficial más reciente vía
+  `install_java_runtime_linux.sh` / `scrape_java_runtimes.py` en cada
+  corrida, en vez de reinstalar siempre la misma versión vieja.

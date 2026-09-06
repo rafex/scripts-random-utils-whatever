@@ -831,15 +831,15 @@ configure_build_runtimes() {
   install_apt_stage build-runtimes
   install_mise
   if [[ "$ACTION" == "plan" ]]; then
-    info "[plan] descargar e integrar GraalVM Community 25.0.2 mediante install_java_runtime_linux.sh"
-    bash "$JAVA_RUNTIME_INSTALLER" --provider graalvm-community --version 25.0.2 --image jdk --plan
+    info "[plan] descargar e integrar GraalVM Community latest mediante install_java_runtime_linux.sh"
+    bash "$JAVA_RUNTIME_INSTALLER" --provider graalvm-community --version latest --image jdk --plan
     info "[plan] descargar e integrar Maven latest mediante install_build_runtime_linux.sh"
     bash "$BUILD_RUNTIME_INSTALLER" --tool maven --version latest --plan
     info "[plan] descargar e integrar Gradle latest mediante install_build_runtime_linux.sh"
     bash "$BUILD_RUNTIME_INSTALLER" --tool gradle --version latest --plan
     return 0
   fi
-  bash "$JAVA_RUNTIME_INSTALLER" --provider graalvm-community --version 25.0.2 --image jdk --apply
+  bash "$JAVA_RUNTIME_INSTALLER" --provider graalvm-community --version latest --image jdk --apply
   bash "$BUILD_RUNTIME_INSTALLER" --tool maven --version latest --apply
   bash "$BUILD_RUNTIME_INSTALLER" --tool gradle --version latest --apply
   ok "Maven, Gradle y GraalVM instalados manualmente e integrados en mise"
