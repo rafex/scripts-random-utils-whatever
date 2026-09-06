@@ -45,6 +45,13 @@ CLASS_GLYPHS = {
     "pcmanfm": "",
     "dolphin": "",
 }
+BRAND_CLASSES = {
+    "firefox",
+    "chromium",
+    "chromium-browser",
+    "google-chrome",
+    "brave-browser",
+}
 EDITOR_CLASSES = ("code-", "jetbrains-", "sublime_text")
 TERMINAL_CLASSES = ("terminator", "konsole", "xfce4-terminal")
 FILE_MANAGER_CLASSES = ("caja", "nemo", "ranger")
@@ -89,14 +96,21 @@ def semantic_glyph(node):
     for value in values:
         normalized = str(value or "").casefold()
         if normalized in CLASS_GLYPHS:
-            return CLASS_GLYPHS[normalized]
+            return CLASS_GLYPHS[normalized], normalized in BRAND_CLASSES
         if normalized.startswith(EDITOR_CLASSES):
-            return ""
+            return "", False
         if normalized.startswith(TERMINAL_CLASSES):
-            return ""
+            return "", False
         if normalized.startswith(FILE_MANAGER_CLASSES):
-            return ""
-    return GLYPH_GENERIC
+            return "", False
+    return GLYPH_GENERIC, False
+
+
+def icon_markup(glyph, is_brand):
+    # Polybar automatic fallback leaves brand glyphs blank in some builds.
+    # Select the 1-based Polybar font tag explicitly: font-1 => T2, font-2 => T3.
+    font_tag = 3 if is_brand else 2
+    return f"%{{T{font_tag}}}{glyph}%{{T-}}"
 
 
 def safe_text(value):
@@ -123,8 +137,11 @@ tasks = []
 for node in window_nodes(workspace):
     con_id = node["id"]
     title = safe_text(node.get("name"))
-    glyph = semantic_glyph(node)
-    tasks.append(f"%{{A1:i3-msg \"[con_id={con_id}] focus\":}}{glyph} {title}%{{A}}")
+    glyph, is_brand = semantic_glyph(node)
+    tasks.append(
+        f"%{{A1:i3-msg \"[con_id={con_id}] focus\":}}"
+        f"{icon_markup(glyph, is_brand)} {title}%{{A}}"
+    )
 
 print("  ".join(tasks) if tasks else f"{GLYPH_GENERIC} Escritorio")
 ' <<<"$tree_json"

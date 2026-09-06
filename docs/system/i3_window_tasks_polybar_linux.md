@@ -41,7 +41,9 @@ glifos semánticos. Si no hay ventanas normales, se muestra
 Tint2 usa su taskbar nativo y puede mostrar el icono real publicado por cada
 ventana mediante `_NET_WM_ICON`; este helper no intenta leer imágenes. Polybar
 recibe texto, por lo que usa una allowlist de glifos para Firefox, Chromium,
-terminales, editores, gestores de archivos y una ventana genérica.
+terminales, editores, gestores de archivos y una ventana genérica. Los glifos
+de marcas se envían con la etiqueta de fuente Polybar `T3`; los glifos Solid
+usan `T2`, evitando depender del fallback automático.
 
 ## Uso
 
@@ -93,6 +95,8 @@ polybar -l info --config="$HOME/.config/rafex/i3-bars/polybar.ini" rafex
   numérico.
 - El título se limita a 24 caracteres y se eliminan controles, saltos de línea,
   llaves y marcadores `%` que podrían alterar el markup de Polybar.
+- Los iconos de marcas usan explícitamente `T3` y los iconos Solid `T2`, para
+  que Polybar no dependa de su fallback tipográfico.
 - La acción de cada botón contiene únicamente un identificador numérico de i3
   y `focus`; no incorpora títulos, clases ni comandos proporcionados por el
   usuario.
@@ -122,7 +126,8 @@ volverá a consultar el helper en el siguiente intervalo.
 
 **Causa:** Firefox y Chromium usan glifos de la familia de marcas (`Brands`),
 no de `Font Awesome 7 Free Solid`. La plantilla administrada debe declarar
-`Font Awesome 7 Brands Regular` como `font-2`.
+`Font Awesome 7 Brands Regular` como `font-2`, y el helper debe envolver esos
+glifos con la etiqueta explícita `T3`.
 
 **Solución:** reinstala la configuración administrada y recarga Polybar:
 
