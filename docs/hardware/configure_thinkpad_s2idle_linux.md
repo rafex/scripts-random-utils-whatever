@@ -10,7 +10,8 @@ tags:
 # configure_thinkpad_s2idle_linux.sh
 
 Configura `mem_sleep_default=s2idle` en GRUB para que la ThinkPad use de forma
-persistente el modo de suspensión que fue probado con éxito. No reinicia la
+persistente el modo de suspensión con más ciclos reales observados en esta
+máquina (ver [Evidencia de pruebas](#evidencia-de-pruebas)). No reinicia la
 computadora automáticamente.
 
 - **Ruta:** `scripts/hardware/configure_thinkpad_s2idle_linux.sh`
@@ -22,6 +23,7 @@ computadora automáticamente.
 ## Índice
 
 - [Requisitos](#requisitos)
+- [Evidencia de pruebas](#evidencia-de-pruebas)
 - [Uso](#uso)
 - [Opciones](#opciones)
 - [Variables de entorno](#variables-de-entorno)
@@ -42,6 +44,56 @@ computadora automáticamente.
   ```
 
 - Una forma de recuperación local si el equipo no reanuda correctamente.
+
+## Evidencia de pruebas
+
+Prueba dirigida del 2026-09-06 comparando ambos modos en la misma ThinkPad
+(kernel `7.1.12+deb14-amd64`), con el usuario físicamente presente. Log
+completo en
+`~/.local/state/scripts-random-utils-whatever/logs/suspend-test.log` en la
+máquina.
+
+| Modo | Ciclos observados | Duración | Resultado |
+|---|---|---|---|
+| `s2idle` | 2 (journal previo, 2026-09-05) | ~3 min y ~6h45min | Ambos limpios: `PM: suspend entry/exit` sin errores en el journal. |
+| `deep` | 1 (prueba dirigida, 2026-09-06, `/sys/power/mem_sleep` cambiado solo en runtime) | ~50s | Limpio: `PM: suspend entry (deep)` → `Restarting tasks: Done` → `PM: suspend exit`. Ruido menor y auto-recuperado: reset de 3 dispositivos USB al reanudar (normal en cualquier resume) y un error transitorio de Bluetooth (`hci0: Reading supported features failed (-16)`) que no dejó Bluetooth bloqueado ni roto (`rfkill`/`bluetoothctl` normales después de reanudar). |
+
+Detalle de la reanudación con `deep`: cerrar y volver a abrir la tapa
+despertó la máquina de forma confiable; una sola pulsación de tecla no lo
+hizo en el primer intento (sin confirmar si hacen falta varias pulsaciones
+o si el teclado no es una fuente de wake válida en `deep` en este hardware
+— pendiente de una prueba dedicada).
+
+**Ambos modos despertaron correctamente** en esta prueba — no se reprodujo
+ningún fallo de reanudación con `deep` en esta ronda. La elección de
+`s2idle` como persistente sigue siendo razonable (más ciclos observados,
+incluida una suspensión real de casi 7 horas, sin siquiera el ruido menor
+de USB/Bluetooth que sí apareció con `deep`), pero **la evidencia de esta
+prueba no muestra que `deep` esté roto en este hardware** con el TPM ya
+deshabilitado (ver nota siguiente y
+[thinkpad_shutdown_tpm_investigation.md](thinkpad_shutdown_tpm_investigation.md)).
+
+> **Nota sobre TPM (hipótesis del usuario, no verificada con una prueba
+> A/B):** el usuario reporta que, antes de deshabilitar por completo el
+> TPM/Security Chip (ver la investigación de apagado incompleto), intentos
+> previos de suspensión `deep` no lograban reanudar correctamente. La
+> prueba de esta sección se hizo **con el TPM ya deshabilitado**, y resultó
+> limpia. Esto es consistente con una posible relación entre el estado del
+> TPM y la reanudación de `deep` en este equipo, pero no se ha confirmado
+> con una prueba controlada (ej. volver a habilitar el TPM y repetir
+> `deep` para comparar) — se documenta como hipótesis, no como causa
+> confirmada.
+
+Para reproducir la comparación sin tocar el default persistido en GRUB:
+
+```bash
+echo deep | sudo tee /sys/power/mem_sleep    # solo runtime, no toca GRUB
+sudo systemctl suspend
+# despierta la laptop (cerrar/abrir la tapa es el método confiable), luego:
+cat /sys/power/mem_sleep                      # confirma que seguía en "deep"
+sudo journalctl -k --since "-5 min" | grep -iE "PM: suspend|error|fail"
+echo s2idle | sudo tee /sys/power/mem_sleep   # regresa al runtime persistido
+```
 
 ## Uso
 
@@ -148,3 +200,7 @@ recopila `sudo journalctl -b -1 -k` antes de probar otro modo.
 - **feat:** configura de forma idempotente `mem_sleep_default=s2idle` para la ThinkPad.
 - **fix:** `--check` y `--plan` ya no terminan con error cuando la configuración aún está pendiente.
 - **docs:** documenta verificación, respaldo y reversión del parámetro de suspensión.
+- **docs:** agrega evidencia real de prueba dirigida (2026-09-06) comparando
+  `s2idle` y `deep` con el TPM ya deshabilitado — ambos modos reanudaron
+  limpio; reemplaza la afirmación previa sin evidencia de que solo
+  `s2idle` "fue probado con éxito".

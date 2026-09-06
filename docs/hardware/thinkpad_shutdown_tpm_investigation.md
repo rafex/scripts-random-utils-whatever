@@ -291,3 +291,28 @@ recuperación del cifrado y estabilidad del apagado antes de cambiar BIOS.
 - Un initramfs legible y un arranque exitoso no verifican el apagado.
 - No copiar parámetros ACPI ni blacklists sin comprobar versión y configuración.
 - Conservar como hipótesis lo que todavía no se haya probado en el equipo.
+
+### Actualización — 2026-09-06: TPM desactivado por completo; posible relación con `deep`
+
+El usuario reporta que el TPM/Security Chip quedó **desactivado por
+completo** (más allá del estado "Discrete TPM seleccionado, Security Chip
+deshabilitado" registrado el 2026-09-04) y que, según su experiencia, esto
+era lo que impedía el apagado completo del equipo descrito arriba.
+
+El usuario reporta además que, **antes** de esta desactivación completa,
+intentos previos de suspensión en modo `deep` (`/sys/power/mem_sleep`) no
+lograban reanudar correctamente — máquina que no despertaba. El
+2026-09-06, con el TPM ya desactivado, se ejecutó una prueba dirigida de
+`deep` (ver
+[configure_thinkpad_s2idle_linux.md § Evidencia de pruebas](configure_thinkpad_s2idle_linux.md#evidencia-de-pruebas))
+que sí reanudó limpio, sin errores en el journal más allá de ruido menor
+de USB/Bluetooth auto-recuperado.
+
+**Esto es consistente con una relación entre el estado del TPM y tanto el
+apagado incompleto como la reanudación de `deep`, pero sigue sin
+confirmarse con una prueba controlada** — no se repitió `deep` con el TPM
+vuelto a habilitar para aislar la variable, y el criterio de cierre de esta
+investigación (arriba) sigue pidiendo ciclos repetidos de apagado/encendido
+antes de declarar la causa confirmada. Se documenta como el reporte y la
+hipótesis del usuario, no como conclusión técnica verificada de forma
+independiente.
