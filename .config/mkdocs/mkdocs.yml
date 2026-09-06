@@ -111,6 +111,7 @@ nav:
       - install_kbd_brightness_policy_linux: install/install_kbd_brightness_policy_linux.md
       - install_i3_gaps_linux: install/install_i3_gaps_linux.md
       - configure_thinkpad_xorg_dri3_linux: install/configure_thinkpad_xorg_dri3_linux.md
+      - configure_thinkpad_touchpad_linux: install/configure_thinkpad_touchpad_linux.md
       - install_openbox_profile_linux: install/install_openbox_profile_linux.md
       - install_i3_bar_profiles_linux: install/install_i3_bar_profiles_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
@@ -212,6 +213,7 @@ nav:
       - firefoxos_sms_bridge_linux: system/firefoxos_sms_bridge_linux.md
   - macOS:
       - clean_apple_meta_macos: macos/clean_apple_meta_macos.md
+      - configure_alacritty_macos: macos/configure_alacritty_macos.md
       - Metadatos: macos/Metadatos.md
 
 extra:

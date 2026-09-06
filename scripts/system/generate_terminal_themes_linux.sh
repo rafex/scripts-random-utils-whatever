@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# Materializa las paletas del perfil ThinkPad para i3 y Openbox.
+# Materializa las paletas del perfil ThinkPad para i3, Openbox y terminales oscuras.
 set -Eeuo pipefail
 umask 077
 
@@ -148,6 +148,7 @@ main() {
         info "[plan] materializar $theme en $TARGET_ROOT/$theme"
       done < <(selected_themes)
       info '[plan] conservar el tema actual; usa theme-toggle.sh --set <tema> para seleccionarlo'
+      info '[plan] las paletas de Alacritty, rxvt-unicode y tmux permanecerán oscuras'
       ;;
     apply)
       echo '═══ Generación de paletas de terminal, i3 y Openbox ═══'

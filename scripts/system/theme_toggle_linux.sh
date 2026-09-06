@@ -147,6 +147,7 @@ show_status() {
     printf 'current=missing\n'
   fi
   printf 'available=%s\n' "${THEME_NAMES[*]}"
+  printf 'terminal-palette=dark-per-theme\n'
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_THEME_BEGIN" "$I3_CONFIG"; then
     printf 'i3-theme-block=present\n'
   else
@@ -577,6 +578,7 @@ apply_mode() {
     info "[plan] activar tema $mode mediante $CURRENT_LINK"
     info "[plan] sincronizar bloque de colores en $I3_CONFIG"
     info "[plan] sincronizar Openbox/tint2 si están instalados"
+    info '[plan] conservar terminales oscuras en Alacritty, rxvt-unicode y tmux'
     info '[plan] recargar i3/Openbox, tmux, tint2 y dunst si están activos'
     return 0
   fi

@@ -6,6 +6,11 @@
 configure-thinkpad-keyboard *args:
     bash scripts/hardware/configure_thinkpad_keyboard_linux.sh {{args}}
 
+# Activar scroll natural persistente únicamente para el touchpad ThinkPad.
+# Uso: just configure-thinkpad-touchpad --check | --plan | --apply | --status | --rollback
+configure-thinkpad-touchpad *args:
+    bash scripts/install/configure_thinkpad_touchpad_linux.sh {{args}}
+
 # Activar/desactivar protector de pantalla (xset Screen Saver + DPMS)
 # Uso: just screensaver off | just screensaver on | just screensaver toggle | just screensaver status
 screensaver-toggle *args:

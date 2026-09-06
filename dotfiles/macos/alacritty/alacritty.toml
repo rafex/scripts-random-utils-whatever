@@ -1,0 +1,75 @@
+# BEGIN rafex macOS Alacritty
+# Perfil oscuro independiente de las paletas Linux del ThinkPad.
+
+[general]
+live_config_reload = true
+working_directory = "None"
+
+[env]
+TERM = "xterm-256color"
+COLORTERM = "truecolor"
+
+[window]
+startup_mode = "Windowed"
+dynamic_title = true
+dynamic_padding = true
+decorations = "Full"
+decorations_theme_variant = "Dark"
+opacity = 0.94
+blur = true
+resize_increments = true
+padding = { x = 8, y = 8 }
+
+[scrolling]
+history = 100000
+multiplier = 3
+
+[font]
+normal = { family = "Hack", style = "Regular" }
+bold = { family = "Hack", style = "Bold" }
+italic = { family = "Hack", style = "Italic" }
+bold_italic = { family = "Hack", style = "Bold Italic" }
+size = 12
+
+[selection]
+save_to_clipboard = true
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
+
+[colors.primary]
+background = "#16181d"
+foreground = "#e6edf3"
+
+[colors.cursor]
+cursor = "#79c0ff"
+text = "#16181d"
+
+[colors.selection]
+background = "#264f78"
+text = "#ffffff"
+
+[colors.normal]
+black = "#484f58"
+red = "#ff7b72"
+green = "#3fb950"
+yellow = "#d29922"
+blue = "#58a6ff"
+magenta = "#bc8cff"
+cyan = "#39c5cf"
+white = "#b1bac4"
+
+[colors.bright]
+black = "#6e7681"
+red = "#ffa198"
+green = "#56d364"
+yellow = "#e3b341"
+blue = "#79c0ff"
+magenta = "#d2a8ff"
+cyan = "#56d4dd"
+white = "#f0f6fc"
+
+[terminal.shell]
+program = "__RAFEX_LOGIN_SHELL__"
+args = ["-l"]
+# END rafex macOS Alacritty

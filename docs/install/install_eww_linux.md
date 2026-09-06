@@ -10,7 +10,7 @@ tags:
 # install_eww_linux.sh
 
 Compila EWW `v0.6.0` con soporte X11 en el espacio del usuario e instala una
-columna de widgets tipo dashboard para la ThinkPad.
+columna de widgets tipo Control Center para la ThinkPad.
 
 - **Ruta:** `scripts/install/install_eww_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -41,7 +41,9 @@ Emoji` como fallback para emojis Unicode.
 
 Los controles rápidos incluyen iconos y `−/+` para distinguir visualmente cada
 acción: pantalla y sol, teclado, volumen y mute, radios, micrófono, captura,
-bloqueo y energía.
+bloqueo y energía. La superficie general permanece transparente y las tarjetas
+usan fondos propios para mantener contraste; el tipo X11 continúa siendo
+`desktop` con `stacking bg`, sin reservar espacio.
 
 ## Uso
 
@@ -121,6 +123,8 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
+- **style:** reemplazar el dashboard básico por una presentación Control Center
+  con tarjetas compactas, jerarquía visual e indicadores por sección.
 - **fix:** cerrar el descriptor de `flock` antes de iniciar el daemon y las ventanas EWW.
 - **style:** añadir emojis e indicadores `−/+` a las funciones de EWW.
 - **fix:** hacer el autostart y la apertura del dashboard idempotentes mediante `exec` y `flock`.

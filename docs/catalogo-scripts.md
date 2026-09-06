@@ -115,12 +115,14 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_kbd_brightness_policy_linux.sh` | Linux | install-kbd-brightness | sí | sí | alto | [doc](install/install_kbd_brightness_policy_linux.md) |
 | `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
 | `scripts/install/configure_thinkpad_xorg_dri3_linux.sh` | Linux | configure-thinkpad-xorg-dri3 | sí | sí | alto | [doc](install/configure_thinkpad_xorg_dri3_linux.md) |
+| `scripts/install/configure_thinkpad_touchpad_linux.sh` | Linux | configure-thinkpad-touchpad | sí | sí | medio | [doc](install/configure_thinkpad_touchpad_linux.md) |
 | `scripts/install/install_openbox_profile_linux.sh` | Linux | install-openbox-profile | sí | sí | medio | [doc](install/install_openbox_profile_linux.md) |
 | `scripts/install/install_i3_bar_profiles_linux.sh` | Linux | install-i3-bar-profiles | sí | sí | medio | [doc](install/install_i3_bar_profiles_linux.md) |
 | `scripts/install/install_ufw_linux.sh` | Linux | install-ufw | sí | sí | alto | [doc](install/install_ufw_linux.md) |
 | `scripts/install/harden_thinkpad_linux.sh` | Linux | harden-thinkpad | sí | sí | alto | [doc](install/harden_thinkpad_linux.md) |
 | `scripts/install/setup_ssh_trust_unix.sh` | macOS/Linux | setup-ssh-trust | no | sí | alto | [doc](install/setup_ssh_trust_unix.md) |
 | `scripts/macos/clean_apple_meta_macos.sh` | macOS | clean-apple-meta | no | sí | alto | [doc](macos/clean_apple_meta_macos.md) |
+| `scripts/macos/configure_alacritty_macos.sh` | macOS | configure-alacritty-macos | no | sí | bajo | [doc](macos/configure_alacritty_macos.md) |
 | `scripts/network/connect_nas_linux.sh` | Linux | connect-nas | sí | — | medio | [doc](network/connect_nas_linux.md) |
 | `scripts/network/diag_iface_linux.sh` | Linux | diag-iface | sí | sí | medio | [doc](network/diag_iface_linux.md) |
 | `scripts/network/install_wifi_polkit_linux.sh` | Linux | — | sí | — | alto | [doc](network/install_wifi_polkit_linux.md) |

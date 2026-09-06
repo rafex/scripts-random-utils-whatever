@@ -57,6 +57,7 @@ portable = [
 # Archivo específico de la ThinkPad; requiere sudo y reinicio de la sesión Xorg.
 system_files = [
     "/etc/X11/xorg.conf.d/20-thinkpad-modesetting.conf",
+    "/etc/X11/xorg.conf.d/40-rafex-libinput-touchpad.conf",
 ]
 
 [excluded]

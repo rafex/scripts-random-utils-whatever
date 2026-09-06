@@ -1,15 +1,32 @@
 /* BEGIN rafex eww theme */
 window { background: transparent; }
-.dashboard { background: transparent; color: #f8f8f2; padding: 46px 12px 12px 12px; }
-.card { background: rgba(40, 42, 54, 0.90); border: 1px solid rgba(189, 147, 249, 0.70); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-.clock-card { padding-top: 14px; }
-.brand, .card-title { color: #8be9fd; font-family: "JetBrainsMono Nerd Font Mono", "Noto Color Emoji", "DejaVu Sans Mono"; font-size: 10px; font-weight: bold; letter-spacing: 1px; }
-.clock { color: #f8f8f2; font-size: 28px; font-weight: bold; margin: 3px 0; }
-.date, .value, .media, .calendar { color: #f8f8f2; font-size: 11px; }
-.calendar { font-family: "DejaVu Sans Mono"; margin-top: 8px; }
+.dashboard { background: transparent; color: #f8f8f2; padding: 42px 12px 12px 12px; }
+.card { background: rgba(40, 42, 54, 0.97); border: 1px solid rgba(189, 147, 249, 0.48); border-radius: 16px; padding: 12px; margin-bottom: 9px; }
+.hero-card { background: rgba(32, 34, 45, 0.99); border-color: rgba(139, 233, 253, 0.72); padding: 14px; }
+.hero-topline, .section-line { min-height: 18px; }
+.brand, .card-title, .eyebrow { color: #8be9fd; font-family: "JetBrainsMono Nerd Font Mono", "Noto Color Emoji", "DejaVu Sans Mono"; font-size: 10px; font-weight: bold; letter-spacing: 0.8px; }
+.eyebrow { color: #a6a8bd; font-size: 8px; text-transform: uppercase; }
+.hero-title { color: #f8f8f2; font-size: 15px; font-weight: bold; margin-top: 3px; }
+.theme-chip { color: #282a36; background: #8be9fd; border-radius: 8px; padding: 2px 7px; font-size: 8px; font-weight: bold; }
+.clock { color: #f8f8f2; font-size: 30px; font-weight: bold; margin: 2px 0; }
+.date, .value, .media, .calendar { color: #f8f8f2; font-size: 10px; }
+.calendar { color: #bdc3e6; font-family: "DejaVu Sans Mono"; margin-top: 7px; }
+.hint { color: #a6a8bd; font-size: 8px; margin-top: 3px; }
+.status-dot { color: #50fa7b; font-size: 8px; }
 .compact { margin-top: 3px; }
-button { color: #f8f8f2; background: rgba(68, 71, 90, 0.95); border: 1px solid #bd93f9; border-radius: 6px; padding: 5px 4px; }
-button:hover { background: #6272a4; }
-.quick-button { font-size: 9px; margin: 2px; }
-.media-button, .small-button { font-family: "JetBrainsMono Nerd Font Mono", "Noto Color Emoji", "DejaVu Sans Mono"; font-size: 10px; margin: 2px; }
+.split-row { margin-bottom: 0; }
+.half-card { min-width: 0; margin-right: 4px; }
+.half-card:last-child { margin-right: 0; margin-left: 4px; }
+.media { color: #f8f8f2; margin: 6px 0; }
+.media-controls { margin-top: 2px; }
+button { color: #f8f8f2; background: rgba(68, 71, 90, 0.92); border: 1px solid rgba(189, 147, 249, 0.68); border-radius: 9px; padding: 6px 7px; }
+button:hover { background: #6272a4; border-color: #8be9fd; }
+button:active, button:focus { background: #bd93f9; color: #282a36; }
+.quick-button { font-size: 8px; margin: 2px; padding: 5px 6px; }
+.quick-icon { color: #8be9fd; font-family: "Noto Color Emoji", "JetBrainsMono Nerd Font Mono", "DejaVu Sans Mono"; font-size: 11px; margin-right: 4px; }
+.quick-label { font-size: 8px; }
+.media-button { min-width: 42px; font-family: "Noto Color Emoji", "JetBrainsMono Nerd Font Mono", "DejaVu Sans Mono"; font-size: 11px; margin: 2px; }
+.media-icon { font-size: 11px; }
+.link-button { color: #8be9fd; background: transparent; border: 0; padding: 2px 0; font-size: 8px; }
+.link-button:hover { color: #f8f8f2; background: transparent; border: 0; }
 /* END rafex eww theme */

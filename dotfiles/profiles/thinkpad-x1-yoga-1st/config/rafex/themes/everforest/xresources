@@ -4,8 +4,8 @@ URxvt.termName: rxvt-unicode-256color
 URxvt.scrollBar: false
 URxvt.saveLines: 50000
 URxvt.internalBorder: 8
-URxvt.background: #f3f1dc
-URxvt.foreground: #3c4841
+URxvt.background: #2d353b
+URxvt.foreground: #d3c6aa
 URxvt.cursorColor: #8da101
 URxvt.color0: #3c4841
 URxvt.color1: #f85552
@@ -22,4 +22,4 @@ URxvt.color11: #e7b83d
 URxvt.color12: #5daed5
 URxvt.color13: #e28dcc
 URxvt.color14: #5bbf98
-URxvt.color15: #f3f1dc
+URxvt.color15: #d3c6aa

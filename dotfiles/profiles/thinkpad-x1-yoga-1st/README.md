@@ -159,7 +159,9 @@ instala ni usa `~/.local/bin/picom`.
 `9menu` permanece como respaldo. EWW instala, de forma opcional, una columna
 derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante
 `playerctl`, dispositivos y controles; usa `desktop`/`stacking bg`, no reserva
-espacio y permanece detrás de las ventanas. Se inicia automáticamente una sola
+espacio y permanece detrás de las ventanas. Su presentación es un Control Center
+compacto con tarjetas jerárquicas e indicadores, sin convertirlo en una barra ni
+duplicar las métricas de Conky. Se inicia automáticamente una sola
 vez; el helper usa `flock` para impedir aperturas simultáneas y el autostart de
 i3 no se repite al recargar. Se alterna con `Super+Control+W` o `just eww-widgets --toggle dashboard`. Sus
 acciones pasan por una allowlist sin comandos libres; el panel GTK sigue siendo
@@ -306,12 +308,32 @@ just generate-terminal-themes --apply --theme all
 
 `Mod+Shift+T`, la entrada `Tema claro/oscuro` de ratmenu y las opciones de tema
 del centro Rofi ejecutan el mismo selector. `light` sigue siendo alias de Nord
-y `dark` de Dracula. Alacritty conserva el tamaño `7` y rxvt usa tamaño `10`
-para mantener una lectura cómoda en la pantalla de la ThinkPad.
+y `dark` de Dracula. Alacritty, rxvt-unicode y el estado visual de tmux usan
+fondos oscuros en las cuatro paletas, pero conservan sus colores de acento.
+Alacritty conserva el tamaño `7` y rxvt usa tamaño `10` para mantener una
+lectura cómoda en la pantalla de la ThinkPad.
 
 Alacritty continúa siendo la terminal principal. La entrada `Terminal RXVT y
 tmux` de 9menu abre `urxvt` en la sesión `thinkpad`; en ambos casos no se crea
 una sesión tmux anidada.
+
+### Scroll natural del touchpad
+
+La ThinkPad usa `libinput`. La regla persistente se instala por separado para
+no cambiar el TrackPoint ni los ratones externos:
+
+```sh
+just configure-thinkpad-touchpad --check
+just configure-thinkpad-touchpad --plan
+just configure-thinkpad-touchpad --apply
+```
+
+Después de cerrar y abrir la sesión gráfica, la propiedad `Natural Scrolling`
+del `SynPS/2 Synaptics TouchPad` debe mostrar `1`. El rollback es:
+
+```sh
+just configure-thinkpad-touchpad --rollback
+```
 
 El archivo `~/.tmux.conf` contiene los plugins del perfil developer. TPM se
 instala en `~/.tmux/plugins/tpm`; dentro de tmux usa `Ctrl-b I` para instalar o

@@ -1,6 +1,6 @@
 ---
 title: eww_widgets_linux.sh
-description: Controla el dashboard EWW de Rafex sin reservar espacio del escritorio.
+description: Controla el Control Center EWW de Rafex sin reservar espacio del escritorio.
 tags:
   - sistema
   - eww
@@ -8,7 +8,8 @@ tags:
 
 # eww_widgets_linux.sh
 
-Controla la columna interactiva `rafex-widgets` de EWW del perfil ThinkPad.
+Controla la columna interactiva `rafex-widgets` de EWW del perfil ThinkPad, con
+una presentación tipo Control Center de macOS.
 
 - **Ruta:** `scripts/system/eww_widgets_linux.sh`
 - **SO requerido:** Linux (X11)
@@ -39,6 +40,14 @@ verse cuando el escritorio queda libre. Sus botones solo son utilizables
 cuando la columna está expuesta. Los controles muestran iconos Unicode: pantalla
 con sol y `−/+` para brillo, teclado con `−/+`, altavoz con `−/+` y mute, y
 símbolos específicos para red, micrófono, captura, bloqueo y energía.
+
+La versión visual actual organiza la información en una tarjeta principal de
+reloj, multimedia, notificaciones, energía/tema, dispositivos, controles y
+sesión. El fondo de la ventana continúa transparente; únicamente las tarjetas
+usan superficies opacas para conservar contraste sobre cualquier wallpaper.
+EWW y Conky mantienen responsabilidades separadas: EWW muestra calendario,
+reproductor, notificaciones, dispositivos y acciones, mientras Conky conserva
+sus métricas del sistema.
 
 ## Uso
 
@@ -149,6 +158,8 @@ convertir en `dock` o `fg`, porque podría reservar espacio o quedar encima.
 ## Changelog
 
 ### [Unreleased]
+- **style:** modernizar el dashboard como Control Center compacto con tarjetas,
+  jerarquía visual, indicadores y controles agrupados.
 - **fix:** cerrar el descriptor de `flock` en un subshell antes de iniciar el daemon EWW persistente.
 - **fix:** evitar que el daemon EWW herede el descriptor de `flock` y bloquee futuras operaciones.
 - **style:** añadir emojis e indicadores `−/+` a todos los controles rápidos del dashboard.

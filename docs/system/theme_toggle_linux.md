@@ -65,7 +65,12 @@ su tema `~/.themes/Rafex-*/openbox-3/themerc`, el bloque administrado de
 y el bloque de colores de `~/.config/conky/conky.conf` si Conky está instalado.
 Si el dashboard EWW administrado existe, reemplaza solo su estilo por la
 paleta activa y recarga únicamente el daemon EWW de usuario; la geometría y el
-fondo transparente permanecen sin cambios.
+fondo transparente permanecen sin cambios. La interfaz EWW conserva su estilo
+Control Center aunque cambie el tema.
+Las terminales son una excepción intencional: Alacritty, rxvt-unicode y el
+estado visual de tmux usan superficies oscuras en las cuatro paletas, mientras
+que i3, EWW y el resto de la interfaz sí conservan la variante clara u oscura
+propia del tema.
 Si la sesión activa es i3, solo recarga i3; no intenta conectarse a un socket
 de i3 inexistente desde Openbox.
 
@@ -196,6 +201,9 @@ configuración local después de probar la nueva ventana.
 ## Changelog
 
 ### [Unreleased]
+
+**style:** mantener terminales oscuras por tema y conservar acentos propios en
+Alacritty, rxvt-unicode y tmux.
 
 **feat:** añadir cuatro paletas centralizadas, colores contrastados de i3status,
 Polybar y soporte Xresources para ThinkPad.
