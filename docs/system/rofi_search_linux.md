@@ -62,8 +62,26 @@ Este script no requiere variables de entorno.
 **Causa:** ejecución desde SSH sin `DISPLAY` válido.
 **Solución:** usar la tecla de búsqueda dentro de i3.
 
+### `$mod+space` no hace nada hasta presionar `$mod+r`
+
+**Causa:** una instancia previa de `rofi` queda colgada e invisible (sin
+ventana en `wmctrl -l` pero viva en `ps aux`), bloqueando el lanzamiento
+de una nueva por el mecanismo de instancia única de rofi. Confirmado en
+vivo: `i3-msg -t get_binding_state` en modo `default`, proceso `rofi
+-show drun -show-icons` vivo sin ventana asociada.
+
+**Solución:** el script mata cualquier instancia previa de `rofi`
+(`pkill -x rofi`) antes de lanzar una nueva en los modos `apps`, `combi`
+y `run`. Asegúrate de que `$menu` en
+`dotfiles/profiles/<perfil>/config/i3/config` apunte a
+`~/.local/bin/rofi-search.sh apps` y no a `rofi` directamente.
+
 ## Changelog
 
 ### [Unreleased]
 
 **feat:** añadir búsqueda de aplicaciones compatible con i3.
+
+**fix:** matar instancias previas de `rofi` (`pkill -x rofi`) antes de
+lanzar una nueva en los modos `apps`, `combi` y `run`, evitando que un
+proceso colgado e invisible bloquee `$mod+space`.

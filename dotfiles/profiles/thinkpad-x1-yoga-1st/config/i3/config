@@ -1,7 +1,7 @@
 # i3 portable para ThinkPad X1 Yoga.
 set $mod Mod4
 set $term alacritty
-set $menu rofi -show drun -show-icons
+set $menu ~/.local/bin/rofi-search.sh apps
 set $laptop_menu ~/.local/bin/rafex-ratmenu.sh
 
 # BEGIN rafex theme

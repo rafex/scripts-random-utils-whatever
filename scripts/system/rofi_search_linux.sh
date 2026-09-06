@@ -8,10 +8,18 @@ command -v rofi >/dev/null 2>&1 || {
   exit 1
 }
 
+kill_stale_rofi() {
+  # Mata cualquier instancia previa de rofi -incluida una colgada e
+  # invisible que bloquea nuevos lanzamientos por el mecanismo de
+  # instancia única de rofi- antes de abrir una nueva. -x coincide solo
+  # con el nombre exacto de proceso "rofi", nunca con otro binario.
+  pkill -x rofi 2>/dev/null || true
+}
+
 case "${1:-apps}" in
-  apps) exec rofi -show drun -show-icons ;;
-  combi) exec rofi -show combi -show-icons ;;
-  run) exec rofi -show run ;;
+  apps) kill_stale_rofi; exec rofi -show drun -show-icons ;;
+  combi) kill_stale_rofi; exec rofi -show combi -show-icons ;;
+  run) kill_stale_rofi; exec rofi -show run ;;
   browser)
     if command -v xdg-open >/dev/null 2>&1; then
       exec xdg-open "${BROWSER_START_URL:-https://www.google.com}"
