@@ -120,6 +120,7 @@ nav:
       - install_node_runtime_linux: install/install_node_runtime_linux.md
       - install_build_runtime_linux: install/install_build_runtime_linux.md
       - reconcile_runtimes_linux: install/reconcile_runtimes_linux.md
+      - Guía de runtimes Java, GraalVM y Node.js: install/runtime_runtimes_linux.md
       - runtime_registry_linux: install/runtime_registry_linux.md
       - install_mosh_tmux_kitty_unix: install/install_mosh_tmux_kitty_unix.md
       - install_runtime_switcher_linux: install/install_runtime_switcher_linux.md
@@ -154,6 +155,7 @@ nav:
       - install_vscodium_linux: install/install_vscodium_linux.md
       - install_rustdesk_linux: install/install_rustdesk_linux.md
       - install_albert_linux: install/install_albert_linux.md
+      - install_albert_upstream_linux: install/install_albert_upstream_linux.md
       - install_ulauncher_linux: install/install_ulauncher_linux.md
       - migrate_laptop_linux: install/migrate_laptop_linux.md
       - scrape_eclipse_packages: install/scrape_eclipse_packages.md

@@ -62,6 +62,12 @@ install-rustdesk *args:
 install-albert *args:
     bash scripts/install/install_albert_linux.sh {{args}}
 
+# Compilar Albert v35.1.0 en ~/.local (alternativa a install-albert cuando el paquete OBS
+# tiene dependencias incumplidas en Debian sid)
+# Uso: just install-albert-upstream --check|--plan|--apply|--status [--i3-shortcut]
+install-albert-upstream *args:
+    bash scripts/install/install_albert_upstream_linux.sh {{args}}
+
 # Descargar, verificar e instalar Ulauncher desde el DEB oficial de GitHub
 # Uso: just install-ulauncher --check|--plan|--apply|--status [--i3-shortcut]
 install-ulauncher *args:

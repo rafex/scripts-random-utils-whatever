@@ -182,6 +182,12 @@ nuevas. Puedes ver el detalle exacto de qué dependencia falta con:
 apt-get install -s albert
 ```
 
+Si no quieres esperar,
+[install_albert_upstream_linux.sh](install_albert_upstream_linux.md)
+compila la misma versión desde fuente en `~/.local`, enlazada contra las
+bibliotecas que ya tienes instaladas — evita este desfase por completo,
+a cambio de una compilación más pesada.
+
 ## Changelog
 
 ### [Unreleased]
