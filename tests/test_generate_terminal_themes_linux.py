@@ -105,6 +105,21 @@ class GenerateTerminalThemes(unittest.TestCase):
             (SOURCE_ROOT / "nord/alacritty.toml").read_bytes(),
         )
 
+    def test_eww_scss_avoids_known_unsupported_gtk_css_properties(self):
+        # Regresión: `text-transform` se coló en los 4 temas y EWW (CSS
+        # limitado a GTK, no CSS completo) rechazaba todo el stylesheet en
+        # silencio -> el dashboard caía al estilo por defecto sin avisar
+        # con claridad cuál era la línea/propiedad culpable en el repo
+        # (solo se veía al correr eww-widgets.sh --reload en vivo).
+        unsupported = ("text-transform",)
+        for theme in ("paper", "nord", "everforest", "dracula"):
+            content = (SOURCE_ROOT / theme / "eww.scss").read_text()
+            for prop in unsupported:
+                self.assertNotIn(
+                    prop, content,
+                    f"{theme}/eww.scss usa '{prop}', no soportado por GTK CSS",
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

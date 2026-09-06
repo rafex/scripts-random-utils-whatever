@@ -154,6 +154,43 @@ seguía mostrando `available` con colores/tamaños de fuente obsoletos.
 repo y reporta `stale` en vez de `available` cuando hay diferencias;
 `--plan` además lista qué archivo específico está desactualizado o falta.
 
+### El dashboard de EWW se ve plano, claro y sin tarjetas (`text-transform is not a valid property name`)
+
+**Causa (corregida, observada en vivo el 2026-09-06):** EWW no usa CSS
+completo, sino el subconjunto que soporta GTK CSS, que **no** incluye
+`text-transform`. Los 4 temas tenían `text-transform: uppercase;` en
+`.eyebrow` (redundante: el texto de esas etiquetas ya está en mayúsculas
+en `eww.yuck`, p. ej. `"🎵 MULTIMEDIA"`). Al encontrar esa propiedad, el
+parser de EWW rechazaba el stylesheet completo — no solo esa regla — y
+el dashboard caía al estilo por defecto de GTK: sin tarjetas, sin fondo
+oscuro, sin bordes redondeados. `theme-toggle.sh --set <tema>` solo
+avisaba "EWW no pudo recargar el tema" sin decir por qué.
+
+**Solución:** se quitó `text-transform: uppercase;` de los 4 temas (el
+texto ya viene en mayúsculas desde el yuck, así que no cambia nada
+visualmente). Para diagnosticar un futuro rechazo de stylesheet
+similar, corre el reload a mano para ver el error real de EWW:
+
+```bash
+~/.local/bin/eww-widgets.sh --reload
+```
+
+### `theme-toggle.sh --set <tema>` a veces falla al recargar EWW justo después de aplicar
+
+**Causa (observada en vivo, no siempre reproducible):** `reload_desktop()`
+recarga i3 y EWW en rápida sucesión; si el daemon de EWW todavía está
+reiniciándose por el recargado de i3, el intento de reload puede fallar
+una sola vez con "EWW no pudo recargar el tema" o dejar el dashboard sin
+ninguna ventana activa (`eww list-windows` la sigue listando como
+definida, pero no como activa).
+
+**Solución:** no es necesario relanzar `theme-toggle`; alcanza con:
+
+```bash
+~/.local/bin/eww-widgets.sh --reload   # o, si la ventana no abrió:
+~/.local/bin/eww open rafex-widgets
+```
+
 ## Changelog
 
 ### [Unreleased]
@@ -164,6 +201,10 @@ repo y reporta `stale` en vez de `available` cuando hay diferencias;
   el repo (antes solo verificaban que existiera), y reportan `stale` en
   vez de `available` cuando una paleta quedó desactualizada tras un `git
   pull` sin volver a correr `--apply`.
+- **fix:** quitar `text-transform: uppercase;` (no soportado por GTK CSS)
+  de `.eyebrow` en los 4 temas de `eww.scss` — EWW rechazaba el
+  stylesheet completo por esa única propiedad y el dashboard caía al
+  estilo plano por defecto sin tarjetas ni colores del tema.
 
 ### v1.0.0 — 2026-08-29
 
