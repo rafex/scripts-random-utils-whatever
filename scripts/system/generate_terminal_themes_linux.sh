@@ -13,6 +13,7 @@ SOURCE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/them
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 TARGET_ROOT="$CONFIG_HOME/rafex/themes"
 THEMES=(paper nord everforest dracula)
+THEME_FILES=(i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf conky.conf eww.scss polybar.conf)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -86,10 +87,46 @@ validate_sources() {
   local theme file
   while IFS= read -r theme; do
     [[ -d "$SOURCE_ROOT/$theme" ]] || die "falta la plantilla de tema: $SOURCE_ROOT/$theme"
-    for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf conky.conf eww.scss polybar.conf; do
+    for file in "${THEME_FILES[@]}"; do
       [[ -f "$SOURCE_ROOT/$theme/$file" ]] || die "falta $SOURCE_ROOT/$theme/$file"
     done
   done < <(selected_themes)
+}
+
+# Compara cada archivo del tema contra su plantilla en el repo. Imprime, por
+# archivo pendiente, "<archivo> (falta)" o "<archivo> (desactualizado)"; no
+# imprime nada si el tema ya coincide con el repo.
+diff_theme_files() {
+  local theme="$1" file
+  for file in "${THEME_FILES[@]}"; do
+    if [[ ! -f "$TARGET_ROOT/$theme/$file" ]]; then
+      printf '%s (falta)\n' "$file"
+    elif ! cmp -s "$SOURCE_ROOT/$theme/$file" "$TARGET_ROOT/$theme/$file"; then
+      printf '%s (desactualizado)\n' "$file"
+    fi
+  done
+}
+
+# Estado agregado de un tema: missing (no existe el directorio), incomplete
+# (falta al menos un archivo), stale (todos existen pero alguno no coincide
+# con el repo), up-to-date (todos existen y coinciden byte a byte).
+theme_status() {
+  local theme="$1" pending has_missing=0 has_stale=0
+  [[ -d "$TARGET_ROOT/$theme" ]] || { printf 'missing\n'; return 0; }
+  while IFS= read -r pending; do
+    [[ -n "$pending" ]] || continue
+    case "$pending" in
+      *' (falta)') has_missing=1 ;;
+      *) has_stale=1 ;;
+    esac
+  done < <(diff_theme_files "$theme")
+  if [[ "$has_missing" -eq 1 ]]; then
+    printf 'incomplete\n'
+  elif [[ "$has_stale" -eq 1 ]]; then
+    printf 'stale\n'
+  else
+    printf 'up-to-date\n'
+  fi
 }
 
 backup_path() {
@@ -113,22 +150,11 @@ install_theme_file() {
 }
 
 show_status() {
-  local theme file
+  local theme
   printf 'source=%s\n' "$SOURCE_ROOT"
   printf 'target=%s\n' "$TARGET_ROOT"
   while IFS= read -r theme; do
-    printf '%s=' "$theme"
-    if [[ -d "$TARGET_ROOT/$theme" ]]; then
-      for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf conky.conf eww.scss polybar.conf; do
-        [[ -f "$TARGET_ROOT/$theme/$file" ]] || {
-          printf 'incomplete\n'
-          continue 2
-        }
-      done
-      printf 'available\n'
-    else
-      printf 'missing\n'
-    fi
+    printf '%s=%s\n' "$theme" "$(theme_status "$theme")"
   done < <(selected_themes)
 }
 
@@ -144,8 +170,17 @@ main() {
       ;;
     plan)
       echo '═══ Plan de paletas de terminal, i3 y Openbox ═══'
+      local theme status pending
       while IFS= read -r theme; do
-        info "[plan] materializar $theme en $TARGET_ROOT/$theme"
+        status="$(theme_status "$theme")"
+        if [[ "$status" == up-to-date ]]; then
+          info "[plan] $theme ya coincide con el repo; no se modificará"
+          continue
+        fi
+        info "[plan] materializar $theme en $TARGET_ROOT/$theme ($status)"
+        while IFS= read -r pending; do
+          [[ -n "$pending" ]] && info "[plan]   $pending"
+        done < <(diff_theme_files "$theme")
       done < <(selected_themes)
       info '[plan] conservar el tema actual; usa theme-toggle.sh --set <tema> para seleccionarlo'
       info '[plan] las paletas de Alacritty, rxvt-unicode y tmux permanecerán oscuras'
@@ -154,7 +189,7 @@ main() {
       echo '═══ Generación de paletas de terminal, i3 y Openbox ═══'
       local theme file
       while IFS= read -r theme; do
-        for file in i3.conf tmux.conf alacritty.toml rofi.rasi dunst.conf xresources i3status.conf openbox.themerc tint2.conf conky.conf eww.scss polybar.conf; do
+        for file in "${THEME_FILES[@]}"; do
           install_theme_file "$SOURCE_ROOT/$theme/$file" "$TARGET_ROOT/$theme/$file"
         done
         ok "paleta instalada: $theme"

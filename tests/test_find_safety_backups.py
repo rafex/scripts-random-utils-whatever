@@ -159,6 +159,42 @@ class FindSafetyBackups(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse(backup.exists())
 
+    def test_system_scope_root_reads_via_sudo(self):
+        # Antes de este fix, una raíz fuera de $HOME (--include-system o
+        # --roots) se listaba con `find` normal, así que subdirectorios
+        # restringidos de /etc fallaban en silencio con "Permiso denegado"
+        # y nunca se pedía la contraseña de sudo. Ahora debe leerse (find,
+        # stat, comprobar el original) a través de sudo.
+        outside = tempfile.TemporaryDirectory()
+        self.addCleanup(outside.cleanup)
+        system_root = Path(outside.name)
+        (system_root / "foo.conf").write_text("hi\n")
+        backup = system_root / "foo.conf.bak.20260101_120000"
+        backup.write_text("hi\n")
+
+        mock_bin = Path(self.temp.name) / "mockbin"
+        mock_bin.mkdir()
+        sudo_log = Path(self.temp.name) / "sudo.log"
+        (mock_bin / "sudo").write_text(
+            "#!/bin/sh\n"
+            f'echo "$@" >> "{sudo_log}"\n'
+            'if [ "$1" = "-v" ]; then exit 0; fi\n'
+            'exec "$@"\n'
+        )
+        (mock_bin / "sudo").chmod(0o755)
+        env = dict(self.env, PATH=f"{mock_bin}:{os.environ['PATH']}")
+
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "--plan", "--roots", str(system_root)],
+            env=env, capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(str(backup), result.stdout)
+        self.assertIn("scope=system", result.stdout)
+        log_content = sudo_log.read_text()
+        self.assertIn("-v", log_content)
+        self.assertIn("find", log_content)
+
     def test_backup_directory_is_treated_as_one_finding(self):
         # install_terminal_workstation_linux.sh respalda directorios enteros
         # con el mismo sufijo (p. ej. ~/.config/nvim.bak.<fecha>/).

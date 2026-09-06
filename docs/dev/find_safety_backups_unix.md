@@ -17,8 +17,8 @@ repositorio (ver "Fallos conocidos").
 
 - **Ruta:** `scripts/dev/find_safety_backups_unix.sh`
 - **SO requerido:** macOS, Linux
-- **Dependencias:** Bash, `find`, `sed`, `stat`, `awk`; `sudo` solo para
-  borrar hallazgos de sistema (`--include-system --apply`)
+- **Dependencias:** Bash, `find`, `sed`, `stat`, `awk`; `sudo` para leer y
+  para borrar hallazgos de sistema (`--include-system`, con o sin `--apply`)
 
 ## Índice
 
@@ -33,8 +33,10 @@ repositorio (ver "Fallos conocidos").
 
 ## Requisitos
 
-Ninguno especial. `sudo` solo hace falta si se usa `--include-system` junto
-con `--apply` para borrar hallazgos bajo `/etc`.
+Ninguno especial. `sudo` hace falta en cuanto se usa `--include-system` (o
+`--roots` con una ruta fuera de `$HOME`): tanto para poder leer
+subdirectorios de `/etc` con permisos restringidos (`/etc/ssl/private`,
+`/etc/audit`, etc.) como, más adelante, para borrar lo encontrado.
 
 ## Uso
 
@@ -73,7 +75,7 @@ No se usa `.env` ni se aceptan credenciales.
 just find-safety-backups --check
 ```
 
-### Con rutas de sistema (requiere sudo solo para borrar)
+### Con rutas de sistema (requiere sudo para leer y para borrar)
 
 ```bash
 just find-safety-backups --plan --include-system
@@ -122,9 +124,11 @@ just find-safety-backups --check --roots /mnt/home-viejo,/mnt/etc-viejo
   (`~/.local/share/containers`, `~/.local/share/npm-global`,
   `~/.local/share/rafex/eww`, `~/.cache`, `~/.cargo`, `~/.rustup`,
   `~/.npm`, `~/.git`, `node_modules`).
-- Nunca se ejecuta como root. `sudo` se usa solo por operación de borrado,
-  y solo para hallazgos bajo rutas de sistema (`--include-system`); listar
-  esas rutas no requiere privilegios.
+- Nunca se ejecuta como root. `sudo` se usa únicamente para rutas de
+  sistema (`--include-system`, o una raíz de `--roots` fuera de `$HOME`):
+  tanto para listarlas (`find`, `stat`, comprobar si el original existe)
+  como para borrar. Las raíces de usuario (`~/.config`, `~/.local/share`,
+  `$HOME`) nunca invocan `sudo`.
 - Un respaldo cuyo archivo original ya no existe se sigue considerando
   igual de seguro de borrar (se informa como "ausente", nunca bloquea el
   borrado).
@@ -151,6 +155,21 @@ de alcance de este script (ver exclusiones duras arriba).
 **Solución:** no aplica; son mecanismos distintos que, si se necesita,
 tendrían su propia herramienta de limpieza.
 
+### `find: '/etc/...': Permiso denegado` con `--include-system --plan`/`--check`
+
+**Causa (corregida):** versiones anteriores solo pedían `sudo` para
+*borrar* hallazgos de sistema; la búsqueda (`find`) y la lectura de
+metadatos (`stat`, comprobación del original) corrían siempre sin
+privilegios, así que subdirectorios restringidos de `/etc`
+(`/etc/ssl/private`, `/etc/audit`, `/etc/libvirt/secrets`, etc.) se
+saltaban en silencio con "Permiso denegado", sin pedir nunca la
+contraseña.
+
+**Solución:** desde esta versión, cualquier raíz fuera de `$HOME`
+(`--include-system` o `--roots` con una ruta de sistema) pide `sudo -v`
+por adelantado y usa `sudo` también para `find`/`stat`/comprobar el
+original, para poder leer esas rutas restringidas.
+
 ## Changelog
 
 ### [Unreleased]
@@ -158,3 +177,7 @@ tendrían su propia herramienta de limpieza.
 - **feat:** localizar y borrar en bloque o interactivamente los respaldos
   `.bak.<fecha>` colocados junto a archivos de configuración, en rutas de
   usuario y (opcionalmente) del sistema.
+- **fix:** `--include-system` (o `--roots` fuera de `$HOME`) ahora usa
+  `sudo` también para leer (`find`, `stat`, comprobar el original), no
+  solo para borrar — antes fallaba en silencio con "Permiso denegado" en
+  subdirectorios restringidos de `/etc` y nunca pedía la contraseña.

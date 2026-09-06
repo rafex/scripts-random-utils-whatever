@@ -58,6 +58,19 @@ El destino es `~/.config/rafex/themes/`. Alacritty, Rofi, Dunst, Openbox, tint2,
 Polybar y Conky utilizan el enlace `current` que mantiene el selector. Openbox, tint2
 y Conky y EWW solo se sincronizan cuando sus configuraciones están instaladas.
 
+`--check` reporta, por cada paleta, uno de estos estados (comparando
+contenido byte a byte contra el repo, no solo la existencia del archivo):
+
+| Estado | Significado |
+|---|---|
+| `missing` | No existe `~/.config/rafex/themes/<tema>/`. |
+| `incomplete` | Existe el directorio pero falta al menos un archivo. |
+| `stale` | Todos los archivos existen, pero al menos uno no coincide con la plantilla del repo (por ejemplo, tras un `git pull` que actualizó una paleta y nunca se volvió a correr `--apply`). |
+| `up-to-date` | Todos los archivos existen y coinciden con el repo. |
+
+`--plan` además lista, para cada tema que no esté `up-to-date`, qué archivo
+falta o está desactualizado.
+
 ## Opciones
 
 | Opción | Alias | Descripción |
@@ -128,12 +141,29 @@ abierto no siempre relee los recursos automáticamente.
 **Solución:** Ejecuta `xrdb -merge ~/.Xresources` y abre una nueva ventana de
 `urxvt`.
 
+### `--check` decía `available` pero el contenido seguía siendo el de una versión vieja del repo
+
+**Causa (corregida):** antes de esta versión, `--check`/`--plan` solo
+verificaban que los 12 archivos de cada tema existieran, nunca que su
+contenido coincidiera con la plantilla actual del repo. Así, un `git pull`
+que oscureciera una paleta (o le agregara archivos nuevos) no se reflejaba
+en el estado reportado, y una máquina que nunca volvió a correr `--apply`
+seguía mostrando `available` con colores/tamaños de fuente obsoletos.
+
+**Solución:** `--check` ahora compara byte a byte cada archivo contra el
+repo y reporta `stale` en vez de `available` cuando hay diferencias;
+`--plan` además lista qué archivo específico está desactualizado o falta.
+
 ## Changelog
 
 ### [Unreleased]
 
 - **feat:** Añadir Paper, Nord, Everforest y Dracula con soporte para
   rxvt-unicode, i3status, Openbox, tint2, Polybar, Conky y EWW.
+- **fix:** `--check`/`--plan` comparan el contenido de cada archivo contra
+  el repo (antes solo verificaban que existiera), y reportan `stale` en
+  vez de `available` cuando una paleta quedó desactualizada tras un `git
+  pull` sin volver a correr `--apply`.
 
 ### v1.0.0 — 2026-08-29
 

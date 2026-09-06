@@ -169,12 +169,53 @@ strip_backup_suffix() {
     -e 's/\.bak-[0-9]{8}-[0-9]{6}\.[A-Za-z0-9]{6}$//'
 }
 
+root_is_system_scope() {
+  local root="$1"
+  case "$root" in
+    "$HOME"|"$HOME"/*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+any_search_root_is_system() {
+  local entry root
+  for entry in "${SEARCH_ROOTS[@]}"; do
+    root="${entry%|*}"
+    root_is_system_scope "$root" && return 0
+  done
+  return 1
+}
+
 os_stat_size_mtime() {
-  local path="$1"
+  local path="$1" scope="${2:-user}"
+  local -a cmd
   if [[ "$(uname -s)" == Darwin ]]; then
-    stat -f '%z %m' -- "$path"
+    cmd=(stat -f '%z %m' -- "$path")
   else
-    stat -c '%s %Y' -- "$path"
+    cmd=(stat -c '%s %Y' -- "$path")
+  fi
+  if [[ "$scope" == system ]]; then
+    sudo "${cmd[@]}"
+  else
+    "${cmd[@]}"
+  fi
+}
+
+path_exists() {
+  local path="$1" scope="${2:-user}"
+  if [[ "$scope" == system ]]; then
+    sudo test -e -- "$path"
+  else
+    [[ -e "$path" ]]
+  fi
+}
+
+path_is_dir() {
+  local path="$1" scope="${2:-user}"
+  if [[ "$scope" == system ]]; then
+    sudo test -d -- "$path"
+  else
+    [[ -d "$path" ]]
   fi
 }
 
@@ -203,13 +244,13 @@ FINDINGS=()
 
 emit_finding() {
   local path="$1" size mtime original original_exists scope
-  read -r size mtime < <(os_stat_size_mtime "$path")
-  original="$(strip_backup_suffix "$path")"
-  if [[ -e "$original" ]]; then original_exists=si; else original_exists=no; fi
   case "$path" in
     "$HOME"/*) scope=user ;;
     *) scope=system ;;
   esac
+  read -r size mtime < <(os_stat_size_mtime "$path" "$scope")
+  original="$(strip_backup_suffix "$path")"
+  if path_exists "$original" "$scope"; then original_exists=si; else original_exists=no; fi
   FINDINGS+=("$path"$'\t'"$size"$'\t'"$mtime"$'\t'"$original"$'\t'"$original_exists"$'\t'"$scope")
 }
 
@@ -228,6 +269,11 @@ find_backups_in_root() {
   find_opts=(-mindepth 1)
   [[ -n "$maxdepth" ]] && find_opts+=(-maxdepth "$maxdepth")
 
+  local scope
+  root_is_system_scope "$root" && scope=system || scope=user
+  local -a find_cmd=(find)
+  [[ "$scope" == system ]] && find_cmd=(sudo find)
+
   local path name skip kd
   while IFS= read -r -d '' path; do
     is_excluded_path "$path" && continue
@@ -241,11 +287,11 @@ find_backups_in_root() {
     name="$(basename -- "$path")"
     if is_backup_name "$name"; then
       emit_finding "$path"
-      if [[ -d "$path" ]]; then
+      if path_is_dir "$path" "$scope"; then
         known_backup_dirs+=("$path")
       fi
     fi
-  done < <(find "$root" "${find_opts[@]}" \( "${prune_args[@]}" \) -prune -o -print0)
+  done < <("${find_cmd[@]}" "$root" "${find_opts[@]}" \( "${prune_args[@]}" \) -prune -o -print0)
   return 0
 }
 
@@ -414,6 +460,10 @@ main() {
   parse_args "$@"
   [[ "${EUID:-$(id -u)}" -ne 0 ]] || die 'ejecuta el script como usuario normal; sudo se usa internamente'
   build_search_roots
+  if any_search_root_is_system; then
+    info 'algunas raíces requieren sudo para leerse (--include-system o --roots fuera de HOME)'
+    sudo -v
+  fi
   find_backups
   case "$ACTION" in
     check) show_findings check ;;
