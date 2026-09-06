@@ -295,15 +295,26 @@ Los logs de aplicación se guardan por defecto en:
   de locale real; no existe forma de "generarlo" con `locale-gen`). El
   ThinkPad ya tiene su propio locale correcto por defecto
   (`es_MX.UTF-8`), pero ese valor recibido lo pisa en cada shell.
-**Solución:** desde esta versión, el drop-in agrega `AcceptEnv COLORTERM
-  NO_COLOR` (sin `LANG`/`LC_*`). Como `/etc/ssh/sshd_config.d/*.conf` se
-  incluye al inicio del archivo principal, esta línea gana sobre el
-  `AcceptEnv LANG LC_*` de stock y el ThinkPad deja de aceptar el locale del
-  cliente. Confirmado que no hay forma de arreglar esto solo del lado del
+**Solución:** `AcceptEnv` es una directiva **acumulativa** en sshd_config
+  (igual que `SendEnv` del lado cliente) — confirmado con `sudo sshd -T`:
+  un `AcceptEnv COLORTERM NO_COLOR` en el drop-in **no reemplaza** el
+  `AcceptEnv LANG LC_*` del archivo principal, se le suma. La frase del
+  man page de Debian ("las opciones del drop-in sobreescriben las de
+  sshd_config") aplica a directivas de valor único, no a esta. La única
+  forma real de dejar de aceptar `LANG`/`LC_*` es comentar esa línea de
+  stock directamente en `/etc/ssh/sshd_config` — `apply_ssh()` ahora lo
+  hace de forma idempotente (busca la línea exacta, la comenta con
+  `sed`, respalda antes con el mismo mecanismo que el resto del script, y
+  revierte si `sshd -t` o el reload fallan). `--check` muestra si sshd
+  todavía acepta `LANG`/`LC_*` de forma efectiva (`sshd -T`), no solo si
+  el drop-in existe.
+
+  Confirmado también que no hay forma de arreglar esto solo del lado del
   cliente (macOS) sin editar su `/etc/ssh/ssh_config` de sistema completo:
   el mecanismo de exclusión `SendEnv -patrón` de OpenSSH solo limpia
   patrones "previamente establecidos", y el `SendEnv LANG LC_*` global de
-  macOS se lee después del `~/.ssh/config` del usuario.
+  macOS se lee después del `~/.ssh/config` del usuario — por eso no basta
+  con un bloque `Host` en el config del cliente.
 
 ## Changelog
 
@@ -312,6 +323,10 @@ Los logs de aplicación se guardan por defecto en:
 - **feat:** añadir hardening ThinkPad por fases SSH y local.
 - **security:** incorporar UFW, fail2ban, AppArmor en auditoría, auditd mínimo,
   actualizaciones de seguridad, sysctl compatible y USBGuard no bloqueante.
-- **security:** el drop-in SSH deja de aceptar `LANG`/`LC_*` del cliente
-  (`AcceptEnv COLORTERM NO_COLOR`), evitando que un `LC_CTYPE=UTF-8` de
-  macOS produzca warnings de `setlocale` en cada sesión.
+- **security:** `apply_ssh()` comenta la línea de stock `AcceptEnv LANG
+  LC_*` en `/etc/ssh/sshd_config` (respaldada e idempotente), evitando
+  que un `LC_CTYPE=UTF-8` de macOS produzca warnings de `setlocale` en
+  cada sesión — un `AcceptEnv` en el drop-in por sí solo no bastaba,
+  confirmado con `sshd -T` (es una directiva acumulativa, no de
+  reemplazo). `--check` ahora reporta si sshd todavía acepta `LANG`/`LC_*`
+  de forma efectiva.

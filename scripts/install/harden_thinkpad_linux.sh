@@ -23,6 +23,8 @@ else
 fi
 BACKUP_DIR='/var/backups/rafex-thinkpad-hardening'
 SSH_DROPIN='/etc/ssh/sshd_config.d/90-thinkpad-hardening.conf'
+SSHD_MAIN_CONFIG='/etc/ssh/sshd_config'
+STOCK_ACCEPTENV_LINE='AcceptEnv LANG LC_* COLORTERM NO_COLOR'
 FAIL2BAN_JAIL='/etc/fail2ban/jail.d/sshd-thinkpad.local'
 AUDIT_RULES='/etc/audit/rules.d/99-thinkpad-hardening.rules'
 SYSCTL_FILE='/etc/sysctl.d/99-thinkpad-hardening.conf'
@@ -312,6 +314,11 @@ check_ssh() {
   local effective_ssh
   if effective_ssh="$(sudo -n /usr/sbin/sshd -T 2>/dev/null)"; then
     printf '%s\n' "$effective_ssh" | grep -E '^(permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication|maxauthtries|logingracetime|clientaliveinterval|clientalivecountmax) ' || true
+    if printf '%s\n' "$effective_ssh" | grep -qE '^acceptenv (lang|lc_\*)$'; then
+      warn 'sshd todavía acepta LANG/LC_* del cliente (AcceptEnv es acumulativo; revisa la línea de stock en sshd_config)'
+    else
+      ok 'sshd ya no acepta LANG/LC_* del cliente'
+    fi
   else
     warn 'no se pudo consultar la configuración efectiva de sshd sin sudo'
   fi
@@ -407,27 +414,67 @@ preflight_ssh() {
     die 'la configuración SSH actual no supera sshd -t'
 }
 
+neutralize_stock_acceptenv() {
+  # AcceptEnv es una directiva acumulativa en sshd_config (igual que
+  # SendEnv del lado cliente): un AcceptEnv en el drop-in no reemplaza el
+  # de /etc/ssh/sshd_config, se le SUMA (confirmado con `sshd -T`). La
+  # única forma real de dejar de aceptar LANG/LC_* del cliente es comentar
+  # la línea de stock de Debian en el archivo principal.
+  ACCEPTENV_CHANGED=0
+  ACCEPTENV_BACKUP=''
+  # sshd_config principal es de lectura pública (644): no hace falta sudo
+  # para detectar la línea, solo para comentarla más abajo.
+  [[ -f "$SSHD_MAIN_CONFIG" ]] || return 0
+  local line_number
+  line_number="$(grep -nxF "$STOCK_ACCEPTENV_LINE" "$SSHD_MAIN_CONFIG" 2>/dev/null |
+    head -1 | cut -d: -f1)"
+  if [[ -z "$line_number" ]]; then
+    ok "AcceptEnv de stock ya no está presente en $SSHD_MAIN_CONFIG"
+    return 0
+  fi
+  if [[ "$ACTION" == plan ]]; then
+    info "[plan] comentar línea $line_number ('$STOCK_ACCEPTENV_LINE') en $SSHD_MAIN_CONFIG"
+    return 0
+  fi
+  backup_file "$SSHD_MAIN_CONFIG"
+  ACCEPTENV_BACKUP="$BACKUP_DEST"
+  sudo sed -i "${line_number}s/^/# Neutralizado por harden_thinkpad_linux.sh -ver AcceptEnv en ${SSH_DROPIN}-: /" \
+    "$SSHD_MAIN_CONFIG"
+  ACCEPTENV_CHANGED=1
+  ok "AcceptEnv de stock neutralizado en $SSHD_MAIN_CONFIG (línea $line_number)"
+}
+
 apply_ssh() {
-  local backup
+  local dropin_backup dropin_changed acceptenv_backup acceptenv_changed
   preflight_ssh
   if [[ "$ACTION" == plan ]]; then
     info "[plan] respaldar y escribir $SSH_DROPIN"
+    neutralize_stock_acceptenv
     info '[plan] sudo /usr/sbin/sshd -t'
     info '[plan] sudo systemctl reload ssh'
     return 0
   fi
   install_root_content "$SSH_DROPIN" 0644 "$(ssh_content)"
-  [[ "$FILE_CHANGED" -eq 0 ]] && { ok 'SSH ya estaba endurecido'; return 0; }
-  backup="$BACKUP_DEST"
+  dropin_changed="$FILE_CHANGED"
+  dropin_backup="$BACKUP_DEST"
+  neutralize_stock_acceptenv
+  acceptenv_changed="$ACCEPTENV_CHANGED"
+  acceptenv_backup="$ACCEPTENV_BACKUP"
+  if [[ "$dropin_changed" -eq 0 && "$acceptenv_changed" -eq 0 ]]; then
+    ok 'SSH ya estaba endurecido'
+    return 0
+  fi
   if ! sudo /usr/sbin/sshd -t; then
     warn 'sshd -t falló; restaurando configuración SSH anterior'
-    restore_backup "$SSH_DROPIN" "$backup"
+    [[ "$dropin_changed" -eq 1 ]] && restore_backup "$SSH_DROPIN" "$dropin_backup"
+    [[ "$acceptenv_changed" -eq 1 ]] && restore_backup "$SSHD_MAIN_CONFIG" "$acceptenv_backup"
     sudo /usr/sbin/sshd -t || true
     die 'no se aplicó el hardening SSH'
   fi
   if ! sudo systemctl reload ssh; then
     warn 'systemctl reload ssh falló; restaurando configuración SSH anterior'
-    restore_backup "$SSH_DROPIN" "$backup"
+    [[ "$dropin_changed" -eq 1 ]] && restore_backup "$SSH_DROPIN" "$dropin_backup"
+    [[ "$acceptenv_changed" -eq 1 ]] && restore_backup "$SSHD_MAIN_CONFIG" "$acceptenv_backup"
     sudo systemctl reload ssh || true
     die 'no se aplicó el hardening SSH'
   fi
