@@ -45,6 +45,7 @@ def extract_functions(*names):
 
 
 FUNCTIONS_UNDER_TEST = extract_functions("find_modem_path", "find_modem_id")
+RAW_IP_RULE_FUNCTION = extract_functions("raw_ip_rule_content")
 
 
 class FindModemId(unittest.TestCase):
@@ -100,6 +101,28 @@ class FindModemId(unittest.TestCase):
         result = self.run_with_listing(NO_MODEMS)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), "NONE")
+
+
+class RawIpUdevRule(unittest.TestCase):
+    def test_matches_only_by_usb_vendor_product_not_by_driver(self):
+        # Regresión: una versión anterior de esta regla combinaba
+        # DRIVERS=="qmi_wwan" con ATTRS{idVendor}/ATTRS{idProduct} en la
+        # misma línea. udev exige que todos los ATTRS{} de una regla
+        # coincidan con el MISMO dispositivo ancestro; DRIVERS=="qmi_wwan"
+        # coincide con el padre inmediato (la interfaz USB), mientras que
+        # idVendor/idProduct viven un nivel más arriba (el dispositivo USB
+        # completo) -- así que la regla nunca coincidía (confirmado en
+        # vivo con `udevadm test`, sin RUN encolado). La regla debe usar
+        # solo SUBSYSTEM=="net" + ATTRS{idVendor}/ATTRS{idProduct}.
+        harness = f"{RAW_IP_RULE_FUNCTION}\nFLAME_USB_ID='05c6:9025'\nraw_ip_rule_content\n"
+        result = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        line = result.stdout.strip()
+        self.assertNotIn("DRIVERS==", line)
+        self.assertIn('SUBSYSTEM=="net"', line)
+        self.assertIn('ATTRS{idVendor}=="05c6"', line)
+        self.assertIn('ATTRS{idProduct}=="9025"', line)
+        self.assertIn("raw_ip", line)
 
 
 if __name__ == "__main__":

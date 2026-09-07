@@ -9,6 +9,8 @@ set -Eeuo pipefail
 readonly APN="internet.mvne1.com"
 readonly PROFILE_NAME="${FLAME_OXXOCEL_PROFILE:-Flame Oxxo Cel}"
 readonly ROUTE_METRIC=700
+readonly FLAME_USB_ID="05c6:9025"
+readonly RAWIP_UDEV_RULE="/etc/udev/rules.d/79-flame-oxxocel-qmi-rawip.rules"
 TARGET_USER="$(id -un)"
 readonly TARGET_USER
 readonly REQUIRED_PACKAGES=(
@@ -128,6 +130,98 @@ find_modem_id() {
   modem_path="$(find_modem_path)"
   [[ -n "$modem_path" ]] || return 1
   basename "$modem_path"
+}
+
+current_net_iface() {
+  local modem_id raw ports
+  modem_id="$(find_modem_id)" || return 1
+  raw="$(mmcli -m "$modem_id" 2>&1 || true)"
+  ports="$(modem_field "$raw" "ports")"
+  grep -oE '[A-Za-z0-9]+ \(net\)' <<< "$ports" | awk '{print $1}' | sed -n '1p'
+}
+
+# El módem del Flame (qmi_wwan genérico, sin plugin dedicado en
+# ModemManager) arranca su interfaz de red en modo "ether" (raw_ip=N).
+# En ese modo la sesión de datos se registra y sube por UUID sin error,
+# pero NetworkManager nunca logra reservar una IP ("no hay direcciones
+# disponibles, tiempo de espera, etc.") porque el driver está enviando
+# tramas Ethernet emuladas en vez de paquetes IP crudos, que es lo que
+# entrega el firmware por QMI. Confirmado en vivo el 2026-09-06:
+# cambiar manualmente a raw_ip=Y resolvió la conexión de inmediato.
+raw_ip_rule_content() {
+  local vendor="${FLAME_USB_ID%:*}" product="${FLAME_USB_ID#*:}"
+  cat <<EOF
+SUBSYSTEM=="net", ATTRS{idVendor}=="$vendor", ATTRS{idProduct}=="$product", RUN+="/bin/sh -c 'echo Y > /sys/class/net/%k/qmi/raw_ip'"
+EOF
+}
+
+raw_ip_path_for() {
+  printf '/sys/class/net/%s/qmi/raw_ip\n' "$1"
+}
+
+show_raw_ip_status() {
+  local iface path value
+  iface="$(current_net_iface || true)"
+  [[ -n "$iface" ]] || { warn "no se pudo determinar la interfaz de red del módem del Flame"; return 0; }
+  path="$(raw_ip_path_for "$iface")"
+  if [[ ! -r "$path" ]]; then
+    warn "$path no existe; el driver puede no ser qmi_wwan en este dispositivo"
+    return 0
+  fi
+  value="$(cat "$path" 2>/dev/null || true)"
+  printf '  raw_ip (%s): %s\n' "$iface" "$value"
+  if [[ "$value" == "Y" ]]; then
+    success "interfaz en modo raw_ip; la sesión de datos QMI debería poder obtener IP"
+  else
+    warn "interfaz en modo Ethernet emulado (raw_ip=N); NetworkManager fallará al reservar IP hasta corregirlo (usa --apply)"
+  fi
+  if [[ -L "$RAWIP_UDEV_RULE" || -f "$RAWIP_UDEV_RULE" ]]; then
+    success "regla udev raw_ip instalada: $RAWIP_UDEV_RULE"
+  else
+    warn "falta la regla udev raw_ip persistente: $RAWIP_UDEV_RULE (usa --apply)"
+  fi
+}
+
+ensure_raw_ip_udev_rule() {
+  local desired current temp_file backup_path iface path value
+
+  desired="$(raw_ip_rule_content)"
+  if [[ -f "$RAWIP_UDEV_RULE" ]] && current="$(cat "$RAWIP_UDEV_RULE" 2>/dev/null)" && [[ "$current" == "$desired" ]]; then
+    success "regla udev raw_ip ya estaba instalada: $RAWIP_UDEV_RULE"
+  else
+    if [[ -e "$RAWIP_UDEV_RULE" ]]; then
+      backup_path="${RAWIP_UDEV_RULE}.bak.$(date +%Y%m%d_%H%M%S)"
+      sudo cp -a -- "$RAWIP_UDEV_RULE" "$backup_path"
+      info "respaldo de regla udev anterior: $backup_path"
+    fi
+    temp_file="$(mktemp)"
+    printf '%s' "$desired" > "$temp_file"
+    sudo install -D -m 0644 -- "$temp_file" "$RAWIP_UDEV_RULE"
+    rm -f -- "$temp_file"
+    success "regla udev raw_ip instalada: $RAWIP_UDEV_RULE"
+  fi
+
+  sudo udevadm control --reload-rules
+
+  # Si el módem ya está conectado en modo Ethernet, aplicarlo de
+  # inmediato en vez de esperar a que el Flame se desconecte y reconecte
+  # físicamente: hace falta bajar la interfaz para poder escribir
+  # raw_ip, y volver a subirla para que ModemManager/NetworkManager la
+  # usen normalmente.
+  iface="$(current_net_iface || true)"
+  [[ -n "$iface" ]] || return 0
+  path="$(raw_ip_path_for "$iface")"
+  [[ -r "$path" ]] || return 0
+  value="$(cat "$path" 2>/dev/null || true)"
+  if [[ "$value" == "N" ]]; then
+    info "aplicando raw_ip=Y de inmediato a $iface (sin esperar a reconectar el Flame)"
+    sudo ip link set "$iface" down
+    printf 'Y\n' | sudo tee "$path" >/dev/null
+    sudo ip link set "$iface" up
+    success "$iface actualizada a modo raw_ip"
+  else
+    success "$iface ya estaba en modo raw_ip"
+  fi
 }
 
 modem_field() {
@@ -461,6 +555,7 @@ action_check() {
   fi
   if command -v mmcli >/dev/null 2>&1; then
     show_modem_summary
+    show_raw_ip_status
   fi
   show_profile_status
 
@@ -483,6 +578,7 @@ action_plan() {
     success "[plan] no faltan paquetes WWAN"
   fi
   info "[plan] habilitar NetworkManager y ModemManager"
+  info "[plan] instalar/actualizar $RAWIP_UDEV_RULE (raw_ip para el módem $FLAME_USB_ID)"
   info "[plan] crear o actualizar el perfil GSM ${PROFILE_NAME}"
   info "[plan] APN ${APN}, IPv4/IPv6 automático, métrica ${ROUTE_METRIC}"
   info "[plan] autoconnect habilitado, métrica ${ROUTE_METRIC} y roaming desactivado"
@@ -574,6 +670,7 @@ action_apply() {
   if ! sudo systemctl enable --now NetworkManager.service ModemManager.service; then
     die "no se pudieron activar NetworkManager y ModemManager; revisa systemctl status NetworkManager ModemManager"
   fi
+  ensure_raw_ip_udev_rule
   configure_profile
   if ! find_modem_id >/dev/null 2>&1; then
     warn "perfil creado, pero ModemManager todavía no detecta el módem del Flame; confirma que esté conectado por USB"
@@ -588,6 +685,7 @@ action_status() {
   printf '%b\n' "${BOLD}═══ Estado WWAN Flame Oxxo Cel ═══${RESET}"
   if command -v nmcli >/dev/null 2>&1; then
     show_driver_state
+    show_raw_ip_status
     show_profile_status
   fi
   if command -v mmcli >/dev/null 2>&1; then

@@ -176,6 +176,10 @@ just configure-wwan-flame-oxxocel --sms-list
   tener la métrica menor.
 - `connection.metered yes` identifica la WWAN como datos medidos.
 - El roaming queda desactivado inicialmente (`gsm.home-only yes`).
+- La regla udev `/etc/udev/rules.d/79-flame-oxxocel-qmi-rawip.rules`
+  solo actúa sobre el USB ID `05c6:9025` (el módem del Flame); no toca
+  ningún otro dispositivo de red. Si ya existía un archivo distinto en
+  esa ruta, se respalda con `.bak.<fecha>` antes de reemplazarlo.
 - No se modifican firmware, composición USB, BIOS, GRUB, particiones,
   `fstab` ni configuraciones de NetworkManager ajenas al perfil
   administrado — incluyendo el perfil `OXXO Cel` de la EM7455.
@@ -208,32 +212,44 @@ no expone el módem al host.
 teléfono (algunos requieren activar explícitamente "depuración
 remota"/USB en Ajustes).
 
-### `La configuración IP no se pudo reservar` al conectar
+### `La configuración IP no se pudo reservar` al conectar (corregido: interfaz en modo Ethernet emulado)
 
-**Causa (observada en vivo el 2026-09-06):** el módem del Flame se
-registra en la red (`state: registered`, `packet service state:
-attached`) y `--connect` sube el perfil correctamente por UUID, pero
-NetworkManager reporta `La configuración IP no se pudo reservar (no hay
-direcciones disponibles, tiempo de espera, etc.)` al negociar la sesión
-de datos, y el módem queda momentáneamente en `disconnecting`. Se
-reprodujo en dos intentos consecutivos. El módem de este Flame es 2014
-(`MPSS.TR.2.0-00741...`), solo 2G/3G, con señal moderada (~33-39%) — no
-es un problema del perfil ni del APN: el mismo `internet.mvne1.com` sin
-usuario/contraseña funciona en el perfil `OXXO Cel` de la EM7455.
-
-**Solución:** no es algo que el script pueda forzar reintentando; son
-señales típicas de negociación de datos débil (señal 2G/3G baja) o,
-posiblemente, que la SIM/plan de datos de OXXO Cel de ese chip en
-particular no esté activo para esa línea. Antes de seguir intentando:
+**Causa (corregida, diagnosticada en vivo el 2026-09-06):** el módem del
+Flame usa el plugin genérico `qmi_wwan` (ModemManager no tiene un plugin
+dedicado para él, a diferencia de la EM7455 con `sierra`). El driver
+`qmi_wwan` arranca su interfaz de red en modo "ether" (emulando tramas
+Ethernet) salvo que se le indique explícitamente usar `raw_ip`. En modo
+"ether", el módem se registra en la red, `--connect` sube el perfil por
+UUID sin error, pero NetworkManager nunca logra reservar una IP —
+justo el síntoma reportado, reproducido en dos intentos consecutivos —
+porque el firmware entrega paquetes IP crudos por QMI mientras la
+interfaz de Linux espera tramas Ethernet. Confirmarlo:
 
 ```bash
-mmcli -m <índice> | grep -E 'signal quality|access tech'
+cat /sys/class/net/<interfaz-wwp...>/qmi/raw_ip   # "N" = el bug está presente
 ```
 
-Si la señal es baja, acerca el Flame a una ventana o reubica la
-ThinkPad; si el problema persiste con señal aceptable, verifica el saldo
-y plan de datos de esa SIM específica directamente con OXXO Cel antes de
-seguir depurando el lado de NetworkManager.
+No era un problema de señal, APN ni credenciales: el mismo
+`internet.mvne1.com` sin usuario/contraseña ya funcionaba en el perfil
+`OXXO Cel` de la EM7455 (que sí trae un plugin dedicado).
+
+**Solución:** `--apply` ahora instala una regla udev persistente
+(`/etc/udev/rules.d/79-flame-oxxocel-qmi-rawip.rules`) que fuerza
+`raw_ip=Y` para el módem `05c6:9025` en cuanto aparece su interfaz de
+red, y la aplica de inmediato si el Flame ya estaba conectado (sin
+esperar a un reconectado físico). `--check`/`--status` reportan el modo
+actual de la interfaz (`show_raw_ip_status`). Si alguna vez ves `N` de
+nuevo después de `--apply`, revisa que la regla exista y que
+`udevadm control --reload-rules` haya corrido sin error.
+
+Nota técnica sobre la regla: todos los `ATTRS{}` de una misma línea udev
+deben coincidir con el **mismo** dispositivo ancestro. Una primera
+versión de la regla combinaba `DRIVERS=="qmi_wwan"` (que coincide con la
+interfaz USB, un nivel) con `ATTRS{idVendor}`/`ATTRS{idProduct}` (que
+viven en el dispositivo USB completo, un nivel más arriba) y por eso
+nunca coincidía (confirmado con `udevadm test`, sin `RUN` encolado). La
+regla final usa solo `SUBSYSTEM=="net"` + `ATTRS{idVendor}`/
+`ATTRS{idProduct}`.
 
 ### `la SIM está ausente o no es detectada por el módem del Flame`
 
@@ -252,3 +268,9 @@ conectarse.
   por USB como perfil NetworkManager independiente (`Flame Oxxo Cel`),
   hermano de `configure_wwan_oxxocel_linux.sh` (EM7455 interna) — mismo
   APN, perfiles y módems separados.
+- **fix:** `--apply` instala una regla udev que fuerza `raw_ip=Y` en la
+  interfaz QMI del módem (`05c6:9025`) y la aplica de inmediato si ya
+  está conectado — sin ella, la interfaz arranca en modo Ethernet
+  emulado y NetworkManager nunca logra reservar una IP aunque el módem
+  se registre en la red correctamente. `--check`/`--status` reportan el
+  modo actual de la interfaz.
