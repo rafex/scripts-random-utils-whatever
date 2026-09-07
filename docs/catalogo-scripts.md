@@ -49,6 +49,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/configure_fstrim_linux.sh` | Linux | configure-fstrim | sí | sí | medio | [doc](hardware/configure_fstrim_linux.md) |
 | `scripts/hardware/configure_lid_suspend_linux.sh` | Linux | configure-lid-suspend | sí | no | medio | [doc](hardware/configure_lid_suspend_linux.md) |
 | `scripts/hardware/configure_initramfs_compression_linux.sh` | Linux | configure-initramfs-compression | sí | sí | alto | [doc](hardware/configure_initramfs_compression_linux.md) |
+| `scripts/hardware/configure_tpm_blacklist_linux.sh` | Linux | configure-tpm-blacklist | sí | sí | alto | [doc](hardware/configure_tpm_blacklist_linux.md) |
 | `scripts/hardware/configure_thinkpad_keyboard_linux.sh` | Linux | configure-thinkpad-keyboard | sí | sí | medio | [doc](hardware/configure_thinkpad_keyboard_linux.md) |
 | `scripts/hardware/configure_tlp_battery_linux.sh` | Linux | configure-tlp-battery | sí | sí | medio | [doc](hardware/configure_tlp_battery_linux.md) |
 | `scripts/hardware/configure_xrandr_brightness_linux.sh` | Linux | configure-xrandr-brightness | sí | sí | bajo | [doc](hardware/configure_xrandr_brightness_linux.md) |
@@ -103,6 +104,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_feh_linux.sh` | Linux | install-feh | sí | sí | bajo | [doc](install/install_feh_linux.md) |
 | `scripts/install/install_ratmenu_linux.sh` | Linux | install-ratmenu | sí | sí | bajo | [doc](install/install_ratmenu_linux.md) |
 | `scripts/install/install_eww_linux.sh` | Linux | install-eww | sí | sí | medio | [doc](install/install_eww_linux.md) |
+| `scripts/install/configure_eww_battery_linux.sh` | Linux | configure-eww-battery | no | sí | medio | [doc](install/configure_eww_battery_linux.md) |
 | `scripts/install/install_i3lock_color_linux.sh` | Linux | install-i3lock-color | sí | sí | alto | [doc](install/install_i3lock_color_linux.md) |
 | `scripts/install/install_rafex_control_panel_linux.sh` | Linux | install-rafex-control-panel | sí | sí | medio | [doc](install/install_rafex_control_panel_linux.md) |
 | `scripts/install/install_picom_upstream_linux.sh` | Linux | install-picom-upstream | sí | sí | medio | [doc](install/install_picom_upstream_linux.md) |
@@ -168,6 +170,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/set_wallpaper_linux.sh` | Linux | — | no | — | bajo | [doc](system/set_wallpaper_linux.md) |
 | `scripts/system/rafex_ratmenu_linux.sh` | Linux | rafex-ratmenu | no | — | bajo | [doc](system/rafex_ratmenu_linux.md) |
 | `scripts/system/eww_actions_linux.sh` | Linux | — | no | sí | medio | [doc](system/eww_actions_linux.md) |
+| `scripts/system/eww_battery_status_linux.sh` | Linux | eww-battery-status | no | sí | bajo | [doc](system/eww_battery_status_linux.md) |
 | `scripts/system/eww_widgets_linux.sh` | Linux | eww-widgets | no | sí | bajo | [doc](system/eww_widgets_linux.md) |
 | `scripts/system/lock_screen_linux.sh` | Linux | lock-screen | no | — | alto | [doc](system/lock_screen_linux.md) |
 | `scripts/system/rafex_control_panel.py` | Linux | rafex-control-panel | no | — | medio | [doc](system/rafex_control_panel.md) |

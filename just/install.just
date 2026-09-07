@@ -325,6 +325,11 @@ install-ratmenu *args:
 install-eww *args:
     bash scripts/install/install_eww_linux.sh {{args}}
 
+# Añadir a EWW una tarjeta de alimentación con actualización cada 10 segundos.
+# Uso: just configure-eww-battery --check|--plan|--apply|--status|--rollback
+configure-eww-battery *args:
+    bash scripts/install/configure_eww_battery_linux.sh {{args}}
+
 # Compilar i3lock-color en paralelo al bloqueador oficial
 # Uso: just install-i3lock-color --check|--plan|--apply|--status
 install-i3lock-color *args:

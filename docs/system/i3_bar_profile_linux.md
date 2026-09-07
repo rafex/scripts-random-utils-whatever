@@ -11,7 +11,8 @@ tags:
 
 Selecciona `i3bar`, `tint2` o `polybar` en i3 sin duplicar barras ni tocar
 Conky, EWW, Picom u Openbox. Tint2 muestra el taskbar nativo del workspace
-actual; Polybar usa el helper de ventanas administrado por Rafex.
+actual; Polybar usa el helper de ventanas administrado por Rafex y una altura
+compacta de `26pt` en la plantilla ThinkPad.
 
 - **Ruta:** `scripts/system/i3_bar_profile_linux.sh`
 - **SO requerido:** Linux

@@ -46,6 +46,11 @@ configure-fstrim *args:
 configure-initramfs-compression *args:
     bash scripts/hardware/configure_initramfs_compression_linux.sh {{args}}
 
+# Bloquear la carga automática de módulos TPM y regenerar initramfs de forma reversible.
+# Uso: just configure-tpm-blacklist --check | --plan | --status | --apply | --rollback
+configure-tpm-blacklist *args:
+    bash scripts/hardware/configure_tpm_blacklist_linux.sh {{args}}
+
 # Suspender al cerrar la tapa (batería, cargador y dock configurable).
 configure-lid-suspend *args:
     bash scripts/hardware/configure_lid_suspend_linux.sh {{args}}

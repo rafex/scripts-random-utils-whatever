@@ -11,9 +11,9 @@ tags:
 
 Descarga e instala Ulauncher 5.16.1 (paquete arch-independiente `all`)
 desde la release oficial de GitHub. Verifica tamaño, SHA-256 y los
-metadatos del DEB antes de pasarlo a APT. Opcionalmente agrega un atajo
-de prueba en i3 (`$mod+u`) sin modificar el binding existente de rofi
-(`$mod+space`).
+metadatos del DEB antes de pasarlo a APT. En el perfil ThinkPad, Ulauncher
+es el launcher principal de i3 mediante `$mod+space`; opcionalmente se
+puede agregar `$mod+u` como atajo adicional de prueba.
 
 - **Ruta:** `scripts/install/install_ulauncher_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -72,8 +72,7 @@ Instalar Ulauncher:
 just install-ulauncher --apply
 ```
 
-Instalar y además agregar un atajo de prueba en i3 (`$mod+u`), sin tocar
-`$mod+space`:
+Instalar y además agregar un atajo adicional de prueba en i3 (`$mod+u`):
 
 ```sh
 just install-ulauncher --apply --i3-shortcut
@@ -85,9 +84,10 @@ Consultar posteriormente la instalación:
 just install-ulauncher --status
 ```
 
-La aplicación se puede abrir como usuario normal (`ulauncher`) o, tras
-`--i3-shortcut`, con `$mod+u` (usa `ulauncher-toggle`, el binario propio
-de Ulauncher para alternar la ventana sin relanzar el proceso).
+La aplicación se puede abrir como usuario normal (`ulauncher`) o con
+`ulauncher-toggle`, el binario propio de Ulauncher para alternar la ventana
+sin relanzar el proceso. En el perfil ThinkPad, `$mod+space` usa ese toggle;
+`--i3-shortcut` agrega además `$mod+u` para pruebas.
 
 `ulauncher-toggle` necesita que el daemon `ulauncher.service` esté
 corriendo (es quien realmente mantiene la ventana y responde por D-Bus);
@@ -104,7 +104,7 @@ ver [Fallos conocidos](#fallos-conocidos) para el porqué de este paso.
 | `--check` | — | Comprueba herramientas y estado local sin cambios |
 | `--plan` | `--dry-run` | Muestra la descarga, verificación e instalación previstas |
 | `--apply` | — | Solicita sudo, descarga, verifica e instala el DEB |
-| `--i3-shortcut` | — | Junto con `--apply`, agrega `bindsym $mod+u` en i3 |
+| `--i3-shortcut` | — | Junto con `--apply`, agrega `bindsym $mod+u` como atajo adicional en i3 |
 | `--status` | — | Muestra versión y binario sin modificar |
 | `--version <versión>` | — | Acepta únicamente la versión fijada `5.16.1` |
 | `--help` | `-h` | Muestra la ayuda |
@@ -125,6 +125,8 @@ entorno, archivos `.env` o argumentos.
 
 ```sh
 just install-ulauncher --apply
+# En ThinkPad, después de desplegar/recargar el perfil:
+#   $mod+space  (Ulauncher)
 ```
 
 ### Diagnóstico antes de instalar
@@ -140,7 +142,8 @@ just install-ulauncher --plan
 just install-ulauncher --apply --i3-shortcut
 # luego, dentro de i3:
 #   $mod+Shift+r   (recargar config)
-#   $mod+u         (abrir/alternar Ulauncher)
+#   $mod+space     (launcher principal en el perfil ThinkPad)
+#   $mod+u         (atajo adicional si se solicitó --i3-shortcut)
 ```
 
 ### Comprobación posterior
@@ -167,7 +170,10 @@ ulauncher --version
   del archivo), y respalda `~/.config/i3/config` como `config.bak.<fecha>`
   antes de modificarlo — reconocible por
   [find_safety_backups_unix.sh](../dev/find_safety_backups_unix.md).
-- No modifica `$mod+space` (rofi) ni ningún otro binding existente.
+- El perfil ThinkPad reserva `$mod+space` para Ulauncher; Rofi permanece
+  disponible para ventanas, navegador, ejecución y confirmaciones.
+- `--i3-shortcut` solo administra su bloque marcado y no modifica otros
+  bindings existentes.
 - `--apply` habilita y arranca `ulauncher.service` (`systemctl --user
   enable --now`); nunca deshabilita ni detiene servicios existentes.
 - `--check`/`--plan`/`--status` no escriben archivos ni solicitan sudo;

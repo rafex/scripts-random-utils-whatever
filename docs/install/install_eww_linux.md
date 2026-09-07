@@ -45,6 +45,12 @@ bloqueo y energía. La superficie general permanece transparente y las tarjetas
 usan fondos propios para mantener contraste; el tipo X11 continúa siendo
 `desktop` con `stacking bg`, sin reservar espacio.
 
+El instalador también copia `~/.local/bin/eww-battery-status.sh`, un helper de
+solo lectura para la tarjeta opcional de telemetría de alimentación. La tarjeta
+consulta AC, porcentaje de carga, estado y la salud estimada de UPower cada 10
+segundos. Para añadirla de forma independiente en una instalación existente
+usa `just configure-eww-battery --apply`.
+
 ## Uso
 
 ```bash

@@ -84,6 +84,7 @@ nav:
       - configure_thinkpad_keyboard_linux: hardware/configure_thinkpad_keyboard_linux.md
       - configure_fstrim_linux: hardware/configure_fstrim_linux.md
       - configure_lid_suspend_linux: hardware/configure_lid_suspend_linux.md
+      - configure_tpm_blacklist_linux: hardware/configure_tpm_blacklist_linux.md
       - configure_thinkpad_mem_sleep_linux: hardware/configure_thinkpad_mem_sleep_linux.md
       - configure_tlp_battery_linux: hardware/configure_tlp_battery_linux.md
       - configure_xrandr_brightness_linux: hardware/configure_xrandr_brightness_linux.md
@@ -148,6 +149,7 @@ nav:
       - install_feh_linux: install/install_feh_linux.md
       - install_ratmenu_linux: install/install_ratmenu_linux.md
       - install_eww_linux: install/install_eww_linux.md
+      - configure_eww_battery_linux: install/configure_eww_battery_linux.md
       - install_i3lock_color_linux: install/install_i3lock_color_linux.md
       - install_rafex_control_panel_linux: install/install_rafex_control_panel_linux.md
       - install_picom_upstream_linux: install/install_picom_upstream_linux.md
@@ -209,6 +211,7 @@ nav:
       - rafex_ratmenu_linux: system/rafex_ratmenu_linux.md
       - eww_widgets_linux: system/eww_widgets_linux.md
       - eww_actions_linux: system/eww_actions_linux.md
+      - eww_battery_status_linux: system/eww_battery_status_linux.md
       - lock_screen_linux: system/lock_screen_linux.md
       - rafex_control_panel: system/rafex_control_panel.md
       - android_tools_linux: system/android_tools_linux.md

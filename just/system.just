@@ -89,6 +89,11 @@ rafex-ratmenu *args:
 eww-widgets *args:
     bash scripts/system/eww_widgets_linux.sh {{args}}
 
+# Consultar telemetría de alimentación para EWW, incluida salud estimada.
+# Uso: just eww-battery-status [--status|--check]
+eww-battery-status *args:
+    bash scripts/system/eww_battery_status_linux.sh {{args}}
+
 # Bloquear la sesión con i3lock-color en modo imagen, sólido o desenfoque
 # Uso: just lock-screen --mode image|solid|blur|--status
 lock-screen *args:

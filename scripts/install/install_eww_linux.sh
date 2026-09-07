@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_eww_linux.sh v1.2.0
+# install_eww_linux.sh v1.3.0
 # Compila EWW fijado para X11 e instala los widgets Rafex sin reservar espacio.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -21,8 +21,10 @@ YUCK_SOURCE="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/eww/eww.yu
 THEME_SOURCE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes"
 WIDGETS_SOURCE="$REPO_ROOT/scripts/system/eww_widgets_linux.sh"
 ACTIONS_SOURCE="$REPO_ROOT/scripts/system/eww_actions_linux.sh"
+BATTERY_SOURCE="$REPO_ROOT/scripts/system/eww_battery_status_linux.sh"
 WIDGETS_TARGET="$HOME/.local/bin/eww-widgets.sh"
 ACTIONS_TARGET="$HOME/.local/bin/eww-actions.sh"
+BATTERY_TARGET="$HOME/.local/bin/eww-battery-status.sh"
 I3_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/i3/config"
 OPENBOX_AUTOSTART="${XDG_CONFIG_HOME:-$HOME/.config}/openbox/autostart"
 OPENBOX_RC="${XDG_CONFIG_HOME:-$HOME/.config}/openbox/rc.xml"
@@ -145,6 +147,7 @@ replace_openbox_keyboard_block() {
 install_helpers() {
   install_managed_file "$WIDGETS_SOURCE" "$WIDGETS_TARGET" 700
   install_managed_file "$ACTIONS_SOURCE" "$ACTIONS_TARGET" 700
+  install_managed_file "$BATTERY_SOURCE" "$BATTERY_TARGET" 700
 }
 
 configure_integrations() {
@@ -216,6 +219,7 @@ show_status() {
   [[ -f "$CONFIG_ROOT/eww.yuck" && -f "$CONFIG_ROOT/eww.scss" ]] && ok "configuración dashboard: $CONFIG_ROOT" || warn 'configuración EWW ausente'
   [[ -x "$WIDGETS_TARGET" ]] && ok "helper widgets: $WIDGETS_TARGET" || warn 'helper widgets ausente'
   [[ -x "$ACTIONS_TARGET" ]] && ok "helper acciones: $ACTIONS_TARGET" || warn 'helper acciones ausente'
+  [[ -x "$BATTERY_TARGET" ]] && ok "helper batería: $BATTERY_TARGET" || warn 'helper batería ausente'
   installed playerctl && ok 'playerctl instalado' || warn 'playerctl no está instalado'
   [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG" && ok 'autostart/atajo i3 administrado' || warn 'i3 sin integración EWW'
   [[ -f "$OPENBOX_AUTOSTART" ]] && grep -Fq "$OPENBOX_BEGIN" "$OPENBOX_AUTOSTART" && ok 'autostart Openbox administrado' || warn 'Openbox sin autostart EWW'

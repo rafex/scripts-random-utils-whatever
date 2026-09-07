@@ -1,6 +1,6 @@
 ---
 title: rofi_search_linux.sh
-description: Buscador y lanzador de aplicaciones para i3
+description: Menús y búsqueda de aplicaciones para i3
 tags:
   - i3
   - rofi
@@ -8,8 +8,9 @@ tags:
 
 # rofi_search_linux.sh
 
-Lanza Rofi en modo aplicaciones, combinado o comandos. En Linux, Rofi cumple
-la función de búsqueda/launcher que no ofrece i3 por sí mismo.
+Lanza Rofi en modo aplicaciones, combinado o comandos. En el perfil ThinkPad
+Ulauncher es el launcher principal de `$mod+space`; Rofi se conserva para
+ventanas, navegador, ejecución, menús y confirmaciones.
 
 - **Ruta:** `scripts/system/rofi_search_linux.sh`
 - **SO requerido:** Linux (Xorg/i3)
@@ -62,19 +63,24 @@ Este script no requiere variables de entorno.
 **Causa:** ejecución desde SSH sin `DISPLAY` válido.
 **Solución:** usar la tecla de búsqueda dentro de i3.
 
-### `$mod+space` no hace nada hasta presionar `$mod+r`
+### El binding de Ulauncher no muestra el launcher
 
-**Causa:** una instancia previa de `rofi` queda colgada e invisible (sin
-ventana en `wmctrl -l` pero viva en `ps aux`), bloqueando el lanzamiento
-de una nueva por el mecanismo de instancia única de rofi. Confirmado en
-vivo: `i3-msg -t get_binding_state` en modo `default`, proceso `rofi
--show drun -show-icons` vivo sin ventana asociada.
+**Causa:** Ulauncher no está instalado, su servicio de usuario no está
+activo, o el perfil de i3 todavía no fue recargado después de cambiar el
+binding.
+
+**Solución:** instala Ulauncher con `just install-ulauncher --apply`,
+recarga i3 con `$mod+Shift+r` y comprueba `systemctl --user status
+ulauncher.service`. Rofi continúa disponible mediante los comandos de este
+script, aunque ya no es el launcher de `$mod+space` en ThinkPad.
+
+### Una instancia de Rofi queda colgada
+
+**Causa:** una instancia previa de `rofi` puede quedar viva e invisible.
 
 **Solución:** el script mata cualquier instancia previa de `rofi`
-(`pkill -x rofi`) antes de lanzar una nueva en los modos `apps`, `combi`
-y `run`. Asegúrate de que `$menu` en
-`dotfiles/profiles/<perfil>/config/i3/config` apunte a
-`~/.local/bin/rofi-search.sh apps` y no a `rofi` directamente.
+(`pkill -x rofi`) antes de lanzar una nueva en los modos `apps`, `combi` y
+`run`. Esto solo afecta a Rofi administrado por este helper, no a Ulauncher.
 
 ## Changelog
 
@@ -84,4 +90,4 @@ y `run`. Asegúrate de que `$menu` en
 
 **fix:** matar instancias previas de `rofi` (`pkill -x rofi`) antes de
 lanzar una nueva en los modos `apps`, `combi` y `run`, evitando que un
-proceso colgado e invisible bloquee `$mod+space`.
+proceso colgado e invisible bloquee nuevas aperturas de Rofi.

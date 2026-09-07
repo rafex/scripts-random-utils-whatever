@@ -49,6 +49,12 @@ EWW y Conky mantienen responsabilidades separadas: EWW muestra calendario,
 reproductor, notificaciones, dispositivos y acciones, mientras Conky conserva
 sus métricas del sistema.
 
+La tarjeta `⚡ Telemetría` es adicional y se actualiza cada 10 segundos con
+`eww-battery-status.sh`. Muestra `AC`, `Carga`, `Estado` y `Salud`; esta última
+es una estimación de capacidad publicada por UPower y no un diagnóstico físico
+completo. Se puede añadir o retirar con `just configure-eww-battery --apply` y
+`just configure-eww-battery --rollback`.
+
 ## Uso
 
 ```bash

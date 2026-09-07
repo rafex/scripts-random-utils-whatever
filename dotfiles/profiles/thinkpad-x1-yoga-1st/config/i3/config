@@ -1,7 +1,7 @@
 # i3 portable para ThinkPad X1 Yoga.
 set $mod Mod4
 set $term alacritty
-set $menu ~/.local/bin/rofi-search.sh apps
+set $launcher ulauncher-toggle
 set $laptop_menu ~/.local/bin/rafex-ratmenu.sh
 
 # BEGIN rafex theme
@@ -23,6 +23,9 @@ smart_gaps on
 # END rafex i3-gaps
 
 exec_always --no-startup-id xrdb -merge ~/.Xresources
+# BEGIN rafex ulauncher default
+exec --no-startup-id systemctl --user start ulauncher.service
+# END rafex ulauncher default
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
 exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
 exec_always --no-startup-id setxkbmap -layout latam
@@ -68,7 +71,7 @@ floating_modifier $mod
 tiling_drag modifier titlebar
 bindsym $mod+Return exec $term
 bindsym $mod+q kill
-bindsym $mod+space exec --no-startup-id $menu
+bindsym $mod+space exec --no-startup-id $launcher
 bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
 bindsym $mod+Shift+Tab focus next
 

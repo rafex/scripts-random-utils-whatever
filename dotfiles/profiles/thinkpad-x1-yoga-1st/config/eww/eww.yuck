@@ -7,6 +7,9 @@
 (defpoll rafex-notifications :interval "10s" :initial "Pendientes: N/D" "$HOME/.local/bin/eww-actions.sh --value notifications")
 (defpoll rafex-devices :interval "30s" :initial "USB montados: N/D\nBluetooth conectados: N/D" "$HOME/.local/bin/eww-actions.sh --value devices")
 (defpoll rafex-battery :interval "30s" :initial "Batería: N/D" "$HOME/.local/bin/eww-actions.sh --value battery")
+;; BEGIN rafex EWW battery telemetry
+(defpoll rafex-battery-telemetry :interval "10s" :initial "AC: N/D\nCarga: N/D\nEstado: N/D\nSalud: N/D" "$HOME/.local/bin/eww-battery-status.sh")
+;; END rafex EWW battery telemetry
 (defpoll rafex-printers :interval "30s" :initial "Epson XP-241: N/D\nXerox Phaser 3020: N/D" "$HOME/.local/bin/eww-actions.sh --value printers")
 (defpoll rafex-scanner :interval "30s" :initial "Escáner Epson: N/D" "$HOME/.local/bin/eww-actions.sh --value scanner")
 (defpoll rafex-theme :interval "30s" :initial "nord" "$HOME/.local/bin/eww-actions.sh --value theme")
@@ -61,6 +64,15 @@
         (label :class "card-title" :text "🎨  Tema" :xalign 0)
         (label :class "value compact" :text rafex-theme :xalign 0)
         (label :class "hint" :text "theme-toggle" :xalign 0)))
+
+    ;; BEGIN rafex EWW battery telemetry card
+    (box :class "card compact-card battery-telemetry-card" :orientation "v" :space-evenly false
+      (box :class "section-line" :orientation "h" :space-evenly false
+        (label :class "card-title" :text "⚡  Telemetría" :xalign 0)
+        (label :class "status-dot" :text "●" :xalign 1))
+      (label :class "value compact telemetry-value" :text rafex-battery-telemetry :xalign 0 :wrap true)
+      (label :class "hint" :text "Actualización cada 10 s · salud estimada" :xalign 0))
+    ;; END rafex EWW battery telemetry card
 
     (box :class "card" :orientation "v" :space-evenly false
       (box :class "section-line" :orientation "h" :space-evenly false

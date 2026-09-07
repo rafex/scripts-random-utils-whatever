@@ -31,9 +31,11 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 
 ## Incluye
 
-- i3, i3status, rofi, ratmenu (con 9menu como respaldo), dunst, alacritty y picom. Dunst detecta la
-  posición de i3bar y reserva espacio para que las notificaciones no se
-  empalmen con la barra.
+- i3, i3status, Ulauncher, rofi, ratmenu (con 9menu como respaldo), dunst,
+  alacritty y picom. Ulauncher es el launcher principal en `Super+Space`;
+  Rofi queda para ventanas, navegador, ejecución, menús y confirmaciones.
+  Dunst detecta la posición de i3bar y reserva espacio para que las
+  notificaciones no se empalmen con la barra.
 - Inicio de `udiskie` desde i3; `pasystray` y `nm-applet` se gestionan mediante
   los archivos XDG de autostart ejecutados por `dex`.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas. F5/F6 controlan el
@@ -114,11 +116,52 @@ Tint2 muestra los iconos reales y títulos de las ventanas mediante su taskbar
 nativo. Polybar genera el listado con
 `~/.local/bin/i3-window-tasks-polybar.sh`, usando glifos semánticos y un clic
 izquierdo limitado a enfocar; no se añaden acciones de cierre o minimización.
-`i3bar` permanece como fallback sin este listado.
+`i3bar` permanece como fallback sin este listado. Polybar usa una altura de
+`26pt` para mantener una barra ligeramente más compacta.
 
 ## Herramientas visuales opcionales
 
 Para mantener el perfil base ligero, estas piezas se instalan por separado:
+
+### Telemetría de alimentación en EWW
+
+El dashboard EWW puede mostrar una tarjeta adicional con lectura cada 10
+segundos de AC, carga actual, estado y salud estimada:
+
+```sh
+just configure-eww-battery --check
+just configure-eww-battery --apply
+just eww-battery-status
+just eww-widgets --reload
+```
+
+`Carga` es el porcentaje de energía disponible en ese momento. `Salud` es la
+estimación de capacidad máxima que publica UPower, por lo que no equivale a un
+diagnóstico físico completo. El rollback retira solo los bloques administrados:
+
+```sh
+just configure-eww-battery --rollback
+```
+
+### Blacklist TPM para diagnóstico
+
+La blacklist TPM es opcional y debe tratarse como una prueba de hardware; puede
+afectar `/dev/tpm*`, cifrado, atestación y arranque medido:
+
+```sh
+just configure-tpm-blacklist --check
+just configure-tpm-blacklist --plan
+just configure-tpm-blacklist --apply
+sudo reboot
+just configure-tpm-blacklist --status
+```
+
+Para revertirla:
+
+```sh
+just configure-tpm-blacklist --rollback
+sudo reboot
+```
 
 ```sh
 just install-feh --apply

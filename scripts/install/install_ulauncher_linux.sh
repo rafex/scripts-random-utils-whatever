@@ -4,7 +4,8 @@
 # Descarga e instala el paquete DEB oficial de Ulauncher 5.16.1 (arch-
 # independiente) publicado en GitHub. El artefacto se verifica (tamaño +
 # SHA-256 + metadatos DEB) antes de entregarlo a APT. Opcionalmente agrega
-# un atajo de prueba en i3 ($mod+u) sin tocar $mod+space.
+# un atajo de prueba en i3 ($mod+u). El perfil ThinkPad administra
+# $mod+space como acceso principal a Ulauncher.
 set -Eeuo pipefail
 umask 077
 
@@ -50,7 +51,7 @@ Opciones:
   --status                Mostrar la instalación local
   --version <versión>    Solo se admite la release fijada 5.16.1
   --i3-shortcut           Junto con --apply, agrega bindsym $mod+u en i3
-                          (no toca $mod+space; solo para probar Ulauncher)
+                          como atajo adicional (no reemplaza el principal)
   -h|--help               Mostrar esta ayuda
 
 El paquete se descarga desde GitHub oficial (asset arch-independiente
@@ -145,10 +146,13 @@ check_local_installation() {
     printf 'binario=ausente\n'
   fi
 
-  if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then
-    ok 'atajo de prueba $mod+u configurado en i3'
+  if [[ -f "$I3_CONFIG" ]] && grep -Fq "set \$launcher ulauncher-toggle" "$I3_CONFIG" \
+      && grep -Fq "bindsym \$mod+space exec --no-startup-id \$launcher" "$I3_CONFIG"; then
+    ok "Ulauncher configurado como launcher principal en \$mod+space"
+  elif [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then
+    ok "atajo de prueba \$mod+u configurado en i3"
   else
-    warn 'sin atajo de prueba en i3 (usa --apply --i3-shortcut para agregarlo)'
+    warn 'sin binding administrado de Ulauncher en i3 (despliega el perfil ThinkPad o usa --apply --i3-shortcut para agregar un atajo de prueba)'
   fi
 
   if systemctl --user is-active --quiet ulauncher.service 2>/dev/null; then
@@ -183,7 +187,7 @@ show_plan() {
   info 'instalar el DEB local con sudo apt-get; APT resolverá dependencias Debian'
   info 'systemctl --user enable --now ulauncher.service (el paquete trae el daemon, pero no lo arranca solo)'
   if [[ "$CONFIGURE_I3" -eq 1 ]]; then
-    info "agregar bindsym \$mod+u (Ulauncher) en $I3_CONFIG"
+    info "agregar bindsym \$mod+u como atajo adicional de prueba en $I3_CONFIG"
     info "agregar exec --no-startup-id systemctl --user start ulauncher.service en $I3_CONFIG"
   fi
   info 'no se escribirá nada en modo plan'
