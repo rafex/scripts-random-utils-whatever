@@ -208,6 +208,33 @@ no expone el módem al host.
 teléfono (algunos requieren activar explícitamente "depuración
 remota"/USB en Ajustes).
 
+### `La configuración IP no se pudo reservar` al conectar
+
+**Causa (observada en vivo el 2026-09-06):** el módem del Flame se
+registra en la red (`state: registered`, `packet service state:
+attached`) y `--connect` sube el perfil correctamente por UUID, pero
+NetworkManager reporta `La configuración IP no se pudo reservar (no hay
+direcciones disponibles, tiempo de espera, etc.)` al negociar la sesión
+de datos, y el módem queda momentáneamente en `disconnecting`. Se
+reprodujo en dos intentos consecutivos. El módem de este Flame es 2014
+(`MPSS.TR.2.0-00741...`), solo 2G/3G, con señal moderada (~33-39%) — no
+es un problema del perfil ni del APN: el mismo `internet.mvne1.com` sin
+usuario/contraseña funciona en el perfil `OXXO Cel` de la EM7455.
+
+**Solución:** no es algo que el script pueda forzar reintentando; son
+señales típicas de negociación de datos débil (señal 2G/3G baja) o,
+posiblemente, que la SIM/plan de datos de OXXO Cel de ese chip en
+particular no esté activo para esa línea. Antes de seguir intentando:
+
+```bash
+mmcli -m <índice> | grep -E 'signal quality|access tech'
+```
+
+Si la señal es baja, acerca el Flame a una ventana o reubica la
+ThinkPad; si el problema persiste con señal aceptable, verifica el saldo
+y plan de datos de esa SIM específica directamente con OXXO Cel antes de
+seguir depurando el lado de NetworkManager.
+
 ### `la SIM está ausente o no es detectada por el módem del Flame`
 
 **Causa:** la SIM OXXO Cel no está insertada en el Flame, está mal
