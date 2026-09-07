@@ -117,7 +117,7 @@ nativo. Polybar genera el listado con
 `~/.local/bin/i3-window-tasks-polybar.sh`, usando glifos semánticos y un clic
 izquierdo limitado a enfocar; no se añaden acciones de cierre o minimización.
 `i3bar` permanece como fallback sin este listado. Polybar usa una altura de
-`26pt` para mantener una barra ligeramente más compacta.
+`23pt` para mantener una barra más compacta.
 
 ## Herramientas visuales opcionales
 
