@@ -1,0 +1,16 @@
+[Unit]
+# Managed by rafex install_picom_user_service_linux.sh
+Description=Rafex Picom compositor (sesión X11 de usuario)
+Documentation=man:picom(1)
+After=graphical-session-pre.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/rafex-picom-runner.sh
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=yes
+
+# No se habilita con WantedBy: i3 importa DISPLAY/XAUTHORITY y lo inicia
+# explícitamente cuando la sesión X11 ya está lista.

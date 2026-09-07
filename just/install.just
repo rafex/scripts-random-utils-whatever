@@ -195,6 +195,11 @@ install-ufw *args:
 install-picom-upstream *args:
     bash scripts/install/install_picom_upstream_linux.sh {{args}}
 
+# Instalar el servicio de usuario de Picom iniciado por i3
+# Uso: just install-picom-user-service --check|--plan|--apply|--status
+install-picom-user-service *args:
+    bash scripts/install/install_picom_user_service_linux.sh {{args}}
+
 # Endurecer SSH y controles de seguridad de la ThinkPad por fases
 # Uso: just harden-thinkpad --apply --stage ssh|local|all
 harden-thinkpad *args:

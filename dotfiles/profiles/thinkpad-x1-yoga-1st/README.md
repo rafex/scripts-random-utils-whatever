@@ -198,6 +198,24 @@ just picom-debian --reload
 Esta ruta fuerza `/usr/bin/picom`, conserva el binario del sistema y no
 instala ni usa `~/.local/bin/picom`.
 
+Para iniciar Picom de forma confiable al levantar i3, sin depender del
+autostart genérico de `/etc/xdg`:
+
+```sh
+just install-picom-user-service --check
+just install-picom-user-service --plan
+just install-picom-user-service --apply
+just picom-toggle --enable
+i3-msg reload
+systemctl --user status rafex-picom.service
+```
+
+La unidad se ejecuta como usuario, importa el entorno X11 desde i3 y se
+reinicia si Picom falla. No activa `graphical-session.target`, porque en esta
+sesión ese target arrastraría múltiples autostarts ajenos y podría duplicar
+applets. El override de `~/.config/autostart/picom.desktop` desactiva solo el
+autostart genérico de Picom.
+
 `feh` aplica el fondo mediante un helper común. `ratmenu` es el menú activo y
 `9menu` permanece como respaldo. EWW instala, de forma opcional, una columna
 derecha tipo dashboard (`rafex-widgets`) con calendario, multimedia mediante

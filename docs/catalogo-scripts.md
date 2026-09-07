@@ -108,6 +108,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_i3lock_color_linux.sh` | Linux | install-i3lock-color | sí | sí | alto | [doc](install/install_i3lock_color_linux.md) |
 | `scripts/install/install_rafex_control_panel_linux.sh` | Linux | install-rafex-control-panel | sí | sí | medio | [doc](install/install_rafex_control_panel_linux.md) |
 | `scripts/install/install_picom_upstream_linux.sh` | Linux | install-picom-upstream | sí | sí | medio | [doc](install/install_picom_upstream_linux.md) |
+| `scripts/install/install_picom_user_service_linux.sh` | Linux | install-picom-user-service | no | sí | medio | [doc](install/install_picom_user_service_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
 | `scripts/install/install_albert_linux.sh` | Linux | install-albert | sí | sí | medio | [doc](install/install_albert_linux.md) |
@@ -156,6 +157,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/desktop_settings_menu_linux.sh` | Linux | desktop-settings-menu | no | — | bajo | [doc](system/desktop_settings_menu_linux.md) |
 | `scripts/system/picom_toggle_linux.sh` | Linux | picom-toggle | no | sí | bajo | [doc](system/picom_toggle_linux.md) |
 | `scripts/system/picom_debian_linux.sh` | Linux | picom-debian | no | sí | bajo | [doc](system/picom_debian_linux.md) |
+| `scripts/system/rafex_picom_runner_linux.sh` | Linux | — | no | — | bajo | [doc](system/rafex_picom_runner_linux.md) |
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 | `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
 | `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |

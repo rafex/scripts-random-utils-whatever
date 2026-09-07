@@ -40,6 +40,9 @@ bindsym $mod+Control+w exec --no-startup-id ~/.local/bin/eww-widgets.sh --toggle
 exec_always --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]; then "$HOME/.local/bin/rafex-wallpaper.sh"; elif command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
 # END rafex feh wallpaper
 exec --no-startup-id sh -c 'command -v upower >/dev/null 2>&1 && ~/.local/bin/power-notify.sh'
+# >>> rafex-picom-service managed >>>
+exec_always --no-startup-id sh -c 'if [ -f "$HOME/.config/rafex/picom-autostart-enabled" ] || [ -f "$HOME/.config/rafex/openbox-picom-enabled" ]; then systemctl --user import-environment DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS >/dev/null 2>&1; systemctl --user start rafex-picom.service >/dev/null 2>&1; fi'
+# <<< rafex-picom-service managed <<<
 exec --no-startup-id dex --autostart --environment i3
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 exec --no-startup-id udiskie --tray

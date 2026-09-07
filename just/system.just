@@ -24,6 +24,7 @@ desktop-settings-menu *args:
 
 # Activar o desactivar picom sin sudo
 # Uso: just picom-toggle --check | just picom-toggle --toggle
+# Runner de la unidad: scripts/system/rafex_picom_runner_linux.sh
 picom-toggle *args:
     bash scripts/system/picom_toggle_linux.sh {{args}}
 

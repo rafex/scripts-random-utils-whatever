@@ -9,13 +9,14 @@ tags:
 
 # picom_toggle_linux.sh
 
-Controla el compositor picom desde i3 u Openbox. El estado de autoinicio se
-guarda en la configuración del usuario y el helper prefiere el binario upstream
-instalado en `~/.local/bin/picom` antes que el paquete del sistema.
+Controla el compositor picom desde i3 u Openbox. Cuando está instalado
+`rafex-picom.service`, usa la unidad systemd del usuario; de lo contrario
+conserva una ruta legacy compatible. El estado de autoinicio se guarda en la
+configuración del usuario.
 
 - **Ruta:** `scripts/system/picom_toggle_linux.sh`
 - **SO requerido:** Linux
-- **Dependencias:** `bash`, `pgrep`; `picom` y `notify-send` son opcionales según la acción.
+- **Dependencias:** `bash`, `pgrep`, `systemctl`; `picom` y `notify-send` son opcionales según la acción.
 
 ---
 
@@ -31,7 +32,8 @@ instalado en `~/.local/bin/picom` antes que el paquete del sistema.
 
 ## Requisitos
 
-Ejecutar como usuario normal. No requiere `sudo`.
+Ejecutar como usuario normal. No requiere `sudo`. Para la ruta recomendada,
+instala primero `just install-picom-user-service --apply`.
 
 En los perfiles ThinkPad, la configuración administrada usa GLX, una sombra
 pequeña y tenue, transparencias moderadas y blur para ventanas normales. Las
@@ -50,10 +52,10 @@ picom-toggle.sh --toggle
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `--check` | — | Muestra si picom está activo y si se iniciará con Openbox. |
-| `--enable` | — | Activa picom y su autoinicio. |
-| `--disable` | — | Detiene picom y desactiva su autoinicio. |
-| `--toggle` | — | Invierte el estado actual. |
+| `--check` | — | Muestra el estado y si usa `systemd-user` o compatibilidad legacy. |
+| `--enable` | — | Activa la preferencia y arranca `rafex-picom.service` si existe. |
+| `--disable` | — | Detiene la unidad administrada y desactiva la preferencia. |
+| `--toggle` | — | Invierte el estado actual mediante la unidad administrada. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -63,6 +65,9 @@ picom-toggle.sh --toggle
 | `PICOM_CONFIG` | `~/.config/picom/picom.conf` | Configuración que se entrega a picom. |
 | `PICOM_BIN` | `~/.local/bin/picom` si es ejecutable; fallback a `PATH` | Binario de Picom que se ejecuta. Útil para una prueba explícita. |
 
+Si existe la unidad administrada, `PICOM_BIN` y `PICOM_CONFIG` se transfieren al
+entorno del servicio como `RAFEX_PICOM_BIN` y `RAFEX_PICOM_CONFIG`.
+
 ## Ejemplos
 
 ```bash
@@ -70,6 +75,7 @@ just picom-toggle --check
 just picom-toggle --enable
 PICOM_CONFIG="$HOME/.config/picom/picom.conf" picom-toggle --toggle
 PICOM_BIN="/usr/bin/picom" picom-toggle --enable
+systemctl --user status rafex-picom.service
 ```
 
 ## Fallos conocidos
@@ -80,13 +86,21 @@ PICOM_BIN="/usr/bin/picom" picom-toggle --enable
 
 **Solución:** instala `picom` desde Debian y repite la acción.
 
+### `rafex-picom.service` no está instalada
+
+**Causa:** el toggle no encuentra la unidad de usuario administrada.
+
+**Solución:** ejecuta `just install-picom-user-service --apply` y después
+`just picom-toggle --enable`.
+
 ### Las ventanas conservan sombras después de cambiar el perfil
 
 **Causa:** picom conserva la configuración con la que fue iniciado; editar
 `picom.conf` no cambia una instancia que ya está ejecutándose.
 
 **Solución:** ejecuta `just picom-toggle --disable` y después
-`just picom-toggle --enable`, o cierra y abre la sesión gráfica.
+`just picom-toggle --enable`, o revisa `journalctl --user -u
+rafex-picom.service -b`.
 
 ### `GLX error` o artefactos con blur
 
@@ -101,5 +115,6 @@ ThinkPad. El compositor es opcional y no debe impedir usar i3 u Openbox.
 
 ### [Unreleased]
 
-- `feat`: añade control de picom para el perfil Openbox.
-- `fix`: prioriza el binario upstream local y documenta la configuración visual de Picom v13.
+- `feat`: controla Picom mediante una unidad systemd de usuario cuando está instalada.
+- `fix`: evita detener procesos Picom no administrados en la ruta recomendada.
+- `fix`: conserva la preferencia legacy de Openbox durante la migración.

@@ -15,7 +15,7 @@ y no reemplaza el binario administrado por Debian.
 
 - **Ruta:** `scripts/system/picom_debian_linux.sh`
 - **SO requerido:** Linux
-- **Dependencias:** `bash`, `picom` en `/usr/bin/picom`, `pgrep`, `ps` y el helper `picom_toggle_linux.sh`.
+- **Dependencias:** `bash`, `picom` en `/usr/bin/picom`, `pgrep`, `ps`, `systemctl` y el helper `picom_toggle_linux.sh`.
 
 ---
 
@@ -58,6 +58,15 @@ just picom-debian --reload
 Después de `--apply`, `--reload` detiene la instancia actual y vuelve a iniciar
 `/usr/bin/picom` con la configuración administrada.
 
+Para que el inicio sea persistente con i3, instala una vez el servicio de
+usuario y recarga i3:
+
+```bash
+just install-picom-user-service --apply
+just picom-toggle --enable
+i3-msg reload
+```
+
 ## Opciones
 
 | Opción | Alias | Descripción |
@@ -67,7 +76,7 @@ Después de `--apply`, `--reload` detiene la instancia actual y vuelve a iniciar
 | `--apply` | — | Copia de forma atómica la configuración y los cinco shaders; crea respaldos fechados si cambian. |
 | `--status` | — | Muestra versión, archivos, shaders e instancia activa. |
 | `--enable` | — | Inicia Picom usando `/usr/bin/picom` y `~/.config/picom/picom.conf`. |
-| `--disable` | — | Detiene Picom y desactiva la preferencia de autoinicio de Openbox. |
+| `--disable` | — | Detiene Picom y desactiva la preferencia de autoinicio compartida. |
 | `--toggle` | — | Alterna Picom usando el binario Debian. |
 | `--reload` | — | Detiene y vuelve a iniciar Picom para cargar la configuración actual. |
 | `--replace-unmanaged` | — | Permite a `--apply` reemplazar un destino no administrado, conservando antes un respaldo fechado. |
@@ -105,6 +114,8 @@ just picom-debian --reload
 ## Protecciones de seguridad
 
 - Solo `--apply` modifica `~/.config/picom`; no requiere `sudo`.
+- `install-picom-user-service` administra por separado la unidad de usuario y
+  el inicio de i3; no activa `graphical-session.target` completo.
 - `--check`, `--plan` y `--status` son de solo lectura.
 - El helper rechaza ejecución como root.
 - No modifica `/usr/bin/picom`, APT, i3, Openbox, Xorg, GRUB ni servicios del sistema.
