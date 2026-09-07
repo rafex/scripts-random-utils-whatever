@@ -109,9 +109,18 @@ collect_missing_packages() {
 }
 
 find_modem_path() {
-  mmcli -L 2>/dev/null \
-    | sed -nE 's#.*(/org/freedesktop/ModemManager1/Modem/[0-9]+).*#\1#p' \
-    | sed -n '1p' || true
+  local listing match
+  listing="$(mmcli -L 2>/dev/null || true)"
+  # Con un segundo módem WWAN presente (otro USB, otro proveedor), tomar
+  # "el primero que liste mmcli -L" ya no identifica de forma confiable a
+  # la EM7455: el orden de /org/.../Modem/<N> no es estable entre
+  # reinicios de ModemManager. Se prefiere explícitamente la línea que
+  # menciona "Sierra Wireless" (el fabricante de la EM7455 que este
+  # script administra) y solo se recurre al primer resultado si no
+  # aparece ese fabricante (p. ej. todavía no se detecta la EM7455).
+  match="$(grep -i 'Sierra Wireless' <<< "$listing" | sed -n '1p')"
+  [[ -n "$match" ]] || match="$(sed -n '1p' <<< "$listing")"
+  sed -nE 's#.*(/org/freedesktop/ModemManager1/Modem/[0-9]+).*#\1#p' <<< "$match"
 }
 
 find_modem_id() {

@@ -465,6 +465,28 @@ el operador no exponen el almacén SMS por MBIM.
 **Solución:** conecta primero el perfil, confirma el registro en red y repite el
 comando. La recepción de SMS depende de la SIM, firmware y operador.
 
+### El script deja de conectar (o reporta el módem/SIM equivocados) al conectar un segundo módem USB
+
+**Causa (corregida, observada en vivo el 2026-09-06):** `find_modem_path()`
+tomaba siempre la primera línea de `mmcli -L`, asumiendo un único módem
+WWAN presente. Al conectar un segundo módem USB (por ejemplo, un stick
+con SIM de otro operador), el orden de
+`/org/freedesktop/ModemManager1/Modem/<N>` que reporta `mmcli -L` no es
+estable entre reinicios de ModemManager — se confirmó viendo `Modem/7`
+(EM7455) antes que `Modem/9` (el otro módem) en una consulta, y
+`Modem/0` (el otro módem) antes que `Modem/1` (EM7455) en la siguiente,
+sin haber tocado el hardware entre medio. Cuando la EM7455 quedaba en
+segundo lugar, todo el script (`--check`, `--status`, `--connect`)
+diagnosticaba y operaba sobre el módem incorrecto.
+
+**Solución:** `find_modem_path()` ahora busca explícitamente la línea de
+`mmcli -L` que menciona "Sierra Wireless" (el fabricante de la EM7455) y
+solo recurre a la primera línea si esa marca no aparece en absoluto
+(p. ej. la EM7455 todavía no está detectada). Conectar otro módem USB ya
+no debe afectar a este script; si administras varios módems WWAN a la
+vez, revisa `mmcli -L` para confirmar cuál es cuál antes de depender de
+la detección automática.
+
 ## Changelog
 
 ### [Unreleased]
@@ -499,3 +521,8 @@ PIN2/fixed-dialing de un bloqueo real de datos.
 **fix:** habilitar el procedimiento FCC oficial de Debian durante `--apply`
 cuando la EM7455 está presente y hacer compatible la detección del perfil GSM
 activo con distintas versiones de `nmcli`.
+
+**fix:** `find_modem_path()` ya no asume que la EM7455 es siempre el primer
+módem que lista `mmcli -L` — la busca explícitamente por fabricante
+("Sierra Wireless"), porque el orden de `Modem/<N>` no es estable cuando
+hay un segundo módem WWAN presente.
