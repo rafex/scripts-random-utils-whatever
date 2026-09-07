@@ -195,7 +195,7 @@ os_stat_size_mtime() {
     cmd=(stat -c '%s %Y' -- "$path")
   fi
   if [[ "$scope" == system ]]; then
-    sudo "${cmd[@]}"
+    sudo -- "${cmd[@]}"
   else
     "${cmd[@]}"
   fi
@@ -204,7 +204,7 @@ os_stat_size_mtime() {
 path_exists() {
   local path="$1" scope="${2:-user}"
   if [[ "$scope" == system ]]; then
-    sudo test -e -- "$path"
+    sudo -- test -e "$path"
   else
     [[ -e "$path" ]]
   fi
@@ -213,9 +213,19 @@ path_exists() {
 path_is_dir() {
   local path="$1" scope="${2:-user}"
   if [[ "$scope" == system ]]; then
-    sudo test -d -- "$path"
+    sudo -- test -d "$path"
   else
     [[ -d "$path" ]]
+  fi
+}
+
+run_find() {
+  local scope="$1" root="$2"
+  shift 2
+  if [[ "$scope" == system ]]; then
+    sudo -- find "$root" "$@"
+  else
+    find "$root" "$@"
   fi
 }
 
@@ -256,7 +266,9 @@ emit_finding() {
 
 find_backups_in_root() {
   local root="$1" maxdepth="$2"
-  [[ -e "$root" ]] || { warn "raíz no existe: $root"; return 0; }
+  local scope
+  root_is_system_scope "$root" && scope=system || scope=user
+  path_exists "$root" "$scope" || { warn "raíz no existe: $root"; return 0; }
   local -a prune_args=() known_backup_dirs=() find_opts=()
   local p first=1
   while IFS= read -r p; do
@@ -269,10 +281,9 @@ find_backups_in_root() {
   find_opts=(-mindepth 1)
   [[ -n "$maxdepth" ]] && find_opts+=(-maxdepth "$maxdepth")
 
-  local scope
-  root_is_system_scope "$root" && scope=system || scope=user
-  local -a find_cmd=(find)
-  [[ "$scope" == system ]] && find_cmd=(sudo find)
+  if [[ "$scope" == system ]]; then
+    info "buscando con sudo en raíz de sistema: $root"
+  fi
 
   local path name skip kd
   while IFS= read -r -d '' path; do
@@ -291,7 +302,7 @@ find_backups_in_root() {
         known_backup_dirs+=("$path")
       fi
     fi
-  done < <("${find_cmd[@]}" "$root" "${find_opts[@]}" \( "${prune_args[@]}" \) -prune -o -print0)
+  done < <(run_find "$scope" "$root" "${find_opts[@]}" \( "${prune_args[@]}" \) -prune -o -print0)
   return 0
 }
 
@@ -341,7 +352,7 @@ delete_path() {
   is_backup_name "$name" || die "no se elimina $path: el nombre ya no coincide con el patrón esperado"
   is_excluded_path "$path" && die "no se elimina $path: ruta excluida"
   if [[ "$scope" == system ]]; then
-    sudo rm -rf -- "$path"
+    sudo -- rm -rf -- "$path"
   else
     rm -rf -- "$path"
   fi

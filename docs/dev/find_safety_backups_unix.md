@@ -165,10 +165,15 @@ privilegios, así que subdirectorios restringidos de `/etc`
 saltaban en silencio con "Permiso denegado", sin pedir nunca la
 contraseña.
 
-**Solución:** desde esta versión, cualquier raíz fuera de `$HOME`
-(`--include-system` o `--roots` con una ruta de sistema) pide `sudo -v`
-por adelantado y usa `sudo` también para `find`/`stat`/comprobar el
-original, para poder leer esas rutas restringidas.
+**Solución:** cualquier raíz fuera de `$HOME` (`--include-system` o
+`--roots` con una ruta de sistema) pide `sudo -v` por adelantado, valida la
+raíz con privilegios y muestra `buscando con sudo` antes de ejecutar
+`sudo -- find`. También usa `sudo` para `stat` y comprobar el original. Para
+buscar `/etc`, hay que incluir explícitamente la raíz:
+
+```bash
+just find-safety-backups --plan --include-system
+```
 
 ## Changelog
 
@@ -181,3 +186,6 @@ original, para poder leer esas rutas restringidas.
   `sudo` también para leer (`find`, `stat`, comprobar el original), no
   solo para borrar — antes fallaba en silencio con "Permiso denegado" en
   subdirectorios restringidos de `/etc` y nunca pedía la contraseña.
+- **fix:** la búsqueda de raíces de sistema valida la raíz con `sudo` y
+  centraliza el recorrido en `sudo -- find`, haciendo visible y verificable
+  que `/etc` no se inspecciona con privilegios de usuario.

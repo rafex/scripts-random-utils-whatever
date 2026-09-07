@@ -179,6 +179,7 @@ class FindSafetyBackups(unittest.TestCase):
             "#!/bin/sh\n"
             f'echo "$@" >> "{sudo_log}"\n'
             'if [ "$1" = "-v" ]; then exit 0; fi\n'
+            'if [ "$1" = "--" ]; then shift; fi\n'
             'exec "$@"\n'
         )
         (mock_bin / "sudo").chmod(0o755)
