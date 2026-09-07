@@ -166,6 +166,7 @@ nav:
   - Red:
       - connect_nas_linux: network/connect_nas_linux.md
       - configure_wwan_oxxocel_linux: network/configure_wwan_oxxocel_linux.md
+      - configure_wwan_flame_oxxocel_linux: network/configure_wwan_flame_oxxocel_linux.md
       - install_mdns_linux: network/install_mdns_linux.md
       - diag_iface_linux: network/diag_iface_linux.md
       - install_wifi_polkit_linux: network/install_wifi_polkit_linux.md

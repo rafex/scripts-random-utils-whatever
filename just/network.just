@@ -67,6 +67,11 @@ reconcile-networkmanager *args:
 configure-wwan-oxxocel *args:
     bash scripts/network/configure_wwan_oxxocel_linux.sh {{args}}
 
+# Configurar datos móviles OXXO Cel mediante el módem del Firefox OS Flame por USB.
+# Uso: just configure-wwan-flame-oxxocel --check | --plan | --apply | --status
+configure-wwan-flame-oxxocel *args:
+    bash scripts/network/configure_wwan_flame_oxxocel_linux.sh {{args}}
+
 # Instalar y configurar mDNS/Avahi con alcance limitado a Wi-Fi/Ethernet.
 # Uso: just install-mdns --check | --plan | --apply | --status
 install-mdns *args:
