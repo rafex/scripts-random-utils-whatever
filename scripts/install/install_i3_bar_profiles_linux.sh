@@ -106,6 +106,11 @@ backup_file() {
 replace_file() {
   local source="$1" target="$2" temporary
   mkdir -p -- "$(dirname -- "$target")"
+  if [[ -e "$target" || -L "$target" ]] && ! cmp -s "$source" "$target"; then
+    grep -Fq '# Managed by rafex i3 bar profiles' "$target" ||
+      die "se rehúsa sobrescribir archivo de barra no administrado: $target"
+    backup_file "$target"
+  fi
   temporary="$(mktemp "$(dirname -- "$target")/.rafex-bars.XXXXXX")"
   install -m 0644 -- "$source" "$temporary"
   mv -f -- "$temporary" "$target"
@@ -193,7 +198,14 @@ main() {
   case "$ACTION" in
     check) echo '═══ Instalador de perfiles de barras i3 ═══'; validate_i3; show_status ;;
     plan) echo '═══ Plan de perfiles de barras i3 ═══'; validate_i3; install_files ;;
-    apply) echo '═══ Instalación de perfiles de barras i3 ═══'; validate_i3; install_files; ok 'perfiles i3bar, Tint2 y Polybar preparados; selecciona uno con just i3-bar --set i3bar|tint2|polybar' ;;
+    apply)
+      echo '═══ Instalación de perfiles de barras i3 ═══'
+      validate_i3
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      trap rafex_guard_end EXIT
+      install_files
+      ok 'perfiles i3bar, Tint2 y Polybar preparados; selecciona uno con just i3-bar --set i3bar|tint2|polybar'
+      ;;
     status) show_status ;;
   esac
 }

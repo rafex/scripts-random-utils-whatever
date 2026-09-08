@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# Managed by rafex i3 bar profiles
 # Gestiona únicamente las instancias Tint2/Polybar del perfil Rafex para i3.
 set -Eeuo pipefail
 umask 077

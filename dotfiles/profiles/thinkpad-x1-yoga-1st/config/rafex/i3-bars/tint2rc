@@ -1,3 +1,4 @@
+# Managed by rafex i3 bar profiles
 # Tint2 completo para i3; el perfil Openbox conserva su tint2rc separado.
 panel_items = TSEC
 panel_size = 100% 28

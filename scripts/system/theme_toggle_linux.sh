@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# theme_toggle_linux.sh v1.1.1
 # Cambia el tema del perfil ThinkPad para i3 u Openbox sin sudo.
 set -Eeuo pipefail
 umask 077
@@ -16,6 +17,7 @@ export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-
 # shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
 source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 THEME_HOME="$CONFIG_HOME/rafex/themes"
 CURRENT_LINK="$THEME_HOME/current"
 STATE_FILE="$CONFIG_HOME/rafex/theme"
@@ -27,6 +29,7 @@ I3_TINT2_CONFIG="$CONFIG_HOME/rafex/i3-bars/tint2rc"
 POLYBAR_CONFIG="$CONFIG_HOME/rafex/i3-bars/polybar.ini"
 CONKY_CONFIG="$CONFIG_HOME/conky/conky.conf"
 EWW_CONFIG="$CONFIG_HOME/eww/eww.scss"
+GENERATED_EWW_CONFIG="$STATE_HOME/rafex/config-generated/thinkpad/eww.scss"
 XRESOURCES="$HOME/.Xresources"
 I3_THEME_BEGIN='# BEGIN rafex theme'
 I3_THEME_END='# END rafex theme'
@@ -207,6 +210,12 @@ sync_i3_theme() {
   before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   block_file="$(mktemp)"
   cat "$CURRENT_LINK/i3.conf" > "$block_file"
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    rafex_i3_fragment_replace "$I3_CONFIG" "$I3_THEME_BEGIN" "$I3_THEME_END" "$block_file"
+    rm -f -- "$block_file"
+    rafex_guard_record_write 'theme-toggle' 'i3.theme' "$I3_CONFIG" "$before_hash" 'paleta de tema i3 como fragmento'
+    return 0
+  fi
   temporary="$(mktemp)"
   awk -v begin="$I3_THEME_BEGIN" -v end="$I3_THEME_END" \
       -v legacy="$I3_THEME_LEGACY" -v block_file="$block_file" '
@@ -452,9 +461,19 @@ sync_conky_theme() {
 }
 
 sync_eww_theme() {
-  local source_file temporary
+  local source_file temporary target before_hash
   [[ -f "$EWW_CONFIG" ]] || return 0
-  if ! grep -Fq 'BEGIN rafex eww theme' "$EWW_CONFIG"; then
+  rafex_guard_require_owner 'eww.style' 'theme-toggle' || die 'propietario del estilo EWW rechazado'
+  before_hash="$(rafex_guard_sha256 "$EWW_CONFIG")"
+  target="$EWW_CONFIG"
+  if [[ -L "$EWW_CONFIG" ]]; then
+    target="$(readlink -f -- "$EWW_CONFIG" 2>/dev/null || true)"
+    if [[ "$target" != "$GENERATED_EWW_CONFIG" ]]; then
+      warn "EWW apunta fuera del árbol generado Rafex; no se modifica: $EWW_CONFIG"
+      return 0
+    fi
+  fi
+  if ! grep -Fq 'BEGIN rafex eww theme' "$target"; then
     warn "la configuración EWW no está administrada por Rafex; no se modifica: $EWW_CONFIG"
     return 0
   fi
@@ -465,12 +484,13 @@ sync_eww_theme() {
   }
   temporary="$(mktemp)"
   cp -- "$source_file" "$temporary"
-  if cmp -s "$EWW_CONFIG" "$temporary"; then
+  if cmp -s "$target" "$temporary"; then
     rm -f -- "$temporary"
   else
-    backup_file "$EWW_CONFIG"
-    chmod --reference="$EWW_CONFIG" "$temporary" 2>/dev/null || true
-    mv -- "$temporary" "$EWW_CONFIG"
+    backup_file "$target"
+    chmod --reference="$target" "$temporary" 2>/dev/null || true
+    mv -- "$temporary" "$target"
+    rafex_guard_record_write 'theme-toggle' 'eww.style' "$EWW_CONFIG" "$before_hash" 'paleta EWW activa'
   fi
   if [[ -x "$HOME/.local/bin/eww-widgets.sh" ]] && [[ -n "${DISPLAY:-}" ]]; then
     "$HOME/.local/bin/eww-widgets.sh" --reload >/dev/null 2>&1 ||
@@ -662,14 +682,24 @@ main() {
       fi
       apply_mode "${REQUESTED_MODE:-$(current_mode)}"
       ;;
-    set) apply_mode "$REQUESTED_MODE" ;;
-    cycle) apply_mode "$(cycle_mode)" ;;
+    set)
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      apply_mode "$REQUESTED_MODE"
+      rafex_guard_end
+      ;;
+    cycle)
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      apply_mode "$(cycle_mode)"
+      rafex_guard_end
+      ;;
     toggle)
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
       if [[ "$(current_mode)" == dracula ]]; then
         apply_mode nord
       else
         apply_mode dracula
       fi
+      rafex_guard_end
       ;;
   esac
 }

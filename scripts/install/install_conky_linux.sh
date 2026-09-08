@@ -203,6 +203,10 @@ EOF
 
 replace_block() {
   local target="$1" begin="$2" end="$3" block_file="$4" temporary
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$begin" "$end" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
@@ -354,7 +358,9 @@ main() {
         sudo apt-get update
         sudo apt-get install -y "${apt_packages[@]}"
       fi
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
       configure_integrations
+      rafex_guard_end
       ok 'Conky instalado; inicia al entrar en i3 u Openbox'
       ;;
     status) show_status ;;

@@ -188,6 +188,7 @@ nav:
       - Reglas polkit: network/wifi_polkit_rules.md
   - Sistema:
       - thinkpad_config_guard_linux: lib/thinkpad_config_guard_linux.md
+      - thinkpad_i3_fragments_linux: lib/thinkpad_i3_fragments_linux.md
       - rafex_config_publish_linux: lib/rafex_config_publish_linux.md
       - 9menu_linux: system/9menu_linux.md
       - rofi_search_linux: system/rofi_search_linux.md

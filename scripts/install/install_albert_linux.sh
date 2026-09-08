@@ -2,15 +2,9 @@
 # shellcheck shell=bash
 #
 # Configura el repositorio APT oficial de Albert (OBS) e instala `albert`.
-# Opcionalmente agrega un atajo de prueba en i3 ($mod+a) sin tocar $mod+space.
+# Albert permanece fuera de la integración de i3: Ulauncher es el launcher.
 set -Eeuo pipefail
 umask 077
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
-export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
-# shellcheck disable=SC1091
-source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 
 ACTION='check'
 OS_TYPE="$(uname -s)"
@@ -24,11 +18,6 @@ EXPECTED_FINGERPRINTS=(
 KEYRING='/etc/apt/keyrings/albert-archive-keyring.gpg'
 SOURCE_FILE='/etc/apt/sources.list.d/albert.list'
 REPO_LINE='deb [signed-by=/etc/apt/keyrings/albert-archive-keyring.gpg] https://download.opensuse.org/repositories/home:/manuelschneid3r/Debian_Unstable/ /'
-
-I3_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/i3/config"
-I3_BEGIN='# BEGIN rafex albert'
-I3_END='# END rafex albert'
-CONFIGURE_I3=0
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -54,8 +43,6 @@ Opciones:
   --plan                 Mostrar cambios previstos sin modificar nada
   --dry-run              Alias de --plan
   --apply                Configurar el repositorio oficial e instalar albert
-  --i3-shortcut           Rechazado en ThinkPad: Ulauncher conserva los
-                          atajos de launcher.
   -h, --help              Mostrar esta ayuda
 
 La contraseña de sudo se solicita únicamente mediante `sudo -v`.
@@ -68,16 +55,10 @@ parse_args() {
       --check) ACTION='check'; shift ;;
       --plan|--dry-run) ACTION='plan'; shift ;;
       --apply) ACTION='apply'; shift ;;
-      --i3-shortcut) CONFIGURE_I3=1; shift ;;
       -h|--help) usage; exit 0 ;;
       *) die "argumento desconocido: $1" ;;
     esac
   done
-}
-
-reject_i3_shortcut() {
-  [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
-  die 'el perfil ThinkPad usa Ulauncher para Super+Space; Albert no puede añadir un atajo i3. Instálalo sin --i3-shortcut.'
 }
 
 require_debian() {
@@ -111,13 +92,6 @@ backup_file() {
   sudo install -d -m 0755 "$BACKUP_DIR"
   sudo cp -a "$file" "$destination"
   info "respaldo: $destination"
-}
-
-backup_colocated() {
-  local file="$1"
-  [[ -e "$file" || -L "$file" ]] || return 0
-  cp -a -- "$file" "$file.bak.$BACKUP_STAMP"
-  info "respaldo: $file.bak.$BACKUP_STAMP"
 }
 
 key_fingerprints() {
@@ -186,11 +160,7 @@ check_repository() {
   fi
   echo 'apt-policy:'
   apt-cache policy albert 2>/dev/null || true
-  if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then
-    ok "atajo de prueba \$mod+a configurado en i3"
-  else
-    warn 'sin atajo de prueba en i3 (usa --apply --i3-shortcut para agregarlo)'
-  fi
+  info 'i3: sin integración; Ulauncher conserva los atajos de launcher'
 }
 
 install_prerequisites() {
@@ -259,55 +229,8 @@ install_albert() {
   fi
 }
 
-# Parchea (idempotente, con respaldo colocado) un bloque BEGIN/END en un
-# archivo ya desplegado -mismo mecanismo que install_eww_linux.sh usa para
-# su propio atajo en i3-, sin tocar nada fuera del bloque marcado.
-replace_block() {
-  local target="$1" begin="$2" end="$3" block_file="$4" temporary
-  temporary="$(mktemp)"
-  if [[ -f "$target" ]]; then
-    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
-      function emit(line) { while ((getline line < block_file) > 0) print line; close(block_file) }
-      $0 == begin { if (!found) emit(); inside=1; found=1; next }
-      inside && $0 == end { inside=0; next }
-      !inside { print }
-      END { if (!found) { print ""; emit() } }
-    ' "$target" > "$temporary"
-    if cmp -s "$target" "$temporary"; then
-      rm -f -- "$temporary"
-      return 0
-    fi
-    backup_colocated "$target"
-    chmod --reference="$target" "$temporary" 2>/dev/null || true
-  else
-    mkdir -p -- "$(dirname -- "$target")"
-    cat "$block_file" > "$temporary"
-  fi
-  mv -f -- "$temporary" "$target"
-}
-
-configure_i3_shortcut() {
-  [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
-  if [[ "$ACTION" == 'plan' ]]; then
-    info "[plan] agregar bindsym \$mod+a (Albert) en $I3_CONFIG"
-    return 0
-  fi
-  [[ -f "$I3_CONFIG" ]] || { warn "no se encontró $I3_CONFIG; omitiendo atajo de prueba"; return 0; }
-  local block
-  block="$(mktemp)"
-  cat > "$block" <<EOF
-$I3_BEGIN
-bindsym \$mod+a exec --no-startup-id albert show
-$I3_END
-EOF
-  replace_block "$I3_CONFIG" "$I3_BEGIN" "$I3_END" "$block"
-  rm -f -- "$block"
-  ok "atajo de prueba \$mod+a configurado en $I3_CONFIG (recarga i3 con \$mod+Shift+r)"
-}
-
 main() {
   parse_args "$@"
-  reject_i3_shortcut
   require_debian
 
   if [[ "$ACTION" == 'check' ]]; then
@@ -325,7 +248,6 @@ main() {
     info "[plan] escribir $KEYRING"
     info "[plan] escribir $SOURCE_FILE"
     install_albert
-    configure_i3_shortcut
     exit 0
   fi
 
@@ -336,7 +258,6 @@ main() {
   write_managed_file "$SOURCE_FILE" "$(source_content)"
   sudo apt-get update
   install_albert
-  configure_i3_shortcut
   ok 'Albert instalado'
   check_repository
 }

@@ -82,7 +82,6 @@ compilarse e instalarse, pero no se integra en i3 ni reemplaza `Super+Space`.
 | `--plan` | — | Muestra origen, commit, rutas y paquetes faltantes sin escribir. |
 | `--apply` | — | Instala dependencias faltantes, clona/actualiza las fuentes, compila e instala en `~/.local`. |
 | `--status` | — | Muestra versión, commit local e i3 sin modificar. |
-| `--i3-shortcut` | — | Rechazado en ThinkPad; Ulauncher es el launcher administrado. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -132,8 +131,8 @@ just install-albert-upstream --status
 - Instala exclusivamente bajo `~/.local` (vía `CMAKE_INSTALL_PREFIX`);
   nunca toca `/usr`, el paquete de APT que gestiona
   `install_albert_linux.sh`, ni ningún archivo fuera de ese árbol.
-- El perfil ThinkPad rechaza `--i3-shortcut`; Ulauncher conserva la
-  propiedad de los atajos de launcher.
+- No modifica i3 ni instala atajos; Ulauncher conserva la propiedad de los
+  atajos de launcher.
 - No inicia Albert automáticamente.
 
 ## Fallos conocidos

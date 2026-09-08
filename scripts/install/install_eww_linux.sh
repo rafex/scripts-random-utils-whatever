@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_eww_linux.sh v1.3.0
+# install_eww_linux.sh v1.3.1
 # Compila EWW fijado para X11 e instala los widgets Rafex sin reservar espacio.
 # shellcheck disable=SC2015
 set -Eeuo pipefail
@@ -20,6 +20,7 @@ source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 SOURCE_ROOT="$HOME/.local/share/rafex/eww/${VERSION}-src"
 TARGET="$HOME/.local/bin/eww"
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/eww"
+GENERATED_EWW_CONFIG="${XDG_STATE_HOME:-$HOME/.local/state}/rafex/config-generated/thinkpad/eww.scss"
 YUCK_SOURCE="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/eww/eww.yuck"
 THEME_SOURCE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes"
 WIDGETS_SOURCE="$REPO_ROOT/scripts/system/eww_widgets_linux.sh"
@@ -82,7 +83,7 @@ install_managed_file() {
 }
 
 write_config() {
-  local scss_source yuck_before scss_before
+  local scss_source scss_target yuck_before scss_before
   rafex_guard_require_owner 'eww.config' 'install-eww' || die 'propietario de EWW rechazado'
   yuck_before="$(rafex_guard_sha256 "$CONFIG_ROOT/eww.yuck")"
   scss_before="$(rafex_guard_sha256 "$CONFIG_ROOT/eww.scss")"
@@ -96,13 +97,35 @@ write_config() {
   if [[ ! -f "$scss_source" ]]; then
     scss_source="$THEME_SOURCE_ROOT/nord/eww.scss"
   fi
-  install_managed_file "$scss_source" "$CONFIG_ROOT/eww.scss" 600
+  scss_target="$CONFIG_ROOT/eww.scss"
+  # No reemplazar la ruta de un symlink central con `mv`: el propietario
+  # sigue siendo EWW, pero la hoja dinámica pertenece al compositor Rafex.
+  if [[ -L "$scss_target" ]]; then
+    scss_target="$(readlink -f -- "$scss_target" 2>/dev/null || true)"
+    [[ "$scss_target" == "$GENERATED_EWW_CONFIG" ]] ||
+      die "eww.scss apunta fuera del árbol generado Rafex: $CONFIG_ROOT/eww.scss"
+    mkdir -p -- "$(dirname -- "$scss_target")"
+  fi
+  if [[ -e "$scss_target" ]]; then
+    if cmp -s "$scss_source" "$scss_target"; then
+      info 'eww.scss ya coincide; no se modifica el estilo del tema'
+    else
+      info 'eww.scss existente conservado; theme-toggle es su propietario'
+    fi
+  else
+    install_managed_file "$scss_source" "$scss_target" 600
+    rafex_guard_bootstrap_write 'theme-toggle' 'eww.style' "$CONFIG_ROOT/eww.scss" \
+      "$scss_before" 'install-eww'
+  fi
   rafex_guard_record_write 'install-eww' 'eww.config' "$CONFIG_ROOT/eww.yuck" "$yuck_before" 'dashboard Yuck administrado'
-  rafex_guard_record_write 'install-eww' 'eww.config' "$CONFIG_ROOT/eww.scss" "$scss_before" 'estilo EWW de la paleta activa'
 }
 
 replace_block() {
   local target="$1" begin="$2" end="$3" block_file="$4" temporary
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$begin" "$end" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
@@ -286,9 +309,11 @@ main() {
       [[ -x "$SOURCE_ROOT/target/release/eww" ]] || die 'la compilación no produjo target/release/eww'
       if [[ -e "$TARGET" ]] && ! cmp -s "$SOURCE_ROOT/target/release/eww" "$TARGET"; then backup "$TARGET"; fi
       install -m 0755 -- "$SOURCE_ROOT/target/release/eww" "$TARGET"
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
       install_helpers
       write_config
       configure_integrations
+      rafex_guard_end
       if [[ -n "${DISPLAY:-}" ]]; then
         "$WIDGETS_TARGET" --reload || warn 'no se pudo recargar la ventana EWW existente; prueba eww-widgets --reload desde la sesión gráfica'
       fi

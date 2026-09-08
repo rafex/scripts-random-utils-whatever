@@ -9,17 +9,19 @@ i3.conky|install-conky|~/.config/i3/config#rafex-conky|conky-launch.sh|i3 -C -c 
 i3.wallpaper|install-feh|~/.config/i3/config#rafex-feh-wallpaper|rafex-wallpaper.sh|i3 -C -c ~/.config/i3/config|fondos GRUB y LightDM|managed-block
 i3.lock|install-i3lock-color|~/.config/i3/config#rafex-i3lock-color|lock-screen.sh,xss-lock|i3 -C -c ~/.config/i3/config|TPM y energía|managed-block
 i3.screenshot|install-screenshot|~/.config/i3/config#rafex-screenshots|screenshot.sh|i3 -C -c ~/.config/i3/config|otros atajos|managed-block
+openbox.screenshot|install-screenshot|~/.config/openbox/rc.xml#rafex-screenshots|screenshot.sh|openbox --reconfigure|otros atajos|managed-block
+openbox.clipboard|install-clipboard|~/.config/openbox/autostart#rafex-clipboard|clipboard-menu.sh|openbox --reconfigure|otros atajos|managed-block
 i3.picom-service|install-picom-user-service|~/.config/i3/config#rafex-picom-service|rafex-picom.service|i3 -C -c ~/.config/i3/config|Dex y ejecutables upstream|managed-block
 i3.bar-include|i3-bar-profile|~/.config/i3/config#rafex-bar-active-include|rafex-bar-active.conf|i3 -C -c ~/.config/i3/config|bloque bar manual|managed-include
 i3.launcher|install-ulauncher|~/.config/i3/config#rafex-ulauncher|ulauncher.service|i3 -C -c ~/.config/i3/config|Albert y Rofi como launcher|managed-block
 i3.clipboard|install-clipboard|~/.config/i3/config#rafex-clipboard|clipboard-menu.sh|i3 -C -c ~/.config/i3/config|otros atajos|managed-block
-i3.ratmenu|install-ratmenu|~/.config/i3/config#rafex-ratmenu|rafex-ratmenu.sh|i3 -C -c ~/.config/i3/config|9menu activo|managed-block
 i3.control-panel|install-rafex-control-panel|~/.config/i3/config#rafex-control-panel|rafex-control-panel.sh|i3 -C -c ~/.config/i3/config|atajos ajenos|managed-block
 i3.autorotate|migrate-laptop|~/.config/i3/config#tablet-autorotation|autorotate-x1-yoga.sh|i3 -C -c ~/.config/i3/config|pantalla manual|managed-block
 i3.udiskie|usb-mount-perms|~/.config/i3/config#rafex-udiskie|udiskie|i3 -C -c ~/.config/i3/config|otros autostarts|managed-block
+usb.udiskie-config|usb-mount-perms|~/.config/udiskie/config.yml|udiskie|test -r ~/.config/udiskie/config.yml|no modifica el autostart de otros gestores|exclusive-file
 bars.active|i3-bar-profile|~/.config/i3/rafex-bar-active.conf|perfil barras|i3 -C -c ~/.config/i3/config|i3bar manual|exclusive-file
 i3.theme|theme-toggle|~/.config/i3/config#rafex-theme|tema actual|i3 -C -c ~/.config/i3/config|atajos y ciclo de vida|managed-block
-config.publisher|rafex-config|~/.local/share/rafex/thinkpad-config-repo + ~/.local/state/rafex/config-generated/thinkpad|Git, coreutils, flock|just rafex-config --doctor|no publica /etc ni hardware|exclusive-owner
+config.publisher|rafex-config|~/.local/share/rafex-thinkpad/{installed,files,installed.tsv}|Git, coreutils, flock|just rafex-config --doctor|no es fuente canónica ni publica /etc o hardware|exclusive-owner
 openbox.profile|install-openbox-profile|~/.config/openbox|perfil ThinkPad|openbox --reconfigure|bloques Rafex posteriores|seed-only
 openbox.eww|install-eww|~/.config/openbox/{autostart,rc.xml}#rafex-eww|eww-widgets.sh|openbox --reconfigure|Conky y Picom|managed-block
 openbox.conky|install-conky|~/.config/openbox/autostart#rafex-conky|conky-launch.sh|openbox --reconfigure|EWW y Picom|managed-block
@@ -27,20 +29,28 @@ openbox.wallpaper|install-feh|~/.config/openbox/autostart#rafex-feh-wallpaper|ra
 openbox.lock|install-i3lock-color|~/.config/openbox/{autostart,rc.xml}#rafex-i3lock-color|lock-screen.sh|openbox --reconfigure|TPM y energía|managed-block
 openbox.ratmenu|install-ratmenu|~/.config/openbox/{rc.xml,menu.xml}#rafex-ratmenu|rafex-ratmenu.sh|openbox --reconfigure|9menu activo|managed-block
 openbox.control-panel|install-rafex-control-panel|~/.config/openbox/{rc.xml,menu.xml}#rafex-control-panel|rafex-control-panel.sh|openbox --reconfigure|atajos ajenos|managed-block
-eww.config|install-eww|~/.config/eww/{eww.yuck,eww.scss}|eww,tema actual|eww --config ~/.config/eww validate|tema no escribe ciclo de vida|exclusive-files
+eww.config|install-eww|~/.config/eww/eww.yuck|eww|eww --config ~/.config/eww validate|tema y estilo EWW|exclusive-file
+eww.style|theme-toggle|~/.config/eww/eww.scss|tema actual|eww --config ~/.config/eww validate|Yuck y ciclo de vida|managed-file
 eww.battery|configure-eww-battery|~/.local/bin/eww-battery-status.sh|sysfs power_supply|test -x ~/.local/bin/eww-battery-status.sh|EWW yuck|helper-only
+ratmenu.helper|install-ratmenu|~/.local/bin/rafex-ratmenu.sh|ratmenu|test -x ~/.local/bin/rafex-ratmenu.sh|9menu fallback|exclusive-file
+control-panel.python|install-rafex-control-panel|~/.local/bin/rafex-control-panel.py|python3-gi|test -x ~/.local/bin/rafex-control-panel.py|sin ejecución root|exclusive-file
+control-panel.wrapper|install-rafex-control-panel|~/.local/bin/rafex-control-panel.sh|python3|test -x ~/.local/bin/rafex-control-panel.sh|sin comandos arbitrarios|exclusive-file
+lock.binary|install-i3lock-color|~/.local/bin/i3lock-color|i3lock-color|test -x ~/.local/bin/i3lock-color|no reemplaza /usr/bin/i3lock|exclusive-file
+lock.wrapper|install-i3lock-color|~/.local/bin/lock-screen.sh|i3lock-color,xss-lock|test -x ~/.local/bin/lock-screen.sh|modo imagen/solid/blur|exclusive-file
 conky.config|install-conky|~/.config/conky/conky.conf|conky-launch.sh|conky -C ~/.config/conky/conky.conf|Picom y EWW|exclusive-file
 picom.config|picom-debian|~/.config/picom/{picom.conf,shaders}|/usr/bin/picom|picom --diagnostics|Picom upstream|exclusive-files
 picom.lifecycle|install-picom-user-service|~/.config/systemd/user/rafex-picom.service|/usr/bin/picom,systemd user|systemctl --user status rafex-picom.service|Dex y servicio alterno|exclusive-file
 bars.assets|install-i3-bar-profiles|~/.config/rafex/i3-bars|plantillas Rafex|test -f ~/.config/rafex/i3-bars/polybar.ini|perfil activo|seed-only
 bars.selection|i3-bar-profile|~/.config/rafex/i3-bar-profile|runtime de barras|test -r ~/.config/rafex/i3-bar-profile|otros activadores|exclusive-file
 theme.palette|theme-toggle|~/.config/rafex/themes|temas versionados|test -L ~/.config/rafex/themes/current|atajos y servicios|managed-files
+theme.templates|generate-terminal-themes|~/.config/rafex/themes#templates|paletas del perfil|test -f ~/.config/rafex/themes/nord/eww.scss|no sobrescribe paletas existentes|seed-only
 xorg.keyboard|configure-thinkpad-keyboard|/etc/default/keyboard|Debian Xorg|localectl status|touchpad y TrackPoint|exclusive-file
 xorg.touchpad|configure-thinkpad-touchpad|/etc/X11/xorg.conf.d/40-rafex-libinput-touchpad.conf|libinput Xorg|test -r /etc/X11/xorg.conf.d/40-rafex-libinput-touchpad.conf|mouse y TrackPoint|exclusive-file
 xorg.dri3|configure-thinkpad-xorg-dri3|/etc/X11/xorg.conf.d/20-thinkpad-modesetting.conf|modesetting driver|test -r /etc/X11/xorg.conf.d/20-thinkpad-modesetting.conf|Picom y composición|exclusive-file
 power.lid|configure-lid-suspend|/etc/systemd/logind.conf.d/90-rafex-lid-suspend.conf|systemd-logind|loginctl show-session|GRUB e initramfs|exclusive-file
 power.mem-sleep|configure-thinkpad-mem-sleep|/etc/default/grub#rafex-mem-sleep|kernel deep|cat /sys/power/mem_sleep|s2idle histórico|managed-block
 power.xrandr|configure-xrandr-brightness|~/.config/i3/config#rafex-xrandr-brightness|xrandr|i3 -C -c ~/.config/i3/config|brightnessctl directo|managed-block
+power.xrandr-hook|configure-xrandr-brightness|/lib/systemd/system-sleep/rafex-xrandr-brightness.sh|xrandr,sudo|test -x /lib/systemd/system-sleep/rafex-xrandr-brightness.sh|no modifica GRUB ni el kernel|exclusive-file
 power.tlp|configure-tlp-battery|/etc/tlp.d/90-rafex-battery.conf|tlp|tlp-stat -b|logind|exclusive-file
 power.tpm|configure-tpm-blacklist|/etc/modprobe.d/99-rafex-tpm-blacklist.conf|initramfs-tools|modprobe -n tpm_tis|BIOS y claves TPM|exclusive-file
 boot.initramfs|configure-initramfs-compression|/etc/initramfs-tools/conf.d/99-rafex-compression|update-initramfs|lsinitramfs /boot/initrd.img-$(uname -r)|GRUB y vmlinuz|exclusive-file

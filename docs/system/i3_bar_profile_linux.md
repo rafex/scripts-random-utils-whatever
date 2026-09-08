@@ -119,4 +119,8 @@ repite la selección.
 
 ### [Unreleased]
 
+**fix:** el instalador y el selector rechazan reemplazar plantillas o archivos
+activos de barra que no tengan la marca administrada de Rafex; los archivos
+reconocidos reciben respaldo antes de actualizarse.
+
 - **feat:** añadir selector de i3bar, Tint2 y Polybar con fallback y rollback.

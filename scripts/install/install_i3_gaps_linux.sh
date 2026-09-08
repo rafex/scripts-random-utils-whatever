@@ -7,10 +7,15 @@ umask 077
 ACTION="check"
 INNER_GAP="2px"
 OUTER_GAP="3px"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 I3_CONFIG="${I3_GAPS_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/i3/config}"
 BACKUP_STAMP="$(date +%Y%m%d_%H%M%S)"
 BEGIN_MARKER="# BEGIN rafex i3-gaps"
 END_MARKER="# END rafex i3-gaps"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -64,6 +69,11 @@ require_commands() {
       die "falta la herramienta: $command_name"
     }
   done
+  if [[ "$ACTION" == apply ]]; then
+    for command_name in flock git sha256sum stat; do
+      command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+    done
+  fi
 }
 
 version_at_least() {
@@ -163,12 +173,23 @@ render_config() {
 }
 
 apply_config() {
-  local block_file temporary
+  local block_file temporary before_hash
   [[ -f "$I3_CONFIG" ]] || die "no existe $I3_CONFIG; instala primero just install-profile thinkpad-x1-yoga-1st"
   has_unmanaged_gaps && die "hay directivas gaps fuera del bloque administrado; revísalas antes de continuar"
+  rafex_guard_require_owner 'i3.gaps' 'install-i3-gaps' || die 'propietario de gaps rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   block_file="$(mktemp)"
-  temporary="$(mktemp)"
   gaps_block > "$block_file"
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    rafex_i3_fragment_replace "$I3_CONFIG" "$BEGIN_MARKER" "$END_MARKER" "$block_file"
+    rm -f -- "$block_file"
+    ok 'gaps publicados como fragmento administrado'
+    rafex_guard_record_write 'install-i3-gaps' 'i3.gaps' "$I3_CONFIG" "$before_hash" 'bloque de gaps nativos'
+    return 0
+  fi
+  temporary="$(mktemp)"
   render_config "$temporary" "$block_file"
   rm -f -- "$block_file"
   if cmp -s "$I3_CONFIG" "$temporary"; then
@@ -184,6 +205,7 @@ apply_config() {
   chmod --reference="$I3_CONFIG" "$temporary" 2>/dev/null || true
   mv -f -- "$temporary" "$I3_CONFIG"
   ok "gaps configurados: inner=$INNER_GAP outer=$OUTER_GAP smart_gaps=on"
+  rafex_guard_record_write 'install-i3-gaps' 'i3.gaps' "$I3_CONFIG" "$before_hash" 'bloque de gaps nativos'
 }
 
 ensure_i3_package() {

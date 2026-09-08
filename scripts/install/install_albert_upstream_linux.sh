@@ -11,12 +11,6 @@
 set -Eeuo pipefail
 umask 077
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
-export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
-# shellcheck disable=SC1091
-source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
-
 ACTION=check
 VERSION=v35.1.0
 EXPECTED_COMMIT=21d0b78dafc53d3ea9aebd139b26bf1ae8ea115b
@@ -26,11 +20,6 @@ SOURCE_DIR="$DATA_ROOT/$VERSION-src"
 BUILD_DIR="$SOURCE_DIR/build"
 INSTALL_PREFIX="$HOME/.local"
 BIN_TARGET="$INSTALL_PREFIX/bin/albert"
-I3_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/i3/config"
-I3_BEGIN='# BEGIN rafex albert'
-I3_END='# END rafex albert'
-STAMP="$(date +%Y%m%d_%H%M%S)"
-CONFIGURE_I3=0
 chosen=false
 
 # Mismo paquete de dependencias que el Dockerfile de CI oficial
@@ -66,10 +55,9 @@ Uso:
 
 Opciones:
   --check         comprobar Debian, dependencias y rutas sin modificar (default)
-  --plan          mostrar compilación, binario y atajo de i3 previstos
+  --plan          mostrar compilación y binario previstos
   --apply         instalar dependencias, compilar v35.1.0 e instalar en ~/.local
-  --status        mostrar versión, commit e i3 sin modificar
-  --i3-shortcut   rechazado en ThinkPad: Ulauncher es el launcher administrado
+  --status        mostrar versión y commit sin modificar
   --help          mostrar esta ayuda
 
 La contraseña de sudo se solicita únicamente mediante `sudo -v`, y solo si
@@ -83,17 +71,11 @@ parse_args() {
       --check|--plan|--apply|--status)
         [[ "$chosen" == false ]] || die 'Selecciona una sola acción'
         ACTION=${1#--}; chosen=true ;;
-      --i3-shortcut) CONFIGURE_I3=1 ;;
       --help|-h) usage; exit 0 ;;
       *) die "opción desconocida: $1" ;;
     esac
     shift
   done
-}
-
-reject_i3_shortcut() {
-  [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
-  die 'el perfil ThinkPad usa Ulauncher para Super+Space; Albert no puede añadir un atajo i3. Instálalo sin --i3-shortcut.'
 }
 
 require_base() {
@@ -135,11 +117,7 @@ show_status() {
   if [[ -d "$SOURCE_DIR/.git" ]]; then
     printf 'commit: %s\n' "$(git -C "$SOURCE_DIR" rev-parse --short HEAD)"
   fi
-  if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then
-    printf '%s\n' "i3: atajo \$mod+a configurado"
-  else
-    printf '%s\n' 'i3: sin atajo Albert; Ulauncher es el launcher administrado'
-  fi
+  printf '%s\n' 'i3: sin integración; Ulauncher es el launcher administrado'
   if package_installed albert; then
     warn "el paquete albert de APT también está instalado; ~/.local/bin suele ir antes en \$PATH"
   fi
@@ -152,10 +130,7 @@ show_plan() {
   printf 'instalación: cmake --install (prefix %s)\n' "$INSTALL_PREFIX"
   printf 'binario: %s\n' "$BIN_TARGET"
   printf 'dependencias APT faltantes: %s\n' "$(show_missing_packages)"
-  if [[ "$CONFIGURE_I3" -eq 1 ]]; then
-    printf "agregar bindsym \$mod+a (Albert) en %s\n" "$I3_CONFIG"
-  fi
-  printf '%s\n' "No iniciará Albert, no tocará \$mod+space y no ejecutará sudo fuera de APT."
+  printf '%s\n' "No iniciará Albert, no tocará la configuración de i3 ni \$mod+space y no ejecutará sudo fuera de APT."
 }
 
 prepare_source() {
@@ -193,60 +168,8 @@ install_albert() {
   ok "Albert $VERSION instalado en $BIN_TARGET"
 }
 
-backup_colocated() {
-  local file="$1"
-  [[ -e "$file" || -L "$file" ]] || return 0
-  cp -a -- "$file" "$file.bak.$STAMP"
-  info "respaldo: $file.bak.$STAMP"
-}
-
-# Parchea (idempotente, con respaldo colocado) un bloque BEGIN/END en un
-# archivo ya desplegado -mismo mecanismo que install_albert_linux.sh usa
-# para su propio atajo en i3, con las mismas marcas BEGIN/END, así que
-# cualquiera de los dos instaladores (OBS o esta compilación) administra el
-# mismo bloque sin duplicarlo.
-replace_block() {
-  local target="$1" begin="$2" end="$3" block_file="$4" temporary
-  temporary="$(mktemp)"
-  if [[ -f "$target" ]]; then
-    awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
-      function emit(line) { while ((getline line < block_file) > 0) print line; close(block_file) }
-      $0 == begin { if (!found) emit(); inside=1; found=1; next }
-      inside && $0 == end { inside=0; next }
-      !inside { print }
-      END { if (!found) { print ""; emit() } }
-    ' "$target" > "$temporary"
-    if cmp -s "$target" "$temporary"; then
-      rm -f -- "$temporary"
-      return 0
-    fi
-    backup_colocated "$target"
-    chmod --reference="$target" "$temporary" 2>/dev/null || true
-  else
-    mkdir -p -- "$(dirname -- "$target")"
-    cat "$block_file" > "$temporary"
-  fi
-  mv -f -- "$temporary" "$target"
-}
-
-configure_i3_shortcut() {
-  [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
-  [[ -f "$I3_CONFIG" ]] || { warn "no se encontró $I3_CONFIG; omitiendo atajo de prueba"; return 0; }
-  local block
-  block="$(mktemp)"
-  cat > "$block" <<EOF
-$I3_BEGIN
-bindsym \$mod+a exec --no-startup-id $BIN_TARGET show
-$I3_END
-EOF
-  replace_block "$I3_CONFIG" "$I3_BEGIN" "$I3_END" "$block"
-  rm -f -- "$block"
-  ok "atajo de prueba \$mod+a configurado en $I3_CONFIG (recarga i3 con \$mod+Shift+r)"
-}
-
 main() {
   parse_args "$@"
-  reject_i3_shortcut
   require_base
   case "$ACTION" in
     status) show_status ;;
@@ -273,7 +196,6 @@ main() {
       prepare_source
       build_albert
       install_albert
-      configure_i3_shortcut
       ;;
   esac
 }

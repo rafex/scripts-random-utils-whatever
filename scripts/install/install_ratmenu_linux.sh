@@ -11,8 +11,10 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 SOURCE="$REPO_ROOT/scripts/system/rafex_ratmenu_linux.sh"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 TARGET="$HOME/.local/bin/rafex-ratmenu.sh"
-I3_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/i3/config"
 OPENBOX_RC="${XDG_CONFIG_HOME:-$HOME/.config}/openbox/rc.xml"
 OPENBOX_MENU="${XDG_CONFIG_HOME:-$HOME/.config}/openbox/menu.xml"
 OPENBOX_ROOT_BEGIN='        <!-- BEGIN rafex ratmenu root -->'
@@ -47,7 +49,7 @@ install_helper() {
   install -m 0755 -- "$SOURCE" "$TARGET"
 }
 
-replace_in_file() {
+replace_legacy_openbox_file() {
   local file="$1" temporary
   [[ -f "$file" ]] || return 0
   temporary="$(mktemp)"
@@ -137,7 +139,7 @@ show_status() {
   installed && ok 'ratmenu instalado' || warn 'ratmenu no está instalado'
   [[ -x "$TARGET" ]] && ok "helper presente: $TARGET" || warn "helper ausente: $TARGET"
   [[ -x "$HOME/.local/bin/9menu" || -x /usr/bin/9menu ]] && ok '9menu se conserva como respaldo' || warn '9menu no está disponible'
-  [[ -f "$I3_CONFIG" ]] && grep -Fq 'rafex-ratmenu.sh' "$I3_CONFIG" && ok 'i3 usa ratmenu' || warn 'i3 aún no usa ratmenu'
+  info 'i3/XF86Tools: lo administra install-i3-laptop-controls'
   [[ -f "$OPENBOX_RC" ]] && grep -Fq 'rafex-ratmenu.sh' "$OPENBOX_RC" && ok 'Openbox usa ratmenu' || warn 'Openbox aún no usa ratmenu'
   [[ -f "$OPENBOX_RC" ]] && grep -Fq 'BEGIN rafex ratmenu root' "$OPENBOX_RC" && ok 'el menú raíz de Openbox usa ratmenu' || warn 'el menú raíz de Openbox aún usa su menú nativo'
 }
@@ -156,9 +158,10 @@ main() {
       echo '═══ Plan ratmenu ═══'
       installed && info '[plan] conservar ratmenu' || info '[plan] instalar ratmenu mediante APT'
       info "[plan] instalar $TARGET"
-      info '[plan] migrar i3, el menú raíz de Openbox y los accesos conocidos a ratmenu; conservar 9menu como fallback'
+      info '[plan] preparar helper y menú raíz de Openbox; XF86Tools en i3 lo administra install-i3-laptop-controls'
       ;;
     apply)
+      local openbox_rc_before openbox_menu_before helper_before
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
       if ! installed; then
         candidate || die 'ratmenu no tiene candidato APT'
@@ -166,12 +169,25 @@ main() {
         sudo apt-get update
         sudo apt-get install -y ratmenu
       fi
+      rafex_guard_require_owner 'openbox.ratmenu' 'install-ratmenu' || die 'propietario de Ratmenu en Openbox rechazado'
+      rafex_guard_require_owner 'ratmenu.helper' 'install-ratmenu' || die 'propietario del helper Ratmenu rechazado'
+      for command_name in flock git sha256sum stat; do
+        command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+      done
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      trap rafex_guard_end EXIT
+      openbox_rc_before="$(rafex_guard_sha256 "$OPENBOX_RC")"
+      openbox_menu_before="$(rafex_guard_sha256 "$OPENBOX_MENU")"
+      helper_before="$(rafex_guard_sha256 "$TARGET")"
       install_helper
-      replace_in_file "$I3_CONFIG"
-      replace_in_file "$OPENBOX_RC"
-      replace_in_file "$OPENBOX_MENU"
+      info 'i3 no se modifica: XF86Tools pertenece al bloque install-i3-laptop-controls'
+      replace_legacy_openbox_file "$OPENBOX_RC"
+      replace_legacy_openbox_file "$OPENBOX_MENU"
       configure_openbox_menu
       configure_openbox_root_menu
+      rafex_guard_record_write 'install-ratmenu' 'ratmenu.helper' "$TARGET" "$helper_before" 'helper Ratmenu'
+      rafex_guard_record_write 'install-ratmenu' 'openbox.ratmenu' "$OPENBOX_RC" "$openbox_rc_before" 'integración Ratmenu en Openbox'
+      rafex_guard_record_write 'install-ratmenu' 'openbox.ratmenu' "$OPENBOX_MENU" "$openbox_menu_before" 'menú raíz de Ratmenu en Openbox'
       ok 'ratmenu activo; 9menu y su configuración se conservaron como respaldo'
       ;;
     status) show_status;;

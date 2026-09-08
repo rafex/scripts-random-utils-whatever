@@ -47,6 +47,10 @@ backup() { [[ -e "$1" || -L "$1" ]] && { cp -a -- "$1" "$1.bak.$STAMP"; info "re
 
 replace_block() {
   local target="$1" block_file="$2" temporary
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$BEGIN" "$END" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$BEGIN" -v end="$END" -v block_file="$block_file" '
@@ -131,7 +135,11 @@ main() {
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
       if ! installed feh; then candidate feh || die 'feh no tiene candidato APT'; sudo -v; sudo apt-get update; sudo apt-get install -y feh; fi
-      install_helper; configure_integrations; ok 'feh instalado e integrado';;
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      install_helper
+      configure_integrations
+      rafex_guard_end
+      ok 'feh instalado e integrado';;
     status) show_status;;
   esac
 }

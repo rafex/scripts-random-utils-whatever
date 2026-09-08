@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# Inicia o recarga Dunst dejando libre el espacio ocupado por i3bar.
+# Inicia o recarga Dunst justo debajo de la barra activa.
 set -Eeuo pipefail
 umask 077
 
 ACTION="check"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-I3_CONFIG="${I3_CONFIG:-$CONFIG_HOME/i3/config}"
 THEME_CONFIG="${DUNST_THEME_CONFIG:-$CONFIG_HOME/rafex/themes/current/dunst.conf}"
 RUNTIME_CONFIG="${DUNST_SMART_CONFIG:-$CONFIG_HOME/rafex/dunst.conf}"
-BAR_MARGIN="${DUNST_BAR_MARGIN:-36}"
+ACTIVE_PROFILE_FILE="$CONFIG_HOME/rafex/i3-bar-profile"
+BAR_CONFIG_DIR="$CONFIG_HOME/rafex/i3-bars"
+BAR_PROFILE=''
+BAR_HEIGHT=''
+BAR_HEIGHT_SOURCE=''
+DUNST_ORIGIN='top-right'
+DUNST_OFFSET=''
 STAMP="$(date +%Y%m%d_%H%M%S)"
 
 RED='\033[0;31m'
@@ -34,15 +39,15 @@ Uso:
   dunst_smart_start_linux.sh --reload
 
 Opciones:
-  --check       Detecta la posición de i3bar sin modificar archivos.
+  --check       Detecta la barra activa y su altura sin modificar archivos.
   --plan        Muestra la configuración Dunst que se generaría.
   --apply       Genera la configuración estable sin iniciar Dunst.
   --start       Genera la configuración y arranca o recarga Dunst.
   --reload      Regenera y recarga Dunst si ya está ejecutándose.
   --help        Muestra esta ayuda.
 
-El margen vertical predeterminado es 36 píxeles. Puede cambiarse con
-DUNST_BAR_MARGIN. No requiere sudo.
+La notificación siempre usa top-right y su offset vertical es la altura
+efectiva de la barra activa. No requiere sudo.
 EOF
 }
 
@@ -58,13 +63,12 @@ parse_args() {
       *) die "argumento desconocido: $1" ;;
     esac
   done
-  [[ "$BAR_MARGIN" =~ ^[0-9]+$ ]] || die "DUNST_BAR_MARGIN debe ser un entero no negativo"
 }
 
 require_commands() {
   [[ "$(uname -s)" == Linux ]] || die "este script solo funciona en Linux"
   local command_name
-  for command_name in awk cmp cp date grep mkdir mktemp mv; do
+  for command_name in awk cmp cp date grep head mkdir mktemp mv; do
     command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta: $command_name"
   done
   if [[ "$ACTION" == start || "$ACTION" == reload ]]; then
@@ -72,40 +76,157 @@ require_commands() {
   fi
 }
 
-bar_position() {
-  local detected
-  if [[ -n "${DUNST_BAR_POSITION:-}" ]]; then
-    case "$DUNST_BAR_POSITION" in
-      top|bottom) printf '%s\n' "$DUNST_BAR_POSITION"; return 0 ;;
-      *) die "DUNST_BAR_POSITION debe ser top o bottom" ;;
-    esac
-  fi
-  if [[ -f "$I3_CONFIG" ]]; then
-    detected="$(awk '
-      /^[[:space:]]*bar[[:space:]]*\{/ { in_bar=1; next }
-      in_bar && /^[[:space:]]*position[[:space:]]+(top|bottom)([[:space:]]|$)/ { print $2; exit }
-      in_bar && /^[[:space:]]*}/ { in_bar=0 }
-    ' "$I3_CONFIG")"
-    [[ "$detected" == top || "$detected" == bottom ]] && {
-      printf '%s\n' "$detected"
-      return 0
-    }
-  fi
-  printf '%s\n' bottom
+active_profile() {
+  local profile=''
+  [[ -r "$ACTIVE_PROFILE_FILE" ]] && profile="$(head -n 1 "$ACTIVE_PROFILE_FILE")"
+  case "$profile" in
+    i3bar|tint2|polybar) printf '%s\n' "$profile"; return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
-set_placement() {
-  local position="$1"
-  case "$position" in
-    top)
-      DUNST_ORIGIN="top-right"
+parse_integer_extent() {
+  local raw="${1//[[:space:]]/}"
+  [[ "$raw" =~ ^[0-9]+$ ]] || return 1
+  printf '%s\n' "$raw"
+}
+
+x11_dpi() {
+  local dpi=''
+  if command -v xdpyinfo >/dev/null 2>&1; then
+    dpi="$(xdpyinfo 2>/dev/null | awk '/resolution:/ { split($2, values, "x"); print values[1]; exit }')"
+  fi
+  if [[ ! "$dpi" =~ ^[0-9]+$ ]] && command -v xrdb >/dev/null 2>&1; then
+    dpi="$(xrdb -query 2>/dev/null | awk '$1 == "Xft.dpi:" { print int($2); exit }')"
+  fi
+  [[ "$dpi" =~ ^[0-9]+$ && "$dpi" -gt 0 ]] || return 1
+  printf '%s\n' "$dpi"
+}
+
+x11_screen_height() {
+  local height=''
+  if command -v xdpyinfo >/dev/null 2>&1; then
+    height="$(xdpyinfo 2>/dev/null | awk '/dimensions:/ { split($2, values, "x"); print values[2]; exit }')"
+  fi
+  [[ "$height" =~ ^[0-9]+$ && "$height" -gt 0 ]] || return 1
+  printf '%s\n' "$height"
+}
+
+polybar_extent() {
+  local raw="${1//[[:space:]]/}" number unit dpi screen_height
+  if [[ "$raw" =~ ^([0-9]+)(pt|px|%)?$ ]]; then
+    number="${BASH_REMATCH[1]}"
+    unit="${BASH_REMATCH[2]:-px}"
+  else
+    return 1
+  fi
+  case "$unit" in
+    px) printf '%s\n' "$number" ;;
+    pt)
+      dpi="$(x11_dpi 2>/dev/null)" || return 1
+      awk -v points="$number" -v dpi="$dpi" 'BEGIN { printf "%d\n", (points * dpi / 72) + 0.5 }'
       ;;
-    bottom)
-      DUNST_ORIGIN="bottom-right"
+    %)
+      screen_height="$(x11_screen_height 2>/dev/null)" || return 1
+      awk -v percent="$number" -v height="$screen_height" 'BEGIN { printf "%d\n", (percent * height / 100) + 0.5 }'
       ;;
-    *) die "posición de i3bar inválida: $position" ;;
   esac
-  DUNST_OFFSET="(10, $BAR_MARGIN)"
+}
+
+tint2_height() {
+  local config="$BAR_CONFIG_DIR/tint2rc" raw height
+  [[ -r "$config" ]] || return 1
+  raw="$(awk '/^[[:space:]]*panel_size[[:space:]]*=/ { sub(/^[^=]*=[[:space:]]*/, ""); print; exit }' "$config")"
+  height="$(awk '{ for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+$/) { print $i; exit } }' <<<"$raw")"
+  parse_integer_extent "$height"
+}
+
+polybar_height() {
+  local config="$BAR_CONFIG_DIR/polybar.ini" raw height border top bottom
+  [[ -r "$config" ]] || return 1
+  raw="$(awk '
+    /^\[bar\/rafex\][[:space:]]*$/ { inside=1; next }
+    inside && /^\[/ { exit }
+    inside && /^[[:space:]]*height[[:space:]]*=/ { sub(/^[^=]*=[[:space:]]*/, ""); print; exit }
+  ' "$config")"
+  height="$(polybar_extent "$raw")" || return 1
+  border="$(awk '
+    /^\[bar\/rafex\][[:space:]]*$/ { inside=1; next }
+    inside && /^\[/ { exit }
+    inside && /^[[:space:]]*border-size[[:space:]]*=/ { sub(/^[^=]*=[[:space:]]*/, ""); print; exit }
+  ' "$config")"
+  top="$(awk '
+    /^\[bar\/rafex\][[:space:]]*$/ { inside=1; next }
+    inside && /^\[/ { exit }
+    inside && /^[[:space:]]*border-top-size[[:space:]]*=/ { sub(/^[^=]*=[[:space:]]*/, ""); print; exit }
+  ' "$config")"
+  bottom="$(awk '
+    /^\[bar\/rafex\][[:space:]]*$/ { inside=1; next }
+    inside && /^\[/ { exit }
+    inside && /^[[:space:]]*border-bottom-size[[:space:]]=/ { sub(/^[^=]*=[[:space:]]*/, ""); print; exit }
+  ' "$config")"
+  [[ -n "$top" ]] || top="$border"
+  [[ -n "$bottom" ]] || bottom="$border"
+  top="$(polybar_extent "$top")" || return 1
+  bottom="$(polybar_extent "$bottom")" || return 1
+  printf '%s\n' "$((height + top + bottom))"
+}
+
+i3bar_height() {
+  local ids_json id config_json height first='' count=0
+  local -a ids=()
+  command -v i3-msg >/dev/null 2>&1 || return 1
+  command -v python3 >/dev/null 2>&1 || return 1
+  ids_json="$(i3-msg -t get_bar_config 2>/dev/null)" || return 1
+  mapfile -t ids < <(python3 -c 'import json, sys; data=json.load(sys.stdin); print("\n".join(data if isinstance(data, list) else []))' <<<"$ids_json")
+  for id in "${ids[@]}"; do
+    [[ -n "$id" ]] || continue
+    config_json="$(i3-msg -t get_bar_config "$id" 2>/dev/null)" || continue
+    height="$(python3 -c 'import json, sys; value=json.load(sys.stdin).get("bar_height"); print(value if isinstance(value, int) else "")' <<<"$config_json")"
+    [[ "$height" =~ ^[0-9]+$ && "$height" -gt 0 ]] || continue
+    if [[ -z "$first" ]]; then
+      first="$height"
+    elif [[ "$first" != "$height" ]]; then
+      return 1
+    fi
+    count=$((count + 1))
+  done
+  ((count > 0)) || return 1
+  printf '%s\n' "$first"
+}
+
+resolve_bar_height() {
+  BAR_PROFILE="$(active_profile 2>/dev/null || true)"
+  BAR_HEIGHT=''
+  BAR_HEIGHT_SOURCE=''
+  case "$BAR_PROFILE" in
+    i3bar)
+      BAR_HEIGHT="$(i3bar_height 2>/dev/null || true)"
+      BAR_HEIGHT_SOURCE='i3 IPC get_bar_config'
+      ;;
+    tint2)
+      BAR_HEIGHT="$(tint2_height 2>/dev/null || true)"
+      BAR_HEIGHT_SOURCE="$BAR_CONFIG_DIR/tint2rc:panel_size"
+      ;;
+    polybar)
+      BAR_HEIGHT="$(polybar_height 2>/dev/null || true)"
+      BAR_HEIGHT_SOURCE="$BAR_CONFIG_DIR/polybar.ini:[bar/rafex] height"
+      ;;
+    *)
+      BAR_HEIGHT_SOURCE="$ACTIVE_PROFILE_FILE"
+      ;;
+  esac
+  if [[ "$BAR_HEIGHT" =~ ^[0-9]+$ && "$BAR_HEIGHT" -gt 0 ]]; then
+    DUNST_OFFSET="(10, $BAR_HEIGHT)"
+  else
+    BAR_HEIGHT=''
+    DUNST_OFFSET='(10, unknown)'
+  fi
+}
+
+require_bar_height() {
+  [[ "$BAR_HEIGHT" =~ ^[0-9]+$ && "$BAR_HEIGHT" -gt 0 ]] ||
+    die "no se pudo determinar la altura de la barra activa (${BAR_PROFILE:-perfil desconocido}); no se modificará Dunst"
 }
 
 render_config() {
@@ -178,13 +299,14 @@ reload_dunst() {
 }
 
 show_status() {
-  local position="$1"
-  printf 'i3bar_position=%s\n' "$position"
+  printf 'bar_profile=%s\n' "${BAR_PROFILE:-unknown}"
+  printf 'bar_height=%s\n' "${BAR_HEIGHT:-unknown}"
+  printf 'bar_height_source=%s\n' "$BAR_HEIGHT_SOURCE"
   printf 'dunst_origin=%s\n' "$DUNST_ORIGIN"
   printf 'dunst_offset=%s\n' "$DUNST_OFFSET"
   printf 'theme_config=%s\n' "$THEME_CONFIG"
   printf 'runtime_config=%s\n' "$RUNTIME_CONFIG"
-  if [[ -f "$RUNTIME_CONFIG" ]] && grep -Fq "origin = $DUNST_ORIGIN" "$RUNTIME_CONFIG" \
+  if [[ -n "$BAR_HEIGHT" && -f "$RUNTIME_CONFIG" ]] && grep -Fq "origin = $DUNST_ORIGIN" "$RUNTIME_CONFIG" \
       && grep -Fq "offset = $DUNST_OFFSET" "$RUNTIME_CONFIG"; then
     printf 'placement=ready\n'
   else
@@ -200,27 +322,28 @@ show_status() {
 main() {
   parse_args "$@"
   require_commands
-  local position
-  position="$(bar_position)"
-  set_placement "$position"
+  resolve_bar_height
 
   case "$ACTION" in
     check)
-      echo '═══ Dunst adaptado a i3bar ═══'
-      show_status "$position"
+      echo '═══ Dunst debajo de la barra activa ═══'
+      show_status
       ;;
     plan)
-      echo '═══ Plan Dunst adaptado a i3bar ═══'
-      info "i3bar detectado en: $position"
+      echo '═══ Plan Dunst debajo de la barra activa ═══'
+      info "perfil de barra: ${BAR_PROFILE:-desconocido}"
       info "usar origin=$DUNST_ORIGIN y offset=$DUNST_OFFSET"
       info "generar $RUNTIME_CONFIG desde $THEME_CONFIG"
+      [[ -n "$BAR_HEIGHT" ]] || warn 'altura desconocida: apply/start/reload quedarán bloqueados'
       info 'no se iniciará ni recargará Dunst'
       ;;
     apply)
+      require_bar_height
       prepare_config
       ok "configuración Dunst lista: $RUNTIME_CONFIG"
       ;;
     start)
+      require_bar_height
       prepare_config
       if pgrep -x dunst >/dev/null 2>&1; then
         reload_dunst
@@ -230,6 +353,7 @@ main() {
       fi
       ;;
     reload)
+      require_bar_height
       prepare_config
       if pgrep -x dunst >/dev/null 2>&1; then
         reload_dunst

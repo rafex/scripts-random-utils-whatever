@@ -1,9 +1,8 @@
 # estrategia|recurso|fuente relativa al checkout|destino relativo a HOME|modo
-static|conky-config|dotfiles/profiles/thinkpad-x1-yoga-1st/config/conky/conky.conf|.config/conky/conky.conf|0600
-static|eww-yuck|dotfiles/profiles/thinkpad-x1-yoga-1st/config/eww/eww.yuck|.config/eww/eww.yuck|0600
-static|picom-config|dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/picom.conf|.config/picom/picom.conf|0600
-static|polybar-config|dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/i3-bars/polybar.ini|.config/rafex/i3-bars/polybar.ini|0644
-static|ratmenu-helper|scripts/system/rafex_ratmenu_linux.sh|.local/bin/rafex-ratmenu.sh|0700
+# Los archivos estáticos de Conky, EWW, Picom, barras y Ratmenu tienen
+# instaladores especializados que son sus propietarios únicos. No se publican
+# aquí como symlinks: el historial compartido los captura sin competir con
+# esos instaladores.
 generated|i3-config|@generated/i3/config|.config/i3/config|0600
 generated|eww-style|@generated/eww.scss|.config/eww/eww.scss|0600
 generated|bar-state|@generated/i3-bar-profile|.config/rafex/i3-bar-profile|0600

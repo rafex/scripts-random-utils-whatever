@@ -63,8 +63,8 @@ just install-albert --apply
 ```
 
 En el perfil ThinkPad, Albert puede instalarse como aplicación independiente.
-La opción `--i3-shortcut` se rechaza: Ulauncher es el propietario único de los
-atajos de launcher.
+Albert no se integra con i3: Ulauncher es el propietario único de los atajos de
+launcher.
 
 ## Opciones
 
@@ -73,7 +73,6 @@ atajos de launcher.
 | `--check` | — | Diagnostica repositorio, clave y paquete sin cambios |
 | `--plan` | `--dry-run` | Muestra acciones previstas sin modificar el sistema |
 | `--apply` | — | Configura el repositorio oficial e instala `albert` |
-| `--i3-shortcut` | — | Rechazado en ThinkPad; Ulauncher es el launcher administrado. |
 | `--help` | `-h` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -117,8 +116,8 @@ just install-albert --apply
 - Usa `signed-by` para limitar la clave al repositorio de Albert.
 - Respaldará la clave y la fuente anterior en
   `/var/backups/rafex-albert/` antes de reemplazarlas.
-- El perfil ThinkPad rechaza `--i3-shortcut`; Ulauncher conserva la
-  propiedad de los atajos de launcher.
+- No modifica i3 ni acepta opciones de atajos; Ulauncher conserva la propiedad
+  de los atajos de launcher.
 - No acepta, almacena ni transmite contraseñas ni tokens.
 
 ## Fallos conocidos
@@ -140,13 +139,6 @@ clave publicada en OBS cambió.
 <https://albertlauncher.github.io/installation/linux/> y actualiza el
 checksum del script mediante una revisión explícita.
 
-### `Albert no puede añadir un atajo i3`
-
-**Causa:** se solicitó `--i3-shortcut` en el perfil ThinkPad.
-
-**Solución:** instala Albert sin esa opción o usa Ulauncher mediante
-`Super+Space`.
-
 ### `sudo apt-get install -y albert` falla con dependencias incumplidas (`libstdc++6 (>= 16.2.0-2) pero 16.2.0-1 va a ser instalado`)
 
 **Causa (observada en vivo el 2026-09-06 en la ThinkPad):** el build de
@@ -155,9 +147,9 @@ instantánea de Debian sid ligeramente más nueva que la que reflejan los
 espejos de APT en ese momento (`libstdc++6` y varias libs de Qt6 aún no
 alcanzaban la versión exigida). El repositorio y la clave sí quedan
 configurados correctamente (`--check` los reporta `ok`); es únicamente el
-paso `apt-get install` el que falla, y `set -e` aborta el script ahí
-mismo — antes de llegar a `configure_i3_shortcut()`, así que tampoco
-queda el atajo `$mod+a` en i3.
+paso `apt-get install` el que falla, y `set -e` aborta el script ahí mismo.
+Albert no modifica i3, por lo que nunca queda un atajo `$mod+a` como efecto de
+este instalador.
 
 **Solución:** no es un bug de este script ni algo que debas forzar
 (evita `--allow-downgrades`/pinning manual). Es un desfase temporal de

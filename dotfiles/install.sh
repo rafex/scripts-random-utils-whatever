@@ -309,7 +309,9 @@ install_theme_configs() {
         if [[ -f "$target_file" ]] && cmp -s "$source_file" "$target_file"; then
             continue
         fi
-        backup_existing "$target_file"
+        if [[ -e "$target_file" || -L "$target_file" ]]; then
+            continue
+        fi
         cp "$source_file" "$target_file"
         chmod 644 "$target_file"
     done < <(find "$source_root" -type f -print0)
@@ -355,10 +357,13 @@ install_tmux_config() {
         return 0
     fi
 
-    backup_existing "$dest"
-    cp "$src" "$dest"
-    chmod 600 "$dest"
-    success "  .tmux.conf"
+        if [[ -e "$dest" || -L "$dest" ]]; then
+            warn "  .tmux.conf ya existe; se conserva (seed-only)"
+            return 0
+        fi
+        cp "$src" "$dest"
+        chmod 600 "$dest"
+        success "  .tmux.conf (inicializado)"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -409,10 +414,13 @@ install_xresources() {
         return 0
     fi
 
-    backup_existing "$dest"
-    cp "$src" "$dest"
-    chmod 644 "$dest"
-    success "  .Xresources"
+        if [[ -e "$dest" || -L "$dest" ]]; then
+            warn "  .Xresources ya existe; se conserva (seed-only)"
+            return 0
+        fi
+        cp "$src" "$dest"
+        chmod 644 "$dest"
+        success "  .Xresources (inicializado)"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -431,10 +439,13 @@ install_xsession() {
         return 0
     fi
 
-    backup_existing "$dest"
+    if [[ -e "$dest" || -L "$dest" ]]; then
+        warn "  .xsession ya existe; se conserva (seed-only)"
+        return 0
+    fi
     cp "$src" "$dest"
     chmod 755 "$dest"
-    success "  .xsession"
+    success "  .xsession (inicializado)"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -465,10 +476,13 @@ install_profile_scripts() {
                 info "[dry-run] instalar script: ${target}"
             else
                 mkdir -p "$(dirname "$target")"
-                backup_existing "$target"
-                cp "$direct_script" "$target"
-                chmod 755 "$target"
-                success "  $direct_name"
+                if [[ -e "$target" || -L "$target" ]]; then
+                    warn "  $direct_name ya existe; se conserva (seed-only)"
+                else
+                    cp "$direct_script" "$target"
+                    chmod 755 "$target"
+                    success "  $direct_name (inicializado)"
+                fi
             fi
         done
         return 0
@@ -489,10 +503,13 @@ install_profile_scripts() {
             continue
         fi
 
-        backup_existing "$target"
-        cp "$script" "$target"
-        chmod 755 "$target"
-        success "  ~/.local/bin/$fname"
+        if [[ -e "$target" || -L "$target" ]]; then
+            warn "  ~/.local/bin/$fname ya existe; se conserva (seed-only)"
+        else
+            cp "$script" "$target"
+            chmod 755 "$target"
+            success "  ~/.local/bin/$fname (inicializado)"
+        fi
     done
     shopt -u dotglob nullglob
 }
@@ -540,7 +557,9 @@ install_profile_assets() {
         if [[ -f "$target_file" ]] && cmp -s "$source_file" "$target_file"; then
             continue
         fi
-        backup_existing "$target_file"
+        if [[ -e "$target_file" || -L "$target_file" ]]; then
+            continue
+        fi
         cp "$source_file" "$target_file"
         chmod 644 "$target_file"
     done < <(find "$assets_src" -type f -print0)

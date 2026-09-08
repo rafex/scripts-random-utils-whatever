@@ -156,6 +156,11 @@ write_i3_block() {
 exec_always --no-startup-id sh -c 'if [ -f "$HOME/.config/rafex/picom-autostart-enabled" ] || [ -f "$HOME/.config/rafex/openbox-picom-enabled" ]; then systemctl --user import-environment DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS >/dev/null 2>&1; systemctl --user start rafex-picom.service >/dev/null 2>&1; fi'
 # <<< rafex-picom-service managed <<<
 EOF
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    rafex_i3_fragment_replace "$I3_CONFIG" "$BEGIN_MARKER" "$END_MARKER" "$block_file"
+    rm -f -- "$block_file"
+    return 0
+  fi
   cleaned="$(mktemp "${I3_CONFIG}.tmp.XXXXXX")"
   awk -v begin="$BEGIN_MARKER" -v end="$END_MARKER" -v block_file="$block_file" '
     function emit(  line) {
@@ -251,6 +256,7 @@ main() {
     apply)
       rafex_guard_require_owner 'picom.lifecycle' 'install-picom-user-service' || die 'propietario de Picom rechazado'
       rafex_guard_require_owner 'i3.picom-service' 'install-picom-user-service' || die 'propietario de i3 rechazado'
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
       local unit_before i3_before
       unit_before="$(rafex_guard_sha256 "$UNIT_TARGET")"
       i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
@@ -264,6 +270,7 @@ main() {
       rafex_guard_record_write 'install-picom-user-service' 'i3.picom-service' "$I3_CONFIG" "$i3_before" 'inicio de Picom desde i3'
       ok 'servicio de usuario e integración i3 instalados'
       info 'recarga i3 con Mod+Shift+r o inicia con: just picom-toggle --enable'
+      rafex_guard_end
       ;;
   esac
 }

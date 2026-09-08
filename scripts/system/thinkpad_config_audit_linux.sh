@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# thinkpad_config_audit_linux.sh v1.0.0
+# thinkpad_config_audit_linux.sh v1.1.0
 # Audita propietarios, bloques y dependencias de la sesión ThinkPad sin escribir
 # salvo al solicitar explícitamente --report --output.
 set -Eeuo pipefail
@@ -12,6 +12,7 @@ PROFILE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st"
 REGISTRY="$PROFILE_ROOT/thinkpad-ownership.tsv"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}/rafex/thinkpad-config"
+HISTORY_ROOT="${RAFEX_THINKPAD_HISTORY:-$HOME/.local/share/rafex-thinkpad}"
 ACTION=status
 OUTPUT=''
 FAILURES=0
@@ -48,6 +49,7 @@ parse_args() {
 
 emit() { printf '%s\n' "$*"; }
 ok() { emit "✓ $*"; }
+info() { emit "• $*"; }
 warn() { emit "⚠ $*"; FAILURES=$((FAILURES + 1)); }
 
 relative_home() {
@@ -64,6 +66,28 @@ list_registry() {
     /^#/ || NF < 7 { next }
     { printf "| `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | %s |\n", $1, $2, $3, $4, $5, $6, $7 }
   ' "$REGISTRY"
+}
+
+list_physical_collisions() {
+  emit '| Destino físico | Recursos registrados | Propietarios | Políticas |'
+  emit '|---|---|---|---|'
+  awk -F'|' '
+    !/^#/ && NF >= 7 {
+      target=$3
+      sub(/#.*/, "", target)
+      count[target]++
+      resources[target]=resources[target] sprintf("`%s` ", $1)
+      owners[target]=owners[target] sprintf("`%s` ", $2)
+      policies[target]=policies[target] sprintf("`%s` ", $7)
+    }
+    END {
+      for (target in count) {
+        if (count[target] > 1) {
+          printf "| `%s` | %s | %s | %s |\n", target, resources[target], owners[target], policies[target]
+        }
+      }
+    }
+  ' "$REGISTRY" | sort
 }
 
 script_surface() {
@@ -107,12 +131,90 @@ list_scripts() {
   )
 }
 
+list_target_writer_candidates() {
+  local script display_path guard surface
+  emit '| Script | Superficie | Modo de escritura |'
+  emit '|---|---|---|'
+  while IFS= read -r script; do
+    display_path="${script#"$REPO_ROOT"/}"
+    case "$display_path" in
+      scripts/system/thinkpad_config_audit_linux.sh|scripts/backup/*)
+        continue
+        ;;
+    esac
+    if ! rg -q '(^|[[:space:]])(cp|mv|install|ln|sed|awk|tee|printf|cat)[[:space:]].*(\.config/i3/config|I3_CONFIG|\.config/eww|\.config/picom|i3-bars|openbox|tlp\.d|xorg\.conf\.d)' "$script" \
+      && [[ "$display_path" != scripts/install/migrate_laptop_linux.sh ]] \
+      && [[ "$display_path" != scripts/system/generate_terminal_themes_linux.sh ]] \
+      && [[ "$display_path" != dotfiles/install.sh ]]; then
+      continue
+    fi
+    if [[ "$display_path" == dotfiles/install.sh ]]; then
+      guard='seed-only (no sobrescribe)'
+    elif rg -q 'rafex_i3_fragment_replace|GENERATED_EWW_CONFIG' "$script"; then
+      guard='fragment-aware / destino generado'
+    elif rg -q 'thinkpad_config_guard|rafex_guard_require_owner' "$script"; then
+      guard='guardado, bloque o archivo exclusivo'
+    else
+      guard='NO — conflicto potencial'
+    fi
+    surface='i3/EWW/Picom/barras/Openbox/hardware'
+    emit "| \`$display_path\` | $surface | $guard |"
+  done < <(
+    rg -l --glob '*.sh' --glob '*.py' --glob '*.just' \
+      '(\.config/i3/config|I3_CONFIG|\.config/eww|\.config/picom|i3-bars|openbox|tlp\.d|xorg\.conf\.d)' \
+      "$REPO_ROOT/scripts" "$REPO_ROOT/dotfiles" 2>/dev/null | sort -u
+  )
+}
+
+list_graph() {
+  emit '```mermaid'
+  emit 'flowchart TD'
+  emit '  Profile[ThinkPad Rafex]'
+  awk -F'|' '
+    !/^#/ && NF >= 7 {
+      owner=$2; owner_id=owner; gsub(/[^A-Za-z0-9_]/, "_", owner_id)
+      resource=$1; resource_id=resource; gsub(/[^A-Za-z0-9_]/, "_", resource_id)
+      target=$3; gsub(/"/, "\\\"", target)
+      owners[owner_id]=owner
+      resources[resource_id]=resource
+      labels[resource_id]=target
+      edges[owner_id "\034" resource_id]=1
+    }
+    END {
+      for (owner_id in owners) printf "  Owner_%s[\"%s\"]\n", owner_id, owners[owner_id]
+      for (resource_id in resources) printf "  Resource_%s[\"%s — %s\"]\n", resource_id, resources[resource_id], labels[resource_id]
+      for (edge in edges) {
+        split(edge, parts, "\034")
+        printf "  Owner_%s --> Resource_%s\n", parts[1], parts[2]
+      }
+    }
+  ' "$REGISTRY" | sort
+  emit '  Profile --> Owner_rafex_config'
+  emit '```'
+}
+
 check_file() {
   local label="$1" path="$2"
   if [[ -e "$path" ]]; then
     ok "$label: $(relative_home "$path")"
   else
     warn "$label ausente: $(relative_home "$path")"
+  fi
+}
+
+check_history_repo() {
+  if [[ ! -d "$HISTORY_ROOT/.git" ]]; then
+    warn "historial ThinkPad no inicializado: $(relative_home "$HISTORY_ROOT")"
+    return 0
+  fi
+  if ! git -C "$HISTORY_ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
+    warn "historial ThinkPad sin commits: $(relative_home "$HISTORY_ROOT")"
+    return 0
+  fi
+  if [[ -z "$(git -C "$HISTORY_ROOT" status --porcelain --untracked-files=all)" ]]; then
+    ok "historial ThinkPad limpio: $(relative_home "$HISTORY_ROOT")"
+  else
+    warn "historial ThinkPad tiene cambios sin registrar: $(relative_home "$HISTORY_ROOT")"
   fi
 }
 
@@ -139,6 +241,9 @@ validate_registry() {
   else
     warn "registro: destinos/bloques duplicados: $duplicate_target"
   fi
+  if awk -F'|' '!/^#/ && NF >= 7 { target=$3; sub(/#.*/, "", target); count[target]++ } END { for (target in count) if (count[target] > 1) found=1; exit(found ? 0 : 1) }' "$REGISTRY"; then
+    info 'registro: existen destinos físicos compartidos; deben publicarse por fragmentos, no por reemplazo completo'
+  fi
 }
 
 checks() {
@@ -152,6 +257,7 @@ checks() {
   check_file 'selector de barra' "$CONFIG_HOME/rafex/i3-bar-profile"
   check_file 'helper ratmenu' "$HOME/.local/bin/rafex-ratmenu.sh"
   check_file 'helper panel Rafex' "$HOME/.local/bin/rafex-control-panel.sh"
+  check_history_repo
   check_i3_binding 'XF86Tools usa ratmenu' 'bindsym[[:space:]]+XF86Tools.*rafex-ratmenu\.sh'
   check_i3_binding 'XF86Search abre DuckDuckGo' 'bindsym[[:space:]]+XF86Search.*duckduckgo\.com'
   # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
@@ -212,24 +318,18 @@ report() {
   emit '## Propietarios'
   list_registry
   emit
+  emit '## Colisiones por destino físico'
+  emit
+  list_physical_collisions
+  emit
   emit '## Grafo'
-  cat <<'EOF'
-```mermaid
-flowchart TD
-  Profile[dotfiles/install] --> I3[i3 config]
-  Controls[i3 controls] --> I3
-  Eww[install EWW] --> I3
-  Conky[install Conky] --> I3
-  Picom[Picom service] --> I3
-  Bars[bar selector] --> I3
-  Theme[theme toggle] --> I3
-  I3 --> Ratmenu[XF86Tools]
-  I3 --> Search[XF86Search]
-```
-EOF
+  list_graph
   emit
   emit '## Scripts detectados'
   list_scripts
+  emit
+  emit '## Candidatos que escriben superficies administradas'
+  list_target_writer_candidates
   emit
   emit '## Comprobaciones actuales'
   checks || true

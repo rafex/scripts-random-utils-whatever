@@ -28,6 +28,28 @@ class GenerateTerminalThemes(unittest.TestCase):
         self.mock_bin.mkdir()
         (self.mock_bin / "uname").write_text(UNAME_MOCK)
         (self.mock_bin / "uname").chmod(0o755)
+        # El script se prueba con uname=Linux aunque CI/local pueda correr en
+        # macOS; proporciona los comandos GNU mínimos que usa el guard.
+        (self.mock_bin / "flock").write_text("#!/bin/sh\nexit 0\n")
+        (self.mock_bin / "sha256sum").write_text(
+            "#!/bin/sh\nexec shasum -a 256 \"$1\"\n"
+        )
+        (self.mock_bin / "cp").write_text(
+            "#!/bin/sh\n"
+            "if [ \"$1\" = -p ] && [ \"$2\" = -- ]; then shift 2; fi\n"
+            "exec /bin/cp \"$@\"\n"
+        )
+        (self.mock_bin / "chmod").write_text(
+            "#!/bin/bash\n"
+            "args=()\n"
+            "for arg in \"$@\"; do\n"
+            "  [[ \"$arg\" == -- ]] && continue\n"
+            "  args+=(\"$arg\")\n"
+            "done\n"
+            "exec /bin/chmod \"${args[@]}\"\n"
+        )
+        for command in ("flock", "sha256sum", "cp", "chmod"):
+            (self.mock_bin / command).chmod(0o755)
         self.env = dict(
             os.environ,
             XDG_CONFIG_HOME=str(self.config_home),
@@ -95,14 +117,15 @@ class GenerateTerminalThemes(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(alacritty.read_bytes(), before)
 
-    def test_apply_fixes_a_stale_file(self):
+    def test_apply_preserves_a_stale_file(self):
         self.run_script("--apply", "--theme", "nord")
         alacritty = self.target_file("nord", "alacritty.toml")
         alacritty.write_text("background = \"#ffffff\"\n")
-        self.run_script("--apply", "--theme", "nord")
+        result = self.run_script("--apply", "--theme", "nord")
+        self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            alacritty.read_bytes(),
-            (SOURCE_ROOT / "nord/alacritty.toml").read_bytes(),
+            alacritty.read_text(),
+            "background = \"#ffffff\"\n",
         )
 
     def test_eww_scss_avoids_known_unsupported_gtk_css_properties(self):

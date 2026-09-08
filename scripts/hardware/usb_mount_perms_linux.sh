@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
+
 # Los comandos polkit/udev suelen vivir en /usr/sbin o /sbin y no siempre
 # aparecen en el PATH de una sesión SSH no interactiva.
 SYSTEM_PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -478,7 +484,33 @@ fix_udiskie() {
     return
   fi
 
-  if [[ "${UDISKIE_NOT_RUNNING:-0}${UDISKIE_I3_COMMENTED:-0}${UDISKIE_I3_MISSING:-0}" == "000" ]]; then
+  local i3_before config_before
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    for command_name in flock git sha256sum stat; do
+      command -v "$command_name" >/dev/null 2>&1 || {
+        fatal "falta la herramienta requerida para proteger la configuración: $command_name"
+        exit 1
+      }
+    done
+    rafex_guard_require_owner 'i3.udiskie' 'usb-mount-perms' || exit 1
+    rafex_guard_require_owner 'usb.udiskie-config' 'usb-mount-perms' || exit 1
+    rafex_guard_begin || { fatal 'otra modificación de configuración ThinkPad está en curso'; exit 1; }
+    trap rafex_guard_end EXIT
+    i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
+    config_before="$(rafex_guard_sha256 "$UDISKIE_CONFIG")"
+  fi
+
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    local fragment
+    fragment="$(mktemp)"
+    printf '%s\n' \
+      '# BEGIN rafex udiskie' \
+      'exec --no-startup-id udiskie --tray' \
+      '# END rafex udiskie' > "$fragment"
+    rafex_i3_fragment_replace "$I3_CONFIG" '# BEGIN rafex udiskie' '# END rafex udiskie' "$fragment"
+    rm -f -- "$fragment"
+    success 'udiskie publicado como fragmento administrado de i3.'
+  elif [[ "${UDISKIE_NOT_RUNNING:-0}${UDISKIE_I3_COMMENTED:-0}${UDISKIE_I3_MISSING:-0}" == "000" ]]; then
     info "udiskie en i3: ya configurado, omitiendo."
   else
     local udiskie_line="exec --no-startup-id udiskie --tray"
@@ -545,6 +577,11 @@ device_config:
     fi
   else
     info "Config de udiskie: ya existe, omitiendo."
+  fi
+
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    rafex_guard_record_write 'usb-mount-perms' 'i3.udiskie' "$I3_CONFIG" "$i3_before" 'autoinicio udiskie en i3'
+    rafex_guard_record_write 'usb-mount-perms' 'usb.udiskie-config' "$UDISKIE_CONFIG" "$config_before" 'configuración de udiskie'
   fi
 }
 

@@ -9,6 +9,12 @@
 set -Eeuo pipefail
 umask 077
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
+
 ACTION='check'
 VERSION='5.16.1'
 ARCHITECTURE='all'
@@ -298,6 +304,10 @@ backup_colocated() {
 # su propio atajo en i3-, sin tocar nada fuera del bloque marcado.
 replace_block() {
   local target="$1" begin="$2" end="$3" block_file="$4" temporary
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$begin" "$end" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
@@ -323,7 +333,9 @@ replace_block() {
 configure_i3_shortcut() {
   [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
   [[ -f "$I3_CONFIG" ]] || { warn "no se encontró $I3_CONFIG; omitiendo atajo de prueba"; return 0; }
-  local block
+  local block before_hash
+  rafex_guard_require_owner 'i3.launcher' 'install-ulauncher' || die 'propietario del launcher i3 rechazado'
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   block="$(mktemp)"
   cat > "$block" <<EOF
 $I3_BEGIN
@@ -333,6 +345,7 @@ $I3_END
 EOF
   replace_block "$I3_CONFIG" "$I3_BEGIN" "$I3_END" "$block"
   rm -f -- "$block"
+  rafex_guard_record_write 'install-ulauncher' 'i3.launcher' "$I3_CONFIG" "$before_hash" 'atajo opcional de Ulauncher'
   ok "atajo de prueba \$mod+u configurado en $I3_CONFIG (recarga i3 con \$mod+Shift+r)"
 }
 
@@ -349,6 +362,13 @@ main() {
       install_prerequisites
       install_ulauncher
       enable_ulauncher_service
+      if [[ "$CONFIGURE_I3" -eq 1 ]]; then
+        for command_name in flock git sha256sum stat; do
+          command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta: $command_name"
+        done
+        rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+        trap rafex_guard_end EXIT
+      fi
       configure_i3_shortcut
       ;;
   esac

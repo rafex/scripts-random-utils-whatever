@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# i3_bar_profile_linux.sh v1.1.0
 # Selecciona el único perfil de barra administrado para i3.
 set -Eeuo pipefail
 umask 077
@@ -18,6 +19,7 @@ BAR_TARGET_DIR="$CONFIG_HOME/rafex/i3-bars"
 I3_CONFIG="$CONFIG_HOME/i3/config"
 ACTIVE_CONFIG="$CONFIG_HOME/i3/rafex-bar-active.conf"
 STATE_FILE="$CONFIG_HOME/rafex/i3-bar-profile"
+GENERATED_STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/rafex/config-generated/thinkpad/i3-bar-profile"
 RUNTIME_SOURCE="$REPO_ROOT/scripts/system/rafex_i3_bar_runtime_linux.sh"
 RUNTIME_TARGET="$HOME/.local/bin/rafex-i3-bar-runtime.sh"
 SELECTOR_SOURCE="$REPO_ROOT/scripts/system/i3_bar_profile_linux.sh"
@@ -149,6 +151,11 @@ backup_file() {
 replace_file() {
   local source="$1" target="$2" temporary
   mkdir -p -- "$(dirname -- "$target")"
+  if [[ -e "$target" || -L "$target" ]] && ! cmp -s "$source" "$target"; then
+    grep -Fq '# Managed by rafex i3 bar profiles' "$target" ||
+      die "se rehúsa sobrescribir archivo de barra no administrado: $target"
+    backup_file "$target"
+  fi
   temporary="$(mktemp "$(dirname -- "$target")/.rafex-bar.XXXXXX")"
   install -m 0644 -- "$source" "$temporary"
   mv -f -- "$temporary" "$target"
@@ -319,12 +326,22 @@ validate_active_target() {
   fi
 }
 
+validate_state_target() {
+  local resolved
+  if [[ -L "$STATE_FILE" ]]; then
+    resolved="$(readlink -f -- "$STATE_FILE" 2>/dev/null || true)"
+    [[ "$resolved" == "$GENERATED_STATE_FILE" ]] ||
+      die "el selector de barra apunta fuera del árbol generado Rafex: $STATE_FILE"
+  fi
+}
+
 set_mode() {
   local mode="$REQUESTED_MODE" source had_active=false had_state=false old_state='' active_backup='' state_before active_before
   validate_i3_layout
   [[ "$mode" == i3bar ]] || [[ -x "$RUNTIME_TARGET" ]] || die "falta el runtime instalado: $RUNTIME_TARGET"
   [[ -f "$BAR_TARGET_DIR/$mode.conf" ]] || die "falta plantilla: $BAR_TARGET_DIR/$mode.conf"
   validate_active_target
+  validate_state_target
   [[ "$ACTION" == plan ]] && { info "[plan] escribir perfil $mode en $STATE_FILE"; info "[plan] activar $BAR_TARGET_DIR/$mode.conf"; info '[plan] recargar i3'; return 0; }
   rafex_guard_require_owner 'bars.selection' 'i3-bar-profile' || die 'propietario de selector de barras rechazado'
   rafex_guard_require_owner 'bars.active' 'i3-bar-profile' || die 'propietario de barra activa rechazado'
@@ -403,6 +420,7 @@ main() {
       validate_i3_layout
       validate_active_target
       rafex_guard_require_owner 'i3.bar-include' 'i3-bar-profile' || die 'propietario de include i3 rechazado'
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
       local i3_before
       i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
       ensure_requested_package
@@ -411,13 +429,18 @@ main() {
       rafex_guard_record_write 'i3-bar-profile' 'i3.bar-include' "$I3_CONFIG" "$i3_before" 'include único de barra activa'
       ensure_active_file
       set_mode
+      rafex_guard_end
       ;;
     reload)
       command -v i3-msg >/dev/null 2>&1 || die 'falta i3-msg'
       [[ -n "${DISPLAY:-}" ]] || die 'DISPLAY no está disponible'
       i3-msg reload >/dev/null
       ;;
-    rollback) rollback ;;
+    rollback)
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      rollback
+      rafex_guard_end
+      ;;
   esac
 }
 

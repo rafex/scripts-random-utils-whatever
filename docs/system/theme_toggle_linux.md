@@ -74,9 +74,9 @@ propia del tema.
 Si la sesión activa es i3, solo recarga i3; no intenta conectarse a un socket
 de i3 inexistente desde Openbox.
 
-Cuando está instalado `dunst-smart.sh`, las notificaciones se regeneran según
-la posición de i3bar y reservan un margen vertical para no empalmarse con la
-barra.
+Cuando está instalado `dunst-smart.sh`, las notificaciones se regeneran en
+`top-right` usando como offset vertical la altura de la barra activa. El
+selector no usa una altura fija ni reserva espacio adicional.
 
 Cuando está instalado `conky-launch.sh`, el selector recarga únicamente la
 instancia Conky administrada por Rafex. No detiene instancias de otros usuarios
@@ -204,6 +204,9 @@ configuración local después de probar la nueva ventana.
 
 **style:** mantener terminales oscuras por tema y conservar acentos propios en
 Alacritty, rxvt-unicode y tmux.
+
+**fix:** declara `eww.scss` como recurso exclusivo de `theme-toggle`; el
+instalador EWW solo crea una semilla cuando el archivo está ausente.
 
 **feat:** añadir cuatro paletas centralizadas, colores contrastados de i3status,
 Polybar y soporte Xresources para ThinkPad.

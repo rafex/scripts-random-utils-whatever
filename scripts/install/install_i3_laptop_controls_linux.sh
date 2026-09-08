@@ -184,8 +184,18 @@ EOF
     return 0
   fi
   rafex_guard_require_owner 'i3.controls' 'install-i3-laptop-controls' || die 'propietario de configuración rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
   mkdir -p "$(dirname "$I3_CONFIG")"
   before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    rafex_i3_fragment_replace "$I3_CONFIG" "$begin" "$end" "$block_file"
+    rm -f -- "$block_file"
+    ok 'controles i3 publicados como fragmento administrado'
+    rafex_guard_record_write 'install-i3-laptop-controls' 'i3.controls' "$I3_CONFIG" "$before_hash" 'atajos XF86 y controles de sesión como fragmento'
+    rafex_guard_end
+    return 0
+  fi
   if [[ -f "$I3_CONFIG" ]]; then cp -a "$I3_CONFIG" "$I3_CONFIG.bak.$BACKUP_STAMP"; fi
 
   # El perfil ThinkPad antiguo definía estas teclas fuera del bloque

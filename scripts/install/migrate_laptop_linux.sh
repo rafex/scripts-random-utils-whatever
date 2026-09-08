@@ -8,6 +8,9 @@ set -Eeuo pipefail
 SCRIPT_PATH="${BASH_SOURCE[0]:-${0:-}}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" 2>/dev/null && pwd)"
 REPO_ROOT="${MIGRATE_REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 
 SOURCE="${MIGRATE_SOURCE:-rafex@192.168.3.174}"
 ACTION="check"
@@ -552,6 +555,11 @@ ensure_tablet_i3_startup() {
     return 0
   fi
 
+  rafex_guard_require_owner 'i3.autorotate' 'migrate-laptop' || die 'propietario de autorrotación rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  local before_hash
+  before_hash="$(rafex_guard_sha256 "$config")"
+
   mkdir -p "$(dirname "$config")"
   if [[ -f "$config" && ! -s "$config" ]]; then
     :
@@ -569,6 +577,8 @@ ensure_tablet_i3_startup() {
     printf '%s\n' "$end"
   } >> "$config"
   ok "autorrotación agregada al inicio de i3"
+  rafex_guard_record_write 'migrate-laptop' 'i3.autorotate' "$config" "$before_hash" 'autostart de autorrotación'
+  rafex_guard_end
 }
 
 stage_tablet() {

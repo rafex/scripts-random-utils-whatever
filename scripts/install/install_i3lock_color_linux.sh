@@ -12,6 +12,9 @@ VERSION="2.12.c.5"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 SOURCE_ROOT="$HOME/.local/share/rafex/i3lock-color/${VERSION}-src"
 TARGET="$HOME/.local/bin/i3lock-color"
 WRAPPER_SOURCE="$REPO_ROOT/scripts/system/lock_screen_linux.sh"
@@ -110,6 +113,11 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock-screen.
 bindsym $mod+Shift+l exec --no-startup-id ~/.local/bin/lock-screen.sh --mode image
 # END rafex i3lock-color
 EOF
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    rafex_i3_fragment_replace "$I3_CONFIG" "$begin" "$end" "$block_file"
+    rm -f -- "$block_file"
+    return 0
+  fi
   temporary="$(mktemp)"
   if [[ -f "$I3_CONFIG" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" -v legacy_xss='exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork' -v legacy_binding='bindsym $mod+Shift+l exec --no-startup-id i3lock -c 000000' \
@@ -270,7 +278,14 @@ main() {
       ;;
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
-      local apt_packages=() p
+      local apt_packages=() p i3_before autostart_before rc_before binary_before wrapper_before
+      rafex_guard_require_owner 'i3.lock' 'install-i3lock-color' || die 'propietario del lock i3 rechazado'
+      rafex_guard_require_owner 'openbox.lock' 'install-i3lock-color' || die 'propietario del lock Openbox rechazado'
+      rafex_guard_require_owner 'lock.binary' 'install-i3lock-color' || die 'propietario del binario de lock rechazado'
+      rafex_guard_require_owner 'lock.wrapper' 'install-i3lock-color' || die 'propietario del wrapper de lock rechazado'
+      for command_name in flock git sha256sum stat; do
+        command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+      done
       for p in "${BUILD_PACKAGES[@]}" "${RUNTIME_PACKAGES[@]}"; do
         if ! installed "$p"; then candidate "$p" || die "sin candidato APT: $p"; apt_packages+=("$p"); fi
       done
@@ -285,6 +300,13 @@ main() {
       [[ -n "$built" ]] || die 'la compilación no produjo un binario i3lock'
       [[ ! -e "$TARGET" || ! -L "$TARGET" ]] || die "el destino no puede ser enlace simbólico: $TARGET"
       [[ -e "$TARGET" ]] && ! cmp -s "$built" "$TARGET" && backup "$TARGET"
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      trap rafex_guard_end EXIT
+      binary_before="$(rafex_guard_sha256 "$TARGET")"
+      wrapper_before="$(rafex_guard_sha256 "$WRAPPER_TARGET")"
+      i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
+      autostart_before="$(rafex_guard_sha256 "$OPENBOX_AUTOSTART")"
+      rc_before="$(rafex_guard_sha256 "$OPENBOX_RC")"
       install -m 0755 -- "$built" "$TARGET"
       [[ -f "$WRAPPER_SOURCE" ]] || die "falta $WRAPPER_SOURCE"
       if [[ -e "$WRAPPER_TARGET" ]] && ! cmp -s "$WRAPPER_SOURCE" "$WRAPPER_TARGET"; then backup "$WRAPPER_TARGET"; fi
@@ -292,6 +314,11 @@ main() {
       replace_i3_lock_block
       replace_openbox_autostart
       replace_openbox_keybind
+      rafex_guard_record_write 'install-i3lock-color' 'lock.binary' "$TARGET" "$binary_before" 'binario paralelo i3lock-color'
+      rafex_guard_record_write 'install-i3lock-color' 'lock.wrapper' "$WRAPPER_TARGET" "$wrapper_before" 'wrapper lock-screen'
+      rafex_guard_record_write 'install-i3lock-color' 'i3.lock' "$I3_CONFIG" "$i3_before" 'atajo y xss-lock en i3'
+      rafex_guard_record_write 'install-i3lock-color' 'openbox.lock' "$OPENBOX_AUTOSTART" "$autostart_before" 'xss-lock en Openbox'
+      rafex_guard_record_write 'install-i3lock-color' 'openbox.lock' "$OPENBOX_RC" "$rc_before" 'atajo de lock en Openbox'
       ok "i3lock-color instalado y activado: $TARGET"
       ;;
     status) show_status;;

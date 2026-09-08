@@ -8,6 +8,9 @@ ACTION="check"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 STAMP="$(date +%Y%m%d_%H%M%S)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 readonly SCREENSHOT_SOURCE="$REPO_ROOT/scripts/system/screenshot_linux.sh"
 readonly SCREENSHOT_TARGET="$HOME/.local/bin/screenshot.sh"
 readonly I3_CONFIG="${I3_CONFIG:-$HOME/.config/i3/config}"
@@ -60,6 +63,9 @@ require_debian() {
   [[ -f "$SCREENSHOT_SOURCE" ]] || die "falta el helper: $SCREENSHOT_SOURCE"
   if [[ "$ACTION" == apply ]]; then
     command -v sudo >/dev/null 2>&1 || die 'falta sudo para --apply'
+    for command_name in flock git sha256sum stat; do
+      command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+    done
   fi
 }
 
@@ -103,6 +109,10 @@ install_helper() {
 
 replace_block() {
   local target="$1" begin="$2" end="$3" block_file="$4" mode="$5" temporary
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$begin" "$end" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
@@ -134,11 +144,17 @@ remove_i3_legacy() {
 }
 
 configure_i3() {
-  local block_file begin='# BEGIN rafex screenshots' end='# END rafex screenshots'
+  local block_file begin='# BEGIN rafex screenshots' end='# END rafex screenshots' before_hash
   [[ "$ACTION" == plan ]] && { info "[plan] actualizar $I3_CONFIG"; return 0; }
   [[ "$ACTION" == apply ]] || return 0
+  rafex_guard_require_owner 'i3.screenshot' 'install-screenshot' || die 'propietario de capturas i3 rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   mkdir -p "$(dirname -- "$I3_CONFIG")"
-  remove_i3_legacy
+  if ! rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    remove_i3_legacy
+  fi
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
 # BEGIN rafex screenshots
@@ -151,6 +167,7 @@ EOF
   replace_block "$I3_CONFIG" "$begin" "$end" "$block_file" 644
   rm -f -- "$block_file"
   ok 'capturas integradas en i3'
+  rafex_guard_record_write 'install-screenshot' 'i3.screenshot' "$I3_CONFIG" "$before_hash" 'atajos de captura i3'
 }
 
 replace_openbox_keyboard_block() {
@@ -196,9 +213,13 @@ replace_openbox_keyboard_block() {
 }
 
 configure_openbox() {
-  local block_file begin='<!-- BEGIN rafex screenshots -->' end='<!-- END rafex screenshots -->'
+  local block_file begin='<!-- BEGIN rafex screenshots -->' end='<!-- END rafex screenshots -->' before_hash
   [[ "$ACTION" == plan ]] && { info "[plan] actualizar $OPENBOX_RC"; return 0; }
   [[ "$ACTION" == apply ]] || return 0
+  rafex_guard_require_owner 'openbox.screenshot' 'install-screenshot' || die 'propietario de capturas Openbox rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
+  before_hash="$(rafex_guard_sha256 "$OPENBOX_RC")"
   mkdir -p "$(dirname -- "$OPENBOX_RC")"
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
@@ -212,6 +233,7 @@ EOF
   replace_openbox_keyboard_block "$OPENBOX_RC" "$begin" "$end" "$block_file"
   rm -f -- "$block_file"
   ok 'capturas integradas en Openbox'
+  rafex_guard_record_write 'openbox.screenshot' 'install-screenshot' "$OPENBOX_RC" "$before_hash" 'atajos de captura Openbox'
 }
 
 validate_candidates() {

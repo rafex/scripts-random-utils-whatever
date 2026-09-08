@@ -47,9 +47,12 @@ directorios ausentes y ya no reemplaza i3, EWW, Picom ni las barras existentes.
 
 ### Publicación central y reversible
 
-El repositorio actual continúa siendo la fuente canónica. En la ThinkPad se
-puede mantener un checkout local en
-`~/.local/share/rafex/thinkpad-config-repo/` y publicar sus archivos con:
+Este repositorio remoto es un replicador y ejecutor. En la ThinkPad se
+ejecuta desde el checkout del proyecto, mientras que el estado de lo
+instalado se conserva en un repositorio Git local independiente bajo
+`~/.local/share/rafex-thinkpad/`. Ese repositorio contiene únicamente archivos
+instalados, snapshots y metadatos de la máquina; no es un clon completo ni
+realiza `git push`. Se publica con:
 
 ```sh
 just rafex-config --check
@@ -59,20 +62,23 @@ just rafex-config --adopt
 just rafex-config --doctor
 ```
 
-Los archivos estáticos se publican como symlinks; i3, EWW y el estado de la
-barra se generan en `~/.local/state/rafex/config-generated/thinkpad/`. La
-adopción es explícita y conserva respaldos. Un `--deploy` posterior no sustituye
-archivos manuales; si una aplicación rompe un enlace, `--doctor` lo reporta.
-`--rollback` restaura el último conjunto de respaldos. No se usan hard links ni
-se modifican BIOS, GRUB, TPM, initramfs, red o suspensión.
+Los recursos generados centrales se materializan en
+`~/.local/state/rafex/config-generated/thinkpad/`; los scripts y configuraciones
+que aún tienen instaladores especializados quedan registrados mediante
+snapshots en `~/.local/share/rafex-thinkpad/`, sin symlinks centrales que puedan
+competir con ellos. La adopción es explícita y conserva respaldos. Un
+`--deploy` posterior no sustituye archivos manuales; si una aplicación rompe un
+enlace, `--doctor` lo reporta. `--rollback` restaura el último conjunto de
+respaldos. No se usan hard links ni se modifican BIOS, GRUB, TPM, initramfs, red
+o suspensión.
 
 ## Incluye
 
 - i3, i3status, Ulauncher, rofi, ratmenu (con 9menu como respaldo), dunst,
   alacritty y picom. Ulauncher es el launcher principal en `Super+Space`;
   Rofi queda para ventanas, navegador, ejecución, menús y confirmaciones.
-  Dunst detecta la posición de i3bar y reserva espacio para que las
-  notificaciones no se empalmen con la barra.
+  Dunst permanece en `top-right` y calcula un offset igual a la altura de la
+  barra activa para quedar debajo de ella, sin reservar espacio adicional.
 - Inicio de `udiskie` desde i3; `pasystray` y `nm-applet` se gestionan mediante
   los archivos XDG de autostart ejecutados por `dex`.
 - Atajos de brillo, audio, capturas, bloqueo y pantallas. F5/F6 controlan el

@@ -10,7 +10,9 @@ tags:
 # generate_terminal_themes_linux.sh
 
 Genera las paletas versionadas del perfil `thinkpad-x1-yoga-1st` en la
-configuración del usuario. No instala paquetes ni requiere `sudo`.
+configuración del usuario. No instala paquetes ni requiere `sudo`. En
+`--apply` solo crea archivos ausentes; una paleta existente y distinta se
+conserva y se reporta para evitar que este generador pise al selector de temas.
 
 - **Ruta:** `scripts/system/generate_terminal_themes_linux.sh`
 - **SO requerido:** Linux
@@ -77,7 +79,7 @@ falta o está desactualizado.
 |---|---|---|
 | `--check` | — | Comprueba plantillas y destino sin modificar archivos. |
 | `--plan` | `--dry-run` | Muestra las paletas que se materializarían. |
-| `--apply` | — | Copia las paletas con reemplazo atómico. |
+| `--apply` | — | Crea únicamente archivos ausentes con reemplazo atómico; no pisa paletas existentes. |
 | `--theme <tema>` | — | Selecciona `paper`, `nord`, `everforest`, `dracula` o `all`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
@@ -195,6 +197,9 @@ definida, pero no como activa).
 
 ### [Unreleased]
 
+- **fix:** el generador funciona como semilla: crea únicamente archivos de
+  paleta ausentes y conserva los existentes para no competir con
+  `theme-toggle.sh` ni con el publicador local.
 - **feat:** Añadir Paper, Nord, Everforest y Dracula con soporte para
   rxvt-unicode, i3status, Openbox, tint2, Polybar, Conky y EWW.
 - **fix:** `--check`/`--plan` comparan el contenido de cada archivo contra

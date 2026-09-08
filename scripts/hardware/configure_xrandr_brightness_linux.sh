@@ -8,6 +8,12 @@
 set -Eeuo pipefail
 umask 077
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
+
 # Si se ejecuta desde una shell no gráfica (tmux/SSH) que no exportó
 # DISPLAY, se asume :0 -la sesión Xorg real de un laptop de un solo
 # monitor-. Si no hay servidor X ahí, xrandr simplemente falla en
@@ -127,6 +133,10 @@ backup_colocated() {
 # atajo en i3-, sin tocar nada fuera del bloque marcado.
 replace_block() {
   local target="$1" begin="$2" end="$3" block_file="$4" temporary backup_fn="$5"
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$begin" "$end" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
@@ -194,7 +204,9 @@ check_status() {
 }
 
 configure_i3() {
-  local output="$1" block
+  local output="$1" block before_hash
+  rafex_guard_require_owner 'power.xrandr' 'configure-xrandr-brightness' || die 'propietario de brillo xrandr rechazado'
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   block="$(mktemp)"
   cat > "$block" <<EOF
 $I3_BEGIN
@@ -203,11 +215,12 @@ $I3_END
 EOF
   replace_block "$I3_CONFIG" "$I3_BEGIN" "$I3_END" "$block" backup_colocated
   rm -f -- "$block"
+  rafex_guard_record_write 'configure-xrandr-brightness' 'power.xrandr' "$I3_CONFIG" "$before_hash" 'bloque de brillo xrandr'
   ok "bloque de brillo configurado en $I3_CONFIG (recarga i3 con \$mod+Shift+r)"
 }
 
 configure_sleep_hook() {
-  local output="$1" temporary
+  local output="$1" temporary before_hash
   temporary="$(mktemp)"
   sleep_hook_content "$output" "$BRIGHTNESS" > "$temporary"
   if sudo -n test -f "$SLEEP_HOOK" 2>/dev/null && sudo -n cmp -s "$temporary" "$SLEEP_HOOK" 2>/dev/null; then
@@ -216,8 +229,10 @@ configure_sleep_hook() {
     return 0
   fi
   backup_root_file "$SLEEP_HOOK"
+  before_hash="$(rafex_guard_sha256 "$SLEEP_HOOK")"
   sudo install -D -m 0755 "$temporary" "$SLEEP_HOOK"
   rm -f -- "$temporary"
+  rafex_guard_record_write 'configure-xrandr-brightness' 'power.xrandr-hook' "$SLEEP_HOOK" "$before_hash" 'hook de reanudación xrandr'
   ok "hook de systemd-sleep instalado: $SLEEP_HOOK"
 }
 
@@ -245,6 +260,11 @@ main() {
   fi
 
   command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
+  for command_name in flock git sha256sum stat; do
+    require_command "$command_name"
+  done
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
   configure_i3 "$output"
   sudo -v
   configure_sleep_hook "$output"

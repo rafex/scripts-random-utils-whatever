@@ -11,6 +11,9 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 SOURCE="$REPO_ROOT/scripts/system/rafex_control_panel.py"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 PY_TARGET="$HOME/.local/bin/rafex-control-panel.py"
 WRAPPER_TARGET="$HOME/.local/bin/rafex-control-panel.sh"
 I3_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/i3/config"
@@ -62,6 +65,11 @@ bindsym \$mod+Control+p exec --no-startup-id ~/.local/bin/rafex-control-panel.sh
 for_window [class="RafexControlPanel"] floating enable, border pixel 0
 $I3_END
 EOF
+  if rafex_i3_fragment_is_active "$I3_CONFIG"; then
+    rafex_i3_fragment_replace "$I3_CONFIG" "$I3_BEGIN" "$I3_END" "$block_file"
+    rm -f -- "$block_file"
+    return 0
+  fi
   temporary="$(mktemp)"
   awk -v begin="$I3_BEGIN" -v end="$I3_END" -v block_file="$block_file" '
     function emit(  line) { while ((getline line < block_file) > 0) print line; close(block_file) }
@@ -128,13 +136,32 @@ main() {
       ;;
     apply)
       command -v sudo >/dev/null 2>&1 || die 'sudo no está instalado'
-      local apt_packages=() p
+      local apt_packages=() p py_before wrapper_before i3_before openbox_before menu_before
+      rafex_guard_require_owner 'control-panel.python' 'install-rafex-control-panel' || die 'propietario del panel Python rechazado'
+      rafex_guard_require_owner 'control-panel.wrapper' 'install-rafex-control-panel' || die 'propietario del wrapper del panel rechazado'
+      rafex_guard_require_owner 'i3.control-panel' 'install-rafex-control-panel' || die 'propietario del panel i3 rechazado'
+      rafex_guard_require_owner 'openbox.control-panel' 'install-rafex-control-panel' || die 'propietario del panel Openbox rechazado'
+      for command_name in flock git sha256sum stat; do
+        command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+      done
       for p in "${PACKAGES[@]}"; do if ! installed "$p"; then candidate "$p" || die "sin candidato APT: $p"; apt_packages+=("$p"); fi; done
       if ((${#apt_packages[@]})); then sudo -v; sudo apt-get update; sudo apt-get install -y "${apt_packages[@]}"; fi
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+      trap rafex_guard_end EXIT
+      py_before="$(rafex_guard_sha256 "$PY_TARGET")"
+      wrapper_before="$(rafex_guard_sha256 "$WRAPPER_TARGET")"
+      i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
+      openbox_before="$(rafex_guard_sha256 "$OPENBOX_RC")"
+      menu_before="$(rafex_guard_sha256 "$OPENBOX_MENU")"
       install_files
       configure_i3
       configure_openbox
       configure_menu
+      rafex_guard_record_write 'install-rafex-control-panel' 'control-panel.python' "$PY_TARGET" "$py_before" 'panel GTK Python'
+      rafex_guard_record_write 'install-rafex-control-panel' 'control-panel.wrapper' "$WRAPPER_TARGET" "$wrapper_before" 'wrapper del panel GTK'
+      rafex_guard_record_write 'install-rafex-control-panel' 'i3.control-panel' "$I3_CONFIG" "$i3_before" 'atajo del panel en i3'
+      rafex_guard_record_write 'install-rafex-control-panel' 'openbox.control-panel' "$OPENBOX_RC" "$openbox_before" 'atajo del panel en Openbox'
+      rafex_guard_record_write 'install-rafex-control-panel' 'openbox.control-panel' "$OPENBOX_MENU" "$menu_before" 'entrada del panel en Openbox'
       ok 'panel instalado; ejecútalo como usuario con rafex-control-panel.sh'
       ;;
     status) show_status;;

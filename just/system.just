@@ -12,7 +12,7 @@ theme-toggle *args:
 generate-terminal-themes *args:
     bash scripts/system/generate_terminal_themes_linux.sh {{args}}
 
-# Ajustar la posición de Dunst según el borde ocupado por i3bar
+# Colocar Dunst debajo de la barra activa sin usar una altura fija
 # Uso: just dunst-smart --check | just dunst-smart --start
 dunst-smart *args:
     bash scripts/system/dunst_smart_start_linux.sh {{args}}

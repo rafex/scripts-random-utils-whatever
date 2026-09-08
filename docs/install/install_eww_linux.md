@@ -51,6 +51,11 @@ consulta AC, porcentaje de carga, estado y la salud estimada de UPower cada 10
 segundos. Para añadirla de forma independiente en una instalación existente
 usa `just configure-eww-battery --apply`.
 
+`install-eww` es propietario de `eww.yuck`. La hoja `eww.scss` pertenece a
+`theme-toggle`: si ya existe, el instalador la conserva y no la reemplaza. Para
+cambiar la paleta usa `theme-toggle.sh --set <tema>`; así el estilo no compite
+con la configuración Yuck.
+
 ## Uso
 
 ```bash
@@ -129,6 +134,7 @@ de la ThinkPad está desactualizado y debe sincronizarse con
 ## Changelog
 
 ### [Unreleased]
+- **fix:** conservar `eww.scss` existente y dejar su actualización únicamente a `theme-toggle`.
 - **style:** reemplazar el dashboard básico por una presentación Control Center
   con tarjetas compactas, jerarquía visual e indicadores por sección.
 - **fix:** cerrar el descriptor de `flock` antes de iniciar el daemon y las ventanas EWW.

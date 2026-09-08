@@ -8,6 +8,9 @@ ACTION="check"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 STAMP="$(date +%Y%m%d_%H%M%S)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 readonly COPYQ_HELPER_SOURCE="$REPO_ROOT/scripts/system/clipboard_menu_linux.sh"
 readonly COPYQ_HELPER_TARGET="$HOME/.local/bin/clipboard-menu.sh"
 readonly I3_CONFIG="${I3_CONFIG:-$HOME/.config/i3/config}"
@@ -59,6 +62,9 @@ require_debian() {
   [[ -f "$COPYQ_HELPER_SOURCE" ]] || die "falta el helper: $COPYQ_HELPER_SOURCE"
   if [[ "$ACTION" == apply ]]; then
     command -v sudo >/dev/null 2>&1 || die 'falta sudo para --apply'
+    for command_name in flock git sha256sum stat; do
+      command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+    done
   fi
 }
 
@@ -108,6 +114,10 @@ install_helper() {
 
 replace_block() {
   local target="$1" begin="$2" end="$3" block_file="$4" mode="$5" temporary
+  if rafex_i3_fragment_is_active "$target"; then
+    rafex_i3_fragment_replace "$target" "$begin" "$end" "$block_file"
+    return $?
+  fi
   temporary="$(mktemp)"
   if [[ -f "$target" ]]; then
     awk -v begin="$begin" -v end="$end" -v block_file="$block_file" '
@@ -130,9 +140,13 @@ replace_block() {
 }
 
 configure_i3() {
-  local block_file begin='# BEGIN rafex clipboard' end='# END rafex clipboard'
+  local block_file begin='# BEGIN rafex clipboard' end='# END rafex clipboard' before_hash
   [[ "$ACTION" == plan ]] && { info "[plan] actualizar $I3_CONFIG"; return 0; }
   [[ "$ACTION" == apply ]] || return 0
+  rafex_guard_require_owner 'i3.clipboard' 'install-clipboard' || die 'propietario de portapapeles i3 rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   mkdir -p "$(dirname -- "$I3_CONFIG")"
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
@@ -144,12 +158,17 @@ EOF
   replace_block "$I3_CONFIG" "$begin" "$end" "$block_file" 644
   rm -f -- "$block_file"
   ok 'CopyQ integrado en i3'
+  rafex_guard_record_write 'install-clipboard' 'i3.clipboard' "$I3_CONFIG" "$before_hash" 'atajo y autoinicio CopyQ en i3'
 }
 
 configure_openbox() {
-  local block_file begin='# BEGIN rafex clipboard' end='# END rafex clipboard'
+  local block_file begin='# BEGIN rafex clipboard' end='# END rafex clipboard' before_hash
   [[ "$ACTION" == plan ]] && { info "[plan] actualizar $OPENBOX_AUTOSTART"; return 0; }
   [[ "$ACTION" == apply ]] || return 0
+  rafex_guard_require_owner 'openbox.clipboard' 'install-clipboard' || die 'propietario de portapapeles Openbox rechazado'
+  rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
+  trap rafex_guard_end EXIT
+  before_hash="$(rafex_guard_sha256 "$OPENBOX_AUTOSTART")"
   mkdir -p "$(dirname -- "$OPENBOX_AUTOSTART")"
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
@@ -162,6 +181,7 @@ EOF
   replace_block "$OPENBOX_AUTOSTART" "$begin" "$end" "$block_file" 755
   rm -f -- "$block_file"
   ok 'CopyQ integrado en Openbox'
+  rafex_guard_record_write 'install-clipboard' 'openbox.clipboard' "$OPENBOX_AUTOSTART" "$before_hash" 'autoinicio CopyQ en Openbox'
 }
 
 show_status() {

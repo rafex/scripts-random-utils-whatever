@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# Managed by rafex i3 bar profiles
 # Imprime las ventanas normales del workspace actual para el módulo de Polybar.
 set -Eeuo pipefail
 umask 077

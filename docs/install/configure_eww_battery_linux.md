@@ -9,8 +9,9 @@ tags:
 
 # configure_eww_battery_linux.sh
 
-Instala el helper de alimentación y añade bloques administrados, idempotentes
-y reversibles a la configuración EWW del perfil ThinkPad.
+Valida la compatibilidad histórica de la telemetría de alimentación. La tarjeta
+y su `defpoll` ahora forman parte de `install-eww_linux.sh`, que es el único
+escritor autorizado de `eww.yuck`.
 
 - **Ruta:** `scripts/install/configure_eww_battery_linux.sh`
 - **SO requerido:** Linux (X11/EWW)
@@ -44,7 +45,8 @@ just configure-eww-battery --apply
 just eww-widgets --reload
 ```
 
-Para retirarlo:
+`--apply` ya no edita EWW; solo confirma que la funcionalidad está integrada.
+Para retirarla:
 
 ```bash
 just configure-eww-battery --rollback
@@ -58,8 +60,8 @@ just eww-widgets --reload
 | `--check` | — | Valida el Yuck administrado y el helper fuente. |
 | `--plan` | `--dry-run` | Describe el cambio sin modificar archivos. |
 | `--status` | — | Comprueba bloques, helper y posibilidad de recarga. |
-| `--apply` | — | Instala el helper y añade/actualiza los dos bloques EWW. |
-| `--rollback` | — | Retira solo los bloques y helper administrados por esta función. |
+| `--apply` | — | Confirma que los bloques ya están integrados por `install-eww`. |
+| `--rollback` | — | Bloqueado para evitar que este script retire una parte de `eww.yuck`. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -78,6 +80,9 @@ precedencia sobre cualquier valor implícito; no se admite archivo `.env`.
 ```bash
 just configure-eww-battery --check
 just configure-eww-battery --apply
+
+# Si falta la tarjeta, el único instalador autorizado es:
+just install-eww --apply
 ```
 
 ### Ver la telemetría sin abrir EWW
@@ -94,9 +99,10 @@ just configure-eww-battery --rollback
 
 ## Protecciones de seguridad
 
-- Los bloques usan marcadores `BEGIN/END rafex` y se reemplazan sin duplicarse.
-- Se guarda un respaldo fechado de `eww.yuck` bajo
-  `~/.local/share/rafex/eww-battery/rollback/`.
+- Los bloques usan marcadores `BEGIN/END rafex` y son propiedad de
+  `install-eww_linux.sh`.
+- No se guarda ni se modifica `eww.yuck` desde este script; el rollback se hace
+  mediante el publicador central o reinstalando la configuración EWW completa.
 - Un Yuck no administrado o ausente se rechaza; no se sobrescribe una
   configuración arbitraria.
 - No se ejecuta `watch`, no se usa `sudo` y no se aceptan comandos EWW desde el
@@ -131,5 +137,5 @@ mediciones de energía/capacidad y el comportamiento de la batería.
 
 ### [Unreleased]
 
-- **feat:** añadir una tarjeta EWW administrada de telemetría de alimentación
-  y salud estimada cada 10 segundos.
+- **refactor:** convertir este comando en validador de compatibilidad; evita que
+  dos instaladores editen el mismo `eww.yuck`.

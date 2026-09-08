@@ -6,9 +6,11 @@ umask 077
 
 ACTION="check"
 THEME="all"
-STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 SOURCE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 TARGET_ROOT="$CONFIG_HOME/rafex/themes"
@@ -73,6 +75,11 @@ require_commands() {
   for command_name in basename cmp cp date dirname mkdir mktemp mv; do
     command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta: $command_name"
   done
+  if [[ "$ACTION" == apply ]]; then
+    for command_name in flock git sha256sum stat; do
+      command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta de historial: $command_name"
+    done
+  fi
 }
 
 selected_themes() {
@@ -129,24 +136,22 @@ theme_status() {
   fi
 }
 
-backup_path() {
-  local path="$1"
-  [[ -e "$path" || -L "$path" ]] || return 0
-  cp -a -- "$path" "${path}.bak.${STAMP}"
-  info "respaldo creado: ${path}.bak.${STAMP}"
-}
-
 install_theme_file() {
-  local source="$1" target="$2" temporary
+  local source="$1" target="$2" temporary before_hash
   mkdir -p "$(dirname "$target")"
-  if [[ -f "$target" ]] && cmp -s "$source" "$target"; then
+  if [[ -e "$target" || -L "$target" ]]; then
+    if cmp -s "$source" "$target"; then
+      return 0
+    fi
+    warn "se conserva la paleta existente; no se sobrescribe: $target"
     return 0
   fi
-  backup_path "$target"
+  before_hash="$(rafex_guard_sha256 "$target")"
   temporary="$(mktemp "${target}.tmp.XXXXXX")"
   cp -- "$source" "$temporary"
   chmod 644 "$temporary"
   mv -f -- "$temporary" "$target"
+  rafex_guard_record_write 'generate-terminal-themes' 'theme.templates' "$target" "$before_hash" 'semilla de plantilla ausente'
 }
 
 show_status() {
@@ -187,6 +192,8 @@ main() {
       ;;
     apply)
       echo '═══ Generación de paletas de terminal, i3 y Openbox ═══'
+      rafex_guard_require_owner 'theme.templates' 'generate-terminal-themes' || die 'propietario de plantillas de tema rechazado'
+      rafex_guard_begin || die 'otra modificación de configuración ThinkPad está en curso'
       local theme file
       while IFS= read -r theme; do
         for file in "${THEME_FILES[@]}"; do
@@ -194,6 +201,7 @@ main() {
         done
         ok "paleta instalada: $theme"
       done < <(selected_themes)
+      rafex_guard_end
       ;;
   esac
 }
