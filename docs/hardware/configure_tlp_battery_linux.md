@@ -11,6 +11,9 @@ tags:
 
 Configura TLP para comenzar a cargar al 75% y detener la carga al 80%. Los
 umbrales se guardan en un drop-in administrado y se aplican inmediatamente.
+Para la ThinkPad X1 Yoga el único dispositivo gestionado es `BAT0`; si el
+sistema expone otra batería, se informa y se omite para no cambiar hardware
+fuera de este perfil.
 
 - **Ruta:** `scripts/hardware/configure_tlp_battery_linux.sh`
 - **SO requerido:** Linux (Debian con systemd y TLP)
@@ -30,7 +33,7 @@ umbrales se guardan en un drop-in administrado y se aplican inmediatamente.
 ## Requisitos
 
 - Ejecutar como usuario normal con permisos de `sudo`.
-- Tener una batería `BAT0` o `BAT1` visible en `/sys/class/power_supply/`.
+- Tener `BAT0` visible en `/sys/class/power_supply/`.
 - TLP debe ser compatible con los umbrales de carga del firmware. La X1 Yoga
   usa la interfaz ThinkPad soportada por TLP.
 
@@ -85,6 +88,20 @@ administrada es fija para evitar modificar una configuración de TLP equivocada:
 /etc/tlp.d/90-rafex-battery.conf
 ```
 
+El contenido administrado por defecto es exactamente:
+
+```text
+# >>> rafex TLP battery managed >>>
+
+# Umbrales conservadores para reducir ciclos y mantener la batería entre 75-80%.
+
+START_CHARGE_THRESH_BAT0=75
+STOP_CHARGE_THRESH_BAT0=80
+```
+
+La fuente versionada del perfil se encuentra en
+`dotfiles/profiles/thinkpad-x1-yoga-1st/config/tlp/90-rafex-battery.conf`.
+
 ## Ejemplos
 
 ### Forma recomendada
@@ -127,10 +144,10 @@ just configure-tlp-battery --fullcharge
 
 ## Fallos conocidos
 
-### `no se detectó una batería ThinkPad compatible`
+### `no se detectó la batería BAT0 administrada por este perfil`
 
-**Causa:** no existe `BAT0`/`BAT1` o el equipo expone un nombre de batería que
-requiere una asignación específica de TLP.
+**Causa:** no existe `BAT0` o el equipo expone únicamente una batería con otro
+nombre.
 
 **Solución:** ejecuta `ls /sys/class/power_supply/` y `tlp-stat -b`. No fuerces
 un nombre distinto sin verificar la correspondencia del firmware.
@@ -159,3 +176,5 @@ carga termine; no es necesario eliminar la configuración 75/80.
 - **feat:** añadir acción explícita `--fullcharge` para viajes.
 - **fix:** detectar `tlp` correctamente desde shells SSH sin `/usr/sbin` en
   `PATH`.
+- **fix:** administrar exclusivamente `BAT0` y versionar el drop-in exacto del
+  perfil ThinkPad.

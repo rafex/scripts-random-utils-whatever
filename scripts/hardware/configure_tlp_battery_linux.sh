@@ -8,6 +8,10 @@ umask 077
 # incluyen ese directorio en PATH.
 export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH:-}"
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd -P)"
+PROFILE_CONFIG_FILE="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/tlp/90-rafex-battery.conf"
+
 ACTION='check'
 START_THRESHOLD=75
 STOP_THRESHOLD=80
@@ -94,35 +98,29 @@ require_linux() {
 }
 
 batteries() {
-  local path name found=0
+  local path name
+  [[ -d /sys/class/power_supply/BAT0 ]] || return 1
+  printf 'BAT0\n'
   for path in /sys/class/power_supply/BAT*; do
     [[ -d "$path" ]] || continue
     name="${path##*/}"
-    case "$name" in
-      BAT0|BAT1)
-        printf '%s\n' "$name"
-        found=1
-        ;;
-      *)
-        warn "batería no reconocida para TLP: $name"
-        ;;
-    esac
+    [[ "$name" == BAT0 ]] || warn "batería fuera del perfil administrado; se omite: $name"
   done
-  ((found == 1)) || return 1
 }
 
 render_config() {
-  local battery
-  cat <<'EOF'
+  if [[ "$START_THRESHOLD" == 75 && "$STOP_THRESHOLD" == 80 && -r "$PROFILE_CONFIG_FILE" ]]; then
+    cat "$PROFILE_CONFIG_FILE"
+    return 0
+  fi
+
+  cat <<EOF
 # >>> rafex TLP battery managed >>>
+
 # Umbrales conservadores para reducir ciclos y mantener la batería entre 75-80%.
-EOF
-  while IFS= read -r battery; do
-    printf 'START_CHARGE_THRESH_%s=%s\n' "$battery" "$START_THRESHOLD"
-    printf 'STOP_CHARGE_THRESH_%s=%s\n' "$battery" "$STOP_THRESHOLD"
-  done < <(batteries)
-  cat <<'EOF'
-# <<< rafex TLP battery managed <<<
+
+START_CHARGE_THRESH_BAT0=$START_THRESHOLD
+STOP_CHARGE_THRESH_BAT0=$STOP_THRESHOLD
 EOF
 }
 
@@ -136,7 +134,7 @@ show_tlp_status() {
   if ((${#detected_batteries[@]} > 0)); then
     printf 'batteries=%s\n' "${detected_batteries[*]}"
   else
-    warn 'no se detectó una batería BAT0/BAT1'
+    warn 'no se detectó la batería BAT0 administrada por este perfil'
   fi
   if command -v tlp >/dev/null 2>&1; then
     ok 'tlp=available'
@@ -147,7 +145,7 @@ show_tlp_status() {
   fi
   if [[ -r "$CONFIG_FILE" ]]; then
     ok "configuración presente: $CONFIG_FILE"
-    sed -n '/^START_CHARGE_THRESH_BAT[01]=/p;/^STOP_CHARGE_THRESH_BAT[01]=/p' "$CONFIG_FILE"
+    sed -n '/^START_CHARGE_THRESH_BAT0=/p;/^STOP_CHARGE_THRESH_BAT0=/p' "$CONFIG_FILE"
   else
     warn "configuración ausente: $CONFIG_FILE"
   fi

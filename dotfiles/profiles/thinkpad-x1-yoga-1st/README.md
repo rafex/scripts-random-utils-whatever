@@ -45,6 +45,27 @@ recurso o bloque administrado. Las recetas Rafex registran las escrituras en
 adjudicarse un recurso, se detiene. `just install-profile` inicializa solo
 directorios ausentes y ya no reemplaza i3, EWW, Picom ni las barras existentes.
 
+### Publicación central y reversible
+
+El repositorio actual continúa siendo la fuente canónica. En la ThinkPad se
+puede mantener un checkout local en
+`~/.local/share/rafex/thinkpad-config-repo/` y publicar sus archivos con:
+
+```sh
+just rafex-config --check
+just rafex-config --sync
+just rafex-config --plan
+just rafex-config --adopt
+just rafex-config --doctor
+```
+
+Los archivos estáticos se publican como symlinks; i3, EWW y el estado de la
+barra se generan en `~/.local/state/rafex/config-generated/thinkpad/`. La
+adopción es explícita y conserva respaldos. Un `--deploy` posterior no sustituye
+archivos manuales; si una aplicación rompe un enlace, `--doctor` lo reporta.
+`--rollback` restaura el último conjunto de respaldos. No se usan hard links ni
+se modifican BIOS, GRUB, TPM, initramfs, red o suspensión.
+
 ## Incluye
 
 - i3, i3status, Ulauncher, rofi, ratmenu (con 9menu como respaldo), dunst,
@@ -161,6 +182,22 @@ diagnóstico físico completo. El rollback retira solo los bloques administrados
 ```sh
 just configure-eww-battery --rollback
 ```
+
+### Límites de carga TLP
+
+La configuración persistente de batería del perfil administra únicamente
+`BAT0`, con inicio al 75% y detención al 80%. La fuente versionada está en
+`config/tlp/90-rafex-battery.conf` y se instala en el sistema mediante:
+
+```sh
+just configure-tlp-battery --check
+just configure-tlp-battery --apply
+sudo cat /etc/tlp.d/90-rafex-battery.conf
+```
+
+El script conserva un respaldo antes de reemplazar el drop-in. Las opciones
+`--start` y `--stop` solo deben usarse si se desea apartarse explícitamente de
+la política 75/80 del perfil.
 
 ### Blacklist TPM para diagnóstico
 

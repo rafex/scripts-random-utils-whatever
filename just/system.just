@@ -43,6 +43,11 @@ tint2-status *args:
 thinkpad-config-audit *args:
     bash scripts/system/thinkpad_config_audit_linux.sh {{args}}
 
+# Sincronizar y publicar de forma segura la configuración central ThinkPad.
+# Uso: just rafex-config --check|--status|--sync|--plan|--adopt|--deploy|--rollback|--doctor
+rafex-config *args:
+    bash scripts/system/rafex_config_linux.sh {{args}}
+
 # Seleccionar la única barra activa de i3: i3bar, tint2 o polybar
 # Uso: just i3-bar --check|--plan --set polybar|--status|--reload|--rollback
 # Runtime interno: scripts/system/rafex_i3_bar_runtime_linux.sh

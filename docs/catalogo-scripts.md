@@ -161,6 +161,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
 | `scripts/system/thinkpad_config_audit_linux.sh` | Linux | thinkpad-config-audit | no | sí | bajo | [doc](system/thinkpad_config_audit_linux.md) |
 | `scripts/lib/thinkpad_config_guard_linux.sh` | Linux | biblioteca interna | no | no | bajo | [doc](lib/thinkpad_config_guard_linux.md) |
+| `scripts/system/rafex_config_linux.sh` | Linux | rafex-config | no | sí | medio | [doc](system/rafex_config_linux.md) |
+| `scripts/lib/rafex_config_publish_linux.sh` | Linux | biblioteca interna | no | no | bajo | [doc](lib/rafex_config_publish_linux.md) |
 | `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
 | `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |
 | `scripts/system/i3_window_tasks_polybar_linux.sh` | Linux | i3-window-tasks | no | — | bajo | [doc](system/i3_window_tasks_polybar_linux.md) |

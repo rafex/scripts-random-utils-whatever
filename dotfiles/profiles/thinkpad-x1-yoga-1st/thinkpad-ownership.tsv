@@ -19,6 +19,7 @@ i3.autorotate|migrate-laptop|~/.config/i3/config#tablet-autorotation|autorotate-
 i3.udiskie|usb-mount-perms|~/.config/i3/config#rafex-udiskie|udiskie|i3 -C -c ~/.config/i3/config|otros autostarts|managed-block
 bars.active|i3-bar-profile|~/.config/i3/rafex-bar-active.conf|perfil barras|i3 -C -c ~/.config/i3/config|i3bar manual|exclusive-file
 i3.theme|theme-toggle|~/.config/i3/config#rafex-theme|tema actual|i3 -C -c ~/.config/i3/config|atajos y ciclo de vida|managed-block
+config.publisher|rafex-config|~/.local/share/rafex/thinkpad-config-repo + ~/.local/state/rafex/config-generated/thinkpad|Git, coreutils, flock|just rafex-config --doctor|no publica /etc ni hardware|exclusive-owner
 openbox.profile|install-openbox-profile|~/.config/openbox|perfil ThinkPad|openbox --reconfigure|bloques Rafex posteriores|seed-only
 openbox.eww|install-eww|~/.config/openbox/{autostart,rc.xml}#rafex-eww|eww-widgets.sh|openbox --reconfigure|Conky y Picom|managed-block
 openbox.conky|install-conky|~/.config/openbox/autostart#rafex-conky|conky-launch.sh|openbox --reconfigure|EWW y Picom|managed-block
