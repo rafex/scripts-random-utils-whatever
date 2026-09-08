@@ -41,14 +41,15 @@ just install-i3-laptop-controls --apply
 
 El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
 `XF86Search`, `XF86LaunchA`, `XF86Explorer`,
-`XF86WakeUp` y `XF86Tools`. `XF86LaunchA` baja y
+`XF86WakeUp` y `XF86Tools`. `XF86Search` y `Mod+Shift+B` abren Firefox con
+DuckDuckGo; Rofi queda reservado para ventanas, ejecución y confirmaciones.
+`XF86LaunchA` baja y
 `XF86Explorer` sube el brillo del teclado. Si el firmware expone
 `XF86KbdBrightnessDown` y `XF86KbdBrightnessUp`, también quedan enlazados al
 `mismo helper. `XF86Tools` abre el menú ratmenu y usa 9menu únicamente como
 respaldo;
 `Mod+F9` es su acceso alternativo y `XF86WakeUp` abre solo energía y sesión.
-El navegador conserva un atajo alternativo en `Mod+Shift+b` y también
-está disponible en Rofi. El centro incluye `Software — Synaptic`, que
+El centro incluye `Software — Synaptic`, que
 se ejecuta mediante `synaptic-pkexec`.
 
 F5/F6 siguen controlando el brillo de pantalla mediante `brightnessctl`.
@@ -166,3 +167,6 @@ gráfica desde i3.
 
 **fix:** retirar la regla legacy que forzaba Thunar a flotante y conservar su
 asignación al escritorio `5:misc`.
+
+**fix:** hacer que `XF86Search` y `Mod+Shift+B` abran Firefox con DuckDuckGo,
+sin usar Rofi como launcher web.

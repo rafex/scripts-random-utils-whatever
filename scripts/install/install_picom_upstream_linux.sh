@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.1 — Compila Picom v13 upstream en el espacio del usuario.
+# v1.1.0 — Ruta histórica de compilación upstream, retirada del perfil ThinkPad.
 set -Eeuo pipefail
 umask 077
 
@@ -39,12 +39,12 @@ die() { printf '✗ ERROR: %s\n' "$*" >&2; exit 1; }
 usage() {
   cat <<'EOF'
 Uso:
-  install_picom_upstream_linux.sh --check|--plan|--apply|--status
+  install_picom_upstream_linux.sh --check|--plan|--status
 
 Opciones:
   --check       comprobar Debian, dependencias y rutas sin modificar (default)
   --plan        mostrar compilación, binario y configuración previstos
-  --apply       instalar dependencias, compilar v13 e instalar en ~/.local
+  --apply       rechazado: el perfil estable usa /usr/bin/picom de Debian
   --status      mostrar versiones y configuración local
   --help        mostrar esta ayuda
 EOF
@@ -123,14 +123,10 @@ show_status() {
 }
 
 show_plan() {
-  printf '═══ Plan Picom upstream v13 ═══\n'
-  printf 'fuente oficial: %s (%s, commit %s)\n' "$REPO_URL" "$VERSION" "$EXPECTED_COMMIT"
-  printf 'compilación: %s\n' "$BUILD_DIR"
-  printf 'binario: %s\n' "$BIN_TARGET"
-  printf 'configuración: %s\n' "$CONFIG_TARGET"
-  printf 'shaders: %s (%s)\n' "$SHADER_TARGET_DIR" "${SHADER_FILES[*]}"
-  printf 'dependencias APT faltantes: %s\n' "$(show_missing_packages)"
-  printf '%s\n' 'No iniciará Picom, no cambiará i3/Openbox y no ejecutará sudo fuera de APT.'
+  printf '═══ Picom upstream v13 (retirado) ═══\n'
+  printf '%s\n' 'La ThinkPad estable usa exclusivamente /usr/bin/picom mediante picom-debian y rafex-picom.service.'
+  printf '%s\n' 'Esta receta no compila ni escribe ~/.local/bin/picom para evitar dos propietarios del compositor.'
+  printf '%s\n' 'Usa: just picom-debian --apply && just install-picom-user-service --apply'
 }
 
 prepare_source() {
@@ -174,6 +170,7 @@ backup_file() {
   info "respaldo: $source.bak.$STAMP"
 }
 
+# shellcheck disable=SC2329 # se conserva como rutina histórica, no alcanzable.
 install_results() {
   local temporary='' config_temporary='' bin_backup config_backup
   local had_bin=false had_config=false
@@ -279,21 +276,7 @@ main() {
         warn 'dpkg-query no está disponible; no se puede comprobar APT'
       fi
       ;;
-    apply)
-      command -v dpkg-query >/dev/null 2>&1 || die 'requiere Debian con dpkg-query'
-      local missing
-      missing=$(show_missing_packages)
-      if [[ "$missing" != '(ninguna)' ]]; then
-        command -v sudo >/dev/null 2>&1 || die 'falta sudo para dependencias de compilación'
-        sudo -v
-        sudo apt-get update
-        # shellcheck disable=SC2086
-        sudo apt-get install -y $missing
-      fi
-      prepare_source
-      build_picom
-      install_results
-      ;;
+    apply) die 'Picom upstream está retirado para esta ThinkPad; usa just picom-debian --apply' ;;
   esac
 }
 

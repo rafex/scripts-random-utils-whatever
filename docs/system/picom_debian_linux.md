@@ -1,6 +1,6 @@
 ---
 title: picom_debian_linux.sh
-description: Usa el Picom de Debian con la configuración visual Rafex sin compilar upstream.
+description: Usa Picom v13 de Debian con la configuración visual Rafex sin compilar upstream.
 tags:
   - sistema
   - picom
@@ -160,3 +160,6 @@ compositor. Después puedes cambiar el shader a `neutral.glsl` y probar de nuevo
 
 - **feat:** añadir una ruta explícita para usar Picom Debian v13 con la configuración Rafex.
 - **fix:** evitar que la activación dependa de una compilación upstream en `~/.local/bin`.
+- **fix:** declarar Picom Debian como el único propietario de la configuración
+  Rafex; instalaciones upstream anteriores se tratan únicamente como migración
+  con respaldo.

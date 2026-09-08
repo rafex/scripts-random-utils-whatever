@@ -14,6 +14,9 @@ TIME_COMPAT_VERSION="0.3.36"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 SOURCE_ROOT="$HOME/.local/share/rafex/eww/${VERSION}-src"
 TARGET="$HOME/.local/bin/eww"
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/eww"
@@ -79,7 +82,10 @@ install_managed_file() {
 }
 
 write_config() {
-  local scss_source
+  local scss_source yuck_before scss_before
+  rafex_guard_require_owner 'eww.config' 'install-eww' || die 'propietario de EWW rechazado'
+  yuck_before="$(rafex_guard_sha256 "$CONFIG_ROOT/eww.yuck")"
+  scss_before="$(rafex_guard_sha256 "$CONFIG_ROOT/eww.scss")"
   [[ -f "$YUCK_SOURCE" ]] || die "falta la configuración Yuck del perfil: $YUCK_SOURCE"
   mkdir -p -- "$CONFIG_ROOT"
   if [[ -e "$CONFIG_ROOT/eww.yuck" ]] && ! grep -Fq 'BEGIN rafex EWW dashboard' "$CONFIG_ROOT/eww.yuck"; then
@@ -91,6 +97,8 @@ write_config() {
     scss_source="$THEME_SOURCE_ROOT/nord/eww.scss"
   fi
   install_managed_file "$scss_source" "$CONFIG_ROOT/eww.scss" 600
+  rafex_guard_record_write 'install-eww' 'eww.config' "$CONFIG_ROOT/eww.yuck" "$yuck_before" 'dashboard Yuck administrado'
+  rafex_guard_record_write 'install-eww' 'eww.config' "$CONFIG_ROOT/eww.scss" "$scss_before" 'estilo EWW de la paleta activa'
 }
 
 replace_block() {
@@ -151,6 +159,11 @@ install_helpers() {
 }
 
 configure_integrations() {
+  local i3_before openbox_before
+  rafex_guard_require_owner 'i3.eww' 'install-eww' || die 'propietario de i3 rechazado'
+  rafex_guard_require_owner 'openbox.eww' 'install-eww' || die 'propietario de Openbox rechazado'
+  i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
+  openbox_before="$(rafex_guard_sha256 "$OPENBOX_AUTOSTART")"
   local i3_block openbox_block openbox_rc_block
   i3_block="$(mktemp)"
   cat > "$i3_block" <<'EOF'
@@ -179,6 +192,8 @@ EOF
 EOF
   replace_openbox_keyboard_block "$openbox_rc_block"
   rm -f -- "$i3_block" "$openbox_block" "$openbox_rc_block"
+  rafex_guard_record_write 'install-eww' 'i3.eww' "$I3_CONFIG" "$i3_before" 'autostart y atajo EWW'
+  rafex_guard_record_write 'install-eww' 'openbox.eww' "$OPENBOX_AUTOSTART" "$openbox_before" 'autostart EWW'
 }
 
 prepare_lockfile() {

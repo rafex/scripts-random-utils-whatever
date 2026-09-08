@@ -159,6 +159,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/picom_debian_linux.sh` | Linux | picom-debian | no | sí | bajo | [doc](system/picom_debian_linux.md) |
 | `scripts/system/rafex_picom_runner_linux.sh` | Linux | — | no | — | bajo | [doc](system/rafex_picom_runner_linux.md) |
 | `scripts/system/tint2_status_linux.sh` | Linux | tint2-status | no | — | bajo | [doc](system/tint2_status_linux.md) |
+| `scripts/system/thinkpad_config_audit_linux.sh` | Linux | thinkpad-config-audit | no | sí | bajo | [doc](system/thinkpad_config_audit_linux.md) |
+| `scripts/lib/thinkpad_config_guard_linux.sh` | Linux | biblioteca interna | no | no | bajo | [doc](lib/thinkpad_config_guard_linux.md) |
 | `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
 | `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |
 | `scripts/system/i3_window_tasks_polybar_linux.sh` | Linux | i3-window-tasks | no | — | bajo | [doc](system/i3_window_tasks_polybar_linux.md) |

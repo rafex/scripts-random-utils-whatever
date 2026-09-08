@@ -71,18 +71,8 @@ just install-albert-upstream --apply
 just install-albert-upstream --status
 ```
 
-Instalar y además agregar un atajo de prueba en i3 (`$mod+a`), sin tocar
-`$mod+space`:
-
-```bash
-just install-albert-upstream --apply --i3-shortcut
-```
-
-El atajo usa las mismas marcas `# BEGIN rafex albert`/`# END rafex
-albert` que `install_albert_linux.sh`, así que cualquiera de los dos
-instaladores (OBS o esta compilación) administra el mismo bloque sin
-duplicarlo — el último que corras con `--i3-shortcut` es el que queda
-apuntando al binario que instaló.
+El perfil ThinkPad conserva Ulauncher como único launcher. Albert puede
+compilarse e instalarse, pero no se integra en i3 ni reemplaza `Super+Space`.
 
 ## Opciones
 
@@ -92,7 +82,7 @@ apuntando al binario que instaló.
 | `--plan` | — | Muestra origen, commit, rutas y paquetes faltantes sin escribir. |
 | `--apply` | — | Instala dependencias faltantes, clona/actualiza las fuentes, compila e instala en `~/.local`. |
 | `--status` | — | Muestra versión, commit local e i3 sin modificar. |
-| `--i3-shortcut` | — | Junto con `--apply`, agrega `bindsym $mod+a` en i3. |
+| `--i3-shortcut` | — | Rechazado en ThinkPad; Ulauncher es el launcher administrado. |
 | `--help` | `-h` | Muestra la ayuda. |
 
 ## Variables de entorno
@@ -100,7 +90,7 @@ apuntando al binario que instaló.
 | Variable | Descripción |
 |---|---|
 | `XDG_DATA_HOME` | Cambia dónde viven las fuentes y la compilación; por defecto `~/.local/share`. |
-| `XDG_CONFIG_HOME` | Determina dónde se busca `i3/config` para `--i3-shortcut`; por defecto `~/.config`. |
+| `XDG_CONFIG_HOME` | Determina dónde se comprueba el perfil i3; por defecto `~/.config`. |
 
 No se leen archivos `.env` ni se aceptan credenciales.
 
@@ -117,10 +107,7 @@ just install-albert-upstream --apply
 ### Con atajo de prueba en i3
 
 ```bash
-just install-albert-upstream --apply --i3-shortcut
-# luego, dentro de i3:
-#   $mod+Shift+r   (recargar config)
-#   $mod+a         (abrir Albert)
+just install-albert-upstream --apply
 ```
 
 ### Comprobación posterior
@@ -145,12 +132,8 @@ just install-albert-upstream --status
 - Instala exclusivamente bajo `~/.local` (vía `CMAKE_INSTALL_PREFIX`);
   nunca toca `/usr`, el paquete de APT que gestiona
   `install_albert_linux.sh`, ni ningún archivo fuera de ese árbol.
-- El atajo de i3 se parcha con un bloque `# BEGIN rafex albert`/
-  `# END rafex albert` idempotente (nunca duplica ni toca el resto del
-  archivo), y respalda `~/.config/i3/config` como `config.bak.<fecha>`
-  antes de modificarlo — reconocible por
-  [find_safety_backups_unix.sh](../dev/find_safety_backups_unix.md).
-- No modifica `$mod+space` (rofi) ni ningún otro binding existente.
+- El perfil ThinkPad rechaza `--i3-shortcut`; Ulauncher conserva la
+  propiedad de los atajos de launcher.
 - No inicia Albert automáticamente.
 
 ## Fallos conocidos

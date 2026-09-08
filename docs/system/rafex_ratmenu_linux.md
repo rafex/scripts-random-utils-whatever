@@ -107,5 +107,8 @@ just rafex-ratmenu
 ## Changelog
 
 ### [Unreleased]
+
+- **fix:** la entrada del panel de control informa la receta exacta de
+  instalación cuando el helper GTK todavía no existe.
 - **feat:** crear menú activo ratmenu con respaldo 9menu.
 - **fix:** activar fallback automático a 9menu cuando ratmenu no está disponible.

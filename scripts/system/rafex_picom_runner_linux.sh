@@ -14,24 +14,11 @@ die() {
 }
 
 select_binary() {
-  local candidate
-  if [[ -n "${RAFEX_PICOM_BIN:-}" ]]; then
-    candidate="$RAFEX_PICOM_BIN"
-    [[ -x "$candidate" ]] || die "el binario configurado no es ejecutable: $candidate"
-    printf '%s\n' "$candidate"
-    return 0
-  fi
-  if [[ -x "$HOME/.local/bin/picom" ]]; then
-    printf '%s\n' "$HOME/.local/bin/picom"
-    return 0
-  fi
-  if [[ -x /usr/bin/picom ]]; then
-    printf '%s\n' /usr/bin/picom
-    return 0
-  fi
-  candidate="$(command -v picom 2>/dev/null || true)"
-  [[ -n "$candidate" && -x "$candidate" ]] || die 'no se encontró un binario Picom ejecutable'
-  printf '%s\n' "$candidate"
+  # El perfil declara una sola autoridad: el paquete Picom de Debian. No se
+  # consulta PATH ni ~/.local/bin porque una compilación heredada cambiaría el
+  # compositor real sin que el servicio ni el auditor pudieran detectarlo.
+  [[ -x /usr/bin/picom ]] || die 'falta el Picom administrado por Debian: /usr/bin/picom'
+  printf '%s\n' /usr/bin/picom
 }
 
 main() {

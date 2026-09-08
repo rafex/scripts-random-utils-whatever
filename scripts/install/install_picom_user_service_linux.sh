@@ -11,6 +11,9 @@ CHOSEN=false
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 PROFILE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st"
 UNIT_SOURCE="$PROFILE_ROOT/config/systemd/user/rafex-picom.service"
 RUNNER_SOURCE="$REPO_ROOT/scripts/system/rafex_picom_runner_linux.sh"
@@ -246,12 +249,19 @@ main() {
     plan) show_plan ;;
     status) show_status ;;
     apply)
+      rafex_guard_require_owner 'picom.lifecycle' 'install-picom-user-service' || die 'propietario de Picom rechazado'
+      rafex_guard_require_owner 'i3.picom-service' 'install-picom-user-service' || die 'propietario de i3 rechazado'
+      local unit_before i3_before
+      unit_before="$(rafex_guard_sha256 "$UNIT_TARGET")"
+      i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
       atomic_copy "$RUNNER_SOURCE" "$RUNNER_TARGET" 0755
       atomic_copy "$UNIT_SOURCE" "$UNIT_TARGET" 0644
       install_autostart_override
       migrate_autostart_state
       write_i3_block
       systemctl --user daemon-reload
+      rafex_guard_record_write 'install-picom-user-service' 'picom.lifecycle' "$UNIT_TARGET" "$unit_before" 'unidad de usuario Picom'
+      rafex_guard_record_write 'install-picom-user-service' 'i3.picom-service' "$I3_CONFIG" "$i3_before" 'inicio de Picom desde i3'
       ok 'servicio de usuario e integración i3 instalados'
       info 'recarga i3 con Mod+Shift+r o inicia con: just picom-toggle --enable'
       ;;

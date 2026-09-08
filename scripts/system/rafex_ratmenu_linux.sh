@@ -51,6 +51,10 @@ fi
 theme_file="${XDG_CONFIG_HOME:-$HOME/.config}/rafex/theme"
 theme="nord"
 [[ -r "$theme_file" ]] && theme="$(head -n 1 "$theme_file")"
+panel_command='"$HOME/.local/bin/rafex-control-panel.sh"'
+if [[ ! -x "$HOME/.local/bin/rafex-control-panel.sh" ]]; then
+  panel_command='notify-send "Panel de control Rafex" "Instala: just install-rafex-control-panel --apply"'
+fi
 
 case "$theme" in
   paper) fg='#263238'; bg='#eceff1';;
@@ -65,7 +69,7 @@ menu=(
   'Aplicaciones' 'rofi -show drun -show-icons'
   'Navegador' 'firefox'
   'Archivos' 'thunar'
-  'Panel de control Rafex' '"$HOME/.local/bin/rafex-control-panel.sh"'
+  'Panel de control Rafex' "$panel_command"
   'Audio' 'pavucontrol'
   'Red' 'nm-connection-editor'
   'Wi-Fi' '"$HOME/.local/bin/wifi-toggle.sh" toggle'

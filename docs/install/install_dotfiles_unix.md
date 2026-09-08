@@ -51,8 +51,10 @@ i3-dotfiles-bundle.tar.gz
 1. **Verifica sudo**:
    - Con sudo → instala paquetes vía `apt-get`
    - Sin sudo → advierte y salta instalación de paquetes (todo en `~/.config/`)
-1. **Backup** de configs existentes → `~/.config/<app>.bak.<timestamp>`
-1. **Copia configs** a `~/.config/i3/`, `~/.config/i3status/`, etc.
+1. **Inicializa solo configs ausentes** en `~/.config/`; nunca reemplaza un
+   directorio existente del perfil ThinkPad.
+1. **Preserva** i3, EWW, Picom, barras y helpers ya instalados. Sus cambios se
+   aplican únicamente mediante sus recetas propietarias.
 1. **Fusiona paletas** en `~/.config/rafex/themes/` y conserva el tema activo.
 1. **Copia `.tmux.conf`** del perfil a `~/.tmux.conf`, con respaldo fechado.
 1. **Copia Xresources** a `~/.Xresources`

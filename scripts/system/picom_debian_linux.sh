@@ -9,6 +9,9 @@ ACTION=check
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 SYSTEM_PICOM_BIN=/usr/bin/picom
 CONFIG_SOURCE="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/picom.conf"
 SHADER_SOURCE_DIR="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/shaders"
@@ -18,7 +21,8 @@ SHADER_TARGET_DIR="$CONFIG_DIR/shaders"
 MANIFEST_TARGET="$CONFIG_DIR/.rafex-picom-debian-managed"
 TOGGLE_SOURCE="$REPO_ROOT/scripts/system/picom_toggle_linux.sh"
 SHADER_FILES=(neutral.glsl nord.glsl paper.glsl everforest.glsl dracula.glsl)
-CONFIG_MARKER='# Managed by rafex install_picom_upstream_linux.sh'
+CONFIG_MARKER='# Managed by rafex picom-debian_linux.sh'
+LEGACY_CONFIG_MARKER='# Managed by rafex install_picom_upstream_linux.sh'
 MANIFEST_MARKER='managed by rafex picom-debian'
 CHOSEN=false
 REPLACE_UNMANAGED=false
@@ -138,7 +142,7 @@ managed_target_allowed() {
   [[ -e "$target" || -L "$target" ]] || return 0
   [[ -f "$target" && ! -L "$target" ]] || die "el destino no es un archivo regular: $target"
   cmp -s "$source" "$target" && return 0
-  if [[ "$target" == "$CONFIG_TARGET" ]] && grep -Fq "$CONFIG_MARKER" "$target"; then
+  if [[ "$target" == "$CONFIG_TARGET" ]] && { grep -Fq "$CONFIG_MARKER" "$target" || grep -Fq "$LEGACY_CONFIG_MARKER" "$target"; }; then
     return 0
   fi
   if [[ -f "$MANIFEST_TARGET" ]] && grep -Fqx "$MANIFEST_MARKER" "$MANIFEST_TARGET"; then
@@ -187,7 +191,9 @@ atomic_install() {
 }
 
 apply_configuration() {
-  local shader_file
+  local shader_file config_before
+  rafex_guard_require_owner 'picom.config' 'picom-debian' || die 'propietario de configuración Picom rechazado'
+  config_before="$(rafex_guard_sha256 "$CONFIG_TARGET")"
   managed_target_allowed "$CONFIG_SOURCE" "$CONFIG_TARGET"
   for shader_file in "${SHADER_FILES[@]}"; do
     managed_target_allowed "$SHADER_SOURCE_DIR/$shader_file" "$SHADER_TARGET_DIR/$shader_file"
@@ -206,6 +212,7 @@ apply_configuration() {
   rm -f -- "$manifest_temporary"
   trap - ERR
   ok 'configuración y shaders de Picom instalados'
+  rafex_guard_record_write 'picom-debian' 'picom.config' "$CONFIG_TARGET" "$config_before" 'configuración y shaders Picom Debian'
   info 'Picom no se reinició automáticamente; usa --reload cuando estés listo'
 }
 

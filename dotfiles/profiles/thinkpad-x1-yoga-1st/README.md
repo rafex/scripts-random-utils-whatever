@@ -29,6 +29,22 @@ autorandr --query
 Los perfiles de autorandr y los ajustes DPI deben generarse con las salidas
 reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
 
+## Auditoría y propiedad de configuración
+
+Antes de aplicar recetas de escritorio después de una actualización, revisa el
+mapa de propietarios y el estado real de la sesión:
+
+```sh
+just thinkpad-config-audit --status
+just thinkpad-config-audit --report --output "$HOME/thinkpad-config-audit.md"
+```
+
+El registro versionado `thinkpad-ownership.tsv` define un propietario por
+recurso o bloque administrado. Las recetas Rafex registran las escrituras en
+`~/.local/state/rafex/thinkpad-config/changes.jsonl`; si otra receta intenta
+adjudicarse un recurso, se detiene. `just install-profile` inicializa solo
+directorios ausentes y ya no reemplaza i3, EWW, Picom ni las barras existentes.
+
 ## Incluye
 
 - i3, i3status, Ulauncher, rofi, ratmenu (con 9menu como respaldo), dunst,
@@ -53,6 +69,9 @@ reales de esta laptop. No se copia el perfil `LVDS1`/`HDMI1` de la Mac.
   pantalla, historial CopyQ, una salida visible y acciones de cerrar sesión,
   suspender, hibernar, reiniciar y apagar; todas las acciones sensibles piden
   confirmación en Rofi.
+- `XF86Search` y `Mod+Shift+B` abren Firefox directamente con DuckDuckGo.
+  `Super+Space` sigue reservado para Ulauncher; Rofi no es el launcher
+  principal y queda para ventanas, menús y confirmaciones.
 - El brillo de teclado usa `brightnessctl` con el grupo `input` y conserva un
   respaldo Polkit restringido al LED `tpacpi::kbd_backlight`. El grupo `input`
   también permite leer eventos de `/dev/input/event*`; cierra y abre sesión
@@ -171,22 +190,9 @@ just install-i3lock-color --apply
 just install-rafex-control-panel --apply
 ```
 
-Picom upstream v13 se puede compilar opcionalmente en `~/.local` con GLX,
-transparencia moderada, blur y sombras pequeñas:
-
-```sh
-just install-picom-upstream --check
-just install-picom-upstream --plan
-just install-picom-upstream --apply
-just picom-toggle --enable
-```
-
-La configuración administrada excluye Conky, EWW, i3bar y las ventanas de
-escritorio del blur y las sombras. Si el controlador gráfico presenta
-artefactos, `just picom-toggle --disable` deja i3 operativo.
-
-Si no deseas compilar Picom upstream, usa el paquete Debian con la misma
-configuración visual y los shaders versionados:
+Picom v13 de Debian es el único compositor administrado del perfil. Usa GLX,
+transparencia moderada, blur y sombras pequeñas sin mantener una segunda copia
+upstream en `~/.local/bin`:
 
 ```sh
 just picom-debian --check
@@ -197,6 +203,10 @@ just picom-debian --reload
 
 Esta ruta fuerza `/usr/bin/picom`, conserva el binario del sistema y no
 instala ni usa `~/.local/bin/picom`.
+
+La configuración administrada excluye `RafexConky`, EWW, i3bar y las ventanas
+de escritorio del blur y las sombras. Si el controlador gráfico presenta
+artefactos, `just picom-toggle --disable` deja i3 operativo.
 
 Para iniciar Picom de forma confiable al levantar i3, sin depender del
 autostart genérico de `/etc/xdg`:

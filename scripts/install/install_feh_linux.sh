@@ -10,6 +10,9 @@ ACTION=check
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 HELPER_SOURCE="$REPO_ROOT/scripts/system/set_wallpaper_linux.sh"
 HELPER_TARGET="$HOME/.local/bin/rafex-wallpaper.sh"
 I3_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/i3/config"
@@ -87,7 +90,11 @@ install_helper() {
 }
 
 configure_integrations() {
-  local block_file
+  local block_file i3_before openbox_before
+  rafex_guard_require_owner 'i3.wallpaper' 'install-feh' || die 'propietario de i3 rechazado'
+  rafex_guard_require_owner 'openbox.wallpaper' 'install-feh' || die 'propietario de Openbox rechazado'
+  i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
+  openbox_before="$(rafex_guard_sha256 "$OPENBOX_AUTOSTART")"
   block_file="$(mktemp)"
   cat > "$block_file" <<'EOF'
 # BEGIN rafex feh wallpaper
@@ -98,6 +105,8 @@ EOF
   remove_unmarked_openbox_feh "$OPENBOX_AUTOSTART"
   replace_block "$OPENBOX_AUTOSTART" "$block_file"
   rm -f -- "$block_file"
+  rafex_guard_record_write 'install-feh' 'i3.wallpaper' "$I3_CONFIG" "$i3_before" 'autostart único de feh'
+  rafex_guard_record_write 'install-feh' 'openbox.wallpaper' "$OPENBOX_AUTOSTART" "$openbox_before" 'autostart único de feh'
 }
 
 show_status() {

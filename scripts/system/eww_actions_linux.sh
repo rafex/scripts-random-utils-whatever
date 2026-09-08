@@ -48,9 +48,10 @@ parse_args() {
 command_available() { command -v "$1" >/dev/null 2>&1; }
 
 run_helper() {
-  local helper="$1"
+  local helper="$1" recipe='just install-eww --apply'
   shift
-  [[ -x "$BIN_DIR/$helper" ]] || die "falta el helper $BIN_DIR/$helper; ejecuta just install-eww --apply"
+  [[ "$helper" == rafex-control-panel.sh ]] && recipe='just install-rafex-control-panel --apply'
+  [[ -x "$BIN_DIR/$helper" ]] || die "falta el helper $BIN_DIR/$helper; ejecuta $recipe"
   "$BIN_DIR/$helper" "$@"
 }
 

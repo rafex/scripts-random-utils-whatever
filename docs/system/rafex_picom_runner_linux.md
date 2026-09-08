@@ -53,9 +53,7 @@ systemctl --user start rafex-picom.service
 
 | Variable | Predeterminado | Descripción |
 |---|---|---|
-| `RAFEX_PICOM_BIN` | `~/.local/bin/picom`, después `/usr/bin/picom` | Binario explícito validado por el runner. |
 | `RAFEX_PICOM_CONFIG` | `PICOM_CONFIG` o `~/.config/picom/picom.conf` | Configuración usada por Picom. |
-| `PICOM_BIN` | — | Alias compatible para la configuración. |
 | `PICOM_CONFIG` | — | Alias compatible para la configuración. |
 | `DISPLAY` | — | Display X11 requerido. |
 | `XAUTHORITY` | `~/.Xauthority` si existe | Archivo de autorización X11. |
@@ -64,7 +62,6 @@ systemctl --user start rafex-picom.service
 
 ```bash
 systemctl --user start rafex-picom.service
-RAFEX_PICOM_BIN=/usr/bin/picom systemctl --user restart rafex-picom.service
 RAFEX_PICOM_CONFIG="$HOME/.config/picom/picom.conf" systemctl --user restart rafex-picom.service
 ```
 
@@ -72,8 +69,8 @@ RAFEX_PICOM_CONFIG="$HOME/.config/picom/picom.conf" systemctl --user restart raf
 
 - Rechaza ejecución como `root`.
 - No acepta comandos ni argumentos arbitrarios.
-- Solo elige un binario local explícito, `~/.local/bin/picom`, `/usr/bin/picom`
-  o el ejecutable resuelto por `PATH`.
+- Ejecuta exclusivamente `/usr/bin/picom`, el paquete de Debian declarado como
+  propietario único del compositor ThinkPad.
 - Requiere una configuración regular existente.
 - No usa `sudo`, modifica archivos ni inicia servicios adicionales.
 
@@ -87,14 +84,14 @@ entorno importado por i3.
 **Solución:** inicia el servicio desde i3 o importa el entorno con:
 `systemctl --user import-environment DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS`.
 
-### `no se encontró un binario Picom ejecutable`
+### `falta el Picom administrado por Debian: /usr/bin/picom`
 
 **Causa:** Picom no está instalado en las rutas permitidas.
 
-**Solución:** instala Picom desde Debian o completa la instalación upstream y
-repite `just install-picom-user-service --status`.
+**Solución:** instala Picom desde Debian y ejecuta `just picom-debian --apply`.
 
 ## Changelog
 
 ### [Unreleased]
-- `feat`: añade runner para el servicio de usuario de Picom.
+- `fix`: usar exclusivamente `/usr/bin/picom` para evitar que una compilación
+  heredada en `~/.local/bin` cambie el compositor activo.

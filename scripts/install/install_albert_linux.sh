@@ -6,6 +6,12 @@
 set -Eeuo pipefail
 umask 077
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
+
 ACTION='check'
 OS_TYPE="$(uname -s)"
 BACKUP_STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -41,15 +47,15 @@ usage() {
 Uso:
   install_albert_linux.sh --check
   install_albert_linux.sh --plan
-  install_albert_linux.sh --apply [--i3-shortcut]
+  install_albert_linux.sh --apply
 
 Opciones:
   --check                Diagnosticar sin modificar nada (default)
   --plan                 Mostrar cambios previstos sin modificar nada
   --dry-run              Alias de --plan
   --apply                Configurar el repositorio oficial e instalar albert
-  --i3-shortcut           Junto con --apply, agrega bindsym $mod+a en i3
-                          (no toca $mod+space; solo para probar Albert)
+  --i3-shortcut           Rechazado en ThinkPad: Ulauncher conserva los
+                          atajos de launcher.
   -h, --help              Mostrar esta ayuda
 
 La contraseña de sudo se solicita únicamente mediante `sudo -v`.
@@ -67,6 +73,11 @@ parse_args() {
       *) die "argumento desconocido: $1" ;;
     esac
   done
+}
+
+reject_i3_shortcut() {
+  [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
+  die 'el perfil ThinkPad usa Ulauncher para Super+Space; Albert no puede añadir un atajo i3. Instálalo sin --i3-shortcut.'
 }
 
 require_debian() {
@@ -176,7 +187,7 @@ check_repository() {
   echo 'apt-policy:'
   apt-cache policy albert 2>/dev/null || true
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then
-    ok 'atajo de prueba $mod+a configurado en i3'
+    ok "atajo de prueba \$mod+a configurado en i3"
   else
     warn 'sin atajo de prueba en i3 (usa --apply --i3-shortcut para agregarlo)'
   fi
@@ -296,6 +307,7 @@ EOF
 
 main() {
   parse_args "$@"
+  reject_i3_shortcut
   require_debian
 
   if [[ "$ACTION" == 'check' ]]; then

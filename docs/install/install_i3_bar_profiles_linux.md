@@ -10,9 +10,8 @@ tags:
 # install_i3_bar_profiles_linux.sh
 
 Instala las plantillas y helpers de los tres perfiles de barra de i3, incluido
-el listado seguro de ventanas para Polybar. Migra
-el bloque `bar` administrado a una única inclusión y deja `i3bar` como
-predeterminado.
+el listado seguro de ventanas para Polybar. No activa ninguna barra ni modifica
+i3: esa autoridad pertenece únicamente a `just i3-bar --set <perfil>`.
 
 - **Ruta:** `scripts/install/install_i3_bar_profiles_linux.sh`
 - **SO requerido:** Linux
@@ -56,7 +55,7 @@ Después de aplicar, selecciona la barra desde
 |---|---|---|
 | `--check` | — | Valida fuentes, configuración i3 y dependencias sin escribir. |
 | `--plan` | `--dry-run` | Muestra los archivos que se prepararían sin modificar el usuario. |
-| `--apply` | — | Instala plantillas y helpers, migra el bloque administrado y crea el perfil i3bar. |
+| `--apply` | — | Instala plantillas y helpers; no cambia la barra activa ni modifica i3. |
 | `--status` | — | Muestra el estado de fuentes, destinos y paquetes. |
 | `--help` | `-h` | Muestra la ayuda. |
 
@@ -76,6 +75,7 @@ No se usan archivos `.env`. La selección de barra se guarda en
 just install-i3-bar-profiles --check
 just install-i3-bar-profiles --plan
 just install-i3-bar-profiles --apply
+just i3-bar --set i3bar
 just i3-bar --status
 
 # Validar sin tocar la configuración.
@@ -84,8 +84,8 @@ just install-i3-bar-profiles --check
 
 ## Protecciones de seguridad
 
-- Solo migra un bloque `bar` que conserva las firmas de la configuración Rafex actual.
-- Rechaza bloques manuales o inclusiones duplicadas en lugar de sobrescribirlos.
+- No migra ni modifica el bloque `bar`; el selector `i3-bar` es el único
+  responsable de esa migración y de la barra activa.
 - Usa archivos temporales y respaldos fechados para los destinos modificados.
 - No modifica Conky, EWW, Picom, Openbox ni el contenido de `i3status`.
 - No inicia procesos externos ni reinicia la sesión automáticamente.
@@ -98,7 +98,8 @@ just install-i3-bar-profiles --check
 
 **Causa:** i3 contiene una barra que no coincide con el bloque administrado por Rafex.
 
-**Solución:** revisa el bloque manual, respáldalo y decide su migración antes de repetir.
+**Solución:** revisa el bloque manual, respáldalo y ejecuta
+`just i3-bar --set i3bar` para que el selector evalúe una migración segura.
 
 ### `falta i3/config`
 
@@ -110,4 +111,5 @@ just install-i3-bar-profiles --check
 
 ### [Unreleased]
 
-- **feat:** preparar tres perfiles de barra i3 con migración atómica y fallback i3bar.
+- **fix:** separar materialización de perfiles y selección: solo `i3-bar`
+  puede modificar i3 o activar una barra.

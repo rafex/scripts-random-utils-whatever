@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0 — Compila Albert v35.1.0 upstream en el espacio del usuario.
+# v1.0.1 — Compila Albert v35.1.0 upstream en el espacio del usuario.
 #
 # Alternativa a install_albert_linux.sh (repositorio OBS): en el momento de
 # escribir este script, la build de Albert publicada en OBS para
@@ -10,6 +10,12 @@
 # el entorno de build de OBS.
 set -Eeuo pipefail
 umask 077
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 
 ACTION=check
 VERSION=v35.1.0
@@ -56,15 +62,14 @@ die() { echo -e "${RED}${BOLD}✗ ERROR:${RESET} $*" >&2; exit 1; }
 usage() {
   cat <<'EOF'
 Uso:
-  install_albert_upstream_linux.sh --check|--plan|--apply|--status [--i3-shortcut]
+  install_albert_upstream_linux.sh --check|--plan|--apply|--status
 
 Opciones:
   --check         comprobar Debian, dependencias y rutas sin modificar (default)
   --plan          mostrar compilación, binario y atajo de i3 previstos
   --apply         instalar dependencias, compilar v35.1.0 e instalar en ~/.local
   --status        mostrar versión, commit e i3 sin modificar
-  --i3-shortcut   junto con --apply, agrega bindsym $mod+a en i3
-                  (no toca $mod+space; solo para probar Albert)
+  --i3-shortcut   rechazado en ThinkPad: Ulauncher es el launcher administrado
   --help          mostrar esta ayuda
 
 La contraseña de sudo se solicita únicamente mediante `sudo -v`, y solo si
@@ -84,6 +89,11 @@ parse_args() {
     esac
     shift
   done
+}
+
+reject_i3_shortcut() {
+  [[ "$CONFIGURE_I3" -eq 1 ]] || return 0
+  die 'el perfil ThinkPad usa Ulauncher para Super+Space; Albert no puede añadir un atajo i3. Instálalo sin --i3-shortcut.'
 }
 
 require_base() {
@@ -126,12 +136,12 @@ show_status() {
     printf 'commit: %s\n' "$(git -C "$SOURCE_DIR" rev-parse --short HEAD)"
   fi
   if [[ -f "$I3_CONFIG" ]] && grep -Fq "$I3_BEGIN" "$I3_CONFIG"; then
-    printf '%s\n' 'i3: atajo $mod+a configurado'
+    printf '%s\n' "i3: atajo \$mod+a configurado"
   else
-    printf '%s\n' 'i3: sin atajo de prueba (usa --apply --i3-shortcut)'
+    printf '%s\n' 'i3: sin atajo Albert; Ulauncher es el launcher administrado'
   fi
   if package_installed albert; then
-    warn 'el paquete albert de APT también está instalado; ~/.local/bin suele ir antes en $PATH'
+    warn "el paquete albert de APT también está instalado; ~/.local/bin suele ir antes en \$PATH"
   fi
 }
 
@@ -145,7 +155,7 @@ show_plan() {
   if [[ "$CONFIGURE_I3" -eq 1 ]]; then
     printf "agregar bindsym \$mod+a (Albert) en %s\n" "$I3_CONFIG"
   fi
-  printf '%s\n' 'No iniciará Albert, no tocará $mod+space y no ejecutará sudo fuera de APT.'
+  printf '%s\n' "No iniciará Albert, no tocará \$mod+space y no ejecutará sudo fuera de APT."
 }
 
 prepare_source() {
@@ -236,6 +246,7 @@ EOF
 
 main() {
   parse_args "$@"
+  reject_i3_shortcut
   require_base
   case "$ACTION" in
     status) show_status ;;

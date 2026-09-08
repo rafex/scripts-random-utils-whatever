@@ -187,6 +187,7 @@ nav:
       - flight_mode_toggle_linux: network/flight_mode_toggle_linux.md
       - Reglas polkit: network/wifi_polkit_rules.md
   - Sistema:
+      - thinkpad_config_guard_linux: lib/thinkpad_config_guard_linux.md
       - 9menu_linux: system/9menu_linux.md
       - rofi_search_linux: system/rofi_search_linux.md
       - i3_settings_menu_linux: system/i3_settings_menu_linux.md
@@ -199,6 +200,7 @@ nav:
       - rafex_picom_runner_linux: system/rafex_picom_runner_linux.md
       - picom_shaders_linux: system/picom_shaders_linux.md
       - tint2_status_linux: system/tint2_status_linux.md
+      - thinkpad_config_audit_linux: system/thinkpad_config_audit_linux.md
       - i3_bar_profile_linux: system/i3_bar_profile_linux.md
       - rafex_i3_bar_runtime_linux: system/rafex_i3_bar_runtime_linux.md
       - i3_window_tasks_polybar_linux: system/i3_window_tasks_polybar_linux.md

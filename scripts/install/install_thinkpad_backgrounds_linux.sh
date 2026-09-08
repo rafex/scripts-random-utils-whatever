@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install_thinkpad_backgrounds_linux.sh v1.0.0
-# Aplica los fondos del perfil ThinkPad a i3, GRUB y LightDM.
+# Aplica los fondos del perfil ThinkPad a GRUB y LightDM; Feh gestiona sesión.
 set -Eeuo pipefail
 umask 077
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
@@ -13,16 +13,11 @@ readonly PROFILE_ROOT="${REPO_ROOT}/dotfiles/profiles/thinkpad-x1-yoga-1st"
 readonly SOURCE_ROOT="${PROFILE_ROOT}/assets/backgrounds"
 readonly USER_ROOT="${HOME}/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds"
 readonly USER_BACKUP_ROOT="${HOME}/.local/state/rafex/backups/thinkpad-backgrounds"
-readonly I3_CONFIG="${HOME}/.config/i3/config"
 readonly GRUB_CONFIG="/etc/default/grub"
 readonly GRUB_ASSET="/boot/grub/rafex-thinkpad-boot.png"
 readonly LIGHTDM_ASSET="/usr/local/share/backgrounds/rafex/rafex-thinkpad-login.png"
 readonly LIGHTDM_CONFIG="/etc/lightdm/lightdm-gtk-greeter.conf"
 readonly SYSTEM_BACKUP_ROOT="/var/backups/rafex-thinkpad-backgrounds"
-readonly I3_START="# BEGIN rafex feh wallpaper"
-readonly I3_END="# END rafex feh wallpaper"
-readonly I3_OLD_START="# BEGIN rafex thinkpad backgrounds"
-readonly I3_OLD_END="# END rafex thinkpad backgrounds"
 readonly GRUB_START="# BEGIN rafex thinkpad grub background"
 readonly GRUB_END="# END rafex thinkpad grub background"
 readonly LIGHTDM_START="# BEGIN rafex thinkpad lightdm background"
@@ -59,7 +54,7 @@ Uso: install_thinkpad_backgrounds_linux.sh [--check|--plan|--apply|--status]
        [--stage desktop|grub|login|all]
 
 Etapas:
-  desktop  Copia los cinco fondos al usuario y configura el fondo de i3.
+  desktop  Copia los cinco fondos al usuario. Feh administra la sesión i3/Openbox.
   grub     Instala el fondo en GRUB y ejecuta update-grub.
   login    Instala el fondo para lightdm-gtk-greeter sin reiniciar LightDM.
   all      Ejecuta desktop, grub y login.
@@ -172,41 +167,11 @@ copy_user_assets() {
   done
 }
 
-configure_i3_background() {
-  local temporary legacy_cleaned
-  [[ -f "$I3_CONFIG" ]] || {
-    warn "no existe ${I3_CONFIG}; copia primero el perfil i3"
-    return 0
-  }
-
-  backup_user_file "$I3_CONFIG"
-  temporary="$(mktemp "${I3_CONFIG}.XXXXXX")"
-  register_temp "$temporary"
-  legacy_cleaned="$(mktemp "${I3_CONFIG}.legacy.XXXXXX")"
-  register_temp "$legacy_cleaned"
-  strip_managed_block "$I3_CONFIG" "$I3_OLD_START" "$I3_OLD_END" > "$legacy_cleaned"
-  strip_managed_block "$legacy_cleaned" "$I3_START" "$I3_END" > "$temporary"
-  cat >> "$temporary" <<'EOF'
-
-# BEGIN rafex feh wallpaper
-exec_always --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]; then "$HOME/.local/bin/rafex-wallpaper.sh"; elif command -v feh >/dev/null 2>&1 && [ -f "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png" ]; then feh --no-fehbg --bg-scale "$HOME/.local/share/rafex/profiles/thinkpad-x1-yoga-1st/assets/backgrounds/rafex-thinkpad-desktop.png"; fi'
-# END rafex feh wallpaper
-EOF
-  chmod 0644 "$temporary"
-  mv -f -- "$temporary" "$I3_CONFIG"
-  success "bloque de fondo administrado instalado en ${I3_CONFIG}"
-}
-
-reload_i3_if_local() {
-  if [[ -n "${DISPLAY:-}" ]] && command -v i3-msg >/dev/null 2>&1; then
-    if i3-msg reload >/dev/null 2>&1; then
-      success "i3 recargado"
-    else
-      warn "no se pudo recargar i3; ejecuta: i3-msg reload"
-    fi
-  else
-    info "sesión gráfica no disponible; ejecuta manualmente: i3-msg reload"
-  fi
+explain_session_wallpaper() {
+  # El fondo de la sesión X11 pertenece exclusivamente a install_feh_linux.sh.
+  # Este instalador solo administra assets, GRUB y LightDM para no competir por
+  # el mismo bloque de i3 ni eliminar una configuración ya funcional.
+  info "la sesión no se modifica; el fondo lo administra install-feh"
 }
 
 install_system_asset() {
@@ -350,10 +315,10 @@ show_check() {
         failures=$((failures + 1))
       fi
     done
-    if [[ -f "$I3_CONFIG" ]] && grep -qF "$I3_START" "$I3_CONFIG"; then
-      success "bloque de fondo i3 presente"
+    if [[ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]]; then
+      success "helper de sesión Feh presente"
     else
-      warn "bloque de fondo i3 ausente"
+      warn "helper de sesión Feh ausente; ejecuta just install-feh --apply"
       failures=$((failures + 1))
     fi
   fi
@@ -384,8 +349,7 @@ show_plan() {
   printf '═══ Plan de fondos ThinkPad (%s) ═══\n' "$STAGE"
   if stage_has desktop "$STAGE"; then
     info "[plan] copiar cinco fondos a ${USER_ROOT}"
-    info "[plan] respaldar y actualizar el bloque administrado de ${I3_CONFIG}"
-    info "[plan] recargar i3 solo si existe una sesión gráfica local"
+    info '[plan] conservar i3/Openbox; Feh es el único propietario del fondo de sesión'
   fi
   if stage_has grub "$STAGE"; then
     info "[plan] respaldar ${GRUB_CONFIG} y ${GRUB_ASSET} en ${SYSTEM_BACKUP_ROOT}"
@@ -416,10 +380,10 @@ show_status() {
       printf 'usuario %-32s ausente\n' "$name"
     fi
   done
-  if [[ -f "$I3_CONFIG" ]] && grep -qF "$I3_START" "$I3_CONFIG"; then
-    printf 'i3: bloque administrado presente\n'
+  if [[ -x "$HOME/.local/bin/rafex-wallpaper.sh" ]]; then
+    printf 'sesión: helper Feh presente\n'
   else
-    printf 'i3: bloque administrado ausente\n'
+    printf 'sesión: helper Feh ausente (ejecuta just install-feh --apply)\n'
   fi
   if [[ -f "$GRUB_CONFIG" ]]; then
     grep -E '^(GRUB_BACKGROUND=|# BEGIN rafex thinkpad grub background|# END rafex thinkpad grub background)' "$GRUB_CONFIG" || true
@@ -431,7 +395,7 @@ show_status() {
   else
     printf 'LightDM: configuración no disponible\n'
   fi
-  info "status no usa sudo, no recarga i3 y no reinicia LightDM"
+  info "status no usa sudo y no reinicia LightDM"
 }
 
 apply_stage() {
@@ -443,8 +407,7 @@ apply_stage() {
 
   if stage_has desktop "$STAGE"; then
     copy_user_assets
-    configure_i3_background
-    reload_i3_if_local
+    explain_session_wallpaper
   fi
   if stage_has grub "$STAGE"; then
     configure_grub_background

@@ -267,12 +267,19 @@ install_configs() {
                 continue
             fi
 
-            backup_existing "$dest"
+            # Una instalación de perfil no debe borrar configuraciones creadas
+            # posteriormente por instaladores específicos. Se siembra el
+            # directorio únicamente cuando falta; las actualizaciones de cada
+            # componente se realizan con su receta propia y bloque administrado.
+            if [[ -e "$dest" ]]; then
+                warn "  ${name}/ ya existe; se conserva para evitar perder integraciones gestionadas"
+                continue
+            fi
             mkdir -p "$(dirname "$dest")"
             cp -r "$item" "$dest"
             find "$dest" -type f -exec chmod 644 {} \;
             find "$dest" -type d -exec chmod 755 {} \;
-            success "  ${BOLD}$name${RESET}/ (${file_count} archivos)"
+            success "  ${BOLD}$name${RESET}/ (${file_count} archivos, inicializado)"
         fi
     done
 }
@@ -307,6 +314,29 @@ install_theme_configs() {
         chmod 644 "$target_file"
     done < <(find "$source_root" -type f -print0)
     success "  paletas paper/nord/everforest/dracula y alias legacy"
+}
+
+# El perfil base solo inicializa directorios ausentes para no borrar el estado
+# gestionado posteriormente. EWW necesita su hoja de estilo junto al Yuck; se
+# siembra únicamente si falta y se toma de la paleta actual (o Nord inicial).
+seed_missing_eww_style() {
+    local target="$HOME/.config/eww/eww.scss"
+    local source="$HOME/.config/rafex/themes/current/eww.scss"
+    if [[ ! -f "$HOME/.config/eww/eww.yuck" || -f "$target" ]]; then
+        return 0
+    fi
+    if [[ ! -f "$source" ]]; then
+        source="$HOME/.config/rafex/themes/nord/eww.scss"
+    fi
+    [[ -f "$source" ]] || { warn "  EWW no recibió estilo: falta una paleta eww.scss"; return 0; }
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "[dry-run] sembrar estilo EWW: ${target}"
+        return 0
+    fi
+    mkdir -p "$(dirname "$target")"
+    cp "$source" "$target"
+    chmod 600 "$target"
+    success "  EWW: eww.scss inicializado desde la paleta activa"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -625,6 +655,9 @@ main() {
     echo
 
     install_theme_configs
+    echo
+
+    seed_missing_eww_style
     echo
 
     install_tmux_config

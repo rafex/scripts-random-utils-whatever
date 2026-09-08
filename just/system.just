@@ -38,6 +38,11 @@ picom-debian *args:
 tint2-status *args:
     bash scripts/system/tint2_status_linux.sh {{args}}
 
+# Auditar propietarios, configuraciones, atajos y procesos del perfil ThinkPad.
+# Uso: just thinkpad-config-audit --status|--check|--report [--output archivo]
+thinkpad-config-audit *args:
+    bash scripts/system/thinkpad_config_audit_linux.sh {{args}}
+
 # Seleccionar la única barra activa de i3: i3bar, tint2 o polybar
 # Uso: just i3-bar --check|--plan --set polybar|--status|--reload|--rollback
 # Runtime interno: scripts/system/rafex_i3_bar_runtime_linux.sh

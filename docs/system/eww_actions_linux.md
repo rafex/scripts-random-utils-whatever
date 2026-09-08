@@ -101,4 +101,7 @@ candidato APT antes de instalarlo.
 ## Changelog
 
 ### [Unreleased]
+
+- **fix:** cuando falta el panel GTK, la acción indica la receta exacta
+  `just install-rafex-control-panel --apply`.
 - **feat:** añadir datos seguros y acciones cerradas para el dashboard EWW.

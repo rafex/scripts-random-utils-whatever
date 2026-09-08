@@ -8,6 +8,9 @@ ACTION=check
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 PROFILE_ROOT="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 CONKY_CONFIG="$CONFIG_HOME/conky/conky.conf"
@@ -239,7 +242,13 @@ remove_managed_openbox_rule() {
 }
 
 configure_integrations() {
-  local block_file i3_backup had_i3=0
+  local block_file i3_backup had_i3=0 config_before i3_before openbox_before
+  rafex_guard_require_owner 'conky.config' 'install-conky' || die 'propietario de Conky rechazado'
+  rafex_guard_require_owner 'i3.conky' 'install-conky' || die 'propietario de i3 rechazado'
+  rafex_guard_require_owner 'openbox.conky' 'install-conky' || die 'propietario de Openbox rechazado'
+  config_before="$(rafex_guard_sha256 "$CONKY_CONFIG")"
+  i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
+  openbox_before="$(rafex_guard_sha256 "$OPENBOX_AUTOSTART")"
   if [[ -f "$CONKY_CONFIG" ]] && ! grep -Fq '    -- BEGIN rafex theme' "$CONKY_CONFIG"; then
     warn "existe una configuración Conky no administrada; no se sobrescribe: $CONKY_CONFIG"
   elif [[ -f "$CONKY_CONFIG" ]]; then
@@ -272,6 +281,9 @@ configure_integrations() {
   remove_managed_openbox_rule "$CONFIG_HOME/openbox/rc.xml"
   rm -f -- "$block_file"
   ok 'autoinicio de Conky integrado en Openbox; sin ventana administrada'
+  rafex_guard_record_write 'install-conky' 'conky.config' "$CONKY_CONFIG" "$config_before" 'configuración de escritorio RafexConky'
+  rafex_guard_record_write 'install-conky' 'i3.conky' "$I3_CONFIG" "$i3_before" 'autostart Conky'
+  rafex_guard_record_write 'install-conky' 'openbox.conky' "$OPENBOX_AUTOSTART" "$openbox_before" 'autostart Conky'
 }
 
 show_status() {

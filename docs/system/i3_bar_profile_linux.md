@@ -33,9 +33,11 @@ compacta de `23pt` en la plantilla ThinkPad.
 
 ## Requisitos
 
-Ejecuta primero `just install-i3-bar-profiles --apply`. El archivo de i3 debe
-incluir únicamente `~/.config/i3/rafex-bar-active.conf`. Polybar se instala
-desde Debian solo al seleccionarlo; no se compila ni se añade al perfil base.
+Ejecuta primero `just install-i3-bar-profiles --apply`. El selector migra, si
+corresponde, el bloque Rafex `bar` hacia la única inclusión
+`~/.config/i3/rafex-bar-active.conf`; no requiere que la inclusión exista
+antes. Polybar se instala desde Debian solo al seleccionarlo; no se compila ni
+se añade al perfil base.
 
 ## Uso
 

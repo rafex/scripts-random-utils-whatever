@@ -6,6 +6,9 @@ set -Eeuo pipefail
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 ACTION="check"
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 BACKUP_STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -28,8 +31,8 @@ Uso:
   install_i3_laptop_controls_linux.sh --apply
   install_i3_laptop_controls_linux.sh --apply --log-file <archivo>
 
-Instala toggles de micrófono, Wi‑Fi y modo avión, búsqueda Rofi y un menú
-de configuraciones para i3. No acepta ni guarda contraseñas.
+Instala toggles de micrófono, Wi‑Fi y modo avión, DuckDuckGo en Firefox y un
+menú de configuraciones para i3. No acepta ni guarda contraseñas.
 EOF
 }
 
@@ -128,7 +131,7 @@ install_helper() {
 }
 
 configure_i3() {
-  local begin='# >>> i3-laptop-controls managed >>>'
+  local begin='# >>> i3-laptop-controls managed >>>' before_hash
   local end='# <<< i3-laptop-controls managed <<<'
   local dunst_line='exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start'
   local block_file
@@ -138,12 +141,12 @@ ${begin}
 bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh toggle
 bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
 bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
-bindsym XF86Search exec --no-startup-id ~/.local/bin/rofi-search.sh apps
+bindsym XF86Search exec --no-startup-id sh -c 'if command -v firefox >/dev/null 2>&1; then exec firefox --new-tab https://duckduckgo.com/; elif command -v firefox-esr >/dev/null 2>&1; then exec firefox-esr --new-tab https://duckduckgo.com/; else notify-send "Búsqueda" "Firefox no está instalado"; fi'
 bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
 bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
 bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
-bindsym $mod+Shift+b exec --no-startup-id ~/.local/bin/rofi-search.sh browser
+bindsym $mod+Shift+b exec --no-startup-id sh -c 'if command -v firefox >/dev/null 2>&1; then exec firefox --new-tab https://duckduckgo.com/; elif command -v firefox-esr >/dev/null 2>&1; then exec firefox-esr --new-tab https://duckduckgo.com/; else notify-send "Búsqueda" "Firefox no está instalado"; fi'
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
 bindsym XF86Tools exec --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-ratmenu.sh" ]; then "$HOME/.local/bin/rafex-ratmenu.sh"; else 9menu -popup -label "ThinkPad" -file "$HOME/.config/9menu/laptop.menu"; fi'
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
@@ -159,7 +162,9 @@ EOF
     rm -f -- "$block_file"
     return 0
   fi
+  rafex_guard_require_owner 'i3.controls' 'install-i3-laptop-controls' || die 'propietario de configuración rechazado'
   mkdir -p "$(dirname "$I3_CONFIG")"
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   if [[ -f "$I3_CONFIG" ]]; then cp -a "$I3_CONFIG" "$I3_CONFIG.bak.$BACKUP_STAMP"; fi
 
   # El perfil ThinkPad antiguo definía estas teclas fuera del bloque
@@ -213,6 +218,7 @@ EOF
     cat "$block_file" >> "$I3_CONFIG"
   fi
   rm -f -- "$block_file"
+  rafex_guard_record_write 'install-i3-laptop-controls' 'i3.controls' "$I3_CONFIG" "$before_hash" 'atajos XF86 y controles de sesión'
 }
 
 main() {

@@ -9,6 +9,9 @@ REQUESTED_MODE=''
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 BAR_SOURCE_DIR="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/i3-bars"
 BAR_TARGET_DIR="$CONFIG_HOME/rafex/i3-bars"
@@ -317,12 +320,16 @@ validate_active_target() {
 }
 
 set_mode() {
-  local mode="$REQUESTED_MODE" source had_active=false had_state=false old_state='' active_backup=''
+  local mode="$REQUESTED_MODE" source had_active=false had_state=false old_state='' active_backup='' state_before active_before
   validate_i3_layout
   [[ "$mode" == i3bar ]] || [[ -x "$RUNTIME_TARGET" ]] || die "falta el runtime instalado: $RUNTIME_TARGET"
   [[ -f "$BAR_TARGET_DIR/$mode.conf" ]] || die "falta plantilla: $BAR_TARGET_DIR/$mode.conf"
   validate_active_target
   [[ "$ACTION" == plan ]] && { info "[plan] escribir perfil $mode en $STATE_FILE"; info "[plan] activar $BAR_TARGET_DIR/$mode.conf"; info '[plan] recargar i3'; return 0; }
+  rafex_guard_require_owner 'bars.selection' 'i3-bar-profile' || die 'propietario de selector de barras rechazado'
+  rafex_guard_require_owner 'bars.active' 'i3-bar-profile' || die 'propietario de barra activa rechazado'
+  state_before="$(rafex_guard_sha256 "$STATE_FILE")"
+  active_before="$(rafex_guard_sha256 "$ACTIVE_CONFIG")"
   mkdir -p -- "$(dirname -- "$STATE_FILE")"
   if [[ -f "$STATE_FILE" ]]; then
     had_state=true
@@ -357,6 +364,8 @@ set_mode() {
     warn 'no hay DISPLAY/i3-msg; el perfil se aplicará en la próxima sesión'
   fi
   ok "perfil activo: $mode"
+  rafex_guard_record_write 'i3-bar-profile' 'bars.selection' "$STATE_FILE" "$state_before" "perfil $mode"
+  rafex_guard_record_write 'i3-bar-profile' 'bars.active' "$ACTIVE_CONFIG" "$active_before" "perfil $mode"
 }
 
 rollback() {
@@ -393,9 +402,13 @@ main() {
     set)
       validate_i3_layout
       validate_active_target
+      rafex_guard_require_owner 'i3.bar-include' 'i3-bar-profile' || die 'propietario de include i3 rechazado'
+      local i3_before
+      i3_before="$(rafex_guard_sha256 "$I3_CONFIG")"
       ensure_requested_package
       install_materialized_files
       migrate_i3_config
+      rafex_guard_record_write 'i3-bar-profile' 'i3.bar-include' "$I3_CONFIG" "$i3_before" 'include único de barra activa'
       ensure_active_file
       set_mode
       ;;

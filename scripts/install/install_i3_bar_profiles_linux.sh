@@ -7,6 +7,9 @@ umask 077
 ACTION=check
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 PROFILE_DIR="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 BAR_SOURCE_DIR="$PROFILE_DIR/config/rafex/i3-bars"
@@ -146,9 +149,9 @@ migrate_i3() {
 }
 
 install_files() {
-  local file mode='i3bar'
-  [[ -f "$STATE_FILE" ]] && mode="$(head -n 1 "$STATE_FILE")"
-  case "$mode" in i3bar|tint2|polybar) ;; *) mode=i3bar ;; esac
+  local file assets_before
+  rafex_guard_require_owner 'bars.assets' 'install-i3-bar-profiles' || die 'propietario de assets de barras rechazado'
+  assets_before="$(rafex_guard_sha256 "$BAR_TARGET_DIR/polybar.ini")"
   for file in i3bar.conf tint2.conf polybar.conf tint2rc polybar.ini; do
     if [[ "$ACTION" == plan ]]; then
       info "[plan] copiar $BAR_SOURCE_DIR/$file → $BAR_TARGET_DIR/$file"
@@ -160,16 +163,13 @@ install_files() {
   done
   if [[ "$ACTION" == plan ]]; then
     info "[plan] instalar $RUNTIME_TARGET, $SELECTOR_TARGET y $WINDOW_TASKS_TARGET"
-    info "[plan] activar el perfil $mode"
+    info '[plan] no activar barra ni modificar i3; esa autoridad pertenece a just i3-bar --set <perfil>'
   else
     mkdir -p -- "$HOME/.local/bin"
     backup_file "$RUNTIME_TARGET"; install -m 0755 -- "$RUNTIME_SOURCE" "$RUNTIME_TARGET"
     backup_file "$SELECTOR_TARGET"; install -m 0755 -- "$SELECTOR_SOURCE" "$SELECTOR_TARGET"
     backup_file "$WINDOW_TASKS_TARGET"; install -m 0755 -- "$WINDOW_TASKS_SOURCE" "$WINDOW_TASKS_TARGET"
-    printf '%s\n' "$mode" > "$STATE_FILE"
-    chmod 0644 "$STATE_FILE"
-    backup_file "$ACTIVE_CONFIG"
-    replace_file "$BAR_TARGET_DIR/$mode.conf" "$ACTIVE_CONFIG"
+    rafex_guard_record_write 'install-i3-bar-profiles' 'bars.assets' "$BAR_TARGET_DIR/polybar.ini" "$assets_before" 'plantillas y helpers de barras'
   fi
 }
 
@@ -193,7 +193,7 @@ main() {
   case "$ACTION" in
     check) echo '═══ Instalador de perfiles de barras i3 ═══'; validate_i3; show_status ;;
     plan) echo '═══ Plan de perfiles de barras i3 ═══'; validate_i3; install_files ;;
-    apply) echo '═══ Instalación de perfiles de barras i3 ═══'; validate_i3; migrate_i3; install_files; ok 'perfiles i3bar, Tint2 y Polybar preparados; i3bar queda como predeterminado' ;;
+    apply) echo '═══ Instalación de perfiles de barras i3 ═══'; validate_i3; install_files; ok 'perfiles i3bar, Tint2 y Polybar preparados; selecciona uno con just i3-bar --set i3bar|tint2|polybar' ;;
     status) show_status ;;
   esac
 }

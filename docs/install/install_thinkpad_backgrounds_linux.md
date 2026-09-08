@@ -58,9 +58,9 @@ Las etapas también se pueden combinar:
 just install-thinkpad-backgrounds --apply --stage all
 ```
 
-`desktop` copia los fondos al área de usuario, agrega un bloque administrado
-a `~/.config/i3/config` y recarga i3 solo cuando existe una sesión gráfica
-local. `grub` instala el fondo en `/boot/grub/`, actualiza
+`desktop` copia los fondos al área de usuario. No toca i3 ni Openbox: el único
+propietario del fondo de sesión es `just install-feh --apply`. `grub` instala
+el fondo en `/boot/grub/`, actualiza
 `/etc/default/grub` y ejecuta `update-grub`. `login` instala el fondo en
 `/usr/local/share/backgrounds/rafex/` y configura
 `lightdm-gtk-greeter.conf`, pero no reinicia LightDM.
@@ -73,7 +73,7 @@ local. `grub` instala el fondo en `/boot/grub/`, actualiza
 | `--plan` | `--dry-run` | Muestra las acciones previstas; no crea respaldos, no solicita sudo y no modifica archivos. |
 | `--apply` | — | Aplica la etapa seleccionada. Solicita sudo solo si incluye GRUB o LightDM. |
 | `--status` | — | Muestra el estado de fuentes y destinos sin usar sudo ni recargar servicios. |
-| `--stage desktop` | — | Instala los cinco fondos en el usuario y configura i3. Es la etapa predeterminada. |
+| `--stage desktop` | — | Instala los cinco fondos en el usuario. Es la etapa predeterminada; Feh aplica el fondo de sesión. |
 | `--stage grub` | — | Configura el fondo de arranque de GRUB. |
 | `--stage login` | — | Configura el fondo de LightDM GTK. |
 | `--stage all` | — | Ejecuta las etapas `desktop`, `grub` y `login`. |
@@ -86,12 +86,11 @@ desde la raíz del repositorio, `$HOME` y las rutas estándar del sistema.
 
 ## Ejemplos
 
-Aplicar primero la sesión gráfica y validar i3:
+Copiar los fondos y aplicar después el propietario de la sesión:
 
 ```bash
 just install-thinkpad-backgrounds --apply --stage desktop
-i3 -C -c ~/.config/i3/config
-i3-msg reload
+just install-feh --apply
 ```
 
 Aplicar GRUB y conservar la posibilidad de volver atrás:
@@ -109,12 +108,9 @@ ssh thinkpad 'cd /opt/repository/github/rafex/scripts-random-utils-whatever &&
   just install-thinkpad-backgrounds --apply --stage grub'
 ```
 
-La etapa `desktop` no puede recargar una sesión i3 si se ejecuta por SSH.
-Después de volver a la sesión gráfica, usar:
-
-```bash
-i3-msg reload
-```
+La etapa `desktop` se puede ejecutar por SSH porque no recarga ni modifica la
+sesión gráfica. Si se instala Feh por SSH, abre una nueva sesión gráfica o
+ejecuta `~/.local/bin/rafex-wallpaper.sh` desde la sesión X11.
 
 Para revisar el estado sin cambios:
 
@@ -126,13 +122,12 @@ just install-thinkpad-backgrounds --check --stage all
 ## Protecciones de seguridad
 
 - `--check`, `--plan` y `--status` no escriben en el sistema ni solicitan sudo.
-- Las configuraciones existentes de i3, GRUB y LightDM se respaldan antes de
-  modificarse.
+- Las configuraciones existentes de GRUB y LightDM se respaldan antes de
+  modificarse. La etapa `desktop` no toca i3 ni Openbox.
 - Los respaldos de usuario se guardan en
   `~/.local/state/rafex/backups/thinkpad-backgrounds/`; los respaldos del
   sistema en `/var/backups/rafex-thinkpad-backgrounds/`.
-- El bloque administrado se reemplaza de forma idempotente; no se duplican
-  entradas al repetir la instalación.
+- El instalador no compite con Feh por el bloque de wallpaper de la sesión.
 - Si ya existe un `GRUB_BACKGROUND` fuera del bloque administrado, el script
   se detiene y solicita revisión manual.
 - `update-grub` se valida y, si falla, se restaura automáticamente
@@ -166,17 +161,18 @@ greeter GTK.
 **Solución:** instalar LightDM y `lightdm-gtk-greeter` si ese es el gestor
 elegido. El script no cambia automáticamente el display manager.
 
-### El fondo de i3 no cambia inmediatamente
+### El fondo de sesión no cambia inmediatamente
 
-**Causa:** la etapa se ejecutó por SSH o i3 no tiene un socket disponible.
+**Causa:** copiar fondos no aplica el wallpaper; esa responsabilidad pertenece
+a Feh.
 
-**Solución:** ejecutar `i3-msg reload` desde la sesión gráfica. El cambio
-queda persistente en el bloque administrado.
+**Solución:** ejecutar `just install-feh --apply` y, desde la sesión gráfica,
+`~/.local/bin/rafex-wallpaper.sh`.
 
 ## Changelog
 
 ### [Unreleased]
 
-- `feat:` instalador por etapas para escritorio i3, GRUB y LightDM.
+- `fix:` la etapa `desktop` deja de escribir i3; Feh es el único propietario
+  del wallpaper de sesión.
 - `feat:` respaldos, reemplazo idempotente y validación de conflictos de GRUB.
-

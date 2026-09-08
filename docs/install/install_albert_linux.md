@@ -9,9 +9,8 @@ tags:
 # install_albert_linux.sh
 
 Configura el repositorio APT oficial de Albert (openSUSE Build Service)
-e instala el paquete `albert` en Debian. Opcionalmente agrega un atajo
-de prueba en i3 (`$mod+a`) sin modificar el binding existente de rofi
-(`$mod+space`).
+e instala el paquete `albert` en Debian. El perfil ThinkPad conserva
+Ulauncher como único launcher y no integra Albert en i3.
 
 - **Ruta:** `scripts/install/install_albert_linux.sh`
 - **SO requerido:** Linux (Debian)
@@ -63,12 +62,9 @@ Configurar el repositorio e instalar Albert:
 just install-albert --apply
 ```
 
-Instalar y además agregar un atajo de prueba en i3 (`$mod+a`), sin tocar
-`$mod+space`:
-
-```sh
-just install-albert --apply --i3-shortcut
-```
+En el perfil ThinkPad, Albert puede instalarse como aplicación independiente.
+La opción `--i3-shortcut` se rechaza: Ulauncher es el propietario único de los
+atajos de launcher.
 
 ## Opciones
 
@@ -77,7 +73,7 @@ just install-albert --apply --i3-shortcut
 | `--check` | — | Diagnostica repositorio, clave y paquete sin cambios |
 | `--plan` | `--dry-run` | Muestra acciones previstas sin modificar el sistema |
 | `--apply` | — | Configura el repositorio oficial e instala `albert` |
-| `--i3-shortcut` | — | Junto con `--apply`, agrega `bindsym $mod+a` en i3 |
+| `--i3-shortcut` | — | Rechazado en ThinkPad; Ulauncher es el launcher administrado. |
 | `--help` | `-h` | Muestra la ayuda |
 
 ## Variables de entorno
@@ -85,7 +81,7 @@ just install-albert --apply --i3-shortcut
 Este script no utiliza variables de entorno para repositorios, claves ni
 contraseñas. La contraseña de sudo se solicita únicamente mediante
 `sudo -v`. `XDG_CONFIG_HOME` (si está definida) determina dónde se busca
-`i3/config` para `--i3-shortcut`.
+`i3/config` para comprobar que no se solicite un atajo incompatible.
 
 ## Ejemplos
 
@@ -103,13 +99,10 @@ bash scripts/install/install_albert_linux.sh --plan
 bash scripts/install/install_albert_linux.sh --apply
 ```
 
-### Con atajo de prueba en i3
+### Sin modificar i3
 
 ```sh
-just install-albert --apply --i3-shortcut
-# luego, dentro de i3:
-#   $mod+Shift+r   (recargar config)
-#   $mod+a         (abrir Albert)
+just install-albert --apply
 ```
 
 ## Protecciones de seguridad
@@ -124,12 +117,8 @@ just install-albert --apply --i3-shortcut
 - Usa `signed-by` para limitar la clave al repositorio de Albert.
 - Respaldará la clave y la fuente anterior en
   `/var/backups/rafex-albert/` antes de reemplazarlas.
-- El atajo de i3 se parcha con un bloque `# BEGIN rafex albert`/
-  `# END rafex albert` idempotente (nunca duplica ni toca el resto del
-  archivo), y respalda `~/.config/i3/config` como `config.bak.<fecha>`
-  antes de modificarlo — reconocible por
-  [find_safety_backups_unix.sh](../dev/find_safety_backups_unix.md).
-- No modifica `$mod+space` (rofi) ni ningún otro binding existente.
+- El perfil ThinkPad rechaza `--i3-shortcut`; Ulauncher conserva la
+  propiedad de los atajos de launcher.
 - No acepta, almacena ni transmite contraseñas ni tokens.
 
 ## Fallos conocidos
@@ -151,14 +140,12 @@ clave publicada en OBS cambió.
 <https://albertlauncher.github.io/installation/linux/> y actualiza el
 checksum del script mediante una revisión explícita.
 
-### `no se encontró ~/.config/i3/config; omitiendo atajo de prueba`
+### `Albert no puede añadir un atajo i3`
 
-**Causa:** se usó `--i3-shortcut` antes de desplegar el perfil de
-dotfiles (i3 aún no tiene configuración propia).
+**Causa:** se solicitó `--i3-shortcut` en el perfil ThinkPad.
 
-**Solución:** despliega primero el perfil (`just install-profile
-thinkpad-x1-yoga-1st` o equivalente) y vuelve a correr `--apply
---i3-shortcut`.
+**Solución:** instala Albert sin esa opción o usa Ulauncher mediante
+`Super+Space`.
 
 ### `sudo apt-get install -y albert` falla con dependencias incumplidas (`libstdc++6 (>= 16.2.0-2) pero 16.2.0-1 va a ser instalado`)
 

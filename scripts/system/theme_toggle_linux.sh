@@ -10,6 +10,11 @@ REQUESTED_MODE=''
 TOGGLE_REQUESTED=0
 CYCLE_REQUESTED=0
 STAMP="$(date +%Y%m%d_%H%M%S)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+export RAFEX_THINKPAD_OWNERSHIP_REGISTRY="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/thinkpad-ownership.tsv"
+# shellcheck disable=SC1091 # ruta absoluta calculada desde el checkout.
+source "$REPO_ROOT/scripts/lib/thinkpad_config_guard_linux.sh"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 THEME_HOME="$CONFIG_HOME/rafex/themes"
 CURRENT_LINK="$THEME_HOME/current"
@@ -193,11 +198,13 @@ show_status() {
 }
 
 sync_i3_theme() {
-  local block_file temporary mode
+  local block_file temporary mode before_hash
   [[ -f "$I3_CONFIG" ]] || {
     warn "no existe $I3_CONFIG; se actualizó el tema, pero i3 deberá configurarse manualmente"
     return 0
   }
+  rafex_guard_require_owner 'i3.theme' 'theme-toggle' || die 'propietario de tema i3 rechazado'
+  before_hash="$(rafex_guard_sha256 "$I3_CONFIG")"
   block_file="$(mktemp)"
   cat "$CURRENT_LINK/i3.conf" > "$block_file"
   temporary="$(mktemp)"
@@ -248,6 +255,7 @@ sync_i3_theme() {
     chmod "$mode" "$temporary"
   fi
   mv -- "$temporary" "$I3_CONFIG"
+  rafex_guard_record_write 'theme-toggle' 'i3.theme' "$I3_CONFIG" "$before_hash" 'paleta de tema i3'
 }
 
 sync_xresources() {
