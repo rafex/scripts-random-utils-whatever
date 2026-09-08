@@ -1,6 +1,6 @@
 ---
 title: configure_tlp_battery_linux.sh
-description: Configura límites de carga TLP 75/80 para prolongar la vida útil de la batería ThinkPad.
+description: Configura límites de carga TLP 80/85 para prolongar la vida útil de la batería ThinkPad.
 tags:
   - hardware
   - energia
@@ -9,7 +9,7 @@ tags:
 
 # configure_tlp_battery_linux.sh
 
-Configura TLP para comenzar a cargar al 75% y detener la carga al 80%. Los
+Configura TLP para comenzar a cargar al 80% y detener la carga al 85%. Los
 umbrales se guardan en un drop-in administrado y se aplican inmediatamente.
 Para la ThinkPad X1 Yoga el único dispositivo gestionado es `BAT0`; si el
 sistema expone otra batería, se informa y se omite para no cambiar hardware
@@ -64,7 +64,7 @@ completa:
 just configure-tlp-battery --fullcharge
 ```
 
-`--fullcharge` no cambia el archivo permanente 75/80; TLP restaura los
+`--fullcharge` no cambia el archivo permanente 80/85; TLP restaura los
 umbrales configurados al reiniciarse o al volver a aplicar la configuración.
 
 ## Opciones
@@ -93,10 +93,10 @@ El contenido administrado por defecto es exactamente:
 ```text
 # >>> rafex TLP battery managed >>>
 
-# Umbrales conservadores para reducir ciclos y mantener la batería entre 75-80%.
+# Umbrales conservadores para reducir ciclos y mantener la batería entre 80-85%.
 
-START_CHARGE_THRESH_BAT0=75
-STOP_CHARGE_THRESH_BAT0=80
+START_CHARGE_THRESH_BAT0=80
+STOP_CHARGE_THRESH_BAT0=85
 ```
 
 La fuente versionada del perfil se encuentra en
@@ -160,19 +160,19 @@ carga en ese equipo, o existe una configuración incompatible.
 **Solución:** revisa `tlp-stat -b`, conserva el respaldo y no elimines el
 drop-in hasta identificar la causa.
 
-### La batería se queda en 80% aunque se ejecutó `--fullcharge`
+### La batería se queda en 85% aunque se ejecutó `--fullcharge`
 
 **Causa:** `fullcharge` solicita el 100% temporalmente, pero los umbrales
 configurados vuelven a aplicarse al reiniciar TLP o el equipo.
 
 **Solución:** ejecuta `--fullcharge` justo antes de viajar y espera a que la
-carga termine; no es necesario eliminar la configuración 75/80.
+carga termine; no es necesario eliminar la configuración 80/85.
 
 ## Changelog
 
 ### [Unreleased]
 
-- **feat:** añadir configuración persistente e idempotente de límites TLP 75/80.
+- **feat:** añadir configuración persistente e idempotente de límites TLP 80/85.
 - **feat:** añadir acción explícita `--fullcharge` para viajes.
 - **fix:** detectar `tlp` correctamente desde shells SSH sin `/usr/sbin` en
   `PATH`.

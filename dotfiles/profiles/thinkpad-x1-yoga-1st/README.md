@@ -186,7 +186,7 @@ just configure-eww-battery --rollback
 ### Límites de carga TLP
 
 La configuración persistente de batería del perfil administra únicamente
-`BAT0`, con inicio al 75% y detención al 80%. La fuente versionada está en
+`BAT0`, con inicio al 80% y detención al 85%. La fuente versionada está en
 `config/tlp/90-rafex-battery.conf` y se instala en el sistema mediante:
 
 ```sh
@@ -197,7 +197,7 @@ sudo cat /etc/tlp.d/90-rafex-battery.conf
 
 El script conserva un respaldo antes de reemplazar el drop-in. Las opciones
 `--start` y `--stop` solo deben usarse si se desea apartarse explícitamente de
-la política 75/80 del perfil.
+la política 80/85 del perfil.
 
 ### Blacklist TPM para diagnóstico
 

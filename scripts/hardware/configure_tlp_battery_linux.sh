@@ -13,8 +13,8 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd -P)"
 PROFILE_CONFIG_FILE="$REPO_ROOT/dotfiles/profiles/thinkpad-x1-yoga-1st/config/tlp/90-rafex-battery.conf"
 
 ACTION='check'
-START_THRESHOLD=75
-STOP_THRESHOLD=80
+START_THRESHOLD=80
+STOP_THRESHOLD=85
 CONFIG_FILE='/etc/tlp.d/90-rafex-battery.conf'
 BACKUP_ROOT='/var/backups/rafex-tlp-battery'
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -109,7 +109,7 @@ batteries() {
 }
 
 render_config() {
-  if [[ "$START_THRESHOLD" == 75 && "$STOP_THRESHOLD" == 80 && -r "$PROFILE_CONFIG_FILE" ]]; then
+  if [[ "$START_THRESHOLD" == 80 && "$STOP_THRESHOLD" == 85 && -r "$PROFILE_CONFIG_FILE" ]]; then
     cat "$PROFILE_CONFIG_FILE"
     return 0
   fi
@@ -117,7 +117,7 @@ render_config() {
   cat <<EOF
 # >>> rafex TLP battery managed >>>
 
-# Umbrales conservadores para reducir ciclos y mantener la batería entre 75-80%.
+# Umbrales conservadores para reducir ciclos y mantener la batería entre 80-85%.
 
 START_CHARGE_THRESH_BAT0=$START_THRESHOLD
 STOP_CHARGE_THRESH_BAT0=$STOP_THRESHOLD
@@ -168,7 +168,7 @@ install_config() {
   TEMPORARY_FILE="$(mktemp)"
   render_config > "$TEMPORARY_FILE"
   if sudo test -r "$CONFIG_FILE" && sudo cmp -s "$TEMPORARY_FILE" "$CONFIG_FILE"; then
-    ok 'configuración 75/80 ya estaba instalada'
+    ok 'configuración 80/85 ya estaba instalada'
   else
     changed=1
     if sudo test -e "$CONFIG_FILE"; then
