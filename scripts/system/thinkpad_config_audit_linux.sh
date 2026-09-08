@@ -185,7 +185,9 @@ checks() {
   if [[ -f /etc/xdg/autostart/picom.desktop && ! -f "$CONFIG_HOME/autostart/picom.desktop" ]]; then
     warn 'Picom genérico sigue disponible para dex; instala el servicio Rafex para aislar su ciclo de vida'
   fi
-  process_count="$(pgrep -x eww 2>/dev/null | wc -l | tr -d ' ' || true)"
+  # `eww open` puede permanecer asociado a la ventana; no debe contarse como
+  # otro daemon. Solo se auditan líneas de comando que solicitan `daemon`.
+  process_count="$(pgrep -af '(^|/)eww daemon$' 2>/dev/null | wc -l | tr -d ' ' || true)"
   if [[ "$process_count" -le 1 ]]; then ok "EWW: ${process_count} daemon"; else warn "EWW duplicado: ${process_count} daemons"; fi
   selected_bar='i3bar'
   [[ -f "$CONFIG_HOME/rafex/i3-bar-profile" ]] && selected_bar="$(head -n 1 "$CONFIG_HOME/rafex/i3-bar-profile")"
