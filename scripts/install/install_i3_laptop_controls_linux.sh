@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # Instala controles multimedia y accesos de configuración para i3/Xorg.
+# v1.0.1 — evita pedir sudo cuando la instalación ya está completa.
 set -Eeuo pipefail
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"
@@ -59,7 +60,6 @@ require_linux() {
   command -v apt-get >/dev/null 2>&1 || die "apt-get no está disponible"
   if [[ "$ACTION" == apply ]]; then
     command -v sudo >/dev/null 2>&1 || die "sudo no está instalado"
-    sudo -v
   fi
 }
 
@@ -108,8 +108,29 @@ install_packages() {
   if [[ "$ACTION" != apply ]]; then
     return 0
   fi
+  local missing=() package
+  for package in "${packages[@]}"; do
+    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -Fq 'install ok installed'; then
+      missing+=("$package")
+    fi
+  done
+  if ((${#missing[@]} == 0)); then
+    ok 'paquetes ya instalados; no se ejecuta APT'
+    return 0
+  fi
+  sudo -v
   sudo apt-get update
-  sudo apt-get install -y "${packages[@]}"
+  sudo apt-get install -y "${missing[@]}"
+}
+
+install_kbd_policy_if_needed() {
+  if id -nG "$TARGET_USER" | tr ' ' '\n' | grep -Fqx input \
+    && [[ -x /usr/local/libexec/rafex-kbd-backlight ]] \
+    && [[ -f /etc/polkit-1/actions/org.rafex.kbd-backlight.policy ]]; then
+    info 'política y grupo de brillo de teclado ya están instalados; se omite sudo'
+    return 0
+  fi
+  bash "$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh" --apply
 }
 
 install_helper() {
@@ -243,7 +264,7 @@ main() {
   elif [[ "$ACTION" == check ]]; then
     bash "$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh" --check
   elif [[ "$ACTION" == apply ]]; then
-    bash "$REPO_ROOT/scripts/install/install_kbd_brightness_policy_linux.sh" --apply
+    install_kbd_policy_if_needed
   fi
   configure_i3
   if [[ "$ACTION" == apply ]]; then
