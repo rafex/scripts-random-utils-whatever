@@ -205,7 +205,7 @@ sudo cat /etc/tlp.d/90-rafex-battery.conf
 
 El script conserva un respaldo antes de reemplazar el drop-in. Las opciones
 `--start` y `--stop` solo deben usarse si se desea apartarse explícitamente de
-la política 80/85 del perfil.
+la política 76/81 del perfil.
 
 ### Blacklist TPM para diagnóstico
 

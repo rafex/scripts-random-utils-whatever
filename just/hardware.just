@@ -55,7 +55,7 @@ configure-tpm-blacklist *args:
 configure-lid-suspend *args:
     bash scripts/hardware/configure_lid_suspend_linux.sh {{args}}
 
-# Configurar límites TLP 80/85 y carga completa temporal para viajes
+# Configurar límites TLP 76/81 y carga completa temporal para viajes
 # Uso: just configure-tlp-battery --check | --plan | --apply | --fullcharge
 configure-tlp-battery *args:
     bash scripts/hardware/configure_tlp_battery_linux.sh {{args}}
