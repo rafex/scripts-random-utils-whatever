@@ -425,7 +425,9 @@ main() {
       ;;
     status|check)
       checks
-      [[ "$ACTION" == check && "$FAILURES" -gt 0 ]] && exit 1
+      if [[ "$ACTION" == check && "$FAILURES" -gt 0 ]]; then
+        exit 1
+      fi
       ;;
   esac
 }
