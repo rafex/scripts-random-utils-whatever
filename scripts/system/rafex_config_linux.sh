@@ -354,10 +354,18 @@ backup_target() {
 }
 
 publish_user() {
-  local source="$1" target="$2" mode="$3" before temporary
+  local source="$1" target="$2" mode="$3" before temporary managed=0 resolved_target
   [[ -f "$source" ]] || die "fuente del snapshot ausente: $source"
   if [[ -L "$target" && "$(readlink -f -- "$target")" == "$(realpath -m -- "$source")" ]]; then return 0; fi
-  if [[ -e "$target" || -L "$target" ]] && (( ! ALLOW_ADOPT )); then die "destino de usuario no administrado; ejecuta --adopt tras revisar: $target"; fi
+  if [[ -L "$target" ]]; then
+    resolved_target="$(readlink -f -- "$target" 2>/dev/null || true)"
+    if [[ -n "$resolved_target" ]] && rafex_publish_assert_inside "$resolved_target" "$HISTORY_ROOT"; then
+      managed=1
+    fi
+  fi
+  if [[ -e "$target" || -L "$target" ]] && (( ! ALLOW_ADOPT && ! managed )); then
+    die "destino de usuario no administrado; ejecuta --adopt tras revisar: $target"
+  fi
   before="$(sha256 "$target")"
   mkdir -p -- "$(dirname -- "$target")"
   temporary="$(mktemp "$(dirname -- "$target")/.rafex-link.XXXXXX")"
