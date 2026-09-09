@@ -74,7 +74,10 @@ just rafex-config --rollback --component i3
 
 `--adopt` es la migración inicial: respalda los destinos reconocidos, captura
 el estado instalado en `snapshots/<fecha>/` y publica únicamente los destinos
-reconocidos. Los archivos estáticos de usuario quedan enlazados a
+reconocidos. Si un recurso de usuario reconocido todavía no existe en la
+ThinkPad (por ejemplo, un helper nuevo), se toma como semilla desde el
+checkout replicador; los recursos existentes siempre se conservan desde el
+estado vivo. Los archivos estáticos de usuario quedan enlazados a
 `active/home`; los dinámicos conservan una copia atómica para que los helpers
 puedan actualizarla. `--deploy` reaplica únicamente destinos ausentes o ya
 administrados y conserva los valores dinámicos del snapshot activo.

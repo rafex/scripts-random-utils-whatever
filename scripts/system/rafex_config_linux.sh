@@ -310,7 +310,16 @@ create_snapshot() {
   stamp="${STAMP}_$RANDOM"
   stage="$HISTORY_ROOT/.snapshot-$stamp"
   mkdir -p -- "$stage/home" "$stage/system" "$stage/metadata"
-  if [[ "$mode" == live ]]; then seed_stage_from_live "$stage"; else seed_stage_from_active_or_live "$stage"; overlay_repo_files "$stage"; fi
+  if [[ "$mode" == live ]]; then
+    seed_stage_from_live "$stage"
+  elif [[ "$mode" == adopt ]]; then
+    # La adopción conserva el estado instalado, pero puede sembrar desde el
+    # checkout un recurso de usuario nuevo que aún no exista en la máquina.
+    seed_stage_from_live "$stage" 1
+  else
+    seed_stage_from_active_or_live "$stage"
+    overlay_repo_files "$stage"
+  fi
   revision="$(git -C "$REPO_ROOT" rev-parse HEAD)"
   {
     printf 'component|resource|kind|target|sha256|mode|validator|risk\n'
@@ -516,7 +525,7 @@ main() {
     plan) show_plan ;;
     sync) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; ok 'historial local listo' ;;
     snapshot) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; create_snapshot live ;;
-    adopt) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; ALLOW_ADOPT=1; create_snapshot live; publish_snapshot ;;
+    adopt) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; ALLOW_ADOPT=1; create_snapshot adopt; publish_snapshot ;;
     deploy) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; create_snapshot repo; publish_snapshot ;;
     doctor) doctor ;;
     rollback) require_lock; history_init; rollback ;;
