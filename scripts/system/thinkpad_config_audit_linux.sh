@@ -328,8 +328,12 @@ checks() {
   check_file 'helper ratmenu' "$HOME/.local/bin/rafex-ratmenu.sh"
   check_file 'helper panel Rafex' "$HOME/.local/bin/rafex-control-panel.sh"
   check_history_repo
-  check_i3_binding 'XF86Tools usa ratmenu' 'bindsym[[:space:]]+XF86Tools.*rafex-ratmenu\.sh'
-  check_i3_binding 'XF86Search abre DuckDuckGo' 'bindsym[[:space:]]+XF86Search.*duckduckgo\.com'
+  # Las acciones pueden estar referenciadas mediante las variables canónicas
+  # de i3; auditar la expansión declarada evita exigir comandos duplicados.
+  # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
+  check_i3_binding 'XF86Tools usa ratmenu' 'bindsym[[:space:]]+XF86Tools.*(\$laptop_menu|rafex-ratmenu\.sh)'
+  # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
+  check_i3_binding 'XF86Search abre DuckDuckGo' 'bindsym[[:space:]]+XF86Search.*(\$browser_search|duckduckgo\.com)'
   # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
   check_i3_binding 'Super+Space usa Ulauncher' 'bindsym[[:space:]]+\$mod\+space.*\$launcher'
   if [[ -f "$CONFIG_HOME/i3/config" ]]; then
