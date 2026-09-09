@@ -241,11 +241,21 @@ active_snapshot() {
 }
 
 seed_stage_from_live() {
-  local stage="$1" component resource kind source target strategy mode validator risk destination
+  local stage="$1" allow_repo_fallback="${2:-0}" component resource kind source target strategy mode validator risk destination live_source
   while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
     [[ -z "$component" || "$component" == \#* ]] && continue
     destination="$(snapshot_dest "$stage" "$kind" "$target")"
-    copy_snapshot_file "$(live_path "$target")" "$destination" "$mode"
+    live_source="$(live_path "$target")"
+    if [[ -e "$live_source" || -L "$live_source" ]]; then
+      copy_snapshot_file "$live_source" "$destination" "$mode"
+    elif (( allow_repo_fallback )) && [[ "$kind" == user ]]; then
+      # En el primer deploy un helper nuevo puede aún no existir en la
+      # máquina. Se usa el checkout solo como semilla; los snapshots
+      # posteriores siempre capturan el archivo vivo y no lo inventan.
+      copy_snapshot_file "$(repo_source "$source" "$resource")" "$destination" "$mode"
+    else
+      die "archivo instalado ausente o ilegible: $live_source"
+    fi
   done < "$(manifest_file)"
 }
 
@@ -255,7 +265,7 @@ seed_stage_from_active_or_live() {
     cp -a -- "$active/home" "$stage/"
     cp -a -- "$active/system" "$stage/"
   else
-    seed_stage_from_live "$stage"
+    seed_stage_from_live "$stage" 1
   fi
 }
 
