@@ -10,5 +10,5 @@ vec4 window_shader() {
     vec3 cool = color.rgb * vec3(0.985, 1.000, 1.015);
     cool = mix(vec3(luminance), cool, 1.05);
     color.rgb = clamp(mix(color.rgb, cool, 0.18), 0.0, 1.0);
-    return default_post_processing(color);
+    return color;
 }

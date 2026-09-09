@@ -7,5 +7,5 @@ uniform sampler2D tex;
 vec4 window_shader() {
     vec2 texsize = textureSize(tex, 0);
     vec4 color = texture2D(tex, texcoord / texsize, 0);
-    return default_post_processing(color);
+    return color;
 }

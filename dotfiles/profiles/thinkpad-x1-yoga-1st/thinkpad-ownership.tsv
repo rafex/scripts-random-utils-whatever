@@ -1,7 +1,7 @@
 # Recurso|Propietario|Destino o bloque|Dependencias|Validador|Exclusiones|Política
 # Esta es la autoridad declarativa del perfil ThinkPad. Un instalador debe
 # rechazar una escritura si no es el propietario registrado del recurso.
-i3.base|dotfiles-install|~/.config/i3/config|perfil ThinkPad|i3 -C -c ~/.config/i3/config|bloques Rafex posteriores|seed-only
+i3.base|rafex-config|~/.config/i3/config|snapshot ThinkPad|i3 -C -c ~/.config/i3/config|bloques administrados por fragmento|exclusive-file
 i3.controls|install-i3-laptop-controls|~/.config/i3/config#i3-laptop-controls|ratmenu,Firefox,Ulauncher|i3 -C -c ~/.config/i3/config|barras,tema,Picom|managed-block
 i3.gaps|install-i3-gaps|~/.config/i3/config#rafex-i3-gaps|i3 >= 4.22|i3 -C -c ~/.config/i3/config|atajos y barras|managed-block
 i3.eww|install-eww|~/.config/i3/config#rafex-eww|eww-widgets.sh|i3 -C -c ~/.config/i3/config|Conky y Picom|managed-block
@@ -21,7 +21,8 @@ i3.udiskie|usb-mount-perms|~/.config/i3/config#rafex-udiskie|udiskie|i3 -C -c ~/
 usb.udiskie-config|usb-mount-perms|~/.config/udiskie/config.yml|udiskie|test -r ~/.config/udiskie/config.yml|no modifica el autostart de otros gestores|exclusive-file
 bars.active|i3-bar-profile|~/.config/i3/rafex-bar-active.conf|perfil barras|i3 -C -c ~/.config/i3/config|i3bar manual|exclusive-file
 i3.theme|theme-toggle|~/.config/i3/config#rafex-theme|tema actual|i3 -C -c ~/.config/i3/config|atajos y ciclo de vida|managed-block
-config.publisher|rafex-config|~/.local/share/rafex-thinkpad/{installed,files,installed.tsv}|Git, coreutils, flock|just rafex-config --doctor|no es fuente canónica ni publica /etc o hardware|exclusive-owner
+config.publisher|rafex-config|~/.local/share/rafex-thinkpad/{snapshots,active,manifest.tsv,source-revision}|Git, coreutils, flock|just rafex-config --doctor|no es fuente canónica ni publica operaciones destructivas|exclusive-owner
+i3.browser-search|rafex-browser-search|~/.local/bin/rafex-browser-search.sh|Firefox o Firefox ESR|bash -n ~/.local/bin/rafex-browser-search.sh|no credenciales ni URLs arbitrarias|exclusive-file
 openbox.profile|install-openbox-profile|~/.config/openbox|perfil ThinkPad|openbox --reconfigure|bloques Rafex posteriores|seed-only
 openbox.eww|install-eww|~/.config/openbox/{autostart,rc.xml}#rafex-eww|eww-widgets.sh|openbox --reconfigure|Conky y Picom|managed-block
 openbox.conky|install-conky|~/.config/openbox/autostart#rafex-conky|conky-launch.sh|openbox --reconfigure|EWW y Picom|managed-block
@@ -52,9 +53,29 @@ power.mem-sleep|configure-thinkpad-mem-sleep|/etc/default/grub#rafex-mem-sleep|k
 power.xrandr|configure-xrandr-brightness|~/.config/i3/config#rafex-xrandr-brightness|xrandr|i3 -C -c ~/.config/i3/config|brightnessctl directo|managed-block
 power.xrandr-hook|configure-xrandr-brightness|/lib/systemd/system-sleep/rafex-xrandr-brightness.sh|xrandr,sudo|test -x /lib/systemd/system-sleep/rafex-xrandr-brightness.sh|no modifica GRUB ni el kernel|exclusive-file
 power.tlp|configure-tlp-battery|/etc/tlp.d/90-rafex-battery.conf|tlp|tlp-stat -b|logind|exclusive-file
-power.tpm|configure-tpm-blacklist|/etc/modprobe.d/99-rafex-tpm-blacklist.conf|initramfs-tools|modprobe -n tpm_tis|BIOS y claves TPM|exclusive-file
+power.tpm|configure-tpm-blacklist|/etc/modprobe.d/blacklist-tpm.conf|initramfs-tools|modprobe -n tpm_tis|BIOS y claves TPM|exclusive-file
 boot.initramfs|configure-initramfs-compression|/etc/initramfs-tools/conf.d/99-rafex-compression|update-initramfs|lsinitramfs /boot/initrd.img-$(uname -r)|GRUB y vmlinuz|exclusive-file
 background.session|install-feh|~/.local/bin/rafex-wallpaper.sh|feh|test -x ~/.local/bin/rafex-wallpaper.sh|GRUB y LightDM|exclusive-file
 background.boot|install-thinkpad-backgrounds|/etc/default/grub#rafex-background|GRUB|grep -q GRUB_BACKGROUND /etc/default/grub|fondo de sesión|managed-block
 background.lightdm|install-thinkpad-backgrounds|/etc/lightdm/lightdm-gtk-greeter.conf#rafex-background|LightDM GTK greeter|test -r /etc/lightdm/lightdm-gtk-greeter.conf|fondo de sesión|managed-block
 legacy.albert|retired|~/.config/i3/config#rafex-albert|Albert|no aplicable|Ulauncher es el launcher del perfil|retired
+# Superficies explícitas de red y periféricos. Son inventario de propiedad;
+# sus cambios operativos siguen requiriendo sus helpers y permisos propios.
+network.wifi.radio|wifi-toggle|~/.local/bin/wifi-toggle.sh|NetworkManager|wifi-toggle --status|no cambia prioridad ni secretos|exclusive-helper
+network.flight-mode|flight-mode-toggle|~/.local/bin/flight-mode-toggle.sh|NetworkManager,bluetoothctl|flight-mode-toggle --status|no ADB por red ni MAC en salida|exclusive-helper
+network.wwan.oxxocel|configure-wwan-oxxocel|/etc/ModemManager/fcc-unlock.d|ModemManager,udev|configure-wwan-oxxocel --status|APN,IMEI,IMSI y credenciales|exclusive-system
+network.wwan.flame|configure-wwan-flame-oxxocel|/etc/udev/rules.d/79-flame-oxxocel-qmi-rawip.rules|qmi_wwan,udev|configure-wwan-flame-oxxocel --status|datos del módem y secretos|exclusive-system
+network.usbguard|harden-thinkpad|/etc/usbguard/rules.conf|USBGuard|usbguard list-rules|no autoriza dispositivos automáticamente|exclusive-system
+network.printers|configure-printers|/etc/cups/printers.conf|CUPS,SANE|lpstat -p|trabajos y documentos privados|exclusive-system
+network.bluetooth|flight-mode-toggle|bluetoothctl radio|BlueZ|bluetoothctl show|direcciones MAC y emparejamientos|exclusive-runtime
+# Laboratorio Android/Firefox OS: no incluye operaciones destructivas.
+lab.android.tools|install-android-tools|/usr/bin/{adb,fastboot,scrcpy}|APT,udev Android|adb --version|sin adb root, shell arbitrario ni fastboot flash|package
+lab.android.helper|android-tools|~/.local/bin/android-tools.sh|adb,fastboot,scrcpy|android-tools --status|sin ADB por red ni borrado|exclusive-helper
+lab.firefoxos.helper|firefoxos-tools|~/.local/bin/firefoxos-tools.sh|adb|firefoxos-tools --status|sin shell, push, reboot ni flasheo|exclusive-helper
+lab.firefoxos.ca|firefoxos-ca|~/.local/share/rafex/firefoxos-ca|adb,certutil,Podman|firefoxos-ca --status|sin particiones ni biblioteca del sistema|experimental
+lab.firefoxos.sms|install-firefoxos-sms-bridge|~/.local/bin/firefoxos-sms-bridge.sh|Podman|firefoxos-sms --status|sin SMS directo ni Internet|exclusive-helper
+# Runtimes locales administrados por mise; nunca son archivos del sistema.
+runtime.mise|install-terminal-workstation|~/.local/bin/mise|mise|mise --version|sin credenciales ni configuración root|exclusive-helper
+runtime.java|install-java-runtime|~/.local/share/java-runtimes|mise|just install-java-runtime --status|sin /usr/lib ni daemon|runtime-tree
+runtime.node|install-node-runtime|~/.local/share/node-runtimes|mise|just install-node-runtime --status|sin npm global root|runtime-tree
+runtime.build|install-build-runtime|~/.local/share/build-runtimes|mise|just install-build-runtime --status|sin instalación APT implícita|runtime-tree

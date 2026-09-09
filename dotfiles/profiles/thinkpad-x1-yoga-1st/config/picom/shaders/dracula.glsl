@@ -10,5 +10,6 @@ vec4 window_shader() {
     vec3 purple = color.rgb * vec3(1.010, 0.985, 1.025);
     purple = mix(vec3(luminance), purple, 1.05);
     color.rgb = clamp(mix(color.rgb, purple, 0.14), 0.0, 1.0);
-    return default_post_processing(color);
+    // Picom v13 ya aplica el postprocesado fuera del shader.
+    return color;
 }

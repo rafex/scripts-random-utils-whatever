@@ -9,8 +9,10 @@ tags:
 
 # rafex_config_publish_linux.sh
 
-Biblioteca interna que implementa bloqueos, respaldos, hashes, enlaces
-simbólicos y escrituras seguras para el publicador central ThinkPad.
+Biblioteca interna con primitivas de rutas, hashes, respaldos, bloqueo y
+publicación atómica. El publicador central la usa junto con su registro de
+snapshots; los instaladores especializados pueden reutilizar sus guards sin
+convertirse en propietarios de todo `~/.config`.
 
 - **Ruta:** `scripts/lib/rafex_config_publish_linux.sh`
 - **SO requerido:** Linux
@@ -22,8 +24,8 @@ simbólicos y escrituras seguras para el publicador central ThinkPad.
 
 ## Requisitos
 
-No se ejecuta directamente. Debe cargarse mediante `source` desde el publicador
-`rafex_config_linux.sh`.
+No se ejecuta directamente. Se carga mediante `source`; el publicador central
+define las variables de sus árboles permitidos antes de cargarla.
 
 ## Uso
 
@@ -40,8 +42,8 @@ que no hayan definido las variables del publicador.
 
 | Variable | Descripción |
 |---|---|
-| `RAFEX_PUBLISH_CHECKOUT` | Checkout permitido para fuentes estáticas. |
-| `RAFEX_PUBLISH_GENERATED_ROOT` | Árbol permitido para archivos generados. |
+| `RAFEX_PUBLISH_CHECKOUT` | Checkout permitido para fuentes versionadas. |
+| `RAFEX_PUBLISH_GENERATED_ROOT` | Árbol permitido para artefactos generados heredados. |
 | `RAFEX_PUBLISH_STATE_DIR` | Estado, respaldos y bloqueo del publicador. |
 | `RAFEX_PUBLISH_LOG` | Bitácora JSONL privada. |
 | `RAFEX_PUBLISH_LOCK_FILE` | Archivo usado por `flock`. |
@@ -58,6 +60,7 @@ publicador a partir de XDG y del checkout validado.
 ## Protecciones de seguridad
 
 - Rechaza fuentes y enlaces fuera de los árboles permitidos.
+- El snapshot activo se valida dentro de `~/.local/share/rafex-thinkpad/snapshots`.
 - No usa `sudo`, Git, red ni comandos de sistema privilegiados.
 - Usa archivos temporales y `mv` atómico.
 - Registra hashes antes y después sin incluir el contenido de las
@@ -78,4 +81,5 @@ se desea migrarlo con respaldo.
 
 ### [Unreleased]
 
-**feat:** añade primitivas comunes de publicación, backup y rollback.
+**refactor:** mantiene primitivas comunes compatibles con el publicador de
+snapshots y los instaladores especializados.

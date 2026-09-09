@@ -227,6 +227,76 @@ check_i3_binding() {
   fi
 }
 
+semantic_i3_check() {
+  local config="$CONFIG_HOME/i3/config" result
+  [[ -f "$config" ]] || return 0
+
+  result="$(awk '
+    BEGIN { split("mod term launcher laptop_menu browser_search refresh_i3status ws1 ws2 ws3 ws4 ws5 ws6 ws7 ws8 ws9 ws10", required) }
+    function fail(message) { print message; bad=1 }
+    /^# (BEGIN |>>> )/ { if (marker_depth) fail("bloques administrados anidados"); marker_depth++; next }
+    /^# (END |<<< )/ { if (!marker_depth) fail("bloque END sin BEGIN"); marker_depth--; next }
+    /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
+    /^set[[:space:]]+\$[A-Za-z_]/ {
+      variable=$2; sub(/^\$/, "", variable); defined[variable]=NR
+    }
+    {
+      for (index_name in required) {
+        variable=required[index_name]
+        if (index($0, "$" variable) && !(variable in defined) && $1 != "set") fail("variable usada antes de definir: $" variable)
+      }
+    }
+    /^mode[[:space:]]+"[^"]+"[[:space:]]*\{/ {
+      mode=$0; sub(/^.*mode[[:space:]]+"/, "", mode); sub(/".*$/, "", mode); depth++
+      if (mode == "resize") section_modes=NR
+      next
+    }
+    /^[[:space:]]*\}/ { if (depth > 0) { depth--; mode="default" }; next }
+    /^[[:space:]]*bindsym[[:space:]]/ {
+      key=$2; bucket=mode SUBSEP key; binds[bucket]++
+      if (binds[bucket] > 1 && key != "$mod+r") fail("keybinding duplicado: " mode ":" key)
+    }
+    /^[[:space:]]*include[[:space:]]+.*rafex-bar-active\.conf/ { bars++; bar_line=NR }
+    /^[[:space:]]*include[[:space:]]+/ { includes++ }
+    /^[[:space:]]*exec(_always)?[[:space:]]/ {
+      line=$0; sub(/^[[:space:]]*exec(_always)?[[:space:]]+/, "", line)
+      sub(/^--no-startup-id[[:space:]]+/, "", line)
+      if (line ~ /lxpolkit/) lifecycle["lxpolkit"]++
+      if (line ~ /eww([^[:alnum:]]|$).*daemon/) lifecycle["eww-daemon"]++
+      if (line ~ /(^|[[:space:]])(picom|polybar|tint2)([[:space:]]|$)/) lifecycle["visual"]++
+    }
+    /^[[:space:]]*assign[[:space:]]+\[/ {
+      line=$0; sub(/^.*class="/, "", line); sub(/".*$/, "", line); klass=line
+      line=$0; sub(/^.*workspace number[[:space:]]+/, "", line); sub(/[[:space:]].*$/, "", line); workspace=line
+      if (klass != $0 && workspace != $0) {
+        if (assign[klass] != "" && assign[klass] != workspace) fail("assign contradictorio: " klass)
+        assign[klass]=workspace
+      }
+    }
+    /^set[[:space:]]+\$theme_bar_bg/ { section_theme=NR }
+    /^gaps[[:space:]]+inner/ { section_gaps=NR }
+    /^[[:space:]]*exec(_always)?[[:space:]]/ && !section_exec { section_exec=NR }
+    /^[[:space:]]*bindsym[[:space:]]/ && !section_bind { section_bind=NR }
+    /^[[:space:]]*for_window[[:space:]]/ && !section_rules { section_rules=NR }
+    /^set[[:space:]]+\$ws1/ { section_workspaces=NR }
+    END {
+      if (depth != 0) fail("mode sin cierre")
+      if (marker_depth != 0) fail("bloque BEGIN sin END")
+      if (bars != 1) fail("inclusiones de barra Rafex: " bars)
+      if (lifecycle["lxpolkit"] > 1) fail("autostart duplicado: lxpolkit")
+      if (lifecycle["eww-daemon"] > 1) fail("autostart duplicado: eww daemon")
+      if (lifecycle["visual"] > 1) fail("autostart visual duplicado: picom/polybar/tint2")
+      if (!section_theme || !section_gaps || !section_exec || !section_bind || !section_rules || !section_workspaces || !section_modes || !bar_line) fail("secciones canónicas incompletas")
+      if (!(section_theme < section_gaps && section_gaps < section_exec && section_exec < section_bind && section_bind < section_rules && section_rules < section_workspaces && section_workspaces < section_modes && section_modes < bar_line)) fail("orden de secciones no canónico")
+      if (bad) exit 1
+    }
+  ' "$config" 2>&1)" || {
+    while IFS= read -r result; do [[ -n "$result" ]] && warn "i3 semántico: $result"; done <<< "$result"
+    return 1
+  }
+  ok 'i3 semántico: bloques, atajos, autostarts, asignaciones y barra coherentes'
+}
+
 validate_registry() {
   local duplicate_resource duplicate_target
   duplicate_resource="$(awk -F'|' '!/^#/ && NF >= 7 { count[$1]++ } END { for (key in count) if (count[key] > 1) print key }' "$REGISTRY" | awk 'NF { printf "%s%s", separator, $0; separator = "," } END { print "" }')"
@@ -275,6 +345,7 @@ checks() {
     else
       warn 'i3 -C no valida la configuración'
     fi
+    semantic_i3_check || true
   fi
   if command -v systemctl >/dev/null 2>&1; then
     if systemctl --user cat rafex-picom.service >/dev/null 2>&1; then

@@ -1,0 +1,22 @@
+# componente|recurso|tipo|fuente en checkout|destino vivo|estrategia|modo|validador|exclusiones|riesgo
+# Este registro cubre únicamente configuración instalada; nunca perfiles de
+# navegador, claves, tokens, mensajes, fotografías ni datos personales.
+session|i3.config|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/i3/config|.config/i3/config|symlink|0600|i3 -C|datos personales|alto
+session|i3.bar|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/i3/rafex-bar-active.conf|.config/i3/rafex-bar-active.conf|copy|0600|i3 -C|datos personales|alto
+session|browser.search|user|scripts/system/rafex_browser_search_linux.sh|.local/bin/rafex-browser-search.sh|symlink|0755|bash -n|datos personales|bajo
+session|eww.yuck|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/eww/eww.yuck|.config/eww/eww.yuck|symlink|0600|eww validate|estado EWW privado|alto
+visual|eww.scss|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/themes/nord/eww.scss|.config/eww/eww.scss|copy|0600|eww validate|estado EWW privado|medio
+visual|picom.config|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/picom.conf|.config/picom/picom.conf|symlink|0600|picom --diagnostics|credenciales|medio
+visual|picom.shaders.nord|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/picom/shaders/nord.glsl|.config/picom/shaders/nord.glsl|symlink|0644|archivo GLSL|credenciales|bajo
+visual|dunst.config|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/dunst/dunstrc|.config/rafex/dunst.conf|copy|0600|dunst -print|contenido de notificaciones|medio
+visual|bar.profile|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/i3-bar-profile|.config/rafex/i3-bar-profile|copy|0600|perfil i3bar/tint2/polybar|estado de sesión|medio
+visual|bar.polybar|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/i3-bars/polybar.ini|.config/rafex/i3-bars/polybar.ini|symlink|0600|polybar -l info|estado de sesión|medio
+visual|bar.tint2|user|dotfiles/profiles/thinkpad-x1-yoga-1st/config/rafex/i3-bars/tint2rc|.config/rafex/i3-bars/tint2rc|symlink|0600|tint2 -c|estado de sesión|medio
+system|tlp.battery|system|-|/etc/tlp.d/90-rafex-battery.conf|copy|0644|tlp-stat -b|batería y hardware|medio
+system|grub.mem-sleep|system|-|/etc/default/grub|copy|0644|grep mem_sleep_default|UUID y secretos de boot|alto
+system|initramfs.compression|system|-|/etc/initramfs-tools/conf.d/99-rafex-compression|copy|0644|grep COMPRESS|ninguna|medio
+system|tpm.blacklist|system|-|/etc/modprobe.d/blacklist-tpm.conf|copy|0644|modprobe -n|claves TPM|alto
+hardware|xorg.dri3|system|-|/etc/X11/xorg.conf.d/20-thinkpad-modesetting.conf|copy|0644|Xorg|otras reglas manuales|medio
+hardware|xorg.touchpad|system|-|/etc/X11/xorg.conf.d/40-rafex-libinput-touchpad.conf|copy|0644|libinput|otros dispositivos|bajo
+hardware|logind.lid|system|-|/etc/systemd/logind.conf.d/90-rafex-lid-suspend.conf|copy|0644|loginctl|otras políticas logind|alto
+lab|android.udev|system|-|/etc/udev/rules.d/51-android.rules|copy|0644|udevadm test|reglas manuales no Rafex|medio

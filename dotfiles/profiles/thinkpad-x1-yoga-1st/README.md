@@ -57,20 +57,22 @@ realiza `git push`. Se publica con:
 ```sh
 just rafex-config --check
 just rafex-config --sync
+just rafex-config --snapshot
 just rafex-config --plan
-just rafex-config --adopt
+just rafex-config --adopt --component all
 just rafex-config --doctor
 ```
 
-Los recursos generados centrales se materializan en
-`~/.local/state/rafex/config-generated/thinkpad/`; los scripts y configuraciones
-que aún tienen instaladores especializados quedan registrados mediante
-snapshots en `~/.local/share/rafex-thinkpad/`, sin symlinks centrales que puedan
-competir con ellos. La adopción es explícita y conserva respaldos. Un
-`--deploy` posterior no sustituye archivos manuales; si una aplicación rompe un
-enlace, `--doctor` lo reporta. `--rollback` restaura el último conjunto de
-respaldos. No se usan hard links ni se modifican BIOS, GRUB, TPM, initramfs, red
-o suspensión.
+Los snapshots activos viven en `~/.local/share/rafex-thinkpad/active/` y cada
+despliegue validado crea un commit local automático. Los archivos estáticos de
+usuario son symlinks a `active/home`; los dinámicos conservan copia atómica para
+que Dunst, temas y el selector de barras puedan actualizarlos. Los archivos de
+`/etc` se mantienen como copias `root:root`, nunca symlinks. La adopción es
+explícita y conserva respaldos por componente. Un `--deploy` posterior no
+sustituye archivos manuales; si una aplicación rompe un enlace, `--doctor` lo
+reporta. `--rollback --component <nombre>` restaura el último respaldo de ese
+componente. No se usan hard links ni se modifican BIOS, bootloader, particiones
+o teléfonos desde este publicador.
 
 ## Incluye
 

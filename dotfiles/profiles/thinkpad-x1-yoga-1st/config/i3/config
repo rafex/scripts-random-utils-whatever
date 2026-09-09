@@ -1,9 +1,12 @@
 # i3 portable para ThinkPad X1 Yoga.
+# === Variables y comandos comunes ===
 set $mod Mod4
 set $term alacritty
 set $launcher ulauncher-toggle
 set $laptop_menu ~/.local/bin/rafex-ratmenu.sh
+set $browser_search ~/.local/bin/rafex-browser-search.sh
 
+# === Tema ===
 # BEGIN rafex theme
 set $theme_bar_bg #e5e9f0
 set $theme_bar_fg #2e3440
@@ -16,12 +19,14 @@ set $theme_urgent_bg #bf616a
 set $theme_urgent_fg #eceff4
 # END rafex theme
 
+# === Gaps y bordes ===
 # BEGIN rafex i3-gaps
 gaps inner 2px
 gaps outer 3px
 smart_gaps on
 # END rafex i3-gaps
 
+# === Autostarts ===
 exec_always --no-startup-id xrdb -merge ~/.Xresources
 # BEGIN rafex ulauncher default
 exec --no-startup-id systemctl --user start ulauncher.service
@@ -56,6 +61,7 @@ exec_always --no-startup-id sh -c 'command -v copyq >/dev/null 2>&1 && ! pgrep -
 bindsym $mod+Shift+v exec --no-startup-id ~/.local/bin/clipboard-menu.sh --show
 # END rafex clipboard
 
+# === Atajos ===
 font pango:DejaVu Sans Mono 9
 default_border pixel 2
 default_floating_border pixel 2
@@ -65,10 +71,24 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id ~/.local/bin/volume-notify.sh 
 bindsym XF86AudioLowerVolume exec --no-startup-id ~/.local/bin/volume-notify.sh down && $refresh_i3status
 bindsym XF86AudioMute exec --no-startup-id ~/.local/bin/volume-notify.sh mute && $refresh_i3status
 bindsym XF86Display exec --no-startup-id ~/.local/bin/screen-projector.sh --apply --mode next
-# XF86Tools y XF86WakeUp se añaden por install-i3-laptop-controls.
 bindsym $mod+F9 exec --no-startup-id $laptop_menu
 bindsym $mod+Control+p exec --no-startup-id ~/.local/bin/rafex-control-panel.sh
 bindsym $mod+Shift+t exec --no-startup-id ~/.local/bin/theme-toggle.sh --toggle
+
+# >>> i3-laptop-controls managed >>>
+# Los alias de brillo conservan las teclas físicas sin duplicar comandos.
+bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh toggle
+bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
+bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
+bindsym XF86Search exec --no-startup-id $browser_search
+bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
+bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
+bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
+bindsym $mod+Shift+b exec --no-startup-id $browser_search
+bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
+bindsym XF86Tools exec --no-startup-id $laptop_menu
+# <<< i3-laptop-controls managed <<<
 
 floating_modifier $mod
 tiling_drag modifier titlebar
@@ -87,7 +107,6 @@ bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 bindsym $mod+b split h
-bindsym $mod+Shift+b exec --no-startup-id sh -c 'if command -v firefox >/dev/null 2>&1; then exec firefox --new-tab https://duckduckgo.com/; elif command -v firefox-esr >/dev/null 2>&1; then exec firefox-esr --new-tab https://duckduckgo.com/; else notify-send "Búsqueda" "Firefox no está instalado"; fi'
 bindsym $mod+v split v
 bindsym $mod+f fullscreen toggle
 bindsym $mod+s layout stacking
@@ -95,14 +114,8 @@ bindsym $mod+w layout tabbed
 bindsym $mod+e layout toggle split
 bindsym $mod+Shift+f floating toggle; move position center
 bindsym $mod+d focus mode_toggle
-for_window [window_type="dialog"] floating enable
-for_window [window_role="pop-up"] floating enable
-for_window [window_role="task_dialog"] floating enable
-for_window [window_type="utility"] floating enable
-for_window [window_type="toolbar"] floating enable
-for_window [window_type="dialog"] move position center
-for_window [window_type="dialog"] resize set 900 600
 
+# Acciones globales y capturas.
 bindsym $mod+a focus parent
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
@@ -114,7 +127,24 @@ bindsym Shift+Print exec --no-startup-id ~/.local/bin/screenshot.sh --select
 bindsym Ctrl+Print exec --no-startup-id ~/.local/bin/screenshot.sh --window
 # END rafex screenshots
 bindsym $mod+Shift+p exec --no-startup-id ~/.local/bin/picom-toggle.sh --toggle
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+q exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec rofi -show run
+bindsym XF86MonBrightnessUp exec --no-startup-id ~/.local/bin/brightness-notify.sh up
+bindsym XF86MonBrightnessDown exec --no-startup-id ~/.local/bin/brightness-notify.sh down
+bindsym $mod+Shift+s exec --no-startup-id ~/.local/bin/screensaver-toggle toggle
 
+# === Reglas de ventanas ===
+for_window [window_type="dialog"] floating enable
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [window_type="utility"] floating enable
+for_window [window_type="toolbar"] floating enable
+for_window [window_type="dialog"] move position center
+for_window [window_type="dialog"] resize set 900 600
+
+# === Workspaces y asignaciones ===
 set $ws1 "1:term"
 set $ws2 "2:code"
 set $ws3 "3:web"
@@ -164,18 +194,7 @@ assign [class="(?i)^(pavucontrol|nm-connection-editor|blueman-manager|arandr)$"]
 assign [class="(?i)^(obs|guvcview|krita|mpv)$"] $ws6
 assign [class="(?i)^(virt-manager|virtualbox)$"] $ws8
 
-bindsym $mod+Shift+c reload
-bindsym $mod+Shift+r restart
-bindsym $mod+Shift+q exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
-bindsym $mod+Shift+e exec rofi -show run
-bindsym XF86MonBrightnessUp exec --no-startup-id ~/.local/bin/brightness-notify.sh up
-bindsym XF86MonBrightnessDown exec --no-startup-id ~/.local/bin/brightness-notify.sh down
-bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
-bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
-bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
-bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
-bindsym $mod+Shift+s exec --no-startup-id ~/.local/bin/screensaver-toggle toggle
-
+# === Modos ===
 mode "resize" {
         bindsym j resize shrink width 10 px or 10 ppt
         bindsym k resize grow height 10 px or 10 ppt
@@ -191,4 +210,6 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
+# === Barra (única inclusión, siempre al final) ===
+# La barra activa es la última inclusión para que el orden sea determinista.
 include ~/.config/i3/rafex-bar-active.conf

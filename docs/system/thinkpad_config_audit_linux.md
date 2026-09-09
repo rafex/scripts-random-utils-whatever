@@ -40,7 +40,9 @@ También separa los destinos físicos compartidos —por ejemplo,
 `~/.config/i3/config`— de sus bloques administrados y lista los candidatos que
 escriben esas superficies, indicando si usan fragmentos generados, un guard de
 propietario, una política de archivo exclusivo o si están clasificados como
-`seed-only`.
+`seed-only`. Además de `i3 -C`, comprueba semántica: modos y atajos
+duplicados, bloques Rafex balanceados, una sola inclusión de barra, autostarts
+duplicados, asignaciones contradictorias y composición por orden.
 
 ## Opciones
 
@@ -87,6 +89,78 @@ just thinkpad-config-audit --report \
   menos un commit y sin cambios pendientes. Esa carpeta es historial local de
   lo instalado, no un clon fuente del repositorio replicador.
 
+## Auditoría en vivo — 2026-09-08
+
+Esta sección registra una comprobación directa de la ThinkPad usando el checkout
+ejecutor sincronizado en `0135bcb`. La revisión privilegiada se ejecutó desde
+`tmux thinkpad:0` y solo leyó archivos y estados; no recargó servicios ni
+modificó configuraciones funcionales.
+
+### Mapa operativo observado
+
+```mermaid
+flowchart LR
+  R[checkout ejecutor<br/>/opt/repository/... ] --> S[instaladores y helpers]
+  S --> U[configuración de usuario<br/>i3 · EWW · Polybar · Picom · Dunst]
+  S --> E[configuración del sistema<br/>TLP · GRUB · Xorg · logind · initramfs · TPM]
+  U --> H[~/.local/share/rafex-thinkpad<br/>historial local]
+  U --> L[~/.local/state/rafex<br/>bitácora y respaldos]
+```
+
+El checkout ejecutor replica y ejecuta la configuración versionada. El
+repositorio separado `~/.local/share/rafex-thinkpad` no es otro checkout fuente:
+su función es conservar el estado instalado y su historial local.
+
+### Estado confirmado
+
+| Superficie | Evidencia | Resultado |
+|---|---|---|
+| Repositorio ejecutor | `HEAD=origin/main=0135bcb` | sincronizado |
+| Historial local | commit `d4d693b` | inicializado, todavía sin artefactos capturados |
+| TLP | `START=80`, `STOP=85`; servicio activo y habilitado | correcto |
+| Arranque | `mem_sleep_default=deep` en GRUB | coherente con la política actual |
+| Initramfs | `COMPRESS=zstd` | configurado |
+| TPM | blacklist de `tpm`, `tpm_crb`, `tpm_tis` y `tpm_tis_core` | activo |
+| Xorg | modesetting/DRI3 y touchpad con `NaturalScrolling=true` | coherente |
+| Tapa | `HandleLidSwitch=suspend`, sin inhibidores configurados en el fragmento | configurado |
+| Udev Android | `51-android.rules` presente | presente |
+| i3 | `i3 -C` válido | correcto |
+| Procesos | un Picom, un Polybar, un EWW y un Conky | sin duplicados observados |
+
+### Incongruencias y riesgos
+
+| Prioridad | Hallazgo | Impacto |
+|---|---|---|
+| crítica | `~/.config/i3/config`, `eww.scss` y el estado de barra son archivos regulares; el árbol generado no está desplegado | los instaladores pueden volver a competir con el archivo final |
+| alta | `dunst.conf` sigue usando `origin=bottom-right` y `offset=(10,36)` | contradice el diseño debajo de la barra activa |
+| alta | Picom v13 carga `shaders/nord.glsl`, pero el runtime rechaza `default_post_processing` | el shader no se aplica aunque Picom siga activo |
+| media | EWW instalado es `0.5.0`, mientras el checkout contempla una instalación `0.6.0` | posible divergencia entre configuración y runtime |
+| media | `rafex-config --sync` falló inicialmente porque el repositorio Git preexistente no tenía identidad local | el inicializador no es idempotente para un repositorio creado previamente |
+| media | el manifiesto central contiene solo tres destinos dinámicos | no representa por sí mismo todos los scripts y archivos instalados |
+| informativa | una consulta de i3 IPC por SSH no puede resolver `DISPLAY`/socket | las pruebas IPC deben ejecutarse dentro de la sesión gráfica |
+
+La identidad Git se configuró únicamente de forma local en
+`~/.local/share/rafex-thinkpad`; no se cambió la identidad global del usuario.
+
+### Estrategia aprobada para estabilizar
+
+1. Corregir el inicializador para que siempre establezca identidad local cuando
+   el repositorio de historial ya exista, sin tocar la identidad global.
+2. Añadir una operación de snapshot explícita que capture únicamente los
+   archivos reconocidos como instalados, excluyendo secretos y datos personales.
+3. Mantener la adopción de symlinks separada: no ejecutar `--adopt` como parte
+   del snapshot.
+4. Reparar Picom y Dunst individualmente, validando cada cambio antes de tocar
+   el siguiente componente.
+5. Decidir explícitamente si EWW debe permanecer en `0.5.0` o actualizarse a la
+   versión del instalador; no mezclar ambas versiones silenciosamente.
+6. Ejecutar después `thinkpad-config-audit --check`, `rafex-config --doctor`,
+   `i3 -C` y comprobaciones de procesos dentro de la sesión gráfica.
+7. Solo después evaluar `--adopt` por grupos y conservar rollback fechado.
+
+La revisión no autoriza todavía la adopción de archivos, cambios de apilado,
+recargas de servicios ni cambios en `/etc`.
+
 ## Fallos conocidos
 
 ### `Picom no está activo`
@@ -120,3 +194,6 @@ local de adopción.
 
 **fix:** detecta colisiones por destino físico y valida el historial local de la
 ThinkPad.
+
+**feat:** añade validación semántica de i3 para bloquear regresiones de
+contenido aunque el parser de i3 todavía acepte el archivo.

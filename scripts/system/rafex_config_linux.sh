@@ -1,38 +1,36 @@
 #!/usr/bin/env bash
-# rafex_config_linux.sh v1.1.1
-# Replica de forma híbrida la configuración ThinkPad y conserva el estado
-# instalado en un repositorio local separado del checkout ejecutor.
+# rafex_config_linux.sh v2.0.0
+# Replica configuración y conserva el estado instalado en un historial local.
 set -Eeuo pipefail
 umask 077
 export LC_ALL=C
 
 ACTION=status
+COMPONENT=all
+ALLOW_ADOPT=0
 STAMP="$(date +%Y%m%d_%H%M%S)"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+PROFILE="dotfiles/profiles/thinkpad-x1-yoga-1st"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 HISTORY_ROOT="$DATA_HOME/rafex-thinkpad"
-INSTALLED_ROOT="$HISTORY_ROOT/installed"
-GENERATED_ROOT="$STATE_HOME/rafex/config-generated/thinkpad"
-PUBLISH_STATE_DIR="$STATE_HOME/rafex/config-publisher"
-PUBLISH_LOG="$PUBLISH_STATE_DIR/publish.jsonl"
-LOCK_FILE="$PUBLISH_STATE_DIR/deploy.lock"
-BACKUP_ROOT=""
-ALLOW_ADOPT=0
+SNAPSHOT_ROOT="$HISTORY_ROOT/snapshots"
+ACTIVE_LINK="$HISTORY_ROOT/active"
+STATE_DIR="$STATE_HOME/rafex/config-publisher"
+BACKUP_ROOT="$STATE_DIR/backups/$STAMP"
+LOG_FILE="$STATE_DIR/changes.jsonl"
+LOCK_FILE="$STATE_DIR/deploy.lock"
+MANIFEST_REL="$PROFILE/thinkpad-state-manifest.tsv"
 
-export RAFEX_PUBLISH_CHECKOUT="$INSTALLED_ROOT"
-export RAFEX_PUBLISH_GENERATED_ROOT="$GENERATED_ROOT"
-export RAFEX_PUBLISH_STATE_DIR="$PUBLISH_STATE_DIR"
-export RAFEX_PUBLISH_LOG="$PUBLISH_LOG"
+export RAFEX_PUBLISH_CHECKOUT="$REPO_ROOT"
+export RAFEX_PUBLISH_GENERATED_ROOT="$STATE_HOME/rafex/config-generated/thinkpad"
+export RAFEX_PUBLISH_STATE_DIR="$STATE_DIR"
+export RAFEX_PUBLISH_LOG="$LOG_FILE"
 export RAFEX_PUBLISH_LOCK_FILE="$LOCK_FILE"
 # shellcheck disable=SC1091
 source "$REPO_ROOT/scripts/lib/rafex_config_publish_linux.sh"
-
-PROFILE='dotfiles/profiles/thinkpad-x1-yoga-1st'
-MANIFEST_REL="$PROFILE/rafex-config-manifest.tsv"
-TARGET_I3="$CONFIG_HOME/i3/config"
 
 info() { printf '→ %s\n' "$*"; }
 ok() { printf '✓ %s\n' "$*"; }
@@ -45,24 +43,28 @@ Uso:
   rafex_config_linux.sh --check
   rafex_config_linux.sh --status
   rafex_config_linux.sh --sync
-  rafex_config_linux.sh --plan
-  rafex_config_linux.sh --adopt
-  rafex_config_linux.sh --deploy
-  rafex_config_linux.sh --rollback
+  rafex_config_linux.sh --snapshot
+  rafex_config_linux.sh --plan [--component all|i3|visual|hardware|network|lab]
+  rafex_config_linux.sh --adopt [--component ...]
+  rafex_config_linux.sh --deploy [--component ...]
+  rafex_config_linux.sh --rollback --component i3|visual|hardware|network|lab
   rafex_config_linux.sh --doctor
 
-`--adopt` hace la migración inicial con respaldos. `--deploy` solo publica
-destinos ya administrados o ausentes; nunca reemplaza archivos manuales.
+El checkout principal replica y ejecuta. El historial operativo vive en
+~/.local/share/rafex-thinkpad y recibe commits locales, nunca push automático.
 EOF
 }
 
 parse_args() {
-  local chosen=0
+  local selected=0
   while (($#)); do
     case "$1" in
-      --check|--status|--sync|--plan|--adopt|--deploy|--rollback|--doctor)
-        (( chosen == 0 )) || die 'selecciona una sola acción'
-        ACTION="${1#--}"; chosen=1; shift ;;
+      --check|--status|--sync|--snapshot|--plan|--adopt|--deploy|--rollback|--doctor)
+        (( selected == 0 )) || die 'selecciona una sola acción'
+        ACTION="${1#--}"; selected=1; shift ;;
+      --component)
+        (($# > 1)) || die '--component requiere un valor'
+        COMPONENT="$2"; shift 2 ;;
       --help|-h) usage; exit 0 ;;
       *) die "opción desconocida: $1" ;;
     esac
@@ -72,383 +74,442 @@ parse_args() {
 require_linux() {
   [[ "$(uname -s)" == Linux ]] || die 'este publicador requiere Linux'
   (( EUID != 0 )) || die 'ejecútalo como usuario normal, no como root'
-  for command_name in awk cmp cp date git install ln mktemp mv realpath sha256sum; do
+  local command_name
+  for command_name in awk cmp cp date find git install ln mktemp mv realpath sha256sum stat; do
     command -v "$command_name" >/dev/null 2>&1 || die "falta la herramienta: $command_name"
   done
 }
 
-require_lock_tool() {
-  command -v flock >/dev/null 2>&1 || die 'falta flock de util-linux para una operación de escritura'
+require_lock() {
+  command -v flock >/dev/null 2>&1 || die 'falta flock de util-linux'
+  mkdir -p -- "$STATE_DIR"
+  chmod 700 -- "$STATE_DIR"
+  exec 9>"$LOCK_FILE"
+  flock -n 9 || die 'ya existe otra operación Rafex en curso'
 }
 
-repo_root() { printf '%s\n' "$REPO_ROOT"; }
-
-validate_repo() {
-  local root
-  root="$(repo_root)"
-  [[ -f "$root/$MANIFEST_REL" ]] || die "falta manifiesto: $root/$MANIFEST_REL"
-  [[ -d "$root/$PROFILE/config" ]] || die "falta perfil ThinkPad: $root/$PROFILE/config"
+validate_component() {
+  case "$COMPONENT" in
+    all|i3|visual|hardware|network|lab|session) ;;
+    *) die "componente inválido: $COMPONENT" ;;
+  esac
 }
 
-history_clean() {
-  if [[ ! -d "$HISTORY_ROOT/.git" ]]; then
-    return 0
-  fi
-  if [[ -n "$(git -C "$HISTORY_ROOT" status --porcelain --untracked-files=all)" ]]; then
-    warn "historial local modificado fuera del publicador: $HISTORY_ROOT"
-    return 1
-  fi
+component_matches() {
+  local actual="$1"
+  case "$COMPONENT:$actual" in
+    all:*|i3:session|i3:i3|visual:visual|hardware:hardware|hardware:system|network:network|lab:lab|session:session) return 0 ;;
+    *) return 1 ;;
+  esac
 }
+
+repo_path() { printf '%s/%s\n' "$REPO_ROOT" "$1"; }
+live_path() {
+  case "$1" in
+    .config/*) printf '%s/%s\n' "$CONFIG_HOME" "${1#.config/}" ;;
+    .local/bin/*) printf '%s/%s\n' "$HOME" "$1" ;;
+    /*) printf '%s\n' "$1" ;;
+    *) die "destino no permitido: $1" ;
+  esac
+}
+
+manifest_file() { repo_path "$MANIFEST_REL"; }
 
 history_init() {
-  local gitignore_changed=0
-  mkdir -p -- "$HISTORY_ROOT" "$INSTALLED_ROOT"
-  chmod 700 -- "$HISTORY_ROOT" "$INSTALLED_ROOT"
-  if [[ ! -d "$HISTORY_ROOT/.git" ]]; then
-    git -C "$HISTORY_ROOT" init -q
-    git -C "$HISTORY_ROOT" config user.name 'Rafex ThinkPad'
-    git -C "$HISTORY_ROOT" config user.email 'rafex-thinkpad@localhost'
-  fi
-  if [[ ! -e "$HISTORY_ROOT/.gitignore" ]]; then
-    printf '%s\n' '*.tmp' '*.bak' '*.swp' '.history.lock' > "$HISTORY_ROOT/.gitignore"
+  local generated_gitignore=0
+  mkdir -p -- "$HISTORY_ROOT" "$SNAPSHOT_ROOT" "$STATE_DIR"
+  chmod 700 -- "$HISTORY_ROOT" "$SNAPSHOT_ROOT" "$STATE_DIR"
+  if [[ ! -d "$HISTORY_ROOT/.git" ]]; then git -C "$HISTORY_ROOT" init -q; fi
+  # Siempre fija identidad local, incluso si .git fue creado anteriormente.
+  git -C "$HISTORY_ROOT" config --local user.name 'Rafex ThinkPad'
+  git -C "$HISTORY_ROOT" config --local user.email 'rafex-thinkpad@localhost'
+  if [[ ! -f "$HISTORY_ROOT/.gitignore" ]]; then
+    printf '%s\n' '*.tmp' '*.bak' '*.swp' '.history.lock' '.snapshot-*' > "$HISTORY_ROOT/.gitignore"
     chmod 600 -- "$HISTORY_ROOT/.gitignore"
-  elif ! grep -Fqx '.history.lock' "$HISTORY_ROOT/.gitignore"; then
-    printf '%s\n' '.history.lock' >> "$HISTORY_ROOT/.gitignore"
-    chmod 600 -- "$HISTORY_ROOT/.gitignore"
-    gitignore_changed=1
-  fi
-  if (( gitignore_changed )) && git -C "$HISTORY_ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
-    git -C "$HISTORY_ROOT" add -- .gitignore
-    git -C "$HISTORY_ROOT" commit -q -m 'chore: ignore history lock'
+    generated_gitignore=1
   fi
   if ! git -C "$HISTORY_ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
     git -C "$HISTORY_ROOT" add -- .gitignore
     git -C "$HISTORY_ROOT" commit -q -m 'init: ThinkPad installed history'
+  elif (( generated_gitignore )); then
+    git -C "$HISTORY_ROOT" add -- .gitignore
+    git -C "$HISTORY_ROOT" commit -q -m 'chore: initialize ThinkPad history metadata'
   fi
 }
 
-sync_checkout() {
-  [[ -d "$REPO_ROOT/.git" ]] || die 'no existe el checkout ejecutor del repositorio'
-  git -C "$REPO_ROOT" diff --quiet || die 'el checkout ejecutor tiene cambios sin commit'
-  git -C "$REPO_ROOT" diff --cached --quiet || die 'el checkout ejecutor tiene cambios staged'
-  history_init
-  validate_repo
-  ok "fuente ejecutora validada: $REPO_ROOT"
-  ok "historial local listo: $HISTORY_ROOT"
+history_clean() {
+  [[ ! -d "$HISTORY_ROOT/.git" ]] || [[ -z "$(git -C "$HISTORY_ROOT" status --porcelain --untracked-files=all)" ]]
 }
 
-create_backup_root() {
-  BACKUP_ROOT="$PUBLISH_STATE_DIR/backups/$STAMP"
-  mkdir -p -- "$BACKUP_ROOT"
-  chmod 700 -- "$PUBLISH_STATE_DIR" "$PUBLISH_STATE_DIR/backups" "$BACKUP_ROOT"
-  printf '%s\n' "$BACKUP_ROOT" > "$PUBLISH_STATE_DIR/last-backup"
-  chmod 600 -- "$PUBLISH_STATE_DIR/last-backup"
+history_identity_ok() {
+  [[ ! -d "$HISTORY_ROOT/.git" ]] && return 0
+  [[ "$(git -C "$HISTORY_ROOT" config --local --get user.name 2>/dev/null || true)" == 'Rafex ThinkPad' ]] || return 1
+  [[ "$(git -C "$HISTORY_ROOT" config --local --get user.email 2>/dev/null || true)" == 'rafex-thinkpad@localhost' ]]
 }
 
-source_path() { printf '%s/%s\n' "$(repo_root)" "$1"; }
-installed_path() { printf '%s/home/%s\n' "$INSTALLED_ROOT" "$1"; }
-
-stage_installed_artifact() {
-  local source="$1" target_relative="$2" mode="$3" allowed_root="$4" destination temporary
-  destination="$(installed_path "$target_relative")"
-  rafex_publish_assert_inside "$source" "$allowed_root"
-  mkdir -p -- "$(dirname -- "$destination")"
-  if [[ -f "$destination" ]] && cmp -s -- "$source" "$destination"; then
-    chmod "$mode" -- "$destination"
-    printf '%s\n' "$destination"
-    return 0
-  fi
-  temporary="$(mktemp "$(dirname -- "$destination")/.rafex-installed.XXXXXX")"
-  cp -p -- "$source" "$temporary"
-  chmod "$mode" -- "$temporary"
-  mv -f -- "$temporary" "$destination"
-  printf '%s\n' "$destination"
+sync_source() {
+  [[ -d "$REPO_ROOT/.git" ]] || die 'no existe el checkout ejecutor'
+  [[ -z "$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)" ]] ||
+    die 'checkout ejecutor con cambios sin registrar'
+  git -C "$REPO_ROOT" pull --ff-only
+  ok "checkout replicador sincronizado: $(git -C "$REPO_ROOT" rev-parse --short HEAD)"
 }
 
-history_commit() {
-  local revision
-  revision="$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || printf unknown)"
-  printf '%s\n' "$revision" > "$HISTORY_ROOT/source-revision"
-  chmod 600 -- "$HISTORY_ROOT/source-revision"
-  git -C "$HISTORY_ROOT" add -- .gitignore installed source-revision
-  if ! git -C "$HISTORY_ROOT" diff --cached --quiet; then
-    git -C "$HISTORY_ROOT" commit -q -m "deploy: source $revision"
-  fi
-}
-target_path() {
-  case "$1" in
-    .config/*) printf '%s/%s\n' "$CONFIG_HOME" "${1#.config/}" ;;
-    .local/bin/*) printf '%s/%s\n' "$HOME/.local/bin" "${1#.local/bin/}" ;;
-    *) die "destino no permitido en manifiesto: $1" ;;
-  esac
+source_clean() {
+  [[ -d "$REPO_ROOT/.git" ]] || return 1
+  [[ -z "$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)" ]]
 }
 
 validate_manifest() {
-  local kind resource source target mode source_file target_file
+  local component resource kind source target strategy mode validator risk
+  [[ -f "$(manifest_file)" ]] || die "falta manifiesto: $(manifest_file)"
   awk -F'|' '
-    /^#/ || NF == 0 {next}
-    {resources[$2]++; targets[$4]++}
+    /^#/ || NF == 0 { next }
+    NF != 10 { print "línea con 10 campos requeridos: " NR; bad=1 }
+    { resource[$2]++; target[$5]++ }
     END {
-      for (key in resources) if (resources[key] > 1) {print "recurso duplicado: " key; bad=1}
-      for (key in targets) if (targets[key] > 1) {print "destino duplicado: " key; bad=1}
+      for (key in resource) if (resource[key] > 1) { print "recurso duplicado: " key; bad=1 }
+      for (key in target) if (target[key] > 1) { print "destino duplicado: " key; bad=1 }
       exit bad
     }
-  ' "$(source_path "$MANIFEST_REL")" || die 'manifiesto con propietarios o destinos duplicados'
-  while IFS='|' read -r kind resource source target mode; do
-    [[ -z "$kind" || "$kind" == \#* ]] && continue
-    [[ "$kind" == static || "$kind" == generated ]] || die "estrategia inválida en manifiesto: $kind"
-    [[ "$resource" =~ ^[a-z0-9._-]+$ ]] || die "recurso inválido en manifiesto: $resource"
-    [[ "$source" != /* && "$source" != *..* ]] || die "fuente insegura en manifiesto: $source"
-    [[ "$target" != /* && "$target" != *..* ]] || die "destino inseguro en manifiesto: $target"
-    [[ "$mode" =~ ^0[0-7]{3}$ ]] || die "modo inválido en manifiesto: $mode"
-    source_file="$(source_path "$source")"
-    target_file="$(target_path "$target")"
-    if [[ "$kind" == static ]]; then
-      [[ -f "$source_file" ]] || die "fuente del manifiesto ausente: $source_file"
+  ' "$(manifest_file)" || die 'manifiesto con propietarios o destinos duplicados'
+  while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
+    [[ -z "$component" || "$component" == \#* ]] && continue
+    [[ "$component" =~ ^[a-z0-9._-]+$ && "$resource" =~ ^[a-z0-9._-]+$ ]] || die "identificador inválido: $component/$resource"
+    [[ "$kind" == user || "$kind" == system ]] || die "tipo inválido: $kind"
+    [[ "$strategy" == symlink || "$strategy" == copy ]] || die "estrategia inválida: $strategy"
+    [[ "$mode" =~ ^0[0-7]{3}$ ]] || die "modo inválido: $mode"
+    [[ "$target" != *..* ]] || die "destino inseguro: $target"
+    if [[ "$kind" == user ]]; then
+      [[ "$target" == .config/* || "$target" == .local/bin/* ]] || die "destino de usuario inválido: $target"
+      [[ "$source" != /* && "$source" != *..* ]] || die "fuente insegura: $source"
+      [[ -f "$(repo_path "$source")" ]] || die "fuente del manifiesto ausente: $(repo_path "$source")"
+      rafex_publish_assert_inside "$(realpath -m -- "$(repo_path "$source")")" "$REPO_ROOT" ||
+        die "fuente fuera del checkout: $source"
     else
-      [[ "$source" == @generated/* ]] || die "los generados deben usar @generated/: $source"
+      [[ "$target" == /* ]] || die "destino de sistema inválido: $target"
+      [[ "$source" == - ]] || die 'las fuentes de /etc deben provenir del snapshot'
     fi
-    printf '%s|%s|%s|%s|%s\n' "$kind" "$resource" "$source_file" "$target_file" "$mode"
-  done < "$(source_path "$MANIFEST_REL")"
+  done < "$(manifest_file)"
 }
 
-generate_i3_tree() {
-  local root="$1" i3_source i3_dir fragment_dir staging temporary
-  i3_source="$root/$PROFILE/config/i3/config"
-  if (( ALLOW_ADOPT )) && [[ -f "$TARGET_I3" ]] && ! rafex_i3_fragment_is_active "$TARGET_I3"; then
-    i3_source="$TARGET_I3"
+log_change() {
+  local event="$1" resource="$2" target="$3" before="$4" after="$5"
+  mkdir -p -- "$STATE_DIR"
+  printf '{"timestamp":"%s","event":"%s","resource":"%s","target":"%s","before":"%s","after":"%s","component":"%s"}\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$event" "$resource" "$target" "$before" "$after" "$COMPONENT" >> "$LOG_FILE"
+  chmod 600 -- "$LOG_FILE"
+}
+
+sha256() {
+  if [[ -L "$1" ]]; then printf 'symlink:%s\n' "$(readlink -- "$1")"
+  elif [[ -f "$1" ]]; then sha256sum -- "$1" | awk '{print $1}'
+  else printf 'absent\n'; fi
+}
+
+snapshot_dest() {
+  local stage="$1" kind="$2" target="$3"
+  if [[ "$kind" == user ]]; then printf '%s/home/%s\n' "$stage" "$target"
+  else printf '%s/system%s\n' "$stage" "$target"; fi
+}
+
+copy_snapshot_file() {
+  local source="$1" destination="$2" mode="$3"
+  [[ -f "$source" ]] || die "archivo instalado ausente o ilegible: $source"
+  mkdir -p -- "$(dirname -- "$destination")"
+  cp -L -- "$source" "$destination"
+  chmod "$mode" -- "$destination"
+}
+
+repo_source() {
+  local source="$1" resource="$2" theme='nord'
+  if [[ "$resource" == eww.scss && -r "$CONFIG_HOME/rafex/theme" ]]; then
+    theme="$(head -n 1 "$CONFIG_HOME/rafex/theme")"
+    [[ "$theme" =~ ^(paper|nord|everforest|dracula)$ ]] || theme=nord
+    source="$PROFILE/config/rafex/themes/$theme/eww.scss"
   fi
-  i3_dir="$GENERATED_ROOT/i3"
-  fragment_dir="$i3_dir/fragments"
-  mkdir -p -- "$i3_dir" "$fragment_dir"
-  chmod 700 -- "$i3_dir" "$fragment_dir"
-  staging="$(mktemp -d "$GENERATED_ROOT/.i3-staging.XXXXXX")"
-  # La biblioteca común conoce las variantes históricas de los marcadores
-  # (por ejemplo, controles y panel). Así `--adopt` no pierde integraciones
-  # existentes al convertir i3 en una composición por fragmentos.
-  rafex_i3_fragment_seed "$i3_source"
-  temporary="$(mktemp "$staging/config.XXXXXX")"
-  {
-    printf '%s\n' "$RAFEX_I3_FRAGMENT_COMPOSED_MARKER"
-    printf '%s\n' '# Generated by rafex_config_linux.sh; edit the repository, not this file.'
-    printf '%s\n' 'include ~/.local/state/rafex/config-generated/thinkpad/i3/base.conf'
-    for name in controls gaps launcher theme conky eww wallpaper lock clipboard screenshots ratmenu control-panel autorotate xrandr-brightness udiskie picom; do
-      if [[ -s "$fragment_dir/$name.conf" ]]; then
-        printf 'include ~/.local/state/rafex/config-generated/thinkpad/i3/fragments/%s.conf\n' "$name"
-      fi
-    done
-    printf '%s\n' 'include ~/.config/i3/rafex-bar-active.conf'
-  } > "$temporary"
-  mv -f -- "$temporary" "$i3_dir/config"
-  rmdir -- "$staging"
-  chmod 600 -- "$i3_dir/config" "$fragment_dir"/*.conf 2>/dev/null || true
+  repo_path "$source"
 }
 
-generate_dynamic_files() {
-  local root="$1" theme='nord' theme_file bar_source
-  mkdir -p -- "$GENERATED_ROOT"
-  if [[ -f "$CONFIG_HOME/rafex/theme" ]]; then theme="$(head -n 1 "$CONFIG_HOME/rafex/theme")"; fi
-  [[ "$theme" =~ ^(paper|nord|everforest|dracula)$ ]] || theme=nord
-  local temporary
-  temporary="$(mktemp "$GENERATED_ROOT/.eww.scss.XXXXXX")"
-  if (( ALLOW_ADOPT )) && [[ -f "$CONFIG_HOME/eww/eww.scss" && ! -L "$CONFIG_HOME/eww/eww.scss" ]]; then
-    install -m 0600 -- "$CONFIG_HOME/eww/eww.scss" "$temporary"
+active_snapshot() {
+  [[ -L "$ACTIVE_LINK" ]] || return 1
+  local resolved
+  resolved="$(readlink -f -- "$ACTIVE_LINK")"
+  rafex_publish_assert_inside "$resolved" "$SNAPSHOT_ROOT" || return 1
+  [[ "$resolved" == "$SNAPSHOT_ROOT"/* && -d "$resolved" ]] || return 1
+  printf '%s\n' "$resolved"
+}
+
+seed_stage_from_live() {
+  local stage="$1" component resource kind source target strategy mode validator risk destination
+  while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
+    [[ -z "$component" || "$component" == \#* ]] && continue
+    destination="$(snapshot_dest "$stage" "$kind" "$target")"
+    copy_snapshot_file "$(live_path "$target")" "$destination" "$mode"
+  done < "$(manifest_file)"
+}
+
+seed_stage_from_active_or_live() {
+  local stage="$1" active
+  if active="$(active_snapshot 2>/dev/null)"; then
+    cp -a -- "$active/home" "$stage/"
+    cp -a -- "$active/system" "$stage/"
   else
-    theme_file="$root/$PROFILE/config/rafex/themes/$theme/eww.scss"
-    [[ -f "$theme_file" ]] || theme_file="$root/$PROFILE/config/rafex/themes/nord/eww.scss"
-    install -m 0600 -- "$theme_file" "$temporary"
+    seed_stage_from_live "$stage"
   fi
-  mv -f -- "$temporary" "$GENERATED_ROOT/eww.scss"
-  bar_source='polybar'
-  if [[ -f "$CONFIG_HOME/rafex/i3-bar-profile" ]]; then bar_source="$(head -n 1 "$CONFIG_HOME/rafex/i3-bar-profile")"; fi
-  [[ "$bar_source" =~ ^(i3bar|tint2|polybar)$ ]] || bar_source=polybar
-  temporary="$(mktemp "$GENERATED_ROOT/.i3-bar-profile.XXXXXX")"
-  printf '%s\n' "$bar_source" > "$temporary"
-  mv -f -- "$temporary" "$GENERATED_ROOT/i3-bar-profile"
-  chmod 600 -- "$GENERATED_ROOT/i3-bar-profile"
-  generate_i3_tree "$root"
+}
+
+overlay_repo_files() {
+  local stage="$1" component resource kind source target strategy mode validator risk destination
+  while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
+    [[ -z "$component" || "$component" == \#* ]] && continue
+    component_matches "$component" || continue
+    [[ "$kind" == user ]] || continue
+    # El checkout es la fuente de los archivos estáticos. Los archivos de
+    # estrategia copy son estado operativo (tema, barra activa, Dunst, etc.)
+    # y deben conservarse desde active/live para no revertirlos con valores
+    # obsoletos al desplegar otra tanda del replicador.
+    [[ "$strategy" == symlink ]] || continue
+    destination="$(snapshot_dest "$stage" "$kind" "$target")"
+    copy_snapshot_file "$(repo_source "$source" "$resource")" "$destination" "$mode"
+  done < "$(manifest_file)"
+}
+
+commit_history() {
+  local revision="$1"
+  printf '%s\n' "$revision" > "$HISTORY_ROOT/source-revision"
+  chmod 600 -- "$HISTORY_ROOT/source-revision"
+  git -C "$HISTORY_ROOT" add --all
+  if ! git -C "$HISTORY_ROOT" diff --cached --quiet; then git -C "$HISTORY_ROOT" commit -q -m "snapshot: source $revision"; fi
+}
+
+activate_snapshot() {
+  local stage="$1" stamp="$2" final temporary
+  final="$SNAPSHOT_ROOT/$stamp"
+  temporary="$HISTORY_ROOT/.active.$stamp"
+  mv -f -- "$stage" "$final"
+  ln -s -- "snapshots/$stamp" "$temporary"
+  mv -Tf -- "$temporary" "$ACTIVE_LINK"
+  printf '%s\n' "$final"
+}
+
+create_snapshot() {
+  local mode="$1" stage stamp final revision
+  history_init
+  history_clean || die 'el historial local tiene cambios fuera del publicador'
+  stamp="${STAMP}_$RANDOM"
+  stage="$HISTORY_ROOT/.snapshot-$stamp"
+  mkdir -p -- "$stage/home" "$stage/system" "$stage/metadata"
+  if [[ "$mode" == live ]]; then seed_stage_from_live "$stage"; else seed_stage_from_active_or_live "$stage"; overlay_repo_files "$stage"; fi
+  revision="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  {
+    printf 'component|resource|kind|target|sha256|mode|validator|risk\n'
+    local component resource kind source target strategy mode_field validator risk
+    while IFS='|' read -r component resource kind source target strategy mode_field validator _exclusions risk; do
+      [[ -z "$component" || "$component" == \#* ]] && continue
+      printf '%s|%s|%s|%s|%s|%s|%s|%s\n' "$component" "$resource" "$kind" "$target" \
+        "$(sha256 "$(snapshot_dest "$stage" "$kind" "$target")")" "$mode_field" "$validator" "$risk"
+    done < "$(manifest_file)"
+  } > "$stage/metadata/manifest.tsv"
+  printf 'source_revision=%s\ncreated_utc=%s\nmode=%s\n' "$revision" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$mode" > "$stage/metadata/state.txt"
+  chmod 600 -- "$stage/metadata/manifest.tsv" "$stage/metadata/state.txt"
+  final="$(activate_snapshot "$stage" "$stamp")"
+  cp -p -- "$final/metadata/manifest.tsv" "$HISTORY_ROOT/manifest.tsv"
+  chmod 600 -- "$HISTORY_ROOT/manifest.tsv"
+  commit_history "$revision"
+  ok "snapshot activo: $final"
+}
+
+backup_target() {
+  local component="$1" resource="$2" kind="$3" target="$4" backup_target existed=0
+  mkdir -p -- "$BACKUP_ROOT/$component"
+  backup_target="$BACKUP_ROOT/$component/${resource//\//_}"
+  if [[ "$kind" == user ]]; then
+    if [[ -e "$target" || -L "$target" ]]; then existed=1; cp -a -- "$target" "$backup_target"; fi
+  elif sudo -n test -e "$target" 2>/dev/null; then
+    existed=1
+    sudo -n cp -a -- "$target" "$backup_target"
+    sudo -n chown -R "$(id -u):$(id -g)" -- "$backup_target"
+  fi
+  printf '%s|%s|%s|%s|%s|%s\n' "$component" "$resource" "$kind" "$target" "$backup_target" "$existed" >> "$BACKUP_ROOT/manifest.tsv"
+}
+
+publish_user() {
+  local source="$1" target="$2" mode="$3" before temporary
+  [[ -f "$source" ]] || die "fuente del snapshot ausente: $source"
+  if [[ -L "$target" && "$(readlink -f -- "$target")" == "$(realpath -m -- "$source")" ]]; then return 0; fi
+  if [[ -e "$target" || -L "$target" ]] && (( ! ALLOW_ADOPT )); then die "destino de usuario no administrado; ejecuta --adopt tras revisar: $target"; fi
+  before="$(sha256 "$target")"
+  mkdir -p -- "$(dirname -- "$target")"
+  temporary="$(mktemp "$(dirname -- "$target")/.rafex-link.XXXXXX")"
+  rm -f -- "$temporary"
+  ln -s -- "$source" "$temporary"
+  mv -Tf -- "$temporary" "$target"
+  chmod "$mode" -- "$source"
+  log_change published "${target#"$HOME"/}" "$target" "$before" "$(sha256 "$target")"
+}
+
+publish_user_copy() {
+  local source="$1" target="$2" mode="$3" before temporary
+  [[ -f "$source" ]] || die "fuente del snapshot ausente: $source"
+  if [[ -e "$target" || -L "$target" ]] && (( ! ALLOW_ADOPT )); then
+    cmp -s -- "$source" "$target" || die "destino dinámico no administrado; ejecuta --adopt tras revisar: $target"
+  fi
+  before="$(sha256 "$target")"
+  mkdir -p -- "$(dirname -- "$target")"
+  temporary="$(mktemp "$(dirname -- "$target")/.rafex-copy.XXXXXX")"
+  cp -L -- "$source" "$temporary"
+  chmod "$mode" -- "$temporary"
+  mv -f -- "$temporary" "$target"
+  log_change published "${target#"$HOME"/}" "$target" "$before" "$(sha256 "$target")"
+}
+
+publish_system() {
+  local source="$1" target="$2" mode="$3" temporary
+  sudo -n test -r "$source" || die "sudo -n no puede leer el snapshot para $target"
+  temporary="$target.rafex.$STAMP"
+  sudo -n install -D -m "$mode" -- "$source" "$temporary"
+  sudo -n mv -f -- "$temporary" "$target"
+  sudo -n chown root:root -- "$target"
+}
+
+publish_snapshot() {
+  local active component resource kind source target strategy mode validator risk live active_file
+  active="$(active_snapshot)" || die 'no existe snapshot activo; ejecuta --snapshot o --adopt'
+  mkdir -p -- "$BACKUP_ROOT"
+  chmod 700 -- "$BACKUP_ROOT"
+  : > "$BACKUP_ROOT/manifest.tsv"
+  chmod 600 -- "$BACKUP_ROOT/manifest.tsv"
+  while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
+    [[ -z "$component" || "$component" == \#* ]] && continue
+    component_matches "$component" || continue
+    live="$(live_path "$target")"
+    backup_target "$component" "$resource" "$kind" "$live"
+    if [[ "$kind" == user ]]; then
+      active_file="$active/home/$target"
+      if [[ "$strategy" == symlink ]]; then publish_user "$active_file" "$live" "$mode"; else publish_user_copy "$active_file" "$live" "$mode"; fi
+    else
+      active_file="$active/system$target"
+      [[ -f "$active_file" ]] || die "archivo de sistema ausente en snapshot: $active_file"
+      publish_system "$active_file" "$target" "$mode"
+    fi
+  done < "$(manifest_file)"
+  printf '%s\n' "$BACKUP_ROOT" > "$STATE_DIR/last-backup"
+  chmod 600 -- "$STATE_DIR/last-backup"
+  ok "publicación $COMPONENT completada; respaldo: $BACKUP_ROOT"
 }
 
 show_status() {
-  local root kind resource source target target_relative mode
-  root="$(repo_root)"
+  local component resource kind source target strategy mode validator risk live
   printf 'source=%s\n' "$REPO_ROOT"
   printf 'history=%s\n' "$HISTORY_ROOT"
-  printf 'installed=%s\n' "$INSTALLED_ROOT"
-  printf 'generated=%s\n' "$GENERATED_ROOT"
+  printf 'active=%s\n' "$(active_snapshot 2>/dev/null || printf none)"
   if [[ -d "$HISTORY_ROOT/.git" ]]; then
-    if history_clean; then printf 'history-clean=yes\n'; else printf 'history-clean=no\n'; fi
     printf 'history-revision=%s\n' "$(git -C "$HISTORY_ROOT" rev-parse --short HEAD 2>/dev/null || printf none)"
-  else
-    printf 'history=not-initialized\n'
-  fi
-  while IFS='|' read -r kind resource source target mode; do
-    [[ -z "$kind" || "$kind" == \#* ]] && continue
-    target_relative="$target"
-    target="$(target_path "$target")"
-    if [[ "$kind" == static ]]; then
-      if rafex_publish_is_exact_symlink "$target" "$(installed_path "$target_relative")"; then printf '%s=managed-symlink\n' "$resource"; else printf '%s=unmanaged-or-missing\n' "$resource"; fi
-    else
-      if [[ -L "$target" || -f "$target" ]]; then printf '%s=present\n' "$resource"; else printf '%s=missing\n' "$resource"; fi
-    fi
-  done < "$(source_path "$MANIFEST_REL")"
-  [[ -f "$PUBLISH_STATE_DIR/last-backup" ]] && printf 'last-backup=%s\n' "$(<"$PUBLISH_STATE_DIR/last-backup")" || printf 'last-backup=none\n'
+    history_clean && printf 'history-clean=yes\n' || printf 'history-clean=no\n'
+  else printf 'history=not-initialized\n'; fi
+  while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
+    [[ -z "$component" || "$component" == \#* ]] && continue
+    live="$(live_path "$target")"
+    if [[ "$kind" == user && "$strategy" == symlink && -L "$live" ]]; then printf '%s=symlink\n' "$resource"; elif [[ -e "$live" ]]; then printf '%s=copy-or-manual\n' "$resource"; else printf '%s=missing\n' "$resource"; fi
+  done < "$(manifest_file)"
+  [[ -f "$STATE_DIR/last-backup" ]] && printf 'last-backup=%s\n' "$(<"$STATE_DIR/last-backup")" || printf 'last-backup=none\n'
 }
 
 show_plan() {
-  local root
-  root="$(repo_root)"
-  printf '═══ Plan de publicación Rafex ThinkPad ═══\n'
-  printf 'fuente ejecutora: %s\n' "$root"
-  printf 'historial local: %s\n' "$HISTORY_ROOT"
-  printf 'artefactos instalados: %s\n' "$INSTALLED_ROOT"
-  printf 'generados: %s\n' "$GENERATED_ROOT"
-  printf '%s\n' '1. validar manifiesto y propietario único'
-  printf '%s\n' '2. generar i3 por fragmentos y EWW/bar dinámicos en estado Rafex'
-  printf '%s\n' '3. publicar archivos estáticos como symlinks administrados'
-  printf '%s\n' '4. publicar destinos dinámicos atómicamente'
-  printf '%s\n' '5. rechazar destinos manuales salvo --adopt explícito'
-  printf '%s\n' 'No se ejecutan sudo, git commit, git push, reinicios ni cambios de hardware.'
-}
-
-publish_all() {
-  local root kind resource source target target_relative mode installed_source
-  root="$(repo_root)"
-  validate_manifest >/dev/null
-  history_init
-  history_clean || die 'el historial local está modificado fuera del publicador'
-  create_backup_root
-  if [[ -d "$GENERATED_ROOT" ]]; then
-    while IFS= read -r -d '' source; do
-      rafex_publish_backup "$source" "${source#"$HOME/"}" "$BACKUP_ROOT" >/dev/null || true
-    done < <(find "$GENERATED_ROOT" \( -type f -o -type l \) -print0)
-  fi
-  generate_dynamic_files "$root"
-  while IFS='|' read -r kind resource source target mode; do
-    [[ -z "$kind" || "$kind" == \#* ]] && continue
-    target_relative="$target"
-    source="$(source_path "$source")"
-    target="$(target_path "$target_relative")"
-    if [[ "$kind" == static ]]; then
-      installed_source="$(installed_path "$target_relative")"
-      rafex_publish_refuse_unmanaged "$target" "$installed_source" "$ALLOW_ADOPT"
-      rafex_publish_backup "$installed_source" ".installed/$target_relative" "$BACKUP_ROOT" >/dev/null || true
-      stage_installed_artifact "$source" "$target_relative" "$mode" "$REPO_ROOT" >/dev/null
-      rafex_publish_install_symlink "$installed_source" "$target" "$mode" "$ALLOW_ADOPT" "${target#"$HOME/"}" "$BACKUP_ROOT"
-    else
-      local generated
-      generated="$GENERATED_ROOT/$resource.generated"
-      case "$resource" in
-        i3-config) generated="$GENERATED_ROOT/i3/config" ;;
-        eww-style) generated="$GENERATED_ROOT/eww.scss" ;;
-        bar-state) generated="$GENERATED_ROOT/i3-bar-profile" ;;
-      esac
-      # Los dinámicos deben enlazar al árbol generado: los instaladores de
-      # fragmentos actualizan ese árbol después del despliegue. Copiarlos a
-      # installed/ dejaría el enlace apuntando a una versión obsoleta.
-      rafex_publish_refuse_unmanaged "$target" "$generated" "$ALLOW_ADOPT"
-      rafex_publish_backup "$target" "generated/$target_relative" "$BACKUP_ROOT" >/dev/null || true
-      rafex_publish_install_generated "$generated" "$target" "$mode" "$ALLOW_ADOPT" "${target#"$HOME/"}" "$BACKUP_ROOT"
-    fi
-  done < "$(source_path "$MANIFEST_REL")"
-  history_commit
-  ok 'publicación completada'
+  printf '═══ Plan Rafex ThinkPad (%s) ═══\n' "$COMPONENT"
+  printf 'checkout replicador: %s\nhistorial operativo: %s\n' "$REPO_ROOT" "$HISTORY_ROOT"
+  printf '%s\n' '1. sincronizar checkout con git pull --ff-only (solo deploy/adopt)'
+  printf '%s\n' '2. generar snapshot validado bajo snapshots/<fecha> y activar active atómicamente'
+  printf '%s\n' '3. publicar symlinks de usuario hacia active/home/'
+  printf '%s\n' '4. publicar /etc con install + mv atómico, root:root y modo del manifiesto'
+  printf '%s\n' '5. crear commit local del historial; nunca git push'
+  printf '%s\n' 'No se modifican BIOS, bootloader, particiones, teléfonos ni red destructiva.'
 }
 
 doctor() {
-  local failures=0 target source resource kind target_relative
-  validate_manifest >/dev/null || failures=$((failures + 1))
-  history_clean || failures=$((failures + 1))
-  while IFS='|' read -r kind resource source target _mode; do
-    [[ -z "$kind" || "$kind" == \#* ]] && continue
-    target_relative="$target"
-    target="$(target_path "$target")"
-    if [[ "$kind" == static ]]; then
-      source="$(installed_path "$target_relative")"
-      if [[ -L "$target" ]]; then
-        if [[ ! -e "$target" ]]; then
-          warn "$resource: enlace roto"
-          failures=$((failures + 1))
-          continue
-        fi
-        rafex_publish_assert_inside "$(readlink -f -- "$target")" "$INSTALLED_ROOT" || failures=$((failures + 1))
-        rafex_publish_is_exact_symlink "$target" "$source" || { warn "$resource: enlace apunta a otra fuente"; failures=$((failures + 1)); }
-      elif [[ -e "$target" ]]; then
-        warn "$resource: archivo manual en lugar de symlink"
+  local failures=0 active component resource kind source target strategy mode validator risk live expected owner mode_live
+  active="$(active_snapshot 2>/dev/null || true)"
+  [[ -n "$active" ]] || { warn 'no existe active apuntando a un snapshot'; failures=$((failures + 1)); }
+  while IFS='|' read -r component resource kind source target strategy mode validator _exclusions risk; do
+    [[ -z "$component" || "$component" == \#* ]] && continue
+    live="$(live_path "$target")"
+    if [[ "$kind" == user && "$strategy" == symlink ]]; then
+      expected="$active/home/$target"
+      if [[ -L "$live" && -n "$active" && "$(readlink -f -- "$live")" == "$(realpath -m -- "$expected")" ]]; then ok "$resource: symlink administrado"; else warn "$resource: destino manual, roto o fuera de active"; failures=$((failures + 1)); fi
+    elif [[ "$kind" == user && "$strategy" == copy && -f "$live" && ! -L "$live" ]]; then
+      ok "$resource: archivo dinámico presente"
+    elif [[ -e "$live" ]]; then
+      owner="$(stat -c '%U:%G' -- "$live" 2>/dev/null || printf unknown)"
+      mode_live="$(stat -c '%a' -- "$live" 2>/dev/null || printf unknown)"
+      if [[ "$owner" == root:root && "$mode_live" == "${mode#0}" ]]; then
+        ok "$resource: root:root $mode_live"
+      else
+        warn "$resource: propietario/modo divergente ($owner $mode_live)"
         failures=$((failures + 1))
       fi
+    else warn "$resource: ausente"; failures=$((failures + 1)); fi
+  done < "$(manifest_file)"
+  if [[ -f "$CONFIG_HOME/i3/config" ]] && command -v i3 >/dev/null 2>&1; then
+    if i3 -C -c "$CONFIG_HOME/i3/config" >/dev/null 2>&1; then
+      ok 'i3: sintaxis válida'
     else
-      local generated
-      case "$resource" in
-        i3-config) generated="$GENERATED_ROOT/i3/config" ;;
-        eww-style) generated="$GENERATED_ROOT/eww.scss" ;;
-        bar-state) generated="$GENERATED_ROOT/i3-bar-profile" ;;
-        *) generated='' ;;
-      esac
-      if [[ -n "$generated" && -L "$target" ]]; then
-        if [[ ! -e "$target" ]]; then
-          warn "$resource: enlace generado roto"
-          failures=$((failures + 1))
-          continue
-        fi
-        rafex_publish_assert_inside "$(readlink -f -- "$target")" "$GENERATED_ROOT" || failures=$((failures + 1))
-        [[ "$(readlink -f -- "$target")" == "$(realpath -m -- "$generated")" ]] || { warn "$resource: enlace generado incorrecto"; failures=$((failures + 1)); }
-      elif [[ -n "$generated" && -e "$target" ]]; then
-        warn "$resource: archivo manual en lugar de symlink generado"
-        failures=$((failures + 1))
-      fi
+      warn 'i3: sintaxis inválida'
+      failures=$((failures + 1))
     fi
-  done < "$(source_path "$MANIFEST_REL")"
-  if [[ -f "$TARGET_I3" ]] && [[ -L "$TARGET_I3" ]] && ! grep -Fq 'Generated by rafex_config_linux.sh' "$TARGET_I3"; then
-    warn 'i3 config: el enlace no apunta al árbol generado Rafex'
-    failures=$((failures + 1))
   fi
-  if (( failures == 0 )); then ok 'doctor: sin conflictos detectados'; else return 1; fi
+  (( failures == 0 )) || return 1
+  ok 'doctor: sin conflictos de publicación'
 }
 
 rollback() {
-  local root relative backup target
-  [[ -f "$PUBLISH_STATE_DIR/last-backup" ]] || die 'no existe un respaldo del publicador'
-  root="$(<"$PUBLISH_STATE_DIR/last-backup")"
-  [[ -d "$root" ]] || die "respaldo ausente: $root"
-  while IFS= read -r -d '' backup; do
-    relative="${backup#"$root/"}"
-    case "$relative" in
-      .installed/*) target="$INSTALLED_ROOT/home/${relative#.installed/}" ;;
-      *) target="$HOME/$relative" ;;
-    esac
-    mkdir -p -- "$(dirname -- "$target")"
-    rm -f -- "$target"
-    cp -a -- "$backup" "$target"
-    rafex_publish_log rollback "$relative" "$target" absent "$(rafex_publish_sha256 "$target")" "backup=$backup"
-  done < <(find "$root" \( -type f -o -type l \) -print0)
-  ok "rollback restaurado: $root"
+  local root component resource kind target backup existed
+  [[ "$COMPONENT" != all ]] || die '--rollback requiere --component'
+  [[ -f "$STATE_DIR/last-backup" ]] || die 'no existe respaldo para rollback'
+  root="$(<"$STATE_DIR/last-backup")"
+  [[ -f "$root/manifest.tsv" ]] || die "manifiesto de respaldo ausente: $root"
+  while IFS='|' read -r component resource kind target backup existed; do
+    [[ "$component" == "$COMPONENT" || "$COMPONENT" == i3 && "$component" == session || "$COMPONENT" == hardware && "$component" == system ]] || continue
+    if [[ "$existed" == 1 ]]; then
+      if [[ "$kind" == user ]]; then rm -f -- "$target"; mkdir -p -- "$(dirname -- "$target")"; cp -a -- "$backup" "$target"
+      else
+        sudo -n install -D -m 0644 -- "$backup" "$target.rafex-rollback"
+        sudo -n mv -f -- "$target.rafex-rollback" "$target"
+        sudo -n chown root:root -- "$target"
+      fi
+    else
+      if [[ "$kind" == user ]]; then
+        rm -f -- "$target"
+      else
+        sudo -n rm -f -- "$target"
+      fi
+    fi
+    ok "rollback: $resource"
+  done < "$root/manifest.tsv"
 }
 
 main() {
   parse_args "$@"
   require_linux
-  [[ -f "$REPO_ROOT/$PROFILE/rafex-config-manifest.tsv" ]] || die 'manifiesto ThinkPad ausente'
+  validate_component
+  validate_manifest
   case "$ACTION" in
     check)
-      validate_repo
-      validate_manifest >/dev/null
-      if [[ -d "$HISTORY_ROOT/.git" ]]; then history_clean || exit 1; fi
-      ok 'manifiesto, fuentes, rutas y checkout válidos'
+      source_clean || die 'checkout replicador con cambios locales sin registrar'
+      if [[ -d "$HISTORY_ROOT/.git" ]]; then
+        history_identity_ok || die 'identidad Git local del historial divergente; se corregirá durante --sync/--snapshot'
+        history_clean || die 'historial local con cambios sin registrar'
+      fi
+      ok 'manifiesto, propietarios, rutas y checkout válidos'
       ;;
-    status) validate_repo; show_status ;;
-    plan) validate_repo; show_plan ;;
-    sync) require_lock_tool; rafex_publish_lock; sync_checkout ;;
-    adopt) require_lock_tool; rafex_publish_lock; sync_checkout; validate_repo; ALLOW_ADOPT=1; publish_all ;;
-    deploy)
-      require_lock_tool
-      rafex_publish_lock
-      sync_checkout
-      validate_repo
-      publish_all
-      ;;
-    rollback) require_lock_tool; rafex_publish_lock; rollback ;;
-    doctor) validate_repo; doctor ;;
+    status) show_status ;;
+    plan) show_plan ;;
+    sync) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; ok 'historial local listo' ;;
+    snapshot) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; create_snapshot live ;;
+    adopt) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; ALLOW_ADOPT=1; create_snapshot live; publish_snapshot ;;
+    deploy) require_lock; history_init; history_clean || die 'historial local con cambios sin registrar'; sync_source; create_snapshot repo; publish_snapshot ;;
+    doctor) doctor ;;
+    rollback) require_lock; history_init; rollback ;;
   esac
 }
 

@@ -43,8 +43,8 @@ tint2-status *args:
 thinkpad-config-audit *args:
     bash scripts/system/thinkpad_config_audit_linux.sh {{args}}
 
-# Sincronizar y publicar de forma segura la configuración central ThinkPad.
-# Uso: just rafex-config --check|--status|--sync|--plan|--adopt|--deploy|--rollback|--doctor
+# Sincronizar el replicador y publicar snapshots en el historial ThinkPad.
+# Uso: just rafex-config --check|--status|--sync|--snapshot|--plan|--adopt|--deploy|--rollback --component i3|visual|hardware|network|lab|--doctor
 rafex-config *args:
     bash scripts/system/rafex_config_linux.sh {{args}}
 
@@ -94,6 +94,10 @@ age-file *args:
 # Uso: just rafex-ratmenu
 rafex-ratmenu *args:
     bash scripts/system/rafex_ratmenu_linux.sh {{args}}
+
+# Abrir DuckDuckGo desde el navegador Firefox disponible.
+rafex-browser-search:
+    bash scripts/system/rafex_browser_search_linux.sh
 
 # Abrir, cerrar, alternar o recargar la columna de widgets EWW sin reservar espacio
 # Uso: just eww-widgets --open dashboard | --close dashboard | --toggle dashboard | --reload | --status
