@@ -111,6 +111,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_picom_user_service_linux.sh` | Linux | install-picom-user-service | no | sí | medio | [doc](install/install_picom_user_service_linux.md) |
 | `scripts/install/install_vscodium_linux.sh` | Linux | install-vscodium | sí | sí | medio | [doc](install/install_vscodium_linux.md) |
 | `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
+| `scripts/install/install_urban_terror_linux.sh` | Linux | install-urban-terror | sí | sí | medio | [doc](install/install_urban_terror_linux.md) |
+| `scripts/install/install_xonotic_linux.sh` | Linux | install-xonotic | sí | sí | medio | [doc](install/install_xonotic_linux.md) |
 | `scripts/install/install_albert_linux.sh` | Linux | install-albert | sí | sí | medio | [doc](install/install_albert_linux.md) |
 | `scripts/install/install_albert_upstream_linux.sh` | Linux | install-albert-upstream | sí | sí | alto | [doc](install/install_albert_upstream_linux.md) |
 | `scripts/install/install_ulauncher_linux.sh` | Linux | install-ulauncher | sí | sí | medio | [doc](install/install_ulauncher_linux.md) |
@@ -165,6 +167,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/lib/thinkpad_i3_fragments_linux.sh` | Linux | biblioteca interna | no | no | medio | [doc](lib/thinkpad_i3_fragments_linux.md) |
 | `scripts/system/rafex_config_linux.sh` | Linux | rafex-config | no | sí | medio | [doc](system/rafex_config_linux.md) |
 | `scripts/lib/rafex_config_publish_linux.sh` | Linux | biblioteca interna | no | no | bajo | [doc](lib/rafex_config_publish_linux.md) |
+| `scripts/lib/game_install_linux.sh` | Linux | biblioteca interna | no | no | medio | [doc](lib/game_install_linux.md) |
 | `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
 | `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |
 | `scripts/system/i3_window_tasks_polybar_linux.sh` | Linux | i3-window-tasks | no | — | bajo | [doc](system/i3_window_tasks_polybar_linux.md) |

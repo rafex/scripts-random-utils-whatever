@@ -344,3 +344,13 @@ install-i3lock-color *args:
 # Uso: just install-rafex-control-panel --check|--plan|--apply|--status
 install-rafex-control-panel *args:
     bash scripts/install/install_rafex_control_panel_linux.sh {{args}}
+
+# Instalar Xonotic 0.8.6 en ~/Games verificando su ZIP oficial
+# Uso: just install-xonotic --check|--plan|--apply|--status|--rollback
+install-xonotic *args:
+    bash scripts/install/install_xonotic_linux.sh {{args}}
+
+# Instalar Urban Terror 4.3.4 en ~/Games verificando su ZIP oficial
+# Uso: just install-urban-terror --check|--plan|--apply|--status|--rollback
+install-urban-terror *args:
+    bash scripts/install/install_urban_terror_linux.sh {{args}}
