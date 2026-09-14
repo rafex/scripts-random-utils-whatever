@@ -117,6 +117,7 @@ nav:
       - configure_thinkpad_touchpad_linux: install/configure_thinkpad_touchpad_linux.md
       - install_openbox_profile_linux: install/install_openbox_profile_linux.md
       - install_i3_bar_profiles_linux: install/install_i3_bar_profiles_linux.md
+      - install_mobile_hotspot_linux: install/install_mobile_hotspot_linux.md
       - install_java_runtime_linux: install/install_java_runtime_linux.md
       - install_node_runtime_linux: install/install_node_runtime_linux.md
       - install_build_runtime_linux: install/install_build_runtime_linux.md
@@ -173,6 +174,7 @@ nav:
       - configure_wwan_oxxocel_linux: network/configure_wwan_oxxocel_linux.md
       - configure_wwan_flame_oxxocel_linux: network/configure_wwan_flame_oxxocel_linux.md
       - install_mdns_linux: network/install_mdns_linux.md
+      - mobile_hotspot_linux: network/mobile_hotspot_linux.md
       - diag_iface_linux: network/diag_iface_linux.md
       - install_wifi_polkit_linux: network/install_wifi_polkit_linux.md
       - myip_linux: network/myip_linux.md

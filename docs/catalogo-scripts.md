@@ -142,6 +142,8 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/network/configure_wwan_oxxocel_linux.sh` | Linux | configure-wwan-oxxocel | sí | sí | medio | [doc](network/configure_wwan_oxxocel_linux.md) |
 | `scripts/network/configure_wwan_flame_oxxocel_linux.sh` | Linux | configure-wwan-flame-oxxocel | sí | sí | medio | [doc](network/configure_wwan_flame_oxxocel_linux.md) |
 | `scripts/network/install_mdns_linux.sh` | Linux | install-mdns | sí | sí | medio | [doc](network/install_mdns_linux.md) |
+| `scripts/install/install_mobile_hotspot_linux.sh` | Linux | install-mobile-hotspot | sí | sí | medio | [doc](install/install_mobile_hotspot_linux.md) |
+| `scripts/network/mobile_hotspot_linux.sh` | Linux | mobile-hotspot | no | sí | alto | [doc](network/mobile_hotspot_linux.md) |
 | `scripts/network/wifi_connect_interactive_linux.sh` | Linux | wifi-connect-interactive | opcional | — | medio | [doc](network/wifi_connect_interactive_linux.md) |
 | `scripts/network/wifi_connect_linux.sh` | Linux | wifi-connect | opcional | — | medio | [doc](network/wifi_connect_linux.md) |
 | `scripts/network/wifi_off_linux.sh` | Linux | wifi-off | opcional | — | medio | [doc](network/wifi_off_linux.md) |

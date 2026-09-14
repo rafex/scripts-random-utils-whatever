@@ -76,3 +76,13 @@ configure-wwan-flame-oxxocel *args:
 # Uso: just install-mdns --check | --plan | --apply | --status
 install-mdns *args:
     bash scripts/network/install_mdns_linux.sh {{args}}
+
+# Preparar el perfil NetworkManager del AP móvil oculto; no lo inicia.
+# Uso: just install-mobile-hotspot --check|--plan|--apply|--status
+install-mobile-hotspot *args:
+    bash scripts/install/install_mobile_hotspot_linux.sh {{args}}
+
+# Activar o detener el AP móvil oculto usando la WWAN como upstream, sin sudo.
+# Uso: just mobile-hotspot --status|--start|--stop|--toggle|--remove
+mobile-hotspot *args:
+    bash scripts/network/mobile_hotspot_linux.sh {{args}}
