@@ -55,7 +55,9 @@ package_installed() {
 
 package_candidate() {
   LC_ALL=C apt-cache policy "$1" 2>/dev/null \
-    | awk -F': ' '/^[[:space:]]*Candidate:/ { print $2; exit }'
+    | awk -F': ' '
+      /^[[:space:]]*Candidate:/ && !found { print $2; found=1 }
+    '
 }
 
 check_dependencies() {
