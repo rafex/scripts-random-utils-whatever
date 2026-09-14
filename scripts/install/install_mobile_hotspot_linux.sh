@@ -135,7 +135,13 @@ read_psk() {
   value="${value%\'}"
   value="${value#\"}"
   value="${value%\"}"
-  [[ "$value" =~ ^[\ -~]{8,63}$ ]] || return 1
+  # Bash interpreta de forma no portable el rango escapado `\ -~` entre
+  # versiones/locales. Validar con awk en locale C mantiene la política
+  # ASCII imprimible sin exponer la clave en la salida.
+  LC_ALL=C awk '
+    length($0) >= 8 && length($0) <= 63 && $0 !~ /[^ -~]/ { valid=1 }
+    END { exit(valid ? 0 : 1) }
+  ' <<< "$value" || return 1
   printf '%s' "$value"
 }
 
