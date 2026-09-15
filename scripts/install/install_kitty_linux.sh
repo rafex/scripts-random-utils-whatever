@@ -204,6 +204,8 @@ show_install_state() {
   fi
   if command -v kitty >/dev/null 2>&1; then
     printf 'PATH: %s\n' "$(command -v kitty)"
+  else
+    :
   fi
 }
 
