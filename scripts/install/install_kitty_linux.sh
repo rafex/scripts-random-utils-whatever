@@ -247,7 +247,7 @@ validate_payload() {
     || die 'el payload no contiene un binario kitten regular y ejecutable'
   [[ -f "$root/share/icons/hicolor/256x256/apps/kitty.png" ]] \
     || die 'el payload no contiene el icono de Kitty esperado'
-  file "$root/bin/kitty" | grep -Eqi 'ELF[^,]*64-bit[^,]*x86-64' \
+  file "$root/bin/kitty" | grep -Eqi 'ELF 64-bit.*x86-64' \
     || die 'bin/kitty no es un ejecutable ELF x86_64'
   version_output="$("$root/bin/kitty" --version 2>/dev/null || true)"
   [[ "$version_output" == *"$VERSION"* ]] \
