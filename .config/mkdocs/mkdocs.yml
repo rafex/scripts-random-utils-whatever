@@ -163,6 +163,7 @@ nav:
       - install_ulauncher_linux: install/install_ulauncher_linux.md
       - install_urban_terror_linux: install/install_urban_terror_linux.md
       - install_xonotic_linux: install/install_xonotic_linux.md
+      - install_kitty_linux: install/install_kitty_linux.md
       - migrate_laptop_linux: install/migrate_laptop_linux.md
       - scrape_eclipse_packages: install/scrape_eclipse_packages.md
       - scrape_java_runtimes: install/scrape_java_runtimes.md

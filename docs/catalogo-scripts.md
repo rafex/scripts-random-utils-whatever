@@ -113,6 +113,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_rustdesk_linux.sh` | Linux | install-rustdesk | sí | sí | medio | [doc](install/install_rustdesk_linux.md) |
 | `scripts/install/install_urban_terror_linux.sh` | Linux | install-urban-terror | sí | sí | medio | [doc](install/install_urban_terror_linux.md) |
 | `scripts/install/install_xonotic_linux.sh` | Linux | install-xonotic | sí | sí | medio | [doc](install/install_xonotic_linux.md) |
+| `scripts/install/install_kitty_linux.sh` | Linux | install-kitty | sí | sí | medio | [doc](install/install_kitty_linux.md) |
 | `scripts/install/install_albert_linux.sh` | Linux | install-albert | sí | sí | medio | [doc](install/install_albert_linux.md) |
 | `scripts/install/install_albert_upstream_linux.sh` | Linux | install-albert-upstream | sí | sí | alto | [doc](install/install_albert_upstream_linux.md) |
 | `scripts/install/install_ulauncher_linux.sh` | Linux | install-ulauncher | sí | sí | medio | [doc](install/install_ulauncher_linux.md) |

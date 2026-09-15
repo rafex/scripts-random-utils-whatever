@@ -32,6 +32,11 @@ configure-sudo *args:
 install-mosh-tmux-kitty *args:
     bash scripts/install/install_mosh_tmux_kitty_unix.sh {{args}}
 
+# Instalar Kitty 0.48.2 x86_64 desde el release oficial en ~/.local
+# Uso: just install-kitty --check|--plan|--apply|--status
+install-kitty *args:
+    bash scripts/install/install_kitty_linux.sh {{args}}
+
 # Habilitar main, contrib, non-free y non-free-firmware de Debian
 # Uso: just enable-debian-repositories --apply
 enable-debian-repositories *args:
