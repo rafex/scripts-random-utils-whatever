@@ -98,9 +98,10 @@ o teléfonos desde este publicador.
   pantalla, historial CopyQ, una salida visible y acciones de cerrar sesión,
   suspender, hibernar, reiniciar y apagar; todas las acciones sensibles piden
   confirmación en Rofi.
-- `XF86Search` y `Mod+Shift+B` abren Firefox directamente con DuckDuckGo.
-  `Super+Space` sigue reservado para Ulauncher; Rofi no es el launcher
-  principal y queda para ventanas, menús y confirmaciones.
+- `XF86Search` muestra el catálogo de aplicaciones registradas mediante Rofi.
+  `Mod+Shift+B` abre Firefox directamente con DuckDuckGo y `Super+Space` sigue
+  reservado para Ulauncher; Rofi también queda disponible para ventanas,
+  menús y confirmaciones.
 - El brillo de teclado usa `brightnessctl` con el grupo `input` y conserva un
   respaldo Polkit restringido al LED `tpacpi::kbd_backlight`. El grupo `input`
   también permite leer eventos de `/dev/input/event*`; cierra y abre sesión

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # rafex_browser_search_linux.sh v1.0.0
-# Abre una búsqueda del perfil ThinkPad en DuckDuckGo con el navegador disponible.
+# Abre una búsqueda web del perfil ThinkPad en DuckDuckGo con el navegador disponible.
+# XF86Search muestra el catálogo de aplicaciones mediante rofi-search.sh; este
+# helper conserva la búsqueda web para Mod+Shift+B y usos manuales.
 set -Eeuo pipefail
 
 url='https://duckduckgo.com/'

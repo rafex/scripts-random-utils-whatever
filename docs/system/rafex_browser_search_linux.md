@@ -8,8 +8,9 @@ tags:
 
 # rafex_browser_search_linux.sh
 
-Helper único para `XF86Search` y el alias `Mod+Shift+B`. Evita repetir la
-lógica del navegador dentro de la configuración de i3.
+Helper para el alias `Mod+Shift+B` y usos manuales. `XF86Search` está reservado
+al catálogo de aplicaciones de Rofi, evitando mezclar la búsqueda web con el
+launcher dentro de la configuración de i3.
 
 - **Ruta:** `scripts/system/rafex_browser_search_linux.sh`
 - **SO requerido:** Linux
@@ -55,4 +56,5 @@ just rafex-browser-search
 ## Changelog
 
 ### [Unreleased]
-- **feat:** centraliza la apertura de DuckDuckGo para los atajos ThinkPad.
+- **feat:** conserva la apertura de DuckDuckGo para `Mod+Shift+B` y usos
+  manuales después de reservar `XF86Search` para el catálogo de aplicaciones.

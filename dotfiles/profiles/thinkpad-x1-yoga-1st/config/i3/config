@@ -80,7 +80,7 @@ bindsym $mod+Shift+t exec --no-startup-id ~/.local/bin/theme-toggle.sh --toggle
 bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh toggle
 bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
 bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
-bindsym XF86Search exec --no-startup-id $browser_search
+bindsym XF86Search exec --no-startup-id ~/.local/bin/rofi-search.sh apps
 bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
 bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down

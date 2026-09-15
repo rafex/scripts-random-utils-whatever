@@ -333,7 +333,9 @@ checks() {
   # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
   check_i3_binding 'XF86Tools usa ratmenu' 'bindsym[[:space:]]+XF86Tools.*(\$laptop_menu|rafex-ratmenu\.sh)'
   # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
-  check_i3_binding 'XF86Search abre DuckDuckGo' 'bindsym[[:space:]]+XF86Search.*(\$browser_search|duckduckgo\.com)'
+  check_i3_binding 'XF86Search muestra aplicaciones' 'bindsym[[:space:]]+XF86Search.*rofi-search\.sh[[:space:]]+apps'
+  # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
+  check_i3_binding 'Mod+Shift+B abre DuckDuckGo' 'bindsym[[:space:]]+\$mod\+Shift\+b.*(\$browser_search|duckduckgo\.com)'
   # shellcheck disable=SC2016 # el patrón necesita los símbolos $ literales de i3.
   check_i3_binding 'Super+Space usa Ulauncher' 'bindsym[[:space:]]+\$mod\+space.*\$launcher'
   if [[ -f "$CONFIG_HOME/i3/config" ]]; then

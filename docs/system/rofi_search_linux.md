@@ -9,8 +9,9 @@ tags:
 # rofi_search_linux.sh
 
 Lanza Rofi en modo aplicaciones, combinado o comandos. En el perfil ThinkPad
-Ulauncher es el launcher principal de `$mod+space`; Rofi se conserva para
-ventanas, navegador, ejecución, menús y confirmaciones.
+`XF86Search` abre el catálogo de aplicaciones y Ulauncher sigue siendo el
+launcher principal de `$mod+space`; Rofi también se conserva para ventanas,
+navegador, ejecución, menús y confirmaciones.
 
 - **Ruta:** `scripts/system/rofi_search_linux.sh`
 - **SO requerido:** Linux (Xorg/i3)
@@ -39,7 +40,7 @@ Debe ejecutarse dentro de una sesión Xorg.
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `apps` | — | Busca aplicaciones instaladas. |
+| `apps` | — | Muestra las aplicaciones registradas mediante archivos `.desktop` en los directorios estándar del sistema y del usuario. |
 | `combi` | — | Combina aplicaciones, ventanas y comandos. |
 | `run` | — | Ejecuta comandos. |
 | `browser` | — | Abre el navegador predeterminado. |
@@ -55,6 +56,11 @@ Este script no requiere variables de entorno.
 ~/.local/bin/rofi-search.sh combi
 ~/.local/bin/rofi-search.sh browser
 ```
+
+`apps` muestra el inventario que los escritorios Linux reconocen como
+aplicaciones lanzables. Un binario instalado manualmente sin archivo
+`.desktop` no aparecerá automáticamente; para esos casos hay que crear un
+lanzador `.desktop` válido.
 
 ## Fallos conocidos
 

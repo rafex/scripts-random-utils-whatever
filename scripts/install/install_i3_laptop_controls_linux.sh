@@ -32,8 +32,9 @@ Uso:
   install_i3_laptop_controls_linux.sh --apply
   install_i3_laptop_controls_linux.sh --apply --log-file <archivo>
 
-Instala toggles de micrófono, Wi‑Fi y modo avión, DuckDuckGo en Firefox y un
-menú de configuraciones para i3. No acepta ni guarda contraseñas.
+Instala toggles de micrófono, Wi‑Fi y modo avión, el catálogo de aplicaciones
+de Rofi en XF86Search, DuckDuckGo en Mod+Shift+B y un menú de configuraciones
+para i3. No acepta ni guarda contraseñas.
 EOF
 }
 
@@ -162,7 +163,7 @@ ${begin}
 bindsym XF86AudioMicMute exec --no-startup-id ~/.local/bin/microphone-notify.sh toggle
 bindsym XF86WLAN exec --no-startup-id ~/.local/bin/wifi-toggle.sh toggle
 bindsym XF86RFKill exec --no-startup-id ~/.local/bin/flight-mode-toggle.sh toggle
-bindsym XF86Search exec --no-startup-id sh -c 'if command -v firefox >/dev/null 2>&1; then exec firefox --new-tab https://duckduckgo.com/; elif command -v firefox-esr >/dev/null 2>&1; then exec firefox-esr --new-tab https://duckduckgo.com/; else notify-send "Búsqueda" "Firefox no está instalado"; fi'
+bindsym XF86Search exec --no-startup-id ~/.local/bin/rofi-search.sh apps
 bindsym XF86KbdBrightnessDown exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
 bindsym XF86KbdBrightnessUp exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh down
@@ -220,6 +221,7 @@ EOF
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86WakeUp[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/i3-settings-menu\.sh[[:space:]]+power[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Tools[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/i3-settings-menu\.sh[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Explorer[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/rofi-search\.sh[[:space:]]+browser[[:space:]]*$/ {removed=1; next}
+      !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Search[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+(\$browser_search|.*duckduckgo\.com.*)[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86LaunchA[[:space:]]+move[[:space:]]+scratchpad[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86LaunchA[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+down[[:space:]]*$/ {removed=1; next}
       !inside && $0 ~ /^[[:space:]]*bindsym[[:space:]]+XF86Explorer[[:space:]]+exec[[:space:]]+--no-startup-id[[:space:]]+~\/.local\/bin\/kbd-brightness-notify\.sh[[:space:]]+up[[:space:]]*$/ {removed=1; next}
