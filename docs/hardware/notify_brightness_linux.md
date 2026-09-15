@@ -43,6 +43,11 @@ ______________________________________________________________________
 BRIGHTNESS_STEP=10 ./scripts/hardware/notify_brightness_linux.sh down
 ```
 
+El incremento se aplica al brillo físico expuesto por `brightnessctl` y se
+limita automáticamente entre `0%` y `100%`. Si el backlight ya está en
+`100%`, `up` no puede producir más brillo físico; para compensar un panel
+oscuro debe evaluarse por separado el ajuste software de `xrandr`.
+
 ______________________________________________________________________
 
 ## Índice
@@ -75,6 +80,11 @@ no puede acceder a él.
 y usa el control de brillo del firmware mientras se diagnostica el hardware.
 
 ## Changelog
+
+### [Unreleased]
+
+- **docs:** documentar el límite físico de `brightnessctl` y el uso de
+  `BRIGHTNESS_STEP` para incrementos configurables.
 
 ### v1.0.0 — 2026-07-22
 

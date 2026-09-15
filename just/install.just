@@ -37,6 +37,16 @@ install-mosh-tmux-kitty *args:
 install-kitty *args:
     bash scripts/install/install_kitty_linux.sh {{args}}
 
+# Instalar el cliente VNC TigerVNC desde Debian
+# Uso: just install-tigervnc-viewer --check|--plan|--apply|--status
+install-tigervnc-viewer *args:
+    bash scripts/install/install_tigervnc_viewer_linux.sh {{args}}
+
+# Instalar ZoiteChat, cliente IRC GTK3 sucesor de XChat/HexChat
+# Uso: just install-zoitechat --check|--plan|--apply|--status
+install-zoitechat *args:
+    bash scripts/install/install_zoitechat_linux.sh {{args}}
+
 # Habilitar main, contrib, non-free y non-free-firmware de Debian
 # Uso: just enable-debian-repositories --apply
 enable-debian-repositories *args:

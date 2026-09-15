@@ -836,3 +836,22 @@ just install-rustdesk --status
 Abre RustDesk como usuario normal con `rustdesk`. Configura el acceso remoto
 solo con autorización explícita, revisa cualquier contraseña o permiso desde
 la aplicación y evita habilitarlo automáticamente en redes públicas.
+
+## Clientes VNC e IRC opcionales
+
+TigerVNC se instala únicamente como cliente para conectarse a escritorios
+remotos; no habilita un servidor ni abre puertos. ZoiteChat es el cliente IRC
+gráfico GTK3 de la línea XChat/HexChat. `irssi` continúa disponible para usar
+IRC desde terminal:
+
+```sh
+just install-tigervnc-viewer --check
+just install-tigervnc-viewer --plan
+just install-tigervnc-viewer --apply
+
+just install-zoitechat --check
+just install-zoitechat --plan
+just install-zoitechat --apply
+```
+
+No se añaden al perfil base ni se inician automáticamente.
