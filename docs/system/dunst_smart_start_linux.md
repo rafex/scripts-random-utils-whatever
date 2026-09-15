@@ -132,7 +132,8 @@ la altura usa una unidad no soportada o no se puede consultar el DPI de X11.
 **Solución:** ejecuta `dunst-smart.sh --check`, confirma que existe
 `~/.config/rafex/i3-bar-profile` y que la configuración de la barra activa es
 legible. `--apply`, `--start` y `--reload` se detienen sin modificar Dunst
-hasta resolver la altura.
+hasta resolver la altura. `--start` reintenta durante 15 segundos para cubrir
+el arranque temprano de i3, X11 o la barra.
 
 ### `Dunst no pudo recargarse`
 
@@ -148,3 +149,5 @@ configuración generada.
 - **fix:** mantener Dunst en `top-right` y calcular el offset con la altura de
   `i3bar`, Tint2 o Polybar.
 - **fix:** eliminar los fallbacks `bottom-right` y la altura fija de 36 píxeles.
+- **fix:** reintentar la resolución de la altura durante el autostart para no
+  conservar una configuración antigua si X11 aún no está listo.

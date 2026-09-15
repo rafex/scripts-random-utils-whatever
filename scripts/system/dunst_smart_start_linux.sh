@@ -74,6 +74,9 @@ require_commands() {
   if [[ "$ACTION" == start || "$ACTION" == reload ]]; then
     command -v pgrep >/dev/null 2>&1 || die "falta la herramienta: pgrep"
   fi
+  if [[ "$ACTION" == start ]]; then
+    command -v sleep >/dev/null 2>&1 || die "falta la herramienta: sleep"
+  fi
 }
 
 active_profile() {
@@ -229,6 +232,20 @@ require_bar_height() {
     die "no se pudo determinar la altura de la barra activa (${BAR_PROFILE:-perfil desconocido}); no se modificará Dunst"
 }
 
+wait_for_bar_height() {
+  local attempt
+  for ((attempt = 1; attempt <= 15; attempt++)); do
+    resolve_bar_height
+    if [[ "$BAR_HEIGHT" =~ ^[0-9]+$ && "$BAR_HEIGHT" -gt 0 ]]; then
+      return 0
+    fi
+    if ((attempt < 15)); then
+      sleep 1
+    fi
+  done
+  return 1
+}
+
 render_config() {
   local destination="$1"
   awk -v origin="$DUNST_ORIGIN" -v offset="$DUNST_OFFSET" '
@@ -323,6 +340,12 @@ main() {
   parse_args "$@"
   require_commands
   resolve_bar_height
+  # i3 puede ejecutar el autostart antes de que X11 o la barra respondan.
+  # Reintentar únicamente en --start evita conservar una configuración vieja
+  # durante el arranque de la sesión.
+  if [[ "$ACTION" == start && -z "$BAR_HEIGHT" ]]; then
+    wait_for_bar_height || true
+  fi
 
   case "$ACTION" in
     check)
