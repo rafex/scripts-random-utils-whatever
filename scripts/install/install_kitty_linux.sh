@@ -124,7 +124,7 @@ validate_archive() {
     [[ -n "$member" ]] || continue
     case "$member" in
       /*|../*|*/../*|*/..|*\\*) die "ruta insegura dentro del archivo: $member" ;;
-      bin/*|lib/|lib/kitty/*|share/*) ;;
+      bin/*|lib/|lib/*|share/*) ;;
       *) die "ruta inesperada dentro del archivo: $member" ;;
     esac
   done <<< "$members"
