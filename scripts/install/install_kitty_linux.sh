@@ -31,11 +31,16 @@ TMP_FILES=()
 cleanup() {
   local path
   for path in "${TMP_FILES[@]-}"; do
-    [[ -n "$path" ]] && rm -f -- "$path"
+    if [[ -n "$path" ]]; then
+      rm -f -- "$path"
+    fi
   done
   for path in "${TMP_DIRS[@]-}"; do
-    [[ -n "$path" ]] && rm -rf -- "$path"
+    if [[ -n "$path" ]]; then
+      rm -rf -- "$path"
+    fi
   done
+  return 0
 }
 trap cleanup EXIT
 
