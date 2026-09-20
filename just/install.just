@@ -88,6 +88,11 @@ install-albert-upstream *args:
 install-ulauncher *args:
     bash scripts/install/install_ulauncher_linux.sh {{args}}
 
+# Instalar el registrador privado de uso de workspaces del perfil ThinkPad
+# Uso: just install-i3-workspace-usage --check|--plan|--apply|--status
+install-i3-workspace-usage *args:
+    bash scripts/install/install_i3_workspace_usage_linux.sh {{args}}
+
 # Extraer versiones/enlaces oficiales de Eclipse IDE Java y Enterprise Java
 # Uso: just scrape-eclipse-packages --package all --pretty
 scrape-eclipse-packages *args:

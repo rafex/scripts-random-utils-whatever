@@ -60,6 +60,11 @@ i3-bar *args:
 i3-window-tasks *args:
     bash scripts/system/i3_window_tasks_polybar_linux.sh {{args}}
 
+# Consultar o generar propuestas de nombres y reglas assign desde uso agregado de i3
+# Uso: just i3-workspace-usage --status|--report|--output archivo|--reset --yes
+i3-workspace-usage *args:
+    python3 scripts/system/i3_workspace_usage_linux.py {{args}}
+
 # Mostrar el estado seguro que consume el panel Conky
 # Uso: just conky-status [--section network|power|temperature|audio|lab|security]
 conky-status *args:

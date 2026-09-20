@@ -1,0 +1,12 @@
+[Unit]
+# Managed by rafex install_i3_workspace_usage_linux.sh
+Description=Rafex i3 workspace usage recorder (X11 user session)
+After=graphical-session-pre.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/i3-workspace-usage.py --daemon
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=yes

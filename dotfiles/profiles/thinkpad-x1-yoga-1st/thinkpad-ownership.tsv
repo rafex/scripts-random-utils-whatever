@@ -12,6 +12,7 @@ i3.screenshot|install-screenshot|~/.config/i3/config#rafex-screenshots|screensho
 openbox.screenshot|install-screenshot|~/.config/openbox/rc.xml#rafex-screenshots|screenshot.sh|openbox --reconfigure|otros atajos|managed-block
 openbox.clipboard|install-clipboard|~/.config/openbox/autostart#rafex-clipboard|clipboard-menu.sh|openbox --reconfigure|otros atajos|managed-block
 i3.picom-service|install-picom-user-service|~/.config/i3/config#rafex-picom-service|rafex-picom.service|i3 -C -c ~/.config/i3/config|Dex y ejecutables upstream|managed-block
+i3.workspace-usage|install-i3-workspace-usage|~/.config/i3/config#rafex-i3-workspace-usage|rafex-i3-workspace-usage.service|i3 -C -c ~/.config/i3/config|no registra títulos ni afecta Openbox|managed-block
 i3.bar-include|i3-bar-profile|~/.config/i3/config#rafex-bar-active-include|rafex-bar-active.conf|i3 -C -c ~/.config/i3/config|bloque bar manual|managed-include
 i3.launcher|install-ulauncher|~/.config/i3/config#rafex-ulauncher|ulauncher.service|i3 -C -c ~/.config/i3/config|Albert y Rofi como launcher|managed-block
 i3.clipboard|install-clipboard|~/.config/i3/config#rafex-clipboard|clipboard-menu.sh|i3 -C -c ~/.config/i3/config|otros atajos|managed-block
@@ -42,6 +43,7 @@ lock.wrapper|install-i3lock-color|~/.local/bin/lock-screen.sh|i3lock-color,xss-l
 conky.config|install-conky|~/.config/conky/conky.conf|conky-launch.sh|conky -C ~/.config/conky/conky.conf|Picom y EWW|exclusive-file
 picom.config|picom-debian|~/.config/picom/{picom.conf,shaders}|/usr/bin/picom|picom --diagnostics|Picom upstream|exclusive-files
 picom.lifecycle|install-picom-user-service|~/.config/systemd/user/rafex-picom.service|/usr/bin/picom,systemd user|systemctl --user status rafex-picom.service|Dex y servicio alterno|exclusive-file
+workspace-usage.lifecycle|install-i3-workspace-usage|~/.config/systemd/user/rafex-i3-workspace-usage.service|python3,i3-msg,systemd user|systemctl --user status rafex-i3-workspace-usage.service|no se habilita globalmente|exclusive-file
 bars.assets|install-i3-bar-profiles|~/.config/rafex/i3-bars|plantillas Rafex|test -f ~/.config/rafex/i3-bars/polybar.ini|perfil activo|seed-only
 bars.selection|i3-bar-profile|~/.config/rafex/i3-bar-profile|runtime de barras|test -r ~/.config/rafex/i3-bar-profile|otros activadores|exclusive-file
 theme.palette|theme-toggle|~/.config/rafex/themes|temas versionados|test -L ~/.config/rafex/themes/current|atajos y servicios|managed-files

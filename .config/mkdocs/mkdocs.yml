@@ -113,6 +113,7 @@ nav:
       - install_i3_laptop_controls_linux: install/install_i3_laptop_controls_linux.md
       - install_kbd_brightness_policy_linux: install/install_kbd_brightness_policy_linux.md
       - install_i3_gaps_linux: install/install_i3_gaps_linux.md
+      - install_i3_workspace_usage_linux: install/install_i3_workspace_usage_linux.md
       - configure_thinkpad_xorg_dri3_linux: install/configure_thinkpad_xorg_dri3_linux.md
       - configure_thinkpad_touchpad_linux: install/configure_thinkpad_touchpad_linux.md
       - install_openbox_profile_linux: install/install_openbox_profile_linux.md
@@ -216,6 +217,7 @@ nav:
       - i3_bar_profile_linux: system/i3_bar_profile_linux.md
       - rafex_i3_bar_runtime_linux: system/rafex_i3_bar_runtime_linux.md
       - i3_window_tasks_polybar_linux: system/i3_window_tasks_polybar_linux.md
+      - i3_workspace_usage_linux: system/i3_workspace_usage_linux.md
       - scan_usb_clamav_linux: system/scan_usb_clamav_linux.md
       - scan_document_linux: system/scan_document_linux.md
       - clipboard_menu_linux: system/clipboard_menu_linux.md

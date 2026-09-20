@@ -31,6 +31,10 @@ exec_always --no-startup-id xrdb -merge ~/.Xresources
 # BEGIN rafex ulauncher default
 exec --no-startup-id systemctl --user start ulauncher.service
 # END rafex ulauncher default
+# >>> rafex-i3-workspace-usage managed >>>
+# La unidad recibe el socket de la sesión actual; no se habilita fuera de i3.
+exec --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/i3-workspace-usage.py" ]; then systemctl --user import-environment DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS I3SOCK >/dev/null 2>&1; systemctl --user restart rafex-i3-workspace-usage.service >/dev/null 2>&1; fi'
+# <<< rafex-i3-workspace-usage managed <<<
 # pasystray se inicia una sola vez mediante dex y /etc/xdg/autostart/pasystray.desktop
 exec_always --no-startup-id ~/.local/bin/dunst-smart.sh --start
 exec_always --no-startup-id setxkbmap -layout latam

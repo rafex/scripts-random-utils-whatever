@@ -127,6 +127,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_i3_laptop_controls_linux.sh` | Linux | install-i3-laptop-controls | sí | sí | medio | [doc](install/install_i3_laptop_controls_linux.md) |
 | `scripts/install/install_kbd_brightness_policy_linux.sh` | Linux | install-kbd-brightness | sí | sí | alto | [doc](install/install_kbd_brightness_policy_linux.md) |
 | `scripts/install/install_i3_gaps_linux.sh` | Linux | install-i3-gaps | sí | sí | medio | [doc](install/install_i3_gaps_linux.md) |
+| `scripts/install/install_i3_workspace_usage_linux.sh` | Linux | install-i3-workspace-usage | no | sí | medio | [doc](install/install_i3_workspace_usage_linux.md) |
 | `scripts/install/configure_thinkpad_xorg_dri3_linux.sh` | Linux | configure-thinkpad-xorg-dri3 | sí | sí | alto | [doc](install/configure_thinkpad_xorg_dri3_linux.md) |
 | `scripts/install/configure_thinkpad_touchpad_linux.sh` | Linux | configure-thinkpad-touchpad | sí | sí | medio | [doc](install/configure_thinkpad_touchpad_linux.md) |
 | `scripts/install/install_openbox_profile_linux.sh` | Linux | install-openbox-profile | sí | sí | medio | [doc](install/install_openbox_profile_linux.md) |
@@ -176,6 +177,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/i3_bar_profile_linux.sh` | Linux | i3-bar | no | sí | medio | [doc](system/i3_bar_profile_linux.md) |
 | `scripts/system/rafex_i3_bar_runtime_linux.sh` | Linux | — | no | sí | medio | [doc](system/rafex_i3_bar_runtime_linux.md) |
 | `scripts/system/i3_window_tasks_polybar_linux.sh` | Linux | i3-window-tasks | no | — | bajo | [doc](system/i3_window_tasks_polybar_linux.md) |
+| `scripts/system/i3_workspace_usage_linux.py` | Linux | i3-workspace-usage | no | sí | bajo | [doc](system/i3_workspace_usage_linux.md) |
 | `scripts/system/scan_usb_clamav_linux.sh` | Linux | scan-usb | no | sí | medio | [doc](system/scan_usb_clamav_linux.md) |
 | `scripts/system/scan_document_linux.sh` | Linux | scan-document | no | sí | medio | [doc](system/scan_document_linux.md) |
 | `scripts/system/clipboard_menu_linux.sh` | Linux | clipboard-menu | no | sí | bajo | [doc](system/clipboard_menu_linux.md) |
