@@ -15,7 +15,7 @@ SPEC.loader.exec_module(MODULE)
 
 class WorkspaceUsage(unittest.TestCase):
     def test_focused_sample_uses_class_and_instance_not_title(self):
-        tree = {"nodes": [{"type": "workspace", "name": "3:web", "focused": True,
+        tree = {"nodes": [{"type": "workspace", "name": "3:web", "focused": False,
                  "nodes": [{"type": "con", "focused": True, "window": 22,
                             "name": "Private browser tab title",
                             "window_properties": {"class": "Firefox", "instance": "Navigator"}}]}]}

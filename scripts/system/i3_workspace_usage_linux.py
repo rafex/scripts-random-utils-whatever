@@ -86,21 +86,24 @@ def descendants(node: dict):
 
 
 def focused_sample(tree: dict):
-    workspace = None
-    focused = None
     for node in descendants(tree):
-        if node.get("type") == "workspace" and node.get("focused"):
-            workspace = workspace_number(node.get("name"))
-        if node.get("focused") and node.get("window") is not None:
-            focused = node
-    if workspace is None or focused is None or focused.get("scratchpad_state") not in (None, "", "none"):
-        return None
-    properties = focused.get("window_properties") or {}
-    window_class = normalized(properties.get("class"))
-    instance = normalized(properties.get("instance"))
-    if not window_class and not instance:
-        return None
-    return workspace, window_class, instance
+        if node.get("type") != "workspace":
+            continue
+        workspace = workspace_number(node.get("name"))
+        if workspace is None:
+            continue
+        for child in descendants(node):
+            if not child.get("focused") or child.get("window") is None:
+                continue
+            if child.get("scratchpad_state") not in (None, "", "none"):
+                return None
+            properties = child.get("window_properties") or {}
+            window_class = normalized(properties.get("class"))
+            instance = normalized(properties.get("instance"))
+            if not window_class and not instance:
+                return None
+            return workspace, window_class, instance
+    return None
 
 
 def entry_for(state: dict, sample: tuple):
