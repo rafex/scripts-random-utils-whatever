@@ -37,6 +37,11 @@ install-mosh-tmux-kitty *args:
 install-kitty *args:
     bash scripts/install/install_kitty_linux.sh {{args}}
 
+# Instalar mdcat x86_64 desde el release oficial en ~/.local
+# Uso: just install-mdcat --check|--plan|--apply|--status
+install-mdcat *args:
+    bash scripts/install/install_mdcat_linux.sh {{args}}
+
 # Instalar el cliente VNC TigerVNC desde Debian
 # Uso: just install-tigervnc-viewer --check|--plan|--apply|--status
 install-tigervnc-viewer *args:
