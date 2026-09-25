@@ -9,13 +9,13 @@ tags:
 
 # install_kitty_linux.sh
 
-Instala Kitty `0.48.2` para la ThinkPad desde el artefacto Linux x86_64 del
-release oficial de GitHub. No reemplaza el paquete Debian, no requiere `sudo`
-y no inicia el terminal automáticamente.
+Instala Kitty `0.49.1` o consulta e instala el último release estable para la
+ThinkPad desde el artefacto Linux x86_64 oficial de GitHub. No reemplaza el
+paquete Debian, no requiere `sudo` y no inicia el terminal automáticamente.
 
 - **Ruta:** `scripts/install/install_kitty_linux.sh`
 - **SO requerido:** Linux (Debian, x86_64)
-- **Dependencias:** `bash`, `curl`, `sha256sum`, `tar` con soporte xz, `file`, `stat`
+- **Dependencias:** `bash`, `curl`, `jq` (solo para `--update`), `sha256sum`, `tar` con soporte xz, `file`, `stat`
 
 ---
 
@@ -40,12 +40,14 @@ release si no existe localmente. El instalador busca primero
 El artefacto fijado es:
 
 ```text
-kitty-0.48.2-x86_64.txz
-https://github.com/kovidgoyal/kitty/releases/download/v0.48.2/kitty-0.48.2-x86_64.txz
-SHA-256: 967a1958e7fc67b495d279c0963bcd1a0482097151817ce6506fabc822689af7
+kitty-0.49.1-x86_64.txz
+https://github.com/kovidgoyal/kitty/releases/download/v0.49.1/kitty-0.49.1-x86_64.txz
+SHA-256: 8cfd68ed484d9a32e4e389abffe1a0ec6e0fbd7be5c9ea1c4fa41b9ead4af791
 ```
 
-La instalación queda bajo `~/.local/share/rafex/kitty/0.48.2`. Los enlaces
+La instalación queda bajo `~/.local/share/rafex/kitty/0.49.1`. Al actualizar
+desde una versión instalada por este script, los enlaces administrados se
+repuntan a la nueva versión y la anterior se conserva. Los enlaces
 `~/.local/bin/kitty`, `~/.local/bin/kitten` y el lanzador
 `~/.local/share/applications/rafex-kitty.desktop` son administrados por este
 script.
@@ -56,6 +58,7 @@ script.
 just install-kitty --check
 just install-kitty --plan
 just install-kitty --apply
+just install-kitty --update
 just install-kitty --status
 ```
 
@@ -78,6 +81,7 @@ kitty
 | `--check` | — | Comprueba entorno y artefacto local; no descarga ni instala. |
 | `--plan` | — | Muestra versión, origen, checksum y destinos sin modificar. |
 | `--apply` | — | Usa el archivo local o descarga, verifica y publica Kitty en `~/.local`. |
+| `--update` | — | Consulta el último release estable y su digest en GitHub, descarga, verifica e instala esa versión. Requiere `jq`. |
 | `--status` | — | Muestra instalación, enlaces y lanzador administrados. |
 | `--archive <archivo>` | — | Usa un `.txz` local explícito en lugar de buscarlo en Descargas. |
 | `--help` | `-h` | Muestra la ayuda. |
@@ -99,13 +103,14 @@ Forma recomendada:
 just install-kitty --check
 just install-kitty --plan
 just install-kitty --apply
+just install-kitty --update
 just install-kitty --status
 ```
 
 Usando un archivo previamente descargado:
 
 ```bash
-just install-kitty --apply --archive ~/Downloads/kitty-0.48.2-x86_64.txz
+just install-kitty --apply --archive ~/Downloads/kitty-0.49.1-x86_64.txz
 ```
 
 Comprobación directa del binario instalado:
@@ -117,11 +122,13 @@ Comprobación directa del binario instalado:
 
 ## Protecciones de seguridad
 
-- Solo acepta Linux `x86_64`, el nombre, URL y SHA-256 fijados.
+- Solo acepta Linux `x86_64`, el nombre, URL y SHA-256 fijados para `--apply`.
+- `--update` acepta únicamente tags estables `vMAJOR.MINOR.PATCH` y obtiene
+  el digest del artefacto correspondiente desde la API oficial de GitHub.
 - Verifica el checksum, la estructura tar.xz, las rutas internas y el tipo de
   cada entrada antes de extraer.
-- Rechaza symlinks, nodos especiales, rutas absolutas y rutas con `..` dentro
-  del artefacto.
+- Rechaza rutas absolutas y rutas con `..`; solo acepta el enlace relativo
+  `lib/libslang-compiler.so` si apunta a su archivo hermano esperado.
 - Extrae primero en un directorio temporal privado y publica después.
 - No usa `sudo`, APT, `/usr`, servicios, autostart ni comandos remotos.
 - No sobrescribe un directorio, enlace o lanzador no administrado.
@@ -130,12 +137,12 @@ Comprobación directa del binario instalado:
 
 ## Fallos conocidos
 
-### `no se encontró kitty-0.48.2-x86_64.txz`
+### `no se encontró kitty-0.49.1-x86_64.txz`
 
 **Causa:** el artefacto no está en los directorios de Descargas.
 
 **Solución:** ejecuta `--apply` con Internet disponible o proporciona
-`--archive /ruta/kitty-0.48.2-x86_64.txz`.
+`--archive /ruta/kitty-0.49.1-x86_64.txz`.
 
 ### `SHA-256 incorrecto`
 
@@ -164,5 +171,12 @@ tu sesión; el instalador no modifica automáticamente los archivos de shell.
 
 ### [Unreleased]
 
-- **feat:** instalación rootless y verificable de Kitty `0.48.2` para Linux
-  x86_64 desde el release oficial.
+- **feat:** añade `--update` para descubrir e instalar el último release estable
+  de Kitty con el digest publicado por GitHub.
+
+### v1.1.0 — 2026-09-24
+
+**feat:** actualiza Kitty a `0.49.1` y permite actualizar enlaces administrados.
+
+- Verifica el SHA-256 publicado por GitHub para el release oficial x86_64.
+- Conserva las instalaciones versionadas anteriores al actualizar.

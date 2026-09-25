@@ -32,8 +32,8 @@ configure-sudo *args:
 install-mosh-tmux-kitty *args:
     bash scripts/install/install_mosh_tmux_kitty_unix.sh {{args}}
 
-# Instalar Kitty 0.48.2 x86_64 desde el release oficial en ~/.local
-# Uso: just install-kitty --check|--plan|--apply|--status
+# Instalar Kitty x86_64; --update consulta el último release estable oficial
+# Uso: just install-kitty --check|--plan|--apply|--update|--status
 install-kitty *args:
     bash scripts/install/install_kitty_linux.sh {{args}}
 

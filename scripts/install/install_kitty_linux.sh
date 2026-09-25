@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# v1.0.0 — Instala Kitty x86_64 desde el release oficial, sin root.
+# v1.1.0 — Instala y actualiza Kitty x86_64 desde el release oficial, sin root.
 set -Eeuo pipefail
 umask 077
 
@@ -10,13 +10,13 @@ ACTION="check"
 ARCHIVE_INPUT=""
 ACTION_CHOSEN=false
 
-readonly VERSION="0.48.2"
-readonly ARCHIVE_NAME="kitty-${VERSION}-x86_64.txz"
-readonly DOWNLOAD_URL="https://github.com/kovidgoyal/kitty/releases/download/v${VERSION}/${ARCHIVE_NAME}"
-readonly EXPECTED_SHA256="967a1958e7fc67b495d279c0963bcd1a0482097151817ce6506fabc822689af7"
+VERSION="0.49.1"
+ARCHIVE_NAME=""
+DOWNLOAD_URL=""
+EXPECTED_SHA256="8cfd68ed484d9a32e4e389abffe1a0ec6e0fbd7be5c9ea1c4fa41b9ead4af791"
 readonly DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/rafex/kitty"
-readonly INSTALL_ROOT="$DATA_ROOT/$VERSION"
-readonly MARKER="$INSTALL_ROOT/.rafex-kitty-managed"
+INSTALL_ROOT=""
+MARKER=""
 readonly MANIFEST="$DATA_ROOT/installed.env"
 readonly DOWNLOAD_ROOT="$DATA_ROOT/downloads"
 readonly BIN_ROOT="${HOME}/.local/bin"
@@ -24,6 +24,17 @@ readonly KITTY_LINK="$BIN_ROOT/kitty"
 readonly KITTEN_LINK="$BIN_ROOT/kitten"
 readonly DESKTOP_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 readonly DESKTOP_FILE="$DESKTOP_ROOT/rafex-kitty.desktop"
+
+set_release_version() {
+  VERSION="$1"
+  EXPECTED_SHA256="$2"
+  ARCHIVE_NAME="kitty-${VERSION}-x86_64.txz"
+  DOWNLOAD_URL="https://github.com/kovidgoyal/kitty/releases/download/v${VERSION}/${ARCHIVE_NAME}"
+  INSTALL_ROOT="$DATA_ROOT/$VERSION"
+  MARKER="$INSTALL_ROOT/.rafex-kitty-managed"
+}
+
+set_release_version "$VERSION" "$EXPECTED_SHA256"
 
 TMP_DIRS=()
 TMP_FILES=()
@@ -57,11 +68,13 @@ Opciones:
   --check              comprueba el entorno y el archivo local sin modificar
   --plan               muestra el plan sin descargar ni instalar
   --apply              descarga si hace falta e instala Kitty en ~/.local
+  --update             consulta e instala el último release estable de Kitty
   --status             muestra el estado de la instalación administrada
   --archive <archivo>  utiliza un artefacto local explícito
   --help               muestra esta ayuda
 
-La versión está fijada al release oficial de Kitty 0.48.2.
+--apply instala Kitty 0.49.1 con su SHA-256 fijado. --update consulta el release
+estable más reciente de GitHub y valida el digest publicado para el artefacto.
 EOF
 }
 
@@ -74,15 +87,37 @@ require_user_linux() {
 
 require_commands() {
   local command_name
-  for command_name in curl sha256sum tar file awk sed mkdir mktemp mv ln readlink install stat; do
+  for command_name in curl sha256sum tar file awk sed grep mkdir mktemp mv ln readlink install stat; do
     command -v "$command_name" >/dev/null 2>&1 || die "falta el comando requerido: $command_name"
   done
+}
+
+resolve_latest_release() {
+  local metadata latest_version latest_sha256
+  command -v jq >/dev/null 2>&1 || die 'falta jq, requerido para consultar el release más reciente'
+  metadata="$(mktemp "${TMPDIR:-/tmp}/rafex-kitty-release.XXXXXX")"
+  TMP_FILES+=("$metadata")
+  curl --fail --location --retry 3 --proto '=https' --tlsv1.2 \
+    -H 'Accept: application/vnd.github+json' \
+    -H 'X-GitHub-Api-Version: 2022-11-28' \
+    'https://api.github.com/repos/kovidgoyal/kitty/releases/latest' \
+    -o "$metadata" \
+    || die 'no se pudo consultar el último release estable de Kitty en GitHub'
+
+  latest_version="$(jq -er '.tag_name | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")) | ltrimstr("v")' "$metadata")" \
+    || die 'GitHub devolvió un tag de release inválido'
+  latest_sha256="$(jq -er --arg name "kitty-${latest_version}-x86_64.txz" \
+    '.assets[] | select(.name == $name) | .digest | select(type == "string" and test("^sha256:[0-9a-f]{64}$")) | sub("^sha256:"; "")' \
+    "$metadata")" \
+    || die "el release $latest_version no publica el SHA-256 esperado para Linux x86_64"
+  set_release_version "$latest_version" "$latest_sha256"
+  ok "último release estable detectado: Kitty $VERSION (SHA-256 publicado por GitHub)"
 }
 
 parse_args() {
   while (($#)); do
     case "$1" in
-      --check|--plan|--apply|--status)
+      --check|--plan|--apply|--update|--status)
         [[ "$ACTION_CHOSEN" == false ]] || die 'selecciona una sola acción'
         ACTION="${1#--}"
         ACTION_CHOSEN=true
@@ -137,10 +172,16 @@ validate_archive() {
   grep -Fqx 'bin/kitty' <<< "$members" || die 'el release no contiene bin/kitty'
   grep -Fqx 'bin/kitten' <<< "$members" || die 'el release no contiene bin/kitten'
 
-  # El release oficial no necesita enlaces ni nodos especiales para funcionar.
+  # Se permite únicamente el enlace relativo incluido por Kitty para su
+  # biblioteca slang; cualquier otro enlace o nodo especial se rechaza.
   tar -tvJf "$archive" \
-    | awk 'substr($0, 1, 1) != "d" && substr($0, 1, 1) != "-" { bad=1 } END { exit(bad ? 1 : 0) }' \
-    || die 'el archivo contiene enlaces o nodos especiales no permitidos'
+    | awk '
+      substr($0, 1, 1) == "d" || substr($0, 1, 1) == "-" { next }
+      substr($0, 1, 1) == "l" && $(NF-2) == "lib/libslang-compiler.so" &&
+        $(NF-1) == "->" && $NF == "libslang-compiler.so.0.0.0.0" { next }
+      { bad=1 }
+      END { exit(bad ? 1 : 0) }
+    ' || die 'el archivo contiene enlaces o nodos especiales no permitidos'
   ok "artefacto verificado: $ARCHIVE_NAME"
 }
 
@@ -273,17 +314,29 @@ write_marker() {
 }
 
 atomic_link() {
-  local target="$1" link="$2" temporary
+  local target="$1" link="$2" temporary previous previous_root previous_marker
   if [[ -e "$link" || -L "$link" ]]; then
-    [[ -L "$link" && "$(readlink "$link")" == "$target" ]] \
-      || die "el destino ya existe y no es un enlace administrado: $link"
-    return 0
+    [[ -L "$link" ]] || die "el destino ya existe y no es un enlace administrado: $link"
+    previous="$(readlink -- "$link")"
+    [[ "$previous" == "$target" ]] && return 0
+
+    case "$link:$previous" in
+      "$KITTY_LINK:$DATA_ROOT"/*/bin/kitty|"$KITTEN_LINK:$DATA_ROOT"/*/bin/kitten) ;;
+      *) die "el destino ya existe y no es un enlace administrado: $link" ;;
+    esac
+    previous_root="${previous%/bin/kitty}"
+    [[ "$link" == "$KITTEN_LINK" ]] && previous_root="${previous%/bin/kitten}"
+    previous_marker="$previous_root/.rafex-kitty-managed"
+    [[ -f "$previous_marker" && ! -L "$previous_marker" ]] \
+      || die "el enlace existente no apunta a una instalación administrada: $link"
+    grep -Fqx 'version='"$(basename -- "$previous_root")" "$previous_marker" \
+      || die "el marcador de la instalación anterior no coincide: $previous_marker"
   fi
   temporary="$(mktemp "${link}.XXXXXX")"
   TMP_FILES+=("$temporary")
   rm -f -- "$temporary"
   ln -s -- "$target" "$temporary"
-  mv -f -- "$temporary" "$link"
+  mv -Tf -- "$temporary" "$link"
 }
 
 write_desktop_file() {
@@ -375,6 +428,13 @@ main() {
       show_install_state
       ;;
     apply)
+      archive="$(resolve_archive 2>/dev/null || download_archive)"
+      validate_archive "$archive"
+      install_payload "$archive"
+      ;;
+    update)
+      resolve_latest_release
+      show_plan
       archive="$(resolve_archive 2>/dev/null || download_archive)"
       validate_archive "$archive"
       install_payload "$archive"
