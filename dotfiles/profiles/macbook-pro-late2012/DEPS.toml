@@ -30,6 +30,7 @@ apt = [
     "udiskie",
     "udisks2",
     "autorandr",
+    "mbpfan",
 ]
 
 [files]
@@ -83,3 +84,10 @@ system_files = [
 # Configuración mirror: LVDS1 (1280x800) + HDMI1
 # Uso: autorandr --load mirror
 profile = "mirror"
+
+[fan_control]
+# mbpfan usa applesmc/coretemp para responder a la temperatura del procesador.
+package = "mbpfan"
+config = "config/mbpfan.conf"
+service = "mbpfan.service"
+apply = "just configure-mbpfan --apply"

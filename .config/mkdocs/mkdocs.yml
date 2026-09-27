@@ -55,6 +55,7 @@ nav:
   - Respaldos:
       - backup_thinkpad_recovery_linux: backup/backup_thinkpad_recovery_linux.md
       - backup_thinkpad_restic_linux: backup/backup_thinkpad_restic_linux.md
+      - sync_age_to_thinkpad_unix: backup/sync_age_to_thinkpad_unix.md
   - Desarrollo:
       - commons_deploy_verify_unix: dev/commons_deploy_verify_unix.md
       - deploy_configs_unix: dev/deploy_configs_unix.md
@@ -87,6 +88,7 @@ nav:
       - configure_tpm_blacklist_linux: hardware/configure_tpm_blacklist_linux.md
       - configure_thinkpad_mem_sleep_linux: hardware/configure_thinkpad_mem_sleep_linux.md
       - configure_tlp_battery_linux: hardware/configure_tlp_battery_linux.md
+      - configure_mbpfan_linux: hardware/configure_mbpfan_linux.md
       - configure_xrandr_brightness_linux: hardware/configure_xrandr_brightness_linux.md
       - notify_brightness_linux: hardware/notify_brightness_linux.md
       - notify_kbd_brightness_linux: hardware/notify_kbd_brightness_linux.md

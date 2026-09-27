@@ -143,6 +143,27 @@ Los scripts de pantalla en `~/.local/bin/` (`screen-mirror.sh`, `screen-extend-a
 i3-msg restart   # o Mod+Shift+R
 ```
 
+### 9. Control térmico de ventiladores
+
+El perfil incluye `mbpfan` para que el MacBook responda automáticamente a la
+carga térmica mediante `applesmc` y `coretemp`. Después de instalar el perfil,
+aplica la configuración y habilita el servicio:
+
+```sh
+just configure-mbpfan --check
+just configure-mbpfan --plan
+just configure-mbpfan --apply
+```
+
+La configuración usa `low_temp=55`, `high_temp=65`, `max_temp=85` y un
+intervalo de consulta de un segundo. No fija RPM manualmente: respeta los
+límites que publica el firmware mediante `applesmc`. Para comprobarlo:
+
+```sh
+systemctl status mbpfan.service --no-pager
+lsmod | grep -E '^(applesmc|coretemp)'
+```
+
 ## Contenido del perfil
 
 | Componente | Archivo |
@@ -160,6 +181,7 @@ i3-msg restart   # o Mod+Shift+R
 | Xorg — trackpad macOS | `config/X11/xorg.conf.d/40-libinput.conf` |
 | Xorg — Magic Mouse | `config/X11/xorg.conf.d/40-magicmouse.conf` |
 | autorandr — perfil mirror | `config/autorandr/mirror/` |
+| mbpfan — control térmico | `config/mbpfan.conf` + `mbpfan.service` |
 
 ## Dependencias externas
 

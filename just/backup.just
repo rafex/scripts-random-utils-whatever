@@ -7,3 +7,8 @@ backup-thinkpad *args:
 # Uso: just backup-thinkpad-restic --check|--plan|--backup|--status
 backup-thinkpad-restic *args:
     bash scripts/backup/backup_thinkpad_restic_linux.sh {{args}}
+
+# Sincronizar ~/.age hacia una ThinkPad sin borrar archivos remotos.
+# Uso: just sync-age-to-thinkpad --check|--plan|--status|--apply --target <ssh>
+sync-age-to-thinkpad *args:
+    bash scripts/backup/sync_age_to_thinkpad_unix.sh {{args}}

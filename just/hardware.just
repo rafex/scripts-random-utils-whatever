@@ -60,6 +60,11 @@ configure-lid-suspend *args:
 configure-tlp-battery *args:
     bash scripts/hardware/configure_tlp_battery_linux.sh {{args}}
 
+# Instalar y habilitar mbpfan para el perfil MacBook Pro Intel.
+# Uso: just configure-mbpfan --check | --plan | --status | --apply | --rollback
+configure-mbpfan *args:
+    bash scripts/hardware/configure_mbpfan_linux.sh {{args}}
+
 # Fijar brillo xrandr en i3 y reaplicarlo tras suspender/reanudar (systemd-sleep)
 # Uso: just configure-xrandr-brightness --check | --plan | --apply --brightness 1.1
 configure-xrandr-brightness *args:

@@ -24,6 +24,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/audio/create_retro_podcast_sounds.py` | macOS/Linux | — | no | — | bajo | [doc](audio/create_retro_podcast_sounds.md) |
 | `scripts/backup/backup_thinkpad_recovery_linux.sh` | Linux | backup-thinkpad | sí | sí | alto | [doc](backup/backup_thinkpad_recovery_linux.md) |
 | `scripts/backup/backup_thinkpad_restic_linux.sh` | Linux | backup-thinkpad-restic | no | sí | alto | [doc](backup/backup_thinkpad_restic_linux.md) |
+| `scripts/backup/sync_age_to_thinkpad_unix.sh` | macOS/Linux | sync-age-to-thinkpad | no | sí | medio | [doc](backup/sync_age_to_thinkpad_unix.md) |
 | `scripts/dev/commons_deploy_verify_unix.sh` | macOS/Linux | — | no | — | medio | [doc](dev/commons_deploy_verify_unix.md) |
 | `scripts/dev/deploy_configs_unix.sh` | macOS/Linux | deploy-configs | opcional | sí | alto | [doc](dev/deploy_configs_unix.md) |
 | `scripts/dev/deploy_verify_unix.sh` | macOS/Linux | deploy-verify | no | sí | medio | [doc](dev/deploy_verify_unix.md) |
@@ -52,6 +53,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/configure_tpm_blacklist_linux.sh` | Linux | configure-tpm-blacklist | sí | sí | alto | [doc](hardware/configure_tpm_blacklist_linux.md) |
 | `scripts/hardware/configure_thinkpad_keyboard_linux.sh` | Linux | configure-thinkpad-keyboard | sí | sí | medio | [doc](hardware/configure_thinkpad_keyboard_linux.md) |
 | `scripts/hardware/configure_tlp_battery_linux.sh` | Linux | configure-tlp-battery | sí | sí | medio | [doc](hardware/configure_tlp_battery_linux.md) |
+| `scripts/hardware/configure_mbpfan_linux.sh` | Linux | configure-mbpfan | sí | sí | alto | [doc](hardware/configure_mbpfan_linux.md) |
 | `scripts/hardware/configure_xrandr_brightness_linux.sh` | Linux | configure-xrandr-brightness | sí | sí | bajo | [doc](hardware/configure_xrandr_brightness_linux.md) |
 | `scripts/hardware/notify_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_brightness_linux.md) |
 | `scripts/hardware/notify_kbd_brightness_linux.sh` | Linux | — | no | — | bajo | [doc](hardware/notify_kbd_brightness_linux.md) |
