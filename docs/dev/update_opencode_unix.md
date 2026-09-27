@@ -9,7 +9,9 @@ tags:
 # update_opencode_unix.sh
 
 Actualiza la instalación oficial local de OpenCode y sincroniza la copia usada
-por el perfil. No realiza la primera instalación ni administra paquetes npm/Homebrew.
+por el perfil. Para la primera instalación usa
+[`install_opencode_linux.sh`](../install/install_opencode_linux.md); no administra
+paquetes npm/Homebrew.
 
 - **Ruta:** `scripts/dev/update_opencode_unix.sh`
 - **SO requerido:** macOS, Linux
@@ -30,10 +32,11 @@ por el perfil. No realiza la primera instalación ni administra paquetes npm/Hom
 
 ## Requisitos
 
-El instalador `install_terminal_workstation_linux.sh --stage opencode` descarga
-`https://opencode.ai/install`, lo ejecuta con `--no-modify-path` y copia
-`~/.opencode/bin/opencode` a `~/.local/bin/opencode`. Si esta última copia existe,
-omite la instalación: repetir esa etapa **no actualiza** OpenCode.
+El instalador independiente `install_opencode_linux.sh` y la etapa
+`install_terminal_workstation_linux.sh --stage opencode` descargan
+`https://opencode.ai/install`, lo ejecutan con `--no-modify-path` y sincronizan
+`~/.opencode/bin/opencode` con `~/.local/bin/opencode`. La etapa de instalación
+es idempotente; para actualizar usa este script con `--apply`.
 
 Este actualizador requiere ambos binarios ejecutables y propiedad del usuario.
 Solo `--apply` necesita Internet. Cierra OpenCode antes de actualizarlo.

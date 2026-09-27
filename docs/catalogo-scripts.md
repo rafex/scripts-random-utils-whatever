@@ -116,6 +116,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/install_urban_terror_linux.sh` | Linux | install-urban-terror | sí | sí | medio | [doc](install/install_urban_terror_linux.md) |
 | `scripts/install/install_xonotic_linux.sh` | Linux | install-xonotic | sí | sí | medio | [doc](install/install_xonotic_linux.md) |
 | `scripts/install/install_kitty_linux.sh` | Linux | install-kitty | sí | sí | medio | [doc](install/install_kitty_linux.md) |
+| `scripts/install/install_opencode_linux.sh` | Linux | install-opencode | sí | sí | medio | [doc](install/install_opencode_linux.md) |
 | `scripts/install/install_mdcat_linux.sh` | Linux | install-mdcat | sí | sí | bajo | [doc](install/install_mdcat_linux.md) |
 | `scripts/install/install_tigervnc_viewer_linux.sh` | Linux | install-tigervnc-viewer | sí | sí | medio | [doc](install/install_tigervnc_viewer_linux.md) |
 | `scripts/install/install_zoitechat_linux.sh` | Linux | install-zoitechat | sí | sí | medio | [doc](install/install_zoitechat_linux.md) |

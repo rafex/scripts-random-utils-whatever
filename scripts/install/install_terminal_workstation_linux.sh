@@ -16,7 +16,7 @@ RUNTIME_SWITCHER="${SCRIPT_DIR}/install_runtime_switcher_linux.sh"
 JAVA_RUNTIME_INSTALLER="${SCRIPT_DIR}/install_java_runtime_linux.sh"
 NODE_RUNTIME_INSTALLER="${SCRIPT_DIR}/install_node_runtime_linux.sh"
 BUILD_RUNTIME_INSTALLER="${SCRIPT_DIR}/install_build_runtime_linux.sh"
-OPENCODE_BIN="${HOME}/.local/bin/opencode"
+OPENCODE_INSTALLER="${SCRIPT_DIR}/install_opencode_linux.sh"
 TMUX_CONFIG="${HOME}/.tmux.conf"
 TPM_DIR="${HOME}/.tmux/plugins/tpm"
 BASHRC="${HOME}/.bashrc"
@@ -858,29 +858,8 @@ configure_containers() {
 }
 
 install_opencode() {
-  local temporary
-  if [[ -x "$OPENCODE_BIN" ]]; then
-    ok "OpenCode ya está instalado: $OPENCODE_BIN"
-    return 0
-  fi
-  if [[ "$ACTION" == "plan" ]]; then
-    info "[plan] descargar el instalador oficial de OpenCode en un temporal"
-    info "[plan] instalar OpenCode en $OPENCODE_BIN sin configurar credenciales"
-    return 0
-  fi
-  command -v curl >/dev/null 2>&1 || die "curl es necesario para instalar OpenCode"
-  temporary="$(mktemp)"
-  curl --fail --silent --show-error --location https://opencode.ai/install -o "$temporary"
-  bash "$temporary" --no-modify-path
-  rm -f "$temporary"
-  if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
-    warn "El instalador oficial no creó $HOME/.opencode/bin/opencode"
-    return 0
-  fi
-  mkdir -p "$(dirname "$OPENCODE_BIN")"
-  backup_path "$OPENCODE_BIN"
-  install -m 755 "$HOME/.opencode/bin/opencode" "$OPENCODE_BIN"
-  ok "OpenCode instalado sin autenticación"
+  [[ -x "$OPENCODE_INSTALLER" ]] || die "falta el instalador de OpenCode: $OPENCODE_INSTALLER"
+  bash "$OPENCODE_INSTALLER" "--$ACTION"
 }
 
 check_commands() {
