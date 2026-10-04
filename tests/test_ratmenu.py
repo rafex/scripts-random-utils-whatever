@@ -27,6 +27,9 @@ class RatmenuArguments(unittest.TestCase):
             start = args.index("-align") + 2
             self.assertEqual(len(args[start:]) % 2, 0)
             self.assertIn("Panel de control Rafex", args[start:])
+            entries = dict(zip(args[start::2], args[start + 1::2]))
+            for action in ("Energia", "Cerrar sesion", "Suspender", "Hibernar", "Reiniciar", "Apagar"):
+                self.assertIn("RAFEX_ACTION_SOURCE=ratmenu", entries[action])
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requiere /proc y flock de Linux")
     def test_second_invocation_is_noop_while_managed_menu_is_open(self):

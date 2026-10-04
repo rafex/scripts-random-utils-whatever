@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rafex_ratmenu_linux.sh v1.2.0
+# rafex_ratmenu_linux.sh v1.3.0
 # Menú ligero de acciones del perfil ThinkPad usando ratmenu.
 # shellcheck disable=SC2016
 set -Eeuo pipefail
@@ -87,12 +87,12 @@ menu=(
   'Tema claro/oscuro' '"$HOME/.local/bin/theme-toggle.sh" --toggle'
   'Estado del sistema' 'alacritty -e btop'
   'Bloquear sesion' 'loginctl lock-session'
-  'Energia' '"$HOME/.local/bin/desktop-settings-menu.sh" power'
-  'Cerrar sesion' '"$HOME/.local/bin/desktop-settings-menu.sh" logout'
-  'Suspender' '"$HOME/.local/bin/desktop-settings-menu.sh" suspend'
-  'Hibernar' '"$HOME/.local/bin/desktop-settings-menu.sh" hibernate'
-  'Reiniciar' '"$HOME/.local/bin/desktop-settings-menu.sh" reboot'
-  'Apagar' '"$HOME/.local/bin/desktop-settings-menu.sh" poweroff'
+  'Energia' 'RAFEX_ACTION_SOURCE=ratmenu "$HOME/.local/bin/desktop-settings-menu.sh" power'
+  'Cerrar sesion' 'RAFEX_ACTION_SOURCE=ratmenu "$HOME/.local/bin/desktop-settings-menu.sh" logout'
+  'Suspender' 'RAFEX_ACTION_SOURCE=ratmenu "$HOME/.local/bin/desktop-settings-menu.sh" suspend'
+  'Hibernar' 'RAFEX_ACTION_SOURCE=ratmenu "$HOME/.local/bin/desktop-settings-menu.sh" hibernate'
+  'Reiniciar' 'RAFEX_ACTION_SOURCE=ratmenu "$HOME/.local/bin/desktop-settings-menu.sh" reboot'
+  'Apagar' 'RAFEX_ACTION_SOURCE=ratmenu "$HOME/.local/bin/desktop-settings-menu.sh" poweroff'
   'Cerrar menu' 'exit'
 )
 

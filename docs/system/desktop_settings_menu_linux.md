@@ -13,7 +13,7 @@ Abre un centro de control gráfico común para las sesiones i3 y Openbox.
 
 - **Ruta:** `scripts/system/desktop_settings_menu_linux.sh`
 - **SO requerido:** Linux
-- **Dependencias:** `bash`, `rofi`; las acciones seleccionadas requieren sus aplicaciones correspondientes.
+- **Dependencias:** `bash`, `python3`, `rofi`; las acciones seleccionadas requieren sus aplicaciones correspondientes.
 
 ---
 
@@ -30,7 +30,8 @@ Abre un centro de control gráfico común para las sesiones i3 y Openbox.
 
 ## Requisitos
 
-Debe ejecutarse dentro de una sesión gráfica Xorg con `rofi` disponible.
+Debe ejecutarse dentro de una sesión gráfica Xorg con `rofi` y `python3`
+disponibles. Python se usa para escribir entradas JSONL válidas en el historial.
 
 ## Uso
 
@@ -59,8 +60,17 @@ desktop-settings-menu.sh poweroff
 
 ## Variables de entorno
 
-No usa variables de entorno propias. Respeta `$HOME` para localizar los
-helpers instalados.
+| Variable | Predeterminado | Descripción |
+|---|---|---|
+| `XDG_STATE_HOME` | `~/.local/state` | Base donde guarda el historial de acciones. |
+| `RAFEX_ACTION_SOURCE` | `desktop-settings-menu` | Origen de la acción; Ratmenu lo fija en `ratmenu`. |
+
+Las acciones de energía y sesión se registran en
+`${XDG_STATE_HOME:-$HOME/.local/state}/rafex/ratmenu-actions.jsonl`. Cada línea
+JSON incluye hora UTC, origen, acción, comando, resultado, código de salida,
+salida del comando y, si falla suspensión o hibernación, un diagnóstico de
+logind, inhibidores y modos de suspensión. El directorio se crea con permisos
+`0700` y el archivo con `0600`.
 
 ## Ejemplos
 
@@ -75,6 +85,8 @@ just desktop-settings-menu
 - Cerrar sesión, suspensión, hibernación, reinicio y apagado piden confirmación
   dentro de Rofi antes de ejecutarse.
 - No se usa sudo desde el menú. systemd/logind aplica la política de la sesión.
+- Las acciones de sesión y energía registran éxito, cancelación o fallo; las
+  notificaciones de fallo incluyen la salida del comando y la ruta del log.
 - Si `loginctl can-hibernate` devuelve `no`, hibernar solo muestra una
   notificación y no ejecuta cambios.
 - Synaptic se lanza mediante `synaptic-pkexec`, que delega la autenticación al
@@ -96,8 +108,18 @@ manager no aceptó la orden de salida.
 **Solución:** inicia el menú dentro de la sesión gráfica correcta y comprueba
 `echo "$XDG_SESSION_ID"` y `loginctl session-status`.
 
+### `No se pudo suspender el equipo` o `No se pudo hibernar el equipo`
+
+**Causa:** logind o el comando de sistema rechazó la solicitud. El texto exacto
+y el código de salida aparecen en la notificación y en el historial JSONL.
+
+**Solución:** revisa el evento más reciente en
+`~/.local/state/rafex/ratmenu-actions.jsonl`; los fallos de suspensión e
+hibernación incluyen también capacidades, inhibidores y modos del kernel.
+
 ## Changelog
 
 ### [Unreleased]
 
 - `feat`: extrae el centro de control para compartirlo entre i3 y Openbox.
+- `feat`: registra acciones de sesión y energía, y muestra el error concreto si fallan.

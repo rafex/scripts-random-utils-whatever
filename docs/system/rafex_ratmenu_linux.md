@@ -11,65 +11,29 @@ tags:
 
 Abre el menú ligero de aplicaciones, controles, capturas y energía mediante
 ratmenu. Si ratmenu no está disponible, usa el menú 9menu versionado como
-fallback.
+fallback. Las acciones de sesión y energía se registran por el helper
+compartido en `~/.local/state/rafex/ratmenu-actions.jsonl`.
 
 - **Ruta:** `scripts/system/rafex_ratmenu_linux.sh`
 - **SO requerido:** Linux (Debian con X11)
-- **Dependencias:** bash, `ratmenu` y helpers del perfil.
+- **Dependencias:** bash, `ratmenu`, `python3` y helpers del perfil.
 
 ---
 
 ## Índice
-## Requisitos
-## Uso
-## Opciones
-## Variables de entorno
-## Ejemplos
-## Fallos conocidos
 
-### `ratmenu: fatal: cannot load font DejaVu Sans Mono-11`
-
-**Causa:** el lanzador pasaba un nombre estilo Fontconfig/Xft a ratmenu, que
-utiliza fuentes X11 mediante XCreateFontSet. En la ThinkPad el lanzamiento directo
-terminó con código 1 y ese error; `xlsfonts -fn fixed` sí encontró el alias.
-El atajo parecía no responder porque el menú terminaba antes de mostrarse.
-
-**Solución:** desde v1.1.1 el lanzador usa `-font fixed`. Aplicar desde el
-repositorio actualizado con `just install-ratmenu --apply`. No requiere reiniciar
-ni cambiar bindings: los existentes ejecutan el mismo helper instalado.
-Si `fixed` tampoco existe en otro servidor X11, revisar sus fuentes antes de
-cambiar atajos o instalar fuentes Nerd/Fontconfig, que no resuelven este fallo.
-
-### `ratmenu de Rafex ya está abierto; no se duplica`
-
-**Causa:** `XF86Tools` o `Super+F9` se pulsó otra vez mientras el menú seguía
-abierto. El lanzador identifica únicamente ventanas propias por su etiqueta
-`Rafex ThinkPad` y mantiene un lock de usuario durante la apertura.
-
-**Solución:** no se abre otra ventana. Selecciona una entrada o cierra el menú
-existente. Ratmenu de otro usuario o sin la etiqueta de Rafex no se considera
-administrado ni se cierra.
-
-Validación manual: abrir `~/.local/bin/rafex-ratmenu.sh`, cerrar con Escape y
-probar `Super+F9` y la tecla multimedia `XF86Tools`. La corrección del lanzamiento
-no demuestra por sí sola qué keysym emite la tecla física; si solo falla esta
-última, observar el evento antes de modificar bindings.
-## Changelog
-
-### v1.1.1 — 2026-09-05
-
-**fix:** usar el alias X11 `fixed` en lugar de una fuente que impedía abrir
-ratmenu en la ThinkPad. Sin cambios en suspensión ni bindings.
-
-### v1.2.0 — 2026-09-05
-
-**fix:** evitar ventanas duplicadas al pulsar repetidamente los accesos de
-ratmenu, con detección de procesos administrados y lock por usuario.
+- [Requisitos](#requisitos)
+- [Uso](#uso)
+- [Opciones](#opciones)
+- [Variables de entorno](#variables-de-entorno)
+- [Ejemplos](#ejemplos)
+- [Fallos conocidos](#fallos-conocidos)
+- [Changelog](#changelog)
 
 ## Requisitos
 
-Debe ejecutarse dentro de i3 u Openbox. Las acciones sensibles conservan las
-confirmaciones de los helpers existentes.
+Debe ejecutarse dentro de i3 u Openbox en X11. Las acciones sensibles
+conservan las confirmaciones de los helpers existentes.
 
 ## Uso
 
@@ -88,27 +52,90 @@ just rafex-ratmenu
 
 | Variable | Predeterminado | Descripción |
 |---|---|---|
-| `HOME` | sesión actual | Ubicación de helpers y configuración. |
+| `HOME` | Sesión actual | Ubicación de helpers y configuración. |
+| `XDG_STATE_HOME` | `~/.local/state` | Permite cambiar la ubicación del historial de acciones. |
+
+El helper identifica estas entradas con el origen `ratmenu`. El historial
+común también puede incluir acciones iniciadas desde otros menús.
 
 ## Ejemplos
 
 ```bash
 ~/.local/bin/rafex-ratmenu.sh
+tail -n 20 "${XDG_STATE_HOME:-$HOME/.local/state}/rafex/ratmenu-actions.jsonl"
 ```
 
 ## Fallos conocidos
 
+### `ratmenu: fatal: cannot load font DejaVu Sans Mono-11`
+
+**Causa:** Ratmenu usa fuentes X11 mediante XCreateFontSet; el nombre estilo
+Fontconfig/Xft no existe como fuente X11. En la ThinkPad, `xlsfonts -fn fixed`
+confirmó que el alias `fixed` sí está disponible.
+
+**Solución:** desde v1.1.1 el lanzador usa `-font fixed`. Aplica el helper
+actualizado con `just install-ratmenu --apply`. Si `fixed` no existe en otro
+servidor X11, revisa sus fuentes antes de cambiar los bindings.
+
+### `ratmenu de Rafex ya está abierto; no se duplica`
+
+**Causa:** se abrió otra vez mientras una ventana administrada con la etiqueta
+`Rafex ThinkPad` seguía activa.
+
+**Solución:** selecciona una entrada o cierra el menú existente.
+
+### Falló una acción de energía o sesión
+
+**Causa:** el comando del sistema devolvió un error. El helper incluye el texto
+del comando y su código de retorno en la notificación y el historial. En fallos
+de suspensión o hibernación, el evento incluye capacidades de logind,
+inhibidores, estado de sesión y modos de suspensión del kernel.
+
+**Solución:** revisa el último evento en
+`~/.local/state/rafex/ratmenu-actions.jsonl`. El archivo se crea con permisos
+`0600`; el directorio usa `0700`.
+
 ### `ratmenu no está instalado`
 
-**Causa:** se intentó abrir el helper antes del instalador.
+**Causa:** se abrió el helper antes de instalar ratmenu y no hay fallback 9menu
+disponible.
 
-**Solución:** instala con `just install-ratmenu --apply`.
+**Solución:** ejecuta `just install-ratmenu --apply`.
+
+Validación manual del menú: abrir `~/.local/bin/rafex-ratmenu.sh`, cerrar con
+Escape y probar `Super+F9` y la tecla multimedia `XF86Tools`. Esto no demuestra
+por sí solo qué keysym emite la tecla física; si solo falla esa tecla, observa
+el evento antes de modificar bindings.
 
 ## Changelog
 
 ### [Unreleased]
 
-- **fix:** la entrada del panel de control informa la receta exacta de
-  instalación cuando el helper GTK todavía no existe.
-- **feat:** crear menú activo ratmenu con respaldo 9menu.
-- **fix:** activar fallback automático a 9menu cuando ratmenu no está disponible.
+- **fix:** la entrada del panel de control informa la receta de instalación
+  cuando el helper GTK todavía no existe.
+
+### v1.3.0 — 2026-10-04
+
+**feat:** registrar acciones de energía y sesión iniciadas desde Ratmenu.
+
+- Etiquetar el origen Ratmenu en el historial JSONL compartido.
+- Mostrar la salida del comando y su código de retorno cuando una acción falla.
+- Añadir datos de logind, inhibidores y modos del kernel a fallos de suspensión
+  e hibernación.
+
+### v1.2.0 — 2026-09-05
+
+**fix:** evitar ventanas duplicadas al abrir Ratmenu repetidamente.
+
+- Detectar ventanas administradas y mantener un lock de usuario durante la apertura.
+
+### v1.1.1 — 2026-09-05
+
+**fix:** usar el alias X11 `fixed` para evitar que Ratmenu falle al abrirse.
+
+### v1.1.0 — 2026-09-05
+
+**feat:** incorporar Ratmenu con fallback a 9menu.
+
+- Añadir el menú activo de acciones del perfil ThinkPad.
+- Activar fallback automático a 9menu si ratmenu no está disponible.
