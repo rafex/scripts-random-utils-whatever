@@ -117,9 +117,20 @@ y el código de salida aparecen en la notificación y en el historial JSONL.
 `~/.local/state/rafex/ratmenu-actions.jsonl`; los fallos de suspensión e
 hibernación incluyen también capacidades, inhibidores y modos del kernel.
 
+### `Unknown command verb 'suspend'`
+
+**Causa:** se intentó usar `loginctl suspend`, un verbo que no está disponible
+en la versión instalada de `loginctl`.
+
+**Solución:** las acciones ahora se ejecutan con `systemctl suspend` y
+`systemctl hibernate`; `loginctl` se conserva para consultar la capacidad de
+hibernación.
+
 ## Changelog
 
 ### [Unreleased]
 
 - `feat`: extrae el centro de control para compartirlo entre i3 y Openbox.
 - `feat`: registra acciones de sesión y energía, y muestra el error concreto si fallan.
+- `fix`: ejecutar suspensión e hibernación con `systemctl` en lugar de verbos
+  no reconocidos por `loginctl`.

@@ -202,7 +202,7 @@ run_action() {
         record_action suspend cancelled '' '' '' || true
         return 0
       fi
-      if ! run_logged_command suspend loginctl suspend; then
+      if ! run_logged_command suspend systemctl suspend; then
         notify_action_failure 'No se pudo suspender el equipo'
       fi
       ;;
@@ -234,7 +234,7 @@ run_action() {
         notify_error "La hibernación no está disponible: ${ACTION_OUTPUT}. Registro: ${LOG_FILE}"
         return 0
       fi
-      if ! run_logged_command hibernate loginctl hibernate; then
+      if ! run_logged_command hibernate systemctl hibernate; then
         notify_action_failure 'No se pudo hibernar el equipo'
       fi
       ;;

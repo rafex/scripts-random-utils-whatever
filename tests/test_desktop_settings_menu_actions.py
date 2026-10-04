@@ -92,7 +92,7 @@ exit 0
         self.assertEqual(event["result"], "failure")
         self.assertEqual(event["exit_code"], 1)
         self.assertEqual(event["output"].strip(), "Access denied")
-        self.assertEqual(event["command"], ["loginctl", "suspend"])
+        self.assertEqual(event["command"], ["systemctl", "suspend"])
         self.assertIn('CanSuspend: s "yes"', event["diagnostics"])
         self.assertIn("Inhibitors:", event["diagnostics"])
         self.assertEqual(log.stat().st_mode & 0o777, 0o600)
@@ -115,6 +115,23 @@ exit 0
         self.assertEqual(records[0]["result"], "success")
         self.assertEqual(records[0]["exit_code"], 0)
         self.assertEqual(records[0]["command"], ["systemctl", "poweroff"])
+
+    def test_successful_suspend_uses_systemctl(self):
+        result = self.run_helper("suspend")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        _, records = self.records()
+        self.assertEqual(records[0]["action"], "suspend")
+        self.assertEqual(records[0]["result"], "success")
+        self.assertEqual(records[0]["command"], ["systemctl", "suspend"])
+
+    def test_successful_hibernate_uses_systemctl_after_capability_check(self):
+        result = self.run_helper("hibernate")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        _, records = self.records()
+        self.assertEqual(records[-1]["action"], "hibernate")
+        self.assertEqual(records[-1]["result"], "success")
+        self.assertEqual(records[-1]["command"], ["systemctl", "hibernate"])
+        self.assertEqual(self.calls.read_text().splitlines(), ["can-hibernate", "hibernate"])
 
     def test_unavailable_hibernate_capability_is_logged(self):
         result = self.run_helper("hibernate", MOCK_HIBERNATE_CAPABILITY="no")

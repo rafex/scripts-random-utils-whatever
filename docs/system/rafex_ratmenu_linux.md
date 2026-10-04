@@ -95,6 +95,14 @@ inhibidores, estado de sesión y modos de suspensión del kernel.
 `~/.local/state/rafex/ratmenu-actions.jsonl`. El archivo se crea con permisos
 `0600`; el directorio usa `0700`.
 
+### `Unknown command verb 'suspend'`
+
+**Causa:** una versión previa del helper invocaba `loginctl suspend`, comando
+que `loginctl` no reconoce.
+
+**Solución:** actualiza `desktop-settings-menu.sh`; las acciones ahora usan
+`systemctl suspend` y `systemctl hibernate`.
+
 ### `ratmenu no está instalado`
 
 **Causa:** se abrió el helper antes de instalar ratmenu y no hay fallback 9menu
@@ -113,6 +121,8 @@ el evento antes de modificar bindings.
 
 - **fix:** la entrada del panel de control informa la receta de instalación
   cuando el helper GTK todavía no existe.
+- **fix:** usar `systemctl` para suspender e hibernar y evitar el verbo no
+  reconocido de `loginctl`.
 
 ### v1.3.0 — 2026-10-04
 
