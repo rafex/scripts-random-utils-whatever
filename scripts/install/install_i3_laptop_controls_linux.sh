@@ -170,7 +170,7 @@ bindsym XF86LaunchA exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh d
 bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh up
 bindsym $mod+Shift+b exec --no-startup-id sh -c 'if command -v firefox >/dev/null 2>&1; then exec firefox --new-tab https://duckduckgo.com/; elif command -v firefox-esr >/dev/null 2>&1; then exec firefox-esr --new-tab https://duckduckgo.com/; else notify-send "Búsqueda" "Firefox no está instalado"; fi'
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
-bindsym XF86Tools exec --no-startup-id sh -c 'if [ -x "$HOME/.local/bin/rafex-ratmenu.sh" ]; then "$HOME/.local/bin/rafex-ratmenu.sh"; else 9menu -popup -label "ThinkPad" -file "$HOME/.config/9menu/laptop.menu"; fi'
+bindsym XF86Tools exec --no-startup-id ~/.local/bin/rafex-ratmenu.sh
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 ${end}
 EOF
