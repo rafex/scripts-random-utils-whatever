@@ -53,7 +53,7 @@ de pantalla. El helper funciona como usuario normal y no requiere `sudo`.
 | Variable | Predeterminado | Descripción |
 |---|---|---|
 | `BRIGHTNESS_STEP` | `5` | Porcentaje de incremento/decremento normal por encima de 20%. Debe ser un entero positivo. |
-| `XRANDR_BRIGHTNESS_STEP` | `0.05` | Incremento de brillo por software por pulsación. Acepta valores mayores que 0 y hasta 1.0. |
+| `XRANDR_BRIGHTNESS_STEP` | `0.05` | Incremento de brillo por software por pulsación. Acepta valores mayores que 0 y hasta 1.0. El valor preciso se recuerda entre pulsaciones porque `xrandr --verbose` lo muestra redondeado a una décima. |
 | `XRANDR_BRIGHTNESS_BASE` | `1.1` | Nivel base al que `down` devuelve `xrandr` antes de reducir el backlight. Debe ser al menos 0.1 y menor que 2.0. |
 | `XRANDR_BRIGHTNESS_OUTPUT` | detección automática | Salida de pantalla para `xrandr`; si no se indica, detecta la primera salida interna conectada (`eDP`, `LVDS` o `DSI`). |
 
@@ -82,7 +82,9 @@ físico entre 0% y 100%. Al alcanzar el 100%, cada pulsación de subir aumenta
 la luminancia de `xrandr` en 0.05 por omisión, hasta el máximo fijo de 2.0. Al
 bajar, se reduce primero ese valor hasta la base 1.1; las pulsaciones
 siguientes actúan sobre el backlight. `xrandr` requiere una sesión gráfica
-X11 y no controla el brillo físico del panel.
+X11 y no controla el brillo físico del panel. El último valor preciso se guarda
+en `$XDG_STATE_HOME/brightness-notify/<salida>.level` o, si
+`XDG_STATE_HOME` no está definido, en `~/.local/state/brightness-notify/`.
 
 ## Fallos conocidos
 
@@ -117,6 +119,13 @@ asegúrate de que el atajo de i3 herede `DISPLAY` y `XAUTHORITY`.
 
 - Diferenciar errores de conexión a X11, detección de salida y propiedad ausente.
 - Incluir el detalle de `DISPLAY` y `XAUTHORITY` disponible en el diagnóstico.
+
+### v1.2.2 — 2026-10-04
+
+**fix:** conservar la precisión de los pasos de `xrandr`.
+
+- Recordar el nivel aplicado por salida porque `xrandr --verbose` redondea el valor reportado a una décima.
+- Permitir que pulsaciones consecutivas reduzcan el brillo aunque el cambio individual sea menor que una décima.
 
 ### v1.2.0 — 2026-10-04
 

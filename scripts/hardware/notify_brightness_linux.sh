@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# notify_brightness_linux.sh v1.2.1
+# notify_brightness_linux.sh v1.2.2
 # Ajusta el backlight con brightnessctl y extiende el rango con xrandr.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -22,6 +22,7 @@ XRANDR_MAX=2.0
 XRANDR_OUTPUT="${XRANDR_BRIGHTNESS_OUTPUT:-}"
 XRANDR_STATUS=''
 XRANDR_ERROR=''
+XRANDR_STATE_FILE=''
 if [[ ! "$XRANDR_STEP" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
   ! awk -v step="$XRANDR_STEP" 'BEGIN { exit !(step > 0 && step <= 1) }'; then
   echo "XRANDR_BRIGHTNESS_STEP debe ser un número mayor que 0 y máximo 1.0." >&2
@@ -68,14 +69,31 @@ read_xrandr_state() {
     XRANDR_ERROR="xrandr no pudo leer la salida ${XRANDR_OUTPUT}: ${verbose:-sin detalle}; DISPLAY=${DISPLAY:-no definido}"
     return 1
   fi
-  XRANDR_CURRENT="$(awk -v output="$XRANDR_OUTPUT" '
+  XRANDR_REPORTED="$(awk -v output="$XRANDR_OUTPUT" '
     $1 == output { found=1; next }
     found && $2 == "connected" { found=0 }
     found && $1 == "Brightness:" { print $2; exit }
   ' <<< "$verbose")"
-  if [[ ! "$XRANDR_CURRENT" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  if [[ ! "$XRANDR_REPORTED" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
     XRANDR_ERROR="xrandr no reportó la propiedad Brightness para ${XRANDR_OUTPUT}; comprueba XRANDR_BRIGHTNESS_OUTPUT y la salida de xrandr --verbose"
     return 1
+  fi
+  if [[ ! "$XRANDR_OUTPUT" =~ ^[[:alnum:]_.-]+$ ]]; then
+    XRANDR_ERROR="el nombre de salida xrandr contiene caracteres no admitidos: ${XRANDR_OUTPUT}"
+    return 1
+  fi
+  XRANDR_STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/brightness-notify/${XRANDR_OUTPUT}.level"
+  XRANDR_CURRENT="$XRANDR_REPORTED"
+  if [[ -r "$XRANDR_STATE_FILE" ]]; then
+    local saved_state reported_rounded saved_rounded
+    saved_state="$(<"$XRANDR_STATE_FILE")"
+    if [[ "$saved_state" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      reported_rounded="$(awk -v value="$XRANDR_REPORTED" 'BEGIN { printf "%.1f", value }')"
+      saved_rounded="$(awk -v value="$saved_state" 'BEGIN { printf "%.1f", value }')"
+      if [[ "$reported_rounded" == "$saved_rounded" ]]; then
+        XRANDR_CURRENT="$saved_state"
+      fi
+    fi
   fi
 }
 
@@ -97,6 +115,10 @@ adjust_xrandr() {
   ')"
   xrandr --output "$XRANDR_OUTPUT" --brightness "$target" ||
     fail "No se pudo aplicar el brillo xrandr ${target} a ${XRANDR_OUTPUT}."
+  mkdir -p "$(dirname "$XRANDR_STATE_FILE")" ||
+    fail "Se aplicó xrandr ${target}, pero no se pudo crear el directorio para recordar el nivel."
+  printf '%s\n' "$target" > "$XRANDR_STATE_FILE" ||
+    fail "Se aplicó xrandr ${target}, pero no se pudo guardar el nivel preciso."
   XRANDR_STATUS="xrandr ${target}×"
 }
 

@@ -18,6 +18,8 @@ class NotifyBrightness(unittest.TestCase):
         self.bin.mkdir()
         self.state = self.root / "brightness"
         self.xrandr_state = self.root / "xrandr-brightness"
+        self.xdg_state = self.root / "xdg-state"
+        self.xdg_state.mkdir()
         self.notification = self.root / "notification.txt"
 
         brightnessctl = self.bin / "brightnessctl"
@@ -72,7 +74,7 @@ case "$1" in
     ;;
   --verbose)
     printf 'eDP-1 connected primary 1920x1080+0+0\\n'
-    printf '    Brightness: %s\\n' "$(cat "$MOCK_XRANDR_STATE")"
+    printf '    Brightness: %.1f\\n' "$(cat "$MOCK_XRANDR_STATE")"
     ;;
   --output)
     [[ "$2" == eDP-1 && "$3" == --brightness ]] || exit 2
@@ -93,6 +95,7 @@ esac
             MOCK_BRIGHTNESS_MAX=str(maximum),
             MOCK_NOTIFICATION=str(self.notification),
             MOCK_XRANDR_STATE=str(self.xrandr_state),
+            XDG_STATE_HOME=str(self.xdg_state),
             PATH=f"{self.bin}:/usr/bin:/bin",
         )
         env.update(extra_env)
@@ -111,6 +114,7 @@ esac
             MOCK_BRIGHTNESS_MAX="100",
             MOCK_NOTIFICATION=str(self.notification),
             MOCK_XRANDR_STATE=str(self.xrandr_state),
+            XDG_STATE_HOME=str(self.xdg_state),
             PATH=f"{self.bin}:/usr/bin:/bin",
         )
         result = subprocess.run(
@@ -157,6 +161,25 @@ esac
     def test_hardware_decreases_after_xrandr_returns_to_base(self):
         hardware, software, _ = self.run_helper_with_xrandr("down", "1.10")
         self.assertEqual((hardware, software), (95, "1.10"))
+
+    def test_repeated_xrandr_decrements_keep_sub_tenth_precision(self):
+        self.run_helper_with_xrandr("down", "1.70")
+        self.assertEqual(self.xrandr_state.read_text().strip(), "1.65")
+
+        env = dict(
+            os.environ,
+            MOCK_BRIGHTNESS_STATE=str(self.state),
+            MOCK_BRIGHTNESS_MAX="100",
+            MOCK_NOTIFICATION=str(self.notification),
+            MOCK_XRANDR_STATE=str(self.xrandr_state),
+            XDG_STATE_HOME=str(self.xdg_state),
+            PATH=f"{self.bin}:/usr/bin:/bin",
+        )
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "down"], env=env, text=True, capture_output=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.xrandr_state.read_text().strip(), "1.60")
 
     def test_xrandr_failure_reports_display_diagnostic(self):
         self.state.write_text("100\n")
