@@ -96,17 +96,27 @@ el control de brillo del firmware mientras se diagnostica el hardware.
 
 ### `No se pudo leer el brillo xrandr de una salida interna conectada.`
 
-**Causa:** al 100%, `xrandr` no está disponible, no hay una salida interna
-detectable o el script se ejecuta fuera de una sesión X11.
+**Causa:** al 100%, `xrandr` no pudo consultar el servidor X, no se encontró
+una salida interna conectada o la salida no reportó la propiedad
+`Brightness`. La notificación incluye ahora el detalle de `DISPLAY`,
+`XAUTHORITY` o la salida que falló.
 
-**Solución:** comprueba `xrandr --query`, define `XRANDR_BRIGHTNESS_OUTPUT` con
-el nombre de la salida conectada y ejecuta el helper dentro de la sesión X11.
+**Solución:** ejecuta `xrandr --query` y `xrandr --verbose` desde la sesión
+gráfica; define `XRANDR_BRIGHTNESS_OUTPUT` si la detección eligió mal y
+asegúrate de que el atajo de i3 herede `DISPLAY` y `XAUTHORITY`.
 
 ## Changelog
 
 ### [Unreleased]
 
 - Sin cambios pendientes.
+
+### v1.2.1 — 2026-10-04
+
+**fix:** mostrar por qué falla la lectura de brillo con `xrandr`.
+
+- Diferenciar errores de conexión a X11, detección de salida y propiedad ausente.
+- Incluir el detalle de `DISPLAY` y `XAUTHORITY` disponible en el diagnóstico.
 
 ### v1.2.0 — 2026-10-04
 

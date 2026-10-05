@@ -67,6 +67,7 @@ printf '%s\\n' "$last" > "$MOCK_NOTIFICATION"
 set -euo pipefail
 case "$1" in
   --query)
+    [[ "${MOCK_XRANDR_FAIL_QUERY:-0}" != 1 ]] || exit 1
     printf 'eDP-1 connected primary 1920x1080+0+0\\n'
     ;;
   --verbose)
@@ -156,6 +157,23 @@ esac
     def test_hardware_decreases_after_xrandr_returns_to_base(self):
         hardware, software, _ = self.run_helper_with_xrandr("down", "1.10")
         self.assertEqual((hardware, software), (95, "1.10"))
+
+    def test_xrandr_failure_reports_display_diagnostic(self):
+        self.state.write_text("100\n")
+        env = dict(
+            os.environ,
+            MOCK_BRIGHTNESS_STATE=str(self.state),
+            MOCK_BRIGHTNESS_MAX="100",
+            MOCK_NOTIFICATION=str(self.notification),
+            MOCK_XRANDR_STATE=str(self.xrandr_state),
+            MOCK_XRANDR_FAIL_QUERY="1",
+            PATH=f"{self.bin}:/usr/bin:/bin",
+        )
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "up"], env=env, text=True, capture_output=True
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DISPLAY=", result.stderr)
 
     def test_hardware_resolution_rounds_threshold_and_notification(self):
         actual, notification = self.run_helper("down", 179, maximum=852)

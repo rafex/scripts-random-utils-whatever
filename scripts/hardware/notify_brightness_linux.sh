@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# notify_brightness_linux.sh v1.2.0
+# notify_brightness_linux.sh v1.2.1
 # Ajusta el backlight con brightnessctl y extiende el rango con xrandr.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -21,6 +21,7 @@ XRANDR_BASE="${XRANDR_BRIGHTNESS_BASE:-1.1}"
 XRANDR_MAX=2.0
 XRANDR_OUTPUT="${XRANDR_BRIGHTNESS_OUTPUT:-}"
 XRANDR_STATUS=''
+XRANDR_ERROR=''
 if [[ ! "$XRANDR_STEP" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
   ! awk -v step="$XRANDR_STEP" 'BEGIN { exit !(step > 0 && step <= 1) }'; then
   echo "XRANDR_BRIGHTNESS_STEP debe ser un número mayor que 0 y máximo 1.0." >&2
@@ -47,23 +48,40 @@ fail() {
 }
 
 read_xrandr_state() {
-  local query
-  command -v xrandr >/dev/null 2>&1 || return 1
-  query="$(xrandr --query 2>/dev/null)" || return 1
+  local query verbose
+  if ! command -v xrandr >/dev/null 2>&1; then
+    XRANDR_ERROR='no se encontró el comando xrandr'
+    return 1
+  fi
+  if ! query="$(xrandr --query 2>&1)"; then
+    XRANDR_ERROR="xrandr no pudo consultar DISPLAY=${DISPLAY:-no definido}: ${query:-sin detalle}; XAUTHORITY=${XAUTHORITY:-no definida}"
+    return 1
+  fi
   if [[ -z "$XRANDR_OUTPUT" ]]; then
     XRANDR_OUTPUT="$(awk '$1 ~ /^(eDP|LVDS|DSI)-/ && $2 == "connected" { print $1; exit }' <<< "$query")"
   fi
-  [[ -n "$XRANDR_OUTPUT" ]] || return 1
-  XRANDR_CURRENT="$(xrandr --verbose 2>/dev/null | awk -v output="$XRANDR_OUTPUT" '
-    $1 == output { found=1 }
+  if [[ -z "$XRANDR_OUTPUT" ]]; then
+    XRANDR_ERROR="no se detectó una salida interna conectada en DISPLAY=${DISPLAY:-no definido}"
+    return 1
+  fi
+  if ! verbose="$(xrandr --verbose 2>&1)"; then
+    XRANDR_ERROR="xrandr no pudo leer la salida ${XRANDR_OUTPUT}: ${verbose:-sin detalle}; DISPLAY=${DISPLAY:-no definido}"
+    return 1
+  fi
+  XRANDR_CURRENT="$(awk -v output="$XRANDR_OUTPUT" '
+    $1 == output { found=1; next }
+    found && $2 == "connected" { found=0 }
     found && $1 == "Brightness:" { print $2; exit }
-  ')" || return 1
-  [[ "$XRANDR_CURRENT" =~ ^[0-9]+([.][0-9]+)?$ ]]
+  ' <<< "$verbose")"
+  if [[ ! "$XRANDR_CURRENT" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    XRANDR_ERROR="xrandr no reportó la propiedad Brightness para ${XRANDR_OUTPUT}; comprueba XRANDR_BRIGHTNESS_OUTPUT y la salida de xrandr --verbose"
+    return 1
+  fi
 }
 
 adjust_xrandr() {
   local direction="$1" target
-  read_xrandr_state || fail 'No se pudo leer el brillo xrandr de una salida interna conectada.'
+  read_xrandr_state || fail "No se pudo leer el brillo xrandr: ${XRANDR_ERROR}"
   target="$(awk -v current="$XRANDR_CURRENT" -v step="$XRANDR_STEP" \
     -v base="$XRANDR_BASE" -v maximum="$XRANDR_MAX" -v direction="$direction" '
     BEGIN {
