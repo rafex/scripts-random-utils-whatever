@@ -43,12 +43,13 @@ El bloque i3 añade `XF86AudioMicMute`, `XF86WLAN`, `XF86RFKill`,
 `XF86Search`, `XF86LaunchA`, `XF86Explorer`,
 `XF86WakeUp` y `XF86Tools`. `XF86Search` abre el catálogo de aplicaciones
 registradas en el sistema mediante Rofi; `Mod+Shift+B` abre Firefox con
-DuckDuckGo. Rofi también queda disponible para ventanas, ejecución y
-confirmaciones.
+DuckDuckGo. **Mod+Shift+H** abre una referencia buscable de atajos de i3 y
+ejecuta la acción seleccionada; **Mod+Shift+E** sigue abriendo Rofi Run para
+comandos libres. Rofi también queda disponible para ventanas y confirmaciones.
 `XF86LaunchA` baja y
 `XF86Explorer` sube el brillo del teclado. Si el firmware expone
 `XF86KbdBrightnessDown` y `XF86KbdBrightnessUp`, también quedan enlazados al
-`mismo helper. `XF86Tools` abre el menú ratmenu y usa 9menu únicamente como
+`mismo helper`. `XF86Tools` abre el menú ratmenu y usa 9menu únicamente como
 respaldo;
 `Mod+F9` es su acceso alternativo y `XF86WakeUp` abre solo energía y sesión.
 El centro incluye `Software — Synaptic`, que
@@ -173,3 +174,6 @@ asignación al escritorio `5:misc`.
 **feat:** hacer que `XF86Search` muestre el catálogo de aplicaciones mediante
 `rofi-search.sh apps`, conservando `Mod+Shift+B` para DuckDuckGo y
 `Super+Space` para Ulauncher.
+
+**feat:** instalar `i3-hotkey-helper.sh` y asignar `Mod+Shift+H` a una
+referencia interactiva de atajos y acciones.

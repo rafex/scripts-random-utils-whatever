@@ -92,6 +92,7 @@ bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh 
 bindsym $mod+Shift+b exec --no-startup-id $browser_search
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
 bindsym XF86Tools exec --no-startup-id $laptop_menu
+bindsym $mod+Shift+h exec --no-startup-id ~/.local/bin/i3-hotkey-helper.sh
 # <<< i3-laptop-controls managed <<<
 
 floating_modifier $mod

@@ -100,6 +100,11 @@ age-file *args:
 rafex-ratmenu *args:
     bash scripts/system/rafex_ratmenu_linux.sh {{args}}
 
+# Consultar y ejecutar atajos frecuentes de i3 desde Rofi.
+# Uso: just i3-hotkey-helper | just i3-hotkey-helper --list
+i3-hotkey-helper *args:
+    bash scripts/system/i3_hotkey_helper_linux.sh {{args}}
+
 # Abrir DuckDuckGo desde el navegador Firefox disponible.
 rafex-browser-search:
     bash scripts/system/rafex_browser_search_linux.sh

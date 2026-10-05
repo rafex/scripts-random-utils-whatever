@@ -171,6 +171,7 @@ bindsym XF86Explorer exec --no-startup-id ~/.local/bin/kbd-brightness-notify.sh 
 bindsym $mod+Shift+b exec --no-startup-id sh -c 'if command -v firefox >/dev/null 2>&1; then exec firefox --new-tab https://duckduckgo.com/; elif command -v firefox-esr >/dev/null 2>&1; then exec firefox-esr --new-tab https://duckduckgo.com/; else notify-send "Búsqueda" "Firefox no está instalado"; fi'
 bindsym XF86WakeUp exec --no-startup-id ~/.local/bin/i3-settings-menu.sh power
 bindsym XF86Tools exec --no-startup-id ~/.local/bin/rafex-ratmenu.sh
+bindsym $mod+Shift+h exec --no-startup-id ~/.local/bin/i3-hotkey-helper.sh
 exec_always --no-startup-id sh -c 'command -v lxpolkit >/dev/null 2>&1 && ! pgrep -x lxpolkit >/dev/null 2>&1 && exec lxpolkit'
 ${end}
 EOF
@@ -266,6 +267,7 @@ main() {
   install_helper scripts/network/wifi_toggle_linux.sh wifi-toggle.sh
   install_helper scripts/network/flight_mode_toggle_linux.sh flight-mode-toggle.sh
   install_helper scripts/system/rofi_search_linux.sh rofi-search.sh
+  install_helper scripts/system/i3_hotkey_helper_linux.sh i3-hotkey-helper.sh
   install_helper scripts/system/desktop_settings_menu_linux.sh desktop-settings-menu.sh
   install_helper scripts/system/picom_toggle_linux.sh picom-toggle.sh
   install_helper scripts/system/i3_settings_menu_linux.sh i3-settings-menu.sh
