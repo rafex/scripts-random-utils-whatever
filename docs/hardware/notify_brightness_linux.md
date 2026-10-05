@@ -1,18 +1,19 @@
 ---
 title: notify_brightness_linux.sh
-description: Control de brillo de pantalla con pasos finos cerca del 20%.
+description: Control de brillo de pantalla con pasos finos cerca del 20% y extensión por xrandr sobre 100%.
 tags:
   - hardware
 ---
 
 # notify_brightness_linux.sh
 
-Ajusta el brillo de pantalla con `brightnessctl` y muestra una notificación con
-el nivel actual. Cerca del 20% usa pasos finos para facilitar el ajuste.
+Ajusta el backlight con `brightnessctl` y muestra una notificación. Cerca del
+20% usa pasos finos; al llegar al 100%, amplía el brillo por software mediante
+`xrandr` en incrementos graduales.
 
 - **Ruta:** `scripts/hardware/notify_brightness_linux.sh`
 - **SO requerido:** Linux
-- **Dependencias:** `brightnessctl`; `notify-send` para mostrar la notificación.
+- **Dependencias:** `brightnessctl`; `xrandr` para superar el 100%; `notify-send` para mostrar la notificación.
 
 ---
 
@@ -44,14 +45,17 @@ de pantalla. El helper funciona como usuario normal y no requiere `sudo`.
 
 | Opción | Alias | Descripción |
 |---|---|---|
-| `up` | — | Sube el brillo con pasos de 2% en 20% o menos; sobre 20% usa `BRIGHTNESS_STEP`. |
-| `down` | — | Baja el brillo con pasos de 1% en 20% o menos; evita saltar de más de 20% a menos de 20%. |
+| `up` | — | Sube el brillo con pasos de 2% en 20% o menos; sobre 20% usa `BRIGHTNESS_STEP`. En 100%, aumenta `xrandr` hasta 2.0. |
+| `down` | — | Baja primero el extra de `xrandr` hasta la base configurada; después baja el backlight con pasos de 1% en 20% o menos y evita saltar el umbral. |
 
 ## Variables de entorno
 
 | Variable | Predeterminado | Descripción |
 |---|---|---|
 | `BRIGHTNESS_STEP` | `5` | Porcentaje de incremento/decremento normal por encima de 20%. Debe ser un entero positivo. |
+| `XRANDR_BRIGHTNESS_STEP` | `0.05` | Incremento de brillo por software por pulsación. Acepta valores mayores que 0 y hasta 1.0. |
+| `XRANDR_BRIGHTNESS_BASE` | `1.1` | Nivel base al que `down` devuelve `xrandr` antes de reducir el backlight. Debe ser al menos 0.1 y menor que 2.0. |
+| `XRANDR_BRIGHTNESS_OUTPUT` | detección automática | Salida de pantalla para `xrandr`; si no se indica, detecta la primera salida interna conectada (`eDP`, `LVDS` o `DSI`). |
 
 ## Ejemplos
 
@@ -64,13 +68,21 @@ de pantalla. El helper funciona como usuario normal y no requiere `sudo`.
 
 # Conserva pasos de 10% fuera del rango fino.
 BRIGHTNESS_STEP=10 ./scripts/hardware/notify_brightness_linux.sh down
+
+# Usa incrementos de 0.10 al superar el 100% y selecciona la salida manualmente.
+XRANDR_BRIGHTNESS_STEP=0.10 XRANDR_BRIGHTNESS_OUTPUT=eDP-1 \
+  ./scripts/hardware/notify_brightness_linux.sh up
 ```
 
 Al bajar desde más de 20%, el paso normal se conserva salvo que cruzaría el
 umbral; en ese caso el brillo llega a 20% y los siguientes pasos bajan de 1%
 en 1%. El porcentaje se redondea al entero más cercano porque el backlight
 puede no representar cada porcentaje exacto. `brightnessctl` limita el nivel
-físico entre 0% y 100%.
+físico entre 0% y 100%. Al alcanzar el 100%, cada pulsación de subir aumenta
+la luminancia de `xrandr` en 0.05 por omisión, hasta el máximo fijo de 2.0. Al
+bajar, se reduce primero ese valor hasta la base 1.1; las pulsaciones
+siguientes actúan sobre el backlight. `xrandr` requiere una sesión gráfica
+X11 y no controla el brillo físico del panel.
 
 ## Fallos conocidos
 
@@ -82,11 +94,26 @@ puede acceder a él.
 **Solución:** ejecuta `brightnessctl -l`, revisa el controlador gráfico y usa
 el control de brillo del firmware mientras se diagnostica el hardware.
 
+### `No se pudo leer el brillo xrandr de una salida interna conectada.`
+
+**Causa:** al 100%, `xrandr` no está disponible, no hay una salida interna
+detectable o el script se ejecuta fuera de una sesión X11.
+
+**Solución:** comprueba `xrandr --query`, define `XRANDR_BRIGHTNESS_OUTPUT` con
+el nombre de la salida conectada y ejecuta el helper dentro de la sesión X11.
+
 ## Changelog
 
 ### [Unreleased]
 
 - Sin cambios pendientes.
+
+### v1.2.0 — 2026-10-04
+
+**feat:** ampliar gradualmente el brillo sobre 100% con `xrandr`.
+
+- Subir en pasos configurables hasta 2.0 y regresar a la base antes de bajar el backlight.
+- Detectar la salida interna conectada o permitir configurarla explícitamente.
 
 ### v1.1.0 — 2026-10-04
 

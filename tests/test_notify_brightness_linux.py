@@ -17,6 +17,7 @@ class NotifyBrightness(unittest.TestCase):
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.state = self.root / "brightness"
+        self.xrandr_state = self.root / "xrandr-brightness"
         self.notification = self.root / "notification.txt"
 
         brightnessctl = self.bin / "brightnessctl"
@@ -60,13 +61,37 @@ printf '%s\\n' "$last" > "$MOCK_NOTIFICATION"
         )
         notify.chmod(0o755)
 
+        xrandr = self.bin / "xrandr"
+        xrandr.write_text(
+            """#!/bin/bash
+set -euo pipefail
+case "$1" in
+  --query)
+    printf 'eDP-1 connected primary 1920x1080+0+0\\n'
+    ;;
+  --verbose)
+    printf 'eDP-1 connected primary 1920x1080+0+0\\n'
+    printf '    Brightness: %s\\n' "$(cat "$MOCK_XRANDR_STATE")"
+    ;;
+  --output)
+    [[ "$2" == eDP-1 && "$3" == --brightness ]] || exit 2
+    printf '%s\\n' "$4" > "$MOCK_XRANDR_STATE"
+    ;;
+  *) exit 2 ;;
+esac
+"""
+        )
+        xrandr.chmod(0o755)
+
     def run_helper(self, action, current, maximum=100, **extra_env):
         self.state.write_text(f"{current}\n")
+        self.xrandr_state.write_text(extra_env.pop("MOCK_XRANDR_INITIAL", "1.10") + "\n")
         env = dict(
             os.environ,
             MOCK_BRIGHTNESS_STATE=str(self.state),
             MOCK_BRIGHTNESS_MAX=str(maximum),
             MOCK_NOTIFICATION=str(self.notification),
+            MOCK_XRANDR_STATE=str(self.xrandr_state),
             PATH=f"{self.bin}:/usr/bin:/bin",
         )
         env.update(extra_env)
@@ -75,6 +100,23 @@ printf '%s\\n' "$last" > "$MOCK_NOTIFICATION"
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         return int(self.state.read_text()), self.notification.read_text()
+
+    def run_helper_with_xrandr(self, action, xrandr_initial, current=100):
+        self.state.write_text(f"{current}\n")
+        self.xrandr_state.write_text(f"{xrandr_initial}\n")
+        env = dict(
+            os.environ,
+            MOCK_BRIGHTNESS_STATE=str(self.state),
+            MOCK_BRIGHTNESS_MAX="100",
+            MOCK_NOTIFICATION=str(self.notification),
+            MOCK_XRANDR_STATE=str(self.xrandr_state),
+            PATH=f"{self.bin}:/usr/bin:/bin",
+        )
+        result = subprocess.run(
+            ["bash", str(SCRIPT), action], env=env, text=True, capture_output=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return int(self.state.read_text()), self.xrandr_state.read_text().strip(), self.notification.read_text()
 
     def test_down_uses_one_percent_at_and_below_twenty(self):
         self.assertEqual(self.run_helper("down", 20)[0], 19)
@@ -95,6 +137,25 @@ printf '%s\\n' "$last" > "$MOCK_NOTIFICATION"
     def test_changes_saturate_at_zero_and_one_hundred(self):
         self.assertEqual(self.run_helper("down", 0)[0], 0)
         self.assertEqual(self.run_helper("up", 100)[0], 100)
+
+    def test_xrandr_extends_brightness_over_one_hundred(self):
+        hardware, software, notification = self.run_helper_with_xrandr("up", "1.10")
+        self.assertEqual((hardware, software), (100, "1.15"))
+        self.assertIn("xrandr 1.15", notification)
+
+    def test_xrandr_is_reduced_before_hardware_brightness(self):
+        hardware, software, _ = self.run_helper_with_xrandr("down", "1.15")
+        self.assertEqual((hardware, software), (100, "1.10"))
+
+    def test_xrandr_caps_at_two(self):
+        _, software, _ = self.run_helper_with_xrandr("up", "1.99")
+        self.assertEqual(software, "2.00")
+        _, software, _ = self.run_helper_with_xrandr("up", "2.00")
+        self.assertEqual(software, "2.00")
+
+    def test_hardware_decreases_after_xrandr_returns_to_base(self):
+        hardware, software, _ = self.run_helper_with_xrandr("down", "1.10")
+        self.assertEqual((hardware, software), (95, "1.10"))
 
     def test_hardware_resolution_rounds_threshold_and_notification(self):
         actual, notification = self.run_helper("down", 179, maximum=852)
