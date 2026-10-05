@@ -74,7 +74,9 @@ case "$1" in
     ;;
   --verbose)
     printf 'eDP-1 connected primary 1920x1080+0+0\\n'
-    printf '    Brightness: %.1f\\n' "$(cat "$MOCK_XRANDR_STATE")"
+    value="$(cat "$MOCK_XRANDR_STATE")"
+    rounded="$(awk -v value="$value" 'BEGIN { printf "%.1f", int(value * 10 + 0.500001) / 10 }')"
+    printf '    Brightness: %s\\n' "$rounded"
     ;;
   --output)
     [[ "$2" == eDP-1 && "$3" == --brightness ]] || exit 2
@@ -108,6 +110,9 @@ esac
     def run_helper_with_xrandr(self, action, xrandr_initial, current=100):
         self.state.write_text(f"{current}\n")
         self.xrandr_state.write_text(f"{xrandr_initial}\n")
+        state_file = self.xdg_state / "brightness-notify" / "eDP-1.level"
+        state_file.parent.mkdir(exist_ok=True)
+        state_file.write_text(f"{xrandr_initial}\n")
         env = dict(
             os.environ,
             MOCK_BRIGHTNESS_STATE=str(self.state),

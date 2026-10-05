@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# notify_brightness_linux.sh v1.2.2
+# notify_brightness_linux.sh v1.2.3
 # Ajusta el backlight con brightnessctl y extiende el rango con xrandr.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -88,8 +88,8 @@ read_xrandr_state() {
     local saved_state reported_rounded saved_rounded
     saved_state="$(<"$XRANDR_STATE_FILE")"
     if [[ "$saved_state" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-      reported_rounded="$(awk -v value="$XRANDR_REPORTED" 'BEGIN { printf "%.1f", value }')"
-      saved_rounded="$(awk -v value="$saved_state" 'BEGIN { printf "%.1f", value }')"
+      reported_rounded="$(awk -v value="$XRANDR_REPORTED" 'BEGIN { value = int(value * 10 + 0.500001) / 10; printf "%.1f", value }')"
+      saved_rounded="$(awk -v value="$saved_state" 'BEGIN { value = int(value * 10 + 0.500001) / 10; printf "%.1f", value }')"
       if [[ "$reported_rounded" == "$saved_rounded" ]]; then
         XRANDR_CURRENT="$saved_state"
       fi

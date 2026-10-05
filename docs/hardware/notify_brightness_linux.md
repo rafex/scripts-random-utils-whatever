@@ -127,6 +127,13 @@ asegúrate de que el atajo de i3 herede `DISPLAY` y `XAUTHORITY`.
 - Recordar el nivel aplicado por salida porque `xrandr --verbose` redondea el valor reportado a una décima.
 - Permitir que pulsaciones consecutivas reduzcan el brillo aunque el cambio individual sea menor que una décima.
 
+### v1.2.3 — 2026-10-04
+
+**fix:** alinear la comparación del estado preciso con el redondeo de `xrandr`.
+
+- Evitar que un nivel guardado de `1.15` se interprete como `1.1` mientras la salida reporta `1.2`.
+- Cubrir el avance de pasos consecutivos alrededor de `1.15`.
+
 ### v1.2.0 — 2026-10-04
 
 **feat:** ampliar gradualmente el brillo sobre 100% con `xrandr`.
