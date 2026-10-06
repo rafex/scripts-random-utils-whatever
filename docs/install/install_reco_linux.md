@@ -91,6 +91,11 @@ RECO_SOURCE_DIR="$HOME/src/reco" RECO_PREFIX="$HOME/.local" just install-reco --
 
 ## Fallos conocidos
 
+### `Reco no aparece o no abre desde Aplicaciones`
+
+**Causa:** algunas sesiones i3/Rofi no incluyen `~/.local/bin` en `PATH`, y el lanzador instalado por Meson invoca Reco solo por nombre.
+**Solución:** `just install-reco --update` reescribe `Exec` con la ruta absoluta del prefijo y actualiza la caché de aplicaciones.
+
 ### `hay cambios rastreados sin guardar`
 
 **Causa:** hay cambios locales preparados o sin preparar en el checkout.
@@ -114,6 +119,13 @@ RECO_SOURCE_DIR="$HOME/src/reco" RECO_PREFIX="$HOME/.local" just install-reco --
 ## Changelog
 
 ### [Unreleased]
+
+### v1.0.2 — 2026-10-06
+
+**fix:** hacer visible y ejecutable Reco desde el menú de aplicaciones.
+
+- Configurar el lanzador con la ruta absoluta del ejecutable y refrescar la caché de escritorio tras instalar.
+- Documentar el fallo observado al abrir Reco desde Rofi/i3.
 
 ### v1.0.1 — 2026-10-06
 

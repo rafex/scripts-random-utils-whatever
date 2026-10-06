@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_reco_linux.sh v1.0.0
+# install_reco_linux.sh v1.0.2
 # Descarga, compila e instala Reco desde el repositorio oficial en ~/.local.
 set -Eeuo pipefail
 umask 077
@@ -147,7 +147,30 @@ print(next(option["value"] for option in options if option["name"] == "libdir"))
   meson configure "$BUILD_DIR" "-Dc_link_args=$rpath_arg"
   meson compile -C "$BUILD_DIR"
   meson install -C "$BUILD_DIR"
+  ensure_desktop_launcher
   ok "Reco compilado e instalado en $PREFIX."
+}
+
+ensure_desktop_launcher() {
+  local desktop_file="$PREFIX/share/applications/$APP_ID.desktop"
+  local temp_file
+  [[ -f "$desktop_file" ]] || die "Meson no instaló el lanzador esperado: $desktop_file."
+
+  temp_file="$(mktemp "${desktop_file}.XXXXXX")"
+  if ! awk -v executable="$PREFIX/bin/$APP_ID" '
+    /^Exec=/ { print "Exec=" executable; next }
+    { print }
+  ' "$desktop_file" >"$temp_file"; then
+    rm -f -- "$temp_file"
+    die 'no se pudo preparar el lanzador de Reco.'
+  fi
+  chmod --reference="$desktop_file" "$temp_file"
+  mv -f -- "$temp_file" "$desktop_file"
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$PREFIX/share/applications" >/dev/null 2>&1 ||
+      warn 'no se pudo actualizar la caché de aplicaciones de escritorio.'
+  fi
+  ok "lanzador de escritorio configurado: $desktop_file"
 }
 
 runtime_libraries_resolved() {
