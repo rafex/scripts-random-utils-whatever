@@ -74,6 +74,26 @@ reporta. `--rollback --component <nombre>` restaura el último respaldo de ese
 componente. No se usan hard links ni se modifican BIOS, bootloader, particiones
 o teléfonos desde este publicador.
 
+### Perfil de grabación del micrófono
+
+El perfil de escritorio no sustituye el hardware de audio ni modifica la
+entrada automáticamente. Para activar el procesamiento del micrófono interno
+con EasyEffects, usa la tarea dedicada; esta prepara la autocarga, inicia
+EasyEffects en sesiones futuras y selecciona su entrada procesada como
+predeterminada:
+
+```sh
+just install-thinkpad-microphone-profile --check
+just install-thinkpad-microphone-profile --apply
+```
+
+La misma tarea puede ejecutarse de nuevo para reparar o volver a aplicar la
+configuración. Para restaurar la entrada y los archivos previos:
+
+```sh
+just install-thinkpad-microphone-profile --rollback
+```
+
 ## Incluye
 
 - i3, i3status, Ulauncher, rofi, ratmenu (con 9menu como respaldo), dunst,

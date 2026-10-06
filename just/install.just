@@ -22,6 +22,16 @@ install-mount-nas *args:
 install-thinkpad-audio-profile *args:
     bash scripts/install/install_thinkpad_audio_profile_linux.sh {{args}}
 
+# Activar el perfil EasyEffects del micrófono interno y hacerlo la entrada predeterminada
+# Uso: just install-thinkpad-microphone-profile --check|--plan|--apply|--status|--rollback
+install-thinkpad-microphone-profile *args:
+    bash scripts/install/install_thinkpad_microphone_profile_linux.sh {{args}}
+
+# Descargar y compilar Reco desde GitHub en ~/.local
+# Uso: just install-reco --check|--plan|--apply|--update|--status
+install-reco *args:
+    bash scripts/install/install_reco_linux.sh {{args}}
+
 # Formatear un disco USB (FAT32, exFAT, ext4, APFS, HFS+)
 # Uso: just format-usb --disk disk5 --format FAT32 --name MI_USB
 format-usb *args:

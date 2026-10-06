@@ -1,6 +1,15 @@
+---
+title: install_thinkpad_audio_profile_linux.sh
+description: Instala EasyEffects y configura el procesamiento de salida de audio para la ThinkPad.
+tags:
+  - instalación
+  - audio
+  - thinkpad
+---
+
 # install_thinkpad_audio_profile_linux
 
-Instala EasyEffects y configura un preset reversible de claridad vocal para los altavoces y auriculares cableados de la ThinkPad X1 Yoga 1.ª generación.
+Instala EasyEffects y configura un preset reversible de claridad vocal para los altavoces y auriculares cableados de la ThinkPad X1 Yoga 1.ª generación. El perfil independiente del micrófono se administra con `just install-thinkpad-microphone-profile`.
 
 - **Ruta:** `scripts/install/install_thinkpad_audio_profile_linux.sh`
 - **SO requerido:** Linux (Debian/Ubuntu)
@@ -28,6 +37,8 @@ Instala EasyEffects y configura un preset reversible de claridad vocal para los 
 ## Uso
 
 `just install-thinkpad-audio-profile --apply` instala EasyEffects, copia el preset al área XDG del usuario, registra autocarga en las rutas de altavoces y auriculares, y crea el inicio automático al entrar en i3. No altera el volumen ni procesa el micrófono.
+
+Para grabar con el micrófono interno, usa la tarea separada `just install-thinkpad-microphone-profile --apply`; permite mantener o revertir de forma independiente la cadena de captura y la entrada predeterminada.
 
 ## Opciones
 

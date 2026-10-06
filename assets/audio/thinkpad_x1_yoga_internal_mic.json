@@ -1,0 +1,28 @@
+{
+  "input": {
+    "plugins_order": ["rnnoise#0", "compressor#0", "limiter#0"],
+    "rnnoise#0": {
+      "bypass": false,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "enable-vad": true,
+      "vad-thres": 50.0,
+      "wet": 1.0,
+      "use-standard-model": true
+    },
+    "compressor#0": {
+      "bypass": false,
+      "threshold": -24.0,
+      "ratio": 2.5,
+      "attack": 10.0,
+      "release": 120.0,
+      "makeup": 2.0
+    },
+    "limiter#0": {
+      "bypass": false,
+      "threshold": -1.0,
+      "attack": 5.0,
+      "release": 50.0
+    }
+  }
+}
