@@ -106,10 +106,21 @@ RECO_SOURCE_DIR="$HOME/src/reco" RECO_PREFIX="$HOME/.local" just install-reco --
 **Causa:** el equipo no pudo descargar los subproyectos fijados por los wraps de Reco.
 **Solución:** confirma la conexión con GitHub y reintenta `just install-reco --update`.
 
+### `libryokucha.so: cannot open shared object file`
+
+**Causa:** el ejecutable no tiene configurada la ruta del prefijo local de bibliotecas.
+**Solución:** ejecuta `just install-reco --apply` para volver a compilar con RPATH al `libdir` de Meson.
+
 ## Changelog
 
 ### [Unreleased]
-- Cambios pendientes de release.
+
+### v1.0.1 — 2026-10-06
+
+**fix:** compilar desde el checkout y enlazar dependencias del prefijo local.
+
+- Configurar Meson con la ruta del checkout clonado y enlazar bibliotecas instaladas en `~/.local` mediante RPATH.
+- Validar en `--status` que el ejecutable no tenga bibliotecas compartidas faltantes.
 
 ### v1.0.0 — 2026-10-06
 

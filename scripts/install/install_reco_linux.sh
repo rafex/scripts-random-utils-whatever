@@ -131,15 +131,30 @@ sync_source() {
 }
 
 build_install() {
+  local libdir rpath_arg
   mkdir -p -- "$PREFIX"
   if [[ -f "$BUILD_DIR/meson-private/coredata.dat" ]]; then
     meson configure "$BUILD_DIR" --prefix="$PREFIX" -Dgranite=disabled -Duse_submodule=true
   else
-    meson setup "$BUILD_DIR" --prefix="$PREFIX" -Dgranite=disabled -Duse_submodule=true
+    meson setup "$BUILD_DIR" "$REPO_DIR" --prefix="$PREFIX" -Dgranite=disabled -Duse_submodule=true
   fi
+  libdir="$(meson introspect --buildoptions "$BUILD_DIR" | python3 -c '
+import json, sys
+options = json.load(sys.stdin)
+print(next(option["value"] for option in options if option["name"] == "libdir"))
+')"
+  rpath_arg="-Wl\\,-rpath=$PREFIX/$libdir"
+  meson configure "$BUILD_DIR" "-Dc_link_args=$rpath_arg"
   meson compile -C "$BUILD_DIR"
   meson install -C "$BUILD_DIR"
   ok "Reco compilado e instalado en $PREFIX."
+}
+
+runtime_libraries_resolved() {
+  local binary="$PREFIX/bin/$APP_ID"
+  command -v ldd >/dev/null 2>&1 || die 'falta ldd para comprobar los enlaces dinámicos de Reco.'
+  [[ -x "$binary" ]] || return 1
+  ! ldd "$binary" | grep -q 'not found'
 }
 
 show_check() {
@@ -154,6 +169,11 @@ show_check() {
   fi
   if [[ -x "$PREFIX/bin/$APP_ID" ]]; then
     ok "ejecutable disponible: $PREFIX/bin/$APP_ID"
+    if runtime_libraries_resolved; then
+      ok 'bibliotecas de ejecución resueltas.'
+    else
+      warn 'faltan bibliotecas de ejecución; vuelve a ejecutar --apply.'
+    fi
   else
     warn 'Reco no está instalado en el prefijo configurado.'
   fi
@@ -168,6 +188,7 @@ show_status() {
   fi
   if [[ -x "$PREFIX/bin/$APP_ID" ]]; then
     printf 'ejecutable=%s\n' "$PREFIX/bin/$APP_ID"
+    runtime_libraries_resolved || die 'el ejecutable tiene bibliotecas compartidas sin resolver; ejecuta just install-reco --apply.'
   else
     printf 'ejecutable=ausente\n'
     return 1
