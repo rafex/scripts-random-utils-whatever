@@ -17,6 +17,11 @@ install-nas-client *args:
 install-mount-nas *args:
     bash scripts/install/install_mount_nas_linux.sh {{args}}
 
+# Instalar EasyEffects y el perfil reversible de voces claras para la ThinkPad
+# Uso: just install-thinkpad-audio-profile --check|--plan|--apply|--status|--rollback
+install-thinkpad-audio-profile *args:
+    bash scripts/install/install_thinkpad_audio_profile_linux.sh {{args}}
+
 # Formatear un disco USB (FAT32, exFAT, ext4, APFS, HFS+)
 # Uso: just format-usb --disk disk5 --format FAT32 --name MI_USB
 format-usb *args:
