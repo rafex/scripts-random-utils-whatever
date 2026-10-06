@@ -52,7 +52,7 @@ wifi-toggle-radio *args:
 myip *args:
     bash scripts/network/myip_linux.sh {{args}}
 
-# Conectar a NAS
+# Conectar al TNAS con SMB 3.1.1 usando las credenciales protegidas en ~/.config/samba
 # Uso: just connect-nas
 connect-nas *args:
     bash scripts/network/connect_nas_linux.sh {{args}}

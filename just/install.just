@@ -7,6 +7,11 @@
 create-usb *args:
     bash scripts/install/create_usb_unix.sh {{args}}
 
+# Instalar el cliente CIFS para conectar recursos SMB/NAS (no instala servidor Samba)
+# Uso: just install-nas-client --check|--plan|--apply
+install-nas-client *args:
+    bash scripts/install/install_nas_client_linux.sh {{args}}
+
 # Formatear un disco USB (FAT32, exFAT, ext4, APFS, HFS+)
 # Uso: just format-usb --disk disk5 --format FAT32 --name MI_USB
 format-usb *args:
