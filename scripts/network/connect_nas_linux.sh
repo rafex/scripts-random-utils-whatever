@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# connect_nas_linux.sh v1.1.0
+# connect_nas_linux.sh v1.2.0
 # Monta el TNAS mediante CIFS y SMB 3.1.1 usando credenciales protegidas.
 set -Eeuo pipefail
 
@@ -12,6 +12,8 @@ NAS_UID="${NAS_UID:-$(id -u)}"
 NAS_GID="${NAS_GID:-$(id -g)}"
 NAS_FILE_MODE="${NAS_FILE_MODE:-0644}"
 NAS_DIR_MODE="${NAS_DIR_MODE:-0755}"
+NAS_RETRIES="${NAS_RETRIES:-3}"
+NAS_RETRY_DELAY="${NAS_RETRY_DELAY:-2}"
 
 notify() {
   local urgency="$1" title="$2" message="$3"
@@ -28,7 +30,8 @@ fail() {
 }
 
 require_command() {
-  command -v "$1" >/dev/null 2>&1 || fail "falta '$1'; ejecuta 'just install-nas-client --apply'."
+  command -v "$1" >/dev/null 2>&1 ||
+    fail "falta '$1'; instala cifs-utils con 'sudo apt-get install cifs-utils' y verifica mountpoint, findmnt y sudo."
 }
 
 validate_options() {
@@ -43,6 +46,8 @@ validate_options() {
     fail "NAS_UID y NAS_GID deben ser enteros no negativos."
   [[ "$NAS_FILE_MODE" =~ ^0?[0-7]{3,4}$ && "$NAS_DIR_MODE" =~ ^0?[0-7]{3,4}$ ]] ||
     fail "NAS_FILE_MODE y NAS_DIR_MODE deben ser permisos octales."
+  [[ "$NAS_RETRIES" =~ ^[1-9][0-9]*$ ]] || fail "NAS_RETRIES debe ser un entero mayor que cero."
+  [[ "$NAS_RETRY_DELAY" =~ ^[0-9]+([.][0-9]+)?$ ]] || fail "NAS_RETRY_DELAY debe ser un número no negativo."
 }
 
 secure_credentials() {
@@ -88,20 +93,28 @@ main() {
     fail "no se pudo crear el punto de montaje $NAS_MOUNT_POINT."
   fi
 
-  local mount_options output status
+  local mount_options output status attempt
   mount_options="credentials=$NAS_CREDENTIALS,uid=$NAS_UID,gid=$NAS_GID,iocharset=utf8,vers=$NAS_SMB_VERSION,file_mode=$NAS_FILE_MODE,dir_mode=$NAS_DIR_MODE"
-  if output="$(sudo mount -t cifs "$NAS_SMB" "$NAS_MOUNT_POINT" -o "$mount_options" 2>&1)"; then
-    if ! mountpoint -q -- "$NAS_MOUNT_POINT"; then
-      fail "el comando de montaje terminó sin error, pero $NAS_MOUNT_POINT no aparece montado."
+  for ((attempt = 1; attempt <= NAS_RETRIES; attempt++)); do
+    if output="$(sudo mount -t cifs "$NAS_SMB" "$NAS_MOUNT_POINT" -o "$mount_options" 2>&1)"; then
+      if ! mountpoint -q -- "$NAS_MOUNT_POINT"; then
+        fail "el comando de montaje terminó sin error, pero $NAS_MOUNT_POINT no aparece montado."
+      fi
+      printf 'TNAS montado en %s usando SMB %s\n' "$NAS_MOUNT_POINT" "$NAS_SMB_VERSION"
+      notify normal 'TNAS' "Montado en $NAS_MOUNT_POINT (SMB $NAS_SMB_VERSION)"
+      return 0
+    else
+      status=$?
     fi
-    printf 'TNAS montado en %s usando SMB %s\n' "$NAS_MOUNT_POINT" "$NAS_SMB_VERSION"
-    notify normal 'TNAS' "Montado en $NAS_MOUNT_POINT (SMB $NAS_SMB_VERSION)"
-  else
-    status=$?
-    printf '%s\n' "${output:-mount.cifs no devolvió detalles.}" >&2
-    notify critical 'TNAS: error al montar' "${output:-mount.cifs no devolvió detalles.}"
-    return "$status"
-  fi
+    if ((attempt < NAS_RETRIES)); then
+      printf 'Intento %s/%s falló; reintento en %s s: %s\n' \
+        "$attempt" "$NAS_RETRIES" "$NAS_RETRY_DELAY" "${output:-sin detalles}" >&2
+      sleep "$NAS_RETRY_DELAY"
+    fi
+  done
+  printf '%s\n' "${output:-mount.cifs no devolvió detalles.}" >&2
+  notify critical 'TNAS: error al montar' "${output:-mount.cifs no devolvió detalles.}"
+  return "$status"
 }
 
 main "$@"

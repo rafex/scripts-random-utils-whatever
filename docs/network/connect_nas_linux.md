@@ -1,6 +1,6 @@
 # connect_nas_linux
 
-Monta el recurso TNAS por CIFS con SMB 3.1.1 y protege automáticamente el archivo local de credenciales.
+Monta el recurso TNAS por CIFS con SMB 3.1.1, protege las credenciales y reintenta fallos transitorios. Instalado como `~/.local/bin/mountNas`, funciona sin el repositorio.
 
 - **Ruta:** `scripts/network/connect_nas_linux.sh`
 - **SO requerido:** Linux
@@ -28,7 +28,7 @@ Monta el recurso TNAS por CIFS con SMB 3.1.1 y protege automáticamente el archi
 
 ## Uso
 
-Ejecutar `just connect-nas` o directamente `bash scripts/network/connect_nas_linux.sh`. El script no acepta argumentos; su configuración se realiza con variables `NAS_*`.
+Instalar el comando independiente con `just install-mount-nas --apply`. Después, ejecutar `mountNas` desde cualquier directorio. También se puede ejecutar `just connect-nas` desde el repositorio. El script de conexión no acepta argumentos; su configuración se realiza con variables `NAS_*`.
 
 ## Opciones
 
@@ -51,6 +51,8 @@ Los argumentos CLI no aplican. Las variables `NAS_*` prevalecen sobre sus valore
 | `NAS_UID`, `NAS_GID` | UID y GID del usuario actual | Propietario local de los archivos montados. |
 | `NAS_FILE_MODE` | `0644` | Permisos locales para archivos. |
 | `NAS_DIR_MODE` | `0755` | Permisos locales para directorios. |
+| `NAS_RETRIES` | `3` | Intentos de montaje antes de reportar el fallo. |
+| `NAS_RETRY_DELAY` | `2` | Segundos entre intentos; acepta fracciones y cero. |
 
 ## Ejemplos
 
@@ -58,6 +60,12 @@ Forma recomendada:
 
 ```bash
 just connect-nas
+```
+
+O desde cualquier directorio tras instalar el helper:
+
+```bash
+mountNas
 ```
 
 Configurar otra ruta o recurso:
@@ -103,6 +111,14 @@ No hay modo legacy con argumentos posicionales; se debe usar `NAS_*`.
 
 ### [Unreleased]
 - Cambios pendientes de release.
+
+### v1.2.0 — 2026-10-05
+
+**feat:** permitir instalación autónoma y recuperación ante fallos transitorios.
+
+- Reintentar el montaje hasta tres veces por defecto con pausa configurable.
+- Eliminar del helper local la dependencia de `just` para diagnosticar `mount.cifs` ausente.
+- Instalar `mountNas` atómicamente en `~/.local/bin`, conservando una copia previa al actualizar.
 
 ### v1.1.0 — 2026-10-05
 

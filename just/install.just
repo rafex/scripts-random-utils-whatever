@@ -12,6 +12,11 @@ create-usb *args:
 install-nas-client *args:
     bash scripts/install/install_nas_client_linux.sh {{args}}
 
+# Instalar mountNas en ~/.local/bin para usarlo sin depender del repositorio
+# Uso: just install-mount-nas --check|--plan|--apply|--status
+install-mount-nas *args:
+    bash scripts/install/install_mount_nas_linux.sh {{args}}
+
 # Formatear un disco USB (FAT32, exFAT, ext4, APFS, HFS+)
 # Uso: just format-usb --disk disk5 --format FAT32 --name MI_USB
 format-usb *args:

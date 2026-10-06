@@ -105,9 +105,11 @@ exit 98
 
     def test_mount_error_is_reported_and_preserves_status(self):
         self.env["NAS_TEST_MOUNT_FAIL"] = "1"
+        self.env["NAS_RETRY_DELAY"] = "0"
         result = self._run()
         self.assertEqual(result.returncode, 32)
         self.assertIn("simulated CIFS failure", result.stderr)
+        self.assertEqual(len(self.calls.read_text().splitlines()), 3)
 
     def test_missing_credentials_fail_without_mounting(self):
         self.credentials.unlink()
@@ -120,6 +122,18 @@ exit 98
         result = self._run("--help")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("no acepta argumentos", result.stderr)
+
+    def test_installer_puts_standalone_mountnas_in_local_bin(self):
+        target = self.root / "home" / ".local" / "bin" / "mountNas"
+        installer = REPO_ROOT / "scripts/install/install_mount_nas_linux.sh"
+        env = os.environ.copy()
+        env["HOME"] = str(self.root / "home")
+        env["NAS_INSTALL_TARGET"] = str(target)
+        result = subprocess.run(["bash", str(installer), "--apply"], env=env,
+                                text=True, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(target.read_bytes(), SCRIPT.read_bytes())
+        self.assertEqual(target.stat().st_mode & 0o777, 0o755)
 
 
 if __name__ == "__main__":
