@@ -73,7 +73,10 @@ if [[ "$OS_TYPE" == Linux ]]; then
     [[ -n "$line" ]] || continue
     read -r device transport type <<<"$line"
     [[ "$type" == disk && "$transport" == usb ]] || continue
-    read -r size model <<<"$(lsblk -dnro SIZE,MODEL "$device" 2>/dev/null || true)"
+    read -r size_bytes _ <<<"$(lsblk -bdnro SIZE,MODEL "$device" 2>/dev/null || true)"
+    if [[ ! "$size_bytes" =~ ^[0-9]+$ ]] || ((size_bytes == 0)); then continue; fi
+    size="$(lsblk -dnro SIZE "$device" 2>/dev/null || true)"
+    model="$(lsblk -dnro MODEL "$device" 2>/dev/null || true)"
     DISKS+=("$device")
     DISK_LABELS+=("$device  $size  ${model:-modelo desconocido}")
   done < <(lsblk -dpno NAME,TRAN,TYPE 2>/dev/null)
