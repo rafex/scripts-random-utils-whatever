@@ -7,6 +7,11 @@
 create-usb *args:
     bash scripts/install/create_usb_unix.sh {{args}}
 
+# Instalar smartmontools y fio para el diagnóstico de discos USB
+# Uso: just install-disk-health-tools
+install-disk-health-tools *args:
+    bash scripts/install/install_disk_health_tools_unix.sh {{args}}
+
 # Instalar el cliente CIFS para conectar recursos SMB/NAS (no instala servidor Samba)
 # Uso: just install-nas-client --check|--plan|--apply
 install-nas-client *args:

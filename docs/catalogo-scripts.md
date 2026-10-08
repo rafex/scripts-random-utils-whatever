@@ -72,6 +72,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/install/configure_java_mise_linux.sh` | Linux | configure-java-mise | no | sí | medio | [doc](install/configure_java_mise_linux.md) |
 | `scripts/install/install_bash_reload_linux.sh` | Linux | install-bash-reload | no | sí | bajo | [doc](install/install_bash_reload_linux.md) |
 | `scripts/install/install_dotfiles_unix.sh` | macOS/Linux | install-dotfiles | no | sí | medio | [doc](install/install_dotfiles_unix.md) |
+| `scripts/install/install_disk_health_tools_unix.sh` | macOS/Linux | install-disk-health-tools | opcional | no | medio | [doc](install/install_disk_health_tools_unix.md) |
 | `scripts/install/install_eclipse_ide_linux.sh` | Linux | install-eclipse-ide | no | sí | medio | [doc](install/install_eclipse_ide_linux.md) |
 | `scripts/install/install_ether_rules_mcp_unix.sh` | macOS/Linux | install-ether-rules-mcp | no | sí | medio | [doc](install/install_ether_rules_mcp_unix.md) |
 | `scripts/install/install_firefox_mozilla_linux.sh` | Linux | install-firefox-mozilla | sí | sí | medio | [doc](install/install_firefox_mozilla_linux.md) |

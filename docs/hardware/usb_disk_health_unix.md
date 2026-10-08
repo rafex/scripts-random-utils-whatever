@@ -31,7 +31,7 @@ Consulta SMART y mide la escritura secuencial de un archivo temporal en un disco
 ## Requisitos
 
 - Conecta y monta el disco externo antes de ejecutar el diagnóstico.
-- Instala `fio` y `smartmontools` (`smartctl`). En Linux también se necesitan `lsblk` y `findmnt`, normalmente incluidos en las utilidades del sistema.
+- Instala `fio` y `smartmontools` (`smartctl`) con `just install-disk-health-tools`. En Linux también se necesitan `lsblk` y `findmnt`, normalmente incluidos en las utilidades del sistema.
 - `sudo` debe estar disponible para consultar SMART.
 - El volumen debe tener al menos el tamaño de prueba más 128 MiB libres. El tamaño predeterminado es 1 GiB.
 - El gabinete o adaptador USB debe permitir el paso de comandos SMART para que la consulta y el autotest funcionen.
