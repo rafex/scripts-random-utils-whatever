@@ -64,6 +64,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/hardware/screensaver_toggle_linux.sh` | Linux | screensaver-toggle | no | sí | bajo | [doc](hardware/screensaver_toggle_linux.md) |
 | `scripts/hardware/test_wacom_pen_linux.sh` | Linux | test-wacom-pen | opcional | sí | bajo | [doc](hardware/test_wacom_pen_linux.md) |
 | `scripts/hardware/usb_disk_health_unix.sh` | macOS/Linux | disk-health | sí | sí | medio | [doc](hardware/usb_disk_health_unix.md) |
+| `scripts/hardware/usb_disk_smart_extended_unix.sh` | macOS/Linux | disk-smart-extended | sí | sí | medio | [doc](hardware/usb_disk_smart_extended_unix.md) |
 | `scripts/hardware/usb_mount_perms_linux.sh` | Linux | usb-perms | sí | sí | alto | [doc](hardware/usb_mount_perms_linux.md) |
 | `scripts/install/configure_sudo_linux.sh` | Linux | configure-sudo | sí | sí | alto | [doc](install/configure_sudo_linux.md) |
 | `scripts/install/create_usb_unix.sh` | macOS/Linux | create-usb | sí | sí | alto | [doc](install/create_usb_unix.md) |

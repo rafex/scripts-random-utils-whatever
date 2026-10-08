@@ -31,6 +31,11 @@ test-wacom-pen *args:
 disk-health *args:
     bash scripts/hardware/usb_disk_health_unix.sh {{args}}
 
+# Ejecutar y esperar la prueba SMART extendida de uno o todos los discos USB externos
+# Uso: just disk-smart-extended [--all]
+disk-smart-extended *args:
+    bash scripts/hardware/usb_disk_smart_extended_unix.sh {{args}}
+
 # Preparar apagado, reinicio, suspensión, hibernación y bloqueo
 # Uso: just power-control --check | just power-control --apply
 power-control *args:
