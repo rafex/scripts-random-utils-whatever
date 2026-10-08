@@ -12,7 +12,7 @@ Inicia el autotest SMART extendido de uno o de todos los discos USB externos y e
 
 - **Ruta:** `scripts/hardware/usb_disk_smart_extended_unix.sh`
 - **SO requerido:** macOS, Linux
-- **Dependencias:** `bash`, `smartmontools` (`smartctl`), `sudo`; además `lsblk` en Linux o `diskutil` en macOS
+- **Dependencias:** `bash`, `smartmontools` (`smartctl`), `sudo`, `dd`; Linux: `lsblk`, `readlink`, `systemd-inhibit`, `tee`; macOS: `diskutil`, `caffeinate`
 - **Task runner:** `just` (recomendado)
 
 ---
@@ -33,8 +33,8 @@ Inicia el autotest SMART extendido de uno o de todos los discos USB externos y e
 - Conecta los discos externos antes de ejecutar el diagnóstico.
 - Instala `smartmontools` con `just install-disk-health-tools`.
 - `sudo` debe estar disponible para consultar SMART e iniciar los autotests.
-- El puente USB debe permitir el paso de comandos SMART.
-- Mantén el equipo encendido y los discos conectados hasta que todas las pruebas terminen. Cada prueba puede tardar varias horas.
+- El puente USB debe permitir el paso de comandos SMART y lecturas de bloque.
+- Mantén el equipo conectado a corriente y los discos conectados hasta que todas las pruebas terminen. Las pruebas se ejecutan una a la vez; cada una puede tardar varias horas.
 
 ## Uso
 
@@ -44,7 +44,7 @@ Desde la raíz del repositorio:
 just disk-smart-extended
 ```
 
-El script lista los discos USB externos, permite elegir uno o todos y pide escribir `YES` antes de iniciar. Luego consulta el progreso cada minuto y guarda la salida completa en un directorio `usb-smart-extended.*` bajo `/tmp` (o bajo `$TMPDIR`).
+El script lista los discos USB externos, permite elegir uno o todos y pide escribir `YES` antes de iniciar. Ejecuta las pruebas secuencialmente. Mientras espera, bloquea temporalmente la suspensión del equipo, desactiva autosuspend solo en el dispositivo USB del gabinete y realiza una lectura de 4 KiB cada minuto para evitar la hibernación por inactividad. Restaura el ajuste USB original al terminar o si recibe una interrupción. Guarda progreso y resultados en un directorio `usb-smart-extended.*` bajo `/tmp` (o bajo `$TMPDIR`).
 
 ## Opciones
 
@@ -89,6 +89,9 @@ bash scripts/hardware/usb_disk_smart_extended_unix.sh --all
 
 - Solo selecciona discos externos USB en Linux o discos externos físicos en macOS.
 - La prueba SMART extendida es de solo lectura; no formatea, particiona ni escribe archivos en el disco.
+- No inicia una segunda prueba hasta que la del disco actual haya terminado.
+- En Linux, limita el cambio de autosuspend al puente USB detectado y devuelve `power/control` a su valor original. El bloqueo de suspensión del sistema dura solo lo que tardan las pruebas.
+- Las lecturas keepalive acceden a una cantidad mínima de datos y no modifican el contenido del volumen.
 - Muestra los destinos y requiere confirmación antes de iniciar.
 - Si el puente no admite SMART o el autotest no puede iniciarse, conserva el mensaje en el reporte.
 - SMART no es garantía absoluta de salud futura. Conserva una copia de seguridad de los datos.
@@ -107,12 +110,14 @@ bash scripts/hardware/usb_disk_smart_extended_unix.sh --all
 
 ### La prueba queda interrumpida
 
-**Causa:** el equipo se suspendió, se apagó, se desconectó el gabinete o el puente USB reinició el disco.
-**Solución:** evita suspender el equipo, mantén energía estable y reinicia el autotest cuando puedas dejar el disco conectado durante toda su duración.
+**Causa:** el gabinete o el adaptador reinició o hibernó el disco, se perdió la conexión USB o el dispositivo no expone una lectura keepalive estable.
+**Solución:** comprueba que el reporte muestre la protección USB activa, mantén energía estable y vuelve a ejecutar. Si persiste, conecta el disco directamente por SATA u otro puente.
 
 ## Changelog
 
 ### [Unreleased]
+
+- Ejecuta autotests en serie, inhibe suspensión, previene autosuspend USB temporalmente y mantiene activo el disco con lecturas periódicas.
 
 ### v1.0.0 — 2026-10-07
 
