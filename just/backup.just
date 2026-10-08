@@ -12,3 +12,8 @@ backup-thinkpad-restic *args:
 # Uso: just sync-age-to-thinkpad --check|--plan|--status|--apply --target <ssh>
 sync-age-to-thinkpad *args:
     bash scripts/backup/sync_age_to_thinkpad_unix.sh {{args}}
+
+# Sincronizar discoExterno de rafex al USB local del TNAS sin borrar el origen.
+# Uso: just sync-tnas-usb --dry-run|--verify
+sync-tnas-usb *args:
+    bash scripts/backup/sync_rafex_disco_externo_to_usbshare1_linux.sh {{args}}
