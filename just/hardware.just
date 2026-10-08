@@ -26,6 +26,11 @@ usb-perms *args:
 test-wacom-pen *args:
     bash scripts/hardware/test_wacom_pen_linux.sh {{args}}
 
+# Consultar SMART y medir escritura secuencial temporal en un disco USB externo
+# Uso: just disk-health [--size 1G]
+disk-health *args:
+    bash scripts/hardware/usb_disk_health_unix.sh {{args}}
+
 # Preparar apagado, reinicio, suspensión, hibernación y bloqueo
 # Uso: just power-control --check | just power-control --apply
 power-control *args:
