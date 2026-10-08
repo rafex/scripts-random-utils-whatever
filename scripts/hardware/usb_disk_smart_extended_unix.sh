@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_NAME="${0##*/}"
 OS_TYPE="$(uname -s)"
 SELECT_ALL=0
+declare -a ORIGINAL_ARGS=("$@")
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
@@ -64,6 +65,13 @@ if [[ $EUID -ne 0 ]] && ! command -v sudo >/dev/null 2>&1; then
   error "sudo es necesario para consultar y ejecutar SMART"
   exit 1
 fi
+
+if [[ "$OS_TYPE" == Linux && $EUID -ne 0 ]]; then
+  exec sudo bash "$0" "${ORIGINAL_ARGS[@]}"
+fi
+
+REPORT_UID="${SUDO_UID:-$EUID}"
+REPORT_GID="${SUDO_GID:-$(id -g)}"
 
 privileged_run() {
   if [[ $EUID -eq 0 ]]; then "$@"; else sudo "$@"; fi
@@ -163,6 +171,9 @@ cleanup() {
   fi
   if [[ "$exit_status" == 130 || "$exit_status" == 143 ]]; then
     printf '\nPrueba interrumpida por una señal; consulta el último estado SMART antes de reintentar.\n' >>"$REPORT"
+  fi
+  if [[ -n "$REPORT_DIR" && "$REPORT_UID" != 0 ]]; then
+    chown "$REPORT_UID:$REPORT_GID" "$REPORT_DIR" "$REPORT" >/dev/null 2>&1 || true
   fi
   return "$exit_status"
 }

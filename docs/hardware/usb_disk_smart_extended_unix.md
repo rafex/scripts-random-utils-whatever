@@ -32,7 +32,7 @@ Inicia el autotest SMART extendido de uno o de todos los discos USB externos y e
 
 - Conecta los discos externos antes de ejecutar el diagnóstico.
 - Instala `smartmontools` con `just install-disk-health-tools`.
-- `sudo` debe estar disponible para consultar SMART e iniciar los autotests.
+- `sudo` debe estar disponible en Linux; el script se eleva una vez para bloquear suspensión y ajustar el estado temporal de energía USB. En macOS se usa `sudo` para las consultas SMART.
 - El puente USB debe permitir el paso de comandos SMART y lecturas de bloque.
 - Mantén el equipo conectado a corriente y los discos conectados hasta que todas las pruebas terminen. Las pruebas se ejecutan una a la vez; cada una puede tardar varias horas.
 
@@ -44,7 +44,7 @@ Desde la raíz del repositorio:
 just disk-smart-extended
 ```
 
-El script lista los discos USB externos, permite elegir uno o todos y pide escribir `YES` antes de iniciar. Ejecuta las pruebas secuencialmente. Mientras espera, bloquea temporalmente la suspensión del equipo, desactiva autosuspend solo en el dispositivo USB del gabinete y realiza una lectura de 4 KiB cada minuto para evitar la hibernación por inactividad. Restaura el ajuste USB original al terminar o si recibe una interrupción. Guarda progreso y resultados en un directorio `usb-smart-extended.*` bajo `/tmp` (o bajo `$TMPDIR`).
+El script lista los discos USB externos, permite elegir uno o todos y pide escribir `YES` antes de iniciar. En Linux solicita `sudo` una vez y conserva el reporte accesible para tu usuario. Ejecuta las pruebas secuencialmente. Mientras espera, bloquea temporalmente la suspensión y el cierre de tapa, desactiva autosuspend solo en el dispositivo USB del gabinete y realiza una lectura de 4 KiB cada minuto para evitar la hibernación por inactividad. Restaura el ajuste USB original al terminar o si recibe una interrupción. Guarda progreso y resultados en un directorio `usb-smart-extended.*` bajo `/tmp` (o bajo `$TMPDIR`).
 
 ## Opciones
 
