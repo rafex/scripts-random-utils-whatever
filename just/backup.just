@@ -22,3 +22,8 @@ sync-tnas-usb *args:
 # Uso: just manage-tnas-usb-sync start|status|logs|stop
 manage-tnas-usb-sync *args:
     bash scripts/backup/manage_tnas_usb_sync_linux.sh {{args}}
+
+# Consolidar fotos de dos carpetas en un destino único con verificación SQLite.
+# Uso: just dedupe-photos run A B C --mode visual-review
+dedupe-photos *args:
+    python scripts/backup/dedupe_photos_unix.py {{args}}
