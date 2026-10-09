@@ -184,6 +184,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/system/thinkpad_config_audit_linux.sh` | Linux | thinkpad-config-audit | no | sí | bajo | [doc](system/thinkpad_config_audit_linux.md) |
 | `scripts/lib/thinkpad_config_guard_linux.sh` | Linux | biblioteca interna | no | no | bajo | [doc](lib/thinkpad_config_guard_linux.md) |
 | `scripts/lib/thinkpad_i3_fragments_linux.sh` | Linux | biblioteca interna | no | no | medio | [doc](lib/thinkpad_i3_fragments_linux.md) |
+| `scripts/system/configure_rafex_admin_acl_linux.sh` | Linux (TNAS) | rafex-admin-acl | sí | sí | alto | [doc](system/configure_rafex_admin_acl_linux.md) |
 | `scripts/system/rafex_config_linux.sh` | Linux | rafex-config | no | sí | medio | [doc](system/rafex_config_linux.md) |
 | `scripts/lib/rafex_config_publish_linux.sh` | Linux | biblioteca interna | no | no | bajo | [doc](lib/rafex_config_publish_linux.md) |
 | `scripts/lib/game_install_linux.sh` | Linux | biblioteca interna | no | no | medio | [doc](lib/game_install_linux.md) |

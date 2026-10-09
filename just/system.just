@@ -105,6 +105,11 @@ rafex-ratmenu *args:
 i3-hotkey-helper *args:
     bash scripts/system/i3_hotkey_helper_linux.sh {{args}}
 
+# Revisar, conceder o restaurar ACL para que admin modifique el home de rafex.
+# Uso: just rafex-admin-acl --check|--dry-run|--apply|--restore <respaldo>
+rafex-admin-acl *args:
+    bash scripts/system/configure_rafex_admin_acl_linux.sh {{args}}
+
 # Abrir DuckDuckGo desde el navegador Firefox disponible.
 rafex-browser-search:
     bash scripts/system/rafex_browser_search_linux.sh
