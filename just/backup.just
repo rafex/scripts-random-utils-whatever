@@ -17,3 +17,8 @@ sync-age-to-thinkpad *args:
 # Uso: just sync-tnas-usb --dry-run|--verify
 sync-tnas-usb *args:
     bash scripts/backup/sync_rafex_disco_externo_to_usbshare1_linux.sh {{args}}
+
+# Ejecutar y supervisar copias del TNAS en segundo plano aunque SSH se desconecte.
+# Uso: just manage-tnas-usb-sync start|status|logs|stop
+manage-tnas-usb-sync *args:
+    bash scripts/backup/manage_tnas_usb_sync_linux.sh {{args}}

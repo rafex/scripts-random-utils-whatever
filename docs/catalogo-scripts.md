@@ -25,6 +25,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/backup/backup_thinkpad_recovery_linux.sh` | Linux | backup-thinkpad | sí | sí | alto | [doc](backup/backup_thinkpad_recovery_linux.md) |
 | `scripts/backup/backup_thinkpad_restic_linux.sh` | Linux | backup-thinkpad-restic | no | sí | alto | [doc](backup/backup_thinkpad_restic_linux.md) |
 | `scripts/backup/sync_rafex_disco_externo_to_usbshare1_linux.sh` | Linux (TNAS) | sync-tnas-usb | sí | sí | medio | [doc](backup/sync_rafex_disco_externo_to_usbshare1_linux.md) |
+| `scripts/backup/manage_tnas_usb_sync_linux.sh` | Linux (TNAS) | manage-tnas-usb-sync | sí | sí | medio | [doc](backup/manage_tnas_usb_sync_linux.md) |
 | `scripts/backup/sync_age_to_thinkpad_unix.sh` | macOS/Linux | sync-age-to-thinkpad | no | sí | medio | [doc](backup/sync_age_to_thinkpad_unix.md) |
 | `scripts/dev/commons_deploy_verify_unix.sh` | macOS/Linux | — | no | — | medio | [doc](dev/commons_deploy_verify_unix.md) |
 | `scripts/dev/deploy_configs_unix.sh` | macOS/Linux | deploy-configs | opcional | sí | alto | [doc](dev/deploy_configs_unix.md) |
