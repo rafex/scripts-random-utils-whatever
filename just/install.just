@@ -7,6 +7,14 @@
 create-usb *args:
     bash scripts/install/create_usb_unix.sh {{args}}
 
+# Compilar o instalar tmux estático ARM64 en el TNAS usando Podman remoto
+# Uso: just build-tmux-tnas | just install-tmux-tnas
+build-tmux-tnas:
+    bash scripts/install/install_tmux_tnas_unix.sh --build
+
+install-tmux-tnas:
+    bash scripts/install/install_tmux_tnas_unix.sh --install
+
 # Instalar smartmontools y fio para el diagnóstico de discos USB
 # Uso: just install-disk-health-tools
 install-disk-health-tools *args:
