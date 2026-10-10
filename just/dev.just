@@ -78,3 +78,8 @@ deploy-profiles:
 # Generar SHA256SUMS
 checksums:
     make checksums
+
+# Máquina Podman local con VM e imágenes en el NVMe externo apfs_ext_1tb.
+# Uso: just podman-machine-ext setup | start | stop | status
+podman-machine-ext *args:
+    bash scripts/dev/podman_machine_external_macos.sh {{args}}

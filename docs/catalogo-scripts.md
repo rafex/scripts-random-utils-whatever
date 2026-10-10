@@ -35,6 +35,7 @@ Este inventario se mantiene junto con los scripts. El validador documental compr
 | `scripts/dev/jdtls_linux.sh` | Linux | — | no | — | bajo | [doc](dev/jdtls_linux.md) |
 | `scripts/dev/md2pdf_unix.sh` | macOS/Linux | md2pdf | no | sí | bajo | [doc](dev/md2pdf_unix.md) |
 | `scripts/dev/podman_cleanup_linux.sh` | Linux | podman-cleanup | no | sí | alto | [doc](dev/podman_cleanup_linux.md) |
+| `scripts/dev/podman_machine_external_macos.sh` | macOS | podman-machine-ext | no | no | medio | [doc](dev/podman_machine_external_macos.md) |
 | `scripts/dev/podman_overlay_watch_linux.sh` | Linux | podman-overlay-watch | no | sí | medio | [doc](dev/podman_overlay_watch_linux.md) |
 | `scripts/dev/podman_recover_linux.sh` | Linux | podman-recover | no | sí | medio | [doc](dev/podman_recover_linux.md) |
 | `scripts/dev/update_copilot_chat_linux.sh` | Linux | — | no | — | medio | [doc](dev/update_copilot_chat_linux.md) |
