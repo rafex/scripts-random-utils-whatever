@@ -86,3 +86,13 @@ install-mobile-hotspot *args:
 # Uso: just mobile-hotspot --status|--start|--stop|--toggle|--remove
 mobile-hotspot *args:
     bash scripts/network/mobile_hotspot_linux.sh {{args}}
+
+# Preparar un perfil de hotspot independiente y visible THINKPAD_RAFEX.
+# Uso: just install-thinkpad-hotspot --check|--plan|--set-key|--apply|--status
+install-thinkpad-hotspot *args:
+    bash scripts/install/install_thinkpad_hotspot_linux.sh {{args}}
+
+# Activar o detener THINKPAD_RAFEX usando la conexión WWAN activa, sin sudo.
+# Uso: just thinkpad-hotspot --status|--start|--stop|--toggle|--remove
+thinkpad-hotspot *args:
+    bash scripts/network/thinkpad_hotspot_linux.sh {{args}}
