@@ -48,9 +48,10 @@ just rafex-control-panel
 ## Variables de entorno
 
 No requiere variables. Usa `HOME`, `PATH` y `DISPLAY` de la sesión.
-Si `notify-send` está disponible, cada botón informa qué acción está iniciando;
-si el proceso no puede iniciarse, muestra una notificación de error. Los helpers
-de brillo y audio siguen mostrando su notificación de resultado.
+Los controles de brillo, teclado y audio delegan en los mismos helpers que usan
+las teclas de i3, para que sus notificaciones detalladas de resultado queden
+visibles. Si una acción no puede iniciarse, el panel muestra una notificación
+de error cuando `notify-send` está disponible.
 
 ## Ejemplos
 
@@ -76,4 +77,4 @@ existentes.
 ## Changelog
 
 ### [Unreleased]
-- **fix:** mostrar los controles GTK al abrir el panel y notificar el inicio y los errores al lanzar acciones.
+- **fix:** mostrar los controles GTK y evitar tapar los avisos de resultado de brillo/audio con avisos genéricos.

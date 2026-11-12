@@ -16,8 +16,6 @@ from gi.repository import Gtk
 
 HOME = os.path.expanduser("~")
 BIN = os.path.join(HOME, ".local", "bin")
-
-
 def tool(name):
     return shutil.which(name) or os.path.join(BIN, name)
 
@@ -40,7 +38,6 @@ def notify(message, urgency="normal"):
 
 def run_fixed(argv, label):
     """Lanza una acción de una lista fija; no usa shell ni entrada libre."""
-    notify(f"Ejecutando: {label}")
     try:
         subprocess.Popen(argv, start_new_session=True)
     except OSError as exc:
