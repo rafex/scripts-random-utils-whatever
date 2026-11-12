@@ -1,6 +1,6 @@
 ---
-title: ThinkPad X1 Yoga — investigación de apagado incompleto y TPM
-description: Evidencia de septiembre de 2026, TPM deshabilitado y primer encendido normal confirmado por el usuario
+title: ThinkPad X1 Yoga — investigación de apagado, batería y TPM
+description: Investigación de apagado incompleto y drenaje de batería en ThinkPad X1 Yoga, con evidencias de septiembre y noviembre de 2026
 tags:
   - thinkpad
   - hardware
@@ -9,7 +9,21 @@ tags:
 
 # ThinkPad X1 Yoga: apagado incompleto y TPM
 
-## Estado de la investigación — 2026-09-04
+## Estado de la investigación — actualización 2026-11-12
+
+**El drenaje de batería durante más de 24 horas apagado sigue sin causa
+confirmada.** El usuario observa LED apagado y ventilador detenido después de
+apagar. En noviembre apareció el aviso ACPI `_OSI(Linux) query ignored`; la
+documentación del kernel indica que ese aviso no demuestra por sí solo un fallo
+de apagado. Se identificaron ajustes de BIOS de alimentación en USB, Wake on
+LAN y Thunderbolt que aún no se han comprobado. No se modificaron BIOS, kernel
+ni configuración de energía durante esta revisión.
+
+La hipótesis TPM de septiembre y la relación reportada posteriormente con
+`deep` se conservan como antecedentes. El nuevo síntoma requiere una prueba
+controlada de pérdida de carga, separada de la observación de encendido.
+
+## Estado previo de la investigación — 2026-09-04
 
 **Causa aún no confirmada. Discrete TPM seleccionado y Security Chip deshabilitado;
 primer encendido normal sin cargador confirmado por el usuario.** Faltan ciclos
@@ -316,3 +330,97 @@ investigación (arriba) sigue pidiendo ciclos repetidos de apagado/encendido
 antes de declarar la causa confirmada. Se documenta como el reporte y la
 hipótesis del usuario, no como conclusión técnica verificada de forma
 independiente.
+
+### Actualización — 2026-11-12: aviso ACPI y drenaje con el equipo apagado
+
+#### Síntoma reportado
+
+El usuario indica que, si el equipo permanece apagado más de 24 horas, la
+batería queda agotada. Después de ordenar el apagado, el LED de encendido queda
+apagado y el ventilador detenido. No se ha medido todavía el porcentaje de
+carga inicial/final en un intervalo cronometrado ni aislado el efecto de
+periféricos, dock o cargador.
+
+#### Equipo y registro del sistema
+
+La lectura local identifica un ThinkPad X1 Yoga de primera generación, tipo
+20FR, BIOS Lenovo N1FET82W (1.56), fechado 2022-12-06; EC N1FHT36W. El kernel
+arrancado es `7.2.11+deb14-amd64`. La línea observada en el `dmesg` del arranque
+actual es:
+
+```text
+ACPI: [Firmware Bug]: BIOS _OSI(Linux) query ignored
+```
+
+La línea de comandos actual del kernel no contiene `acpi_osi=Linux`. En el
+journal accesible del arranque anterior, systemd-shutdown llegó a sincronizar
+los sistemas de archivos y enviar SIGTERM a los procesos restantes. Ese
+registro no conserva una confirmación del corte eléctrico final del firmware.
+
+#### Interpretación del aviso
+
+ACPI `_OSI` permite que el firmware pregunte al sistema operativo si soporta
+una interfaz. Linux dejó de responder afirmativamente a la cadena genérica
+`_OSI("Linux")` porque algunos BIOS usaban esa respuesta para entrar en rutas
+no verificadas que podían provocar fallos; la documentación del kernel indica
+que se emite un aviso cuando un BIOS realiza esa consulta. Por eso, el aviso
+identifica una práctica problemática del firmware, pero no prueba que esta
+consulta sea la causa del drenaje ni que el método ACPI de apagado haya fallado.
+No se añadió `acpi_osi=Linux`: no es una corrección general recomendada y puede
+activar otra ruta de firmware no probada.
+
+Referencias: [documentación ACPI `_OSI` del kernel Linux](https://docs.kernel.org/6.5/firmware-guide/acpi/osi.html) y [parámetros de kernel ACPI](https://docs.kernel.org/7.2/admin-guide/kernel-parameters.html).
+
+#### Telemetría de batería
+
+Durante la revisión, conectado a corriente y cargando, el sistema informó:
+
+```text
+BAT0: energy_full=47360000 µWh; energy_full_design=47360000 µWh
+BAT0: capacity=79%; status=Charging; cycle_count=0
+upower: energy-full=47.36 Wh; energy-full-design=47.36 Wh
+upower: capacity=100%; charge-start-threshold=76%; charge-end-threshold=81%
+```
+
+La telemetría no reporta desgaste respecto de la capacidad de diseño, pero no
+certifica la salud física de la batería ni mide el consumo con el portátil
+apagado. El contador de ciclos `0` tampoco constituye por sí solo una prueba
+de batería nueva o saludable.
+
+#### Hipótesis de consumo residual
+
+La guía oficial de Lenovo para esta generación documenta opciones que pueden
+mantener funciones disponibles durante el apagado o estados de bajo consumo:
+
+- `Config → USB → Always On USB` y `Charge in Battery Mode`: permiten alimentar
+  dispositivos USB en apagado cuando están habilitadas las opciones
+  correspondientes.
+- `Config → Network → Wake On LAN`: puede permitir activación desde batería si
+  está configurado como `AC and Battery`.
+- `Thunderbolt 3 → Wake by Thunderbolt 3`: la guía advierte que puede reducir
+  la autonomía en estados de bajo consumo.
+
+La guía indica que `Charge in Battery Mode` está deshabilitado por defecto;
+la configuración real de este equipo aún no se inspeccionó. Estas opciones son
+hipótesis que conviene comprobar, no causas confirmadas.
+
+Referencia: [guía oficial Lenovo ThinkPad X1 Yoga](https://download.lenovo.com/pccbbs/mobiles_pdf/x1_yoga_ug_en.pdf). La página de soporte Lenovo para tipos 20FQ/20FR lista BIOS 1.56 como versión actual: [actualización BIOS Lenovo](https://pcsupport.lenovo.com/us/en/products/laptops-and-netbooks/thinkpad-x-series-laptops/thinkpad-x1-yoga-type-20fq-20fr/downloads/ds111756-bios-update-utility-bootable-cd-for-windows-10-64-bit-81-64-bit-7-64-bit-32-bit-linux-thinkpad-x1-carbon-type-20fb-20fc-x1-yoga-types-20fq-20fr).
+
+#### Siguiente prueba manual propuesta
+
+1. Registrar el porcentaje inicial tras cargar hasta un valor fijo; tener en
+   cuenta que los umbrales TLP actuales detienen la carga alrededor de 81 %.
+2. Apagar mediante `systemctl poweroff`, desconectar cargador, dock y
+   periféricos USB/Thunderbolt, y anotar estado de LED y hora.
+3. Si se puede hacer de forma segura, inspeccionar en BIOS las opciones de USB,
+   Wake on LAN y Wake by Thunderbolt; registrar los valores antes de cambiarlos.
+4. Para aislar el consumo, cambiar una opción cada vez, repetir el mismo
+   intervalo apagado y comparar la carga. No cambiar parámetros ACPI del kernel
+   durante estas pruebas.
+5. Si el equipo pierde toda la carga en 24 horas aun sin periféricos y con esas
+   funciones de activación deshabilitadas, investigar batería/EC y el estado
+   eléctrico final con soporte de servicio.
+
+**Estado:** la relación causal con `_OSI(Linux)`, TPM, USB, Wake on LAN,
+Thunderbolt o batería no está demostrada. No se realizó esta prueba durante la
+revisión del 2026-11-12 ni se cambió ninguna configuración.
