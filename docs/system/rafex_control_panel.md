@@ -13,7 +13,7 @@ Panel GTK3 de usuario para abrir controles existentes del perfil Rafex.
 
 - **Ruta:** `scripts/system/rafex_control_panel.py`
 - **SO requerido:** Linux (Debian con X11)
-- **Dependencias:** Python 3, PyGObject, GTK3 y helpers instalados.
+- **Dependencias:** Python 3, PyGObject, GTK3 y helpers instalados; `notify-send` opcional para confirmar acciones.
 
 ---
 
@@ -48,6 +48,9 @@ just rafex-control-panel
 ## Variables de entorno
 
 No requiere variables. Usa `HOME`, `PATH` y `DISPLAY` de la sesión.
+Si `notify-send` está disponible, cada botón informa qué acción está iniciando;
+si el proceso no puede iniciarse, muestra una notificación de error. Los helpers
+de brillo y audio siguen mostrando su notificación de resultado.
 
 ## Ejemplos
 
@@ -73,4 +76,4 @@ existentes.
 ## Changelog
 
 ### [Unreleased]
-- **feat:** añadir clase GTK `RafexControlPanel`.
+- **fix:** mostrar los controles GTK al abrir el panel y notificar el inicio y los errores al lanzar acciones.

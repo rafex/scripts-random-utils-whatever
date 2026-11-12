@@ -11,7 +11,7 @@ import sys
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
 
 
 HOME = os.path.expanduser("~")
@@ -22,12 +22,32 @@ def tool(name):
     return shutil.which(name) or os.path.join(BIN, name)
 
 
-def run_fixed(argv):
+def notify(message, urgency="normal"):
+    """Usa las notificaciones de escritorio que también usan los helpers de i3."""
+    notify_send = shutil.which("notify-send")
+    if not notify_send:
+        return
+    try:
+        subprocess.run(
+            [notify_send, "-u", urgency, "-t", "1400", "Panel de control Rafex", message],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError as exc:
+        print(f"No se pudo mostrar la notificación: {exc}", file=sys.stderr)
+
+
+def run_fixed(argv, label):
     """Lanza una acción de una lista fija; no usa shell ni entrada libre."""
+    notify(f"Ejecutando: {label}")
     try:
         subprocess.Popen(argv, start_new_session=True)
     except OSError as exc:
         print(f"No se pudo iniciar {argv[0]}: {exc}", file=sys.stderr)
+        notify(f"No se pudo iniciar {label}: {exc.strerror}", urgency="critical")
+        return False
+    return True
 
 
 class RafexControlPanel(Gtk.Application):
@@ -118,6 +138,7 @@ class RafexControlPanel(Gtk.Application):
         self.status_label = Gtk.Label(label="Estado: listo")
         self.status_label.set_xalign(0)
         root.pack_start(self.status_label, False, False, 0)
+        self.window.show_all()
 
     def _section(self, grid, column, row, title, actions):
         frame = Gtk.Frame(label=title)
@@ -141,8 +162,10 @@ class RafexControlPanel(Gtk.Application):
         if not command or not command[0]:
             self.status_label.set_text(f"{label}: herramienta no disponible")
             return
-        run_fixed(command)
-        self.status_label.set_text(f"Ejecutado: {label}")
+        if run_fixed(command, label):
+            self.status_label.set_text(f"Ejecutando: {label}")
+        else:
+            self.status_label.set_text(f"Error al iniciar: {label}")
 
 
 if __name__ == "__main__":
