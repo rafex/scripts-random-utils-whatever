@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v1.0.0
+# v1.1.0
 set -euo pipefail
 
 for battery in /sys/class/power_supply/BAT*; do
@@ -10,8 +10,11 @@ for battery in /sys/class/power_supply/BAT*; do
   [[ "$capacity" =~ ^[0-9]{1,3}$ ]] || continue
   (( 10#$capacity <= 10 )) || continue
 
+  systemctl --user start --no-block rafex-battery-nagbar.service
   notify-send --app-name='Batería' --urgency=critical --expire-time=0 \
     --icon=battery-caution --hint=string:x-dunst-stack-tag:rafex-battery-critical \
     "Batería crítica: ${capacity} %" 'Conecta el cargador ahora para evitar que se apague el equipo.'
-  break
+  exit 0
 done
+
+systemctl --user stop --no-block rafex-battery-nagbar.service

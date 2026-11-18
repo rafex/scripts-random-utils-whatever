@@ -1,0 +1,5 @@
+[Unit]
+Description=Franja de i3 para batería crítica
+
+[Service]
+ExecStart=/usr/bin/i3-nagbar -t error -m "Batería al 10 %% o menos. Conecta el cargador ahora."

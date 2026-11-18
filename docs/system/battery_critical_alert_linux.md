@@ -1,11 +1,12 @@
 # battery_critical_alert_linux.sh
 
-Muestra una notificación crítica en el escritorio si la batería está
-descargándose y tiene 10 % o menos.
+Muestra una franja de i3 y una notificación crítica si la batería está
+descargándose y tiene 10 % o menos. El perfil de Polybar del ThinkPad muestra
+«BATERÍA BAJA» desde el 15 %.
 
 - **Ruta:** `scripts/system/battery_critical_alert_linux.sh`
 - **SO requerido:** Linux
-- **Dependencias:** Bash, `notify-send`, un servidor de notificaciones como Dunst y systemd de usuario para el temporizador.
+- **Dependencias:** Bash, `notify-send`, Dunst u otro servidor de notificaciones, `i3-nagbar` y systemd de usuario.
 
 ---
 
@@ -26,7 +27,9 @@ gráfica debe tener un servidor de notificaciones en el bus de usuario.
 
 ## Uso
 
-El temporizador comprueba la batería cada minuto. En Dunst, el aviso crítico
+El temporizador comprueba la batería cada minuto. Al llegar al 10 % muestra
+una franja superior de i3. Cuando conectas el cargador, la franja desaparece
+en la siguiente revisión. En Dunst, el aviso crítico
 queda visible hasta descartarlo y los avisos sucesivos se agrupan. Mientras
 la batería se descargue al 10 % o menos, el aviso volverá a aparecer si se
 descarta. Al conectar el cargador cesan los avisos nuevos.
@@ -52,7 +55,7 @@ Desde la raíz del repositorio:
 mkdir -p ~/.local/bin ~/.config/systemd/user
 install -m 755 scripts/system/battery_critical_alert_linux.sh ~/.local/bin/battery-critical-alert
 units=dotfiles/profiles/thinkpad-x1-yoga-1st/config/systemd/user
-install -m 644 "$units"/rafex-battery-alert.{service,timer} ~/.config/systemd/user/
+install -m 644 "$units"/rafex-battery-alert.{service,timer} "$units"/rafex-battery-nagbar.service ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable --now rafex-battery-alert.timer
 ```
@@ -77,4 +80,8 @@ con `systemctl --user status rafex-battery-alert.timer`.
 
 ### [Unreleased]
 
-- **feat:** muestra un aviso crítico desde el 10 % de batería.
+- **feat:** añade una franja de i3 al 10 % y un aviso en Polybar al 15 %.
+
+### v1.0.0 — 2026-11-18
+
+**feat:** muestra una notificación crítica desde el 10 % de batería.
