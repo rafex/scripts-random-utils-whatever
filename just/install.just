@@ -430,3 +430,7 @@ enroll-fingerprint:
 # Instalar el controlador del lector Validity 138a:0090 en Debian Forky
 install-thinkpad-fingerprint *args:
     bash scripts/install/install_thinkpad_fingerprint_linux.sh {{args}}
+
+# Configurar huella con contraseña de respaldo en i3lock
+configure-i3lock-fingerprint *args:
+    bash scripts/install/configure_i3lock_fingerprint_linux.sh {{args}}
