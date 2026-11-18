@@ -422,3 +422,11 @@ install-xonotic *args:
 # Uso: just install-urban-terror --check|--plan|--apply|--status|--rollback
 install-urban-terror *args:
     bash scripts/install/install_urban_terror_linux.sh {{args}}
+
+# Registrar una huella y comprobar que el lector la reconoce
+enroll-fingerprint:
+    bash scripts/install/enroll_fingerprint_linux.sh
+
+# Instalar el controlador del lector Validity 138a:0090 en Debian Forky
+install-thinkpad-fingerprint *args:
+    bash scripts/install/install_thinkpad_fingerprint_linux.sh {{args}}

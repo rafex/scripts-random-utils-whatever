@@ -875,3 +875,11 @@ just install-zoitechat --apply
 ```
 
 No se añaden al perfil base ni se inician automáticamente.
+
+## Lector de huellas Validity
+
+En Debian Forky amd64, el lector USB `138a:0090` se habilita con
+`just install-thinkpad-fingerprint --apply`. Después, ejecuta
+`enroll-fingerprint` y toca el lector cuando se solicite. Consulta el
+[instalador del lector de huellas](../../../docs/install/install_thinkpad_fingerprint_linux.md)
+para conocer los requisitos y el procedimiento de diagnóstico.
