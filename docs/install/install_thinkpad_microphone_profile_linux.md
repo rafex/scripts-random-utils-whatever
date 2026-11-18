@@ -107,6 +107,14 @@ EASYEFFECTS_MIC_ROUTE=analog-input-internal-mic \
 
 ## Fallos conocidos
 
+### EasyEffects muestra un error al cargar el perfil
+
+**Causa:** EasyEffects 8.3.2 requiere el campo `input.blocklist` en el preset.
+Las copias anteriores del perfil no lo tenían.
+
+**Solución:** reinstala el perfil actualizado del repositorio con
+`--apply` o copia el JSON actualizado al directorio de perfiles de entrada.
+
 ### `no se encontró el micrófono o el puerto solicitado`
 
 **Causa:** el nombre del origen o del puerto difiere del predeterminado, o el micrófono no está disponible.
@@ -125,7 +133,7 @@ EASYEFFECTS_MIC_ROUTE=analog-input-internal-mic \
 ## Changelog
 
 ### [Unreleased]
-- Cambios pendientes de release.
+- **fix:** añade la lista de exclusión requerida por EasyEffects 8.3.2.
 
 ### v1.0.0 — 2026-10-06
 

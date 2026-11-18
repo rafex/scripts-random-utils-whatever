@@ -1,5 +1,6 @@
 {
   "input": {
+    "blocklist": [],
     "plugins_order": ["rnnoise#0", "compressor#0", "limiter#0"],
     "rnnoise#0": {
       "bypass": false,
