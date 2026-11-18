@@ -169,3 +169,7 @@ firefoxos-hello-world *args:
 # Uso: just firefoxos-sms --serve-podman|--status|--pair|--enqueue|--history|--revoke|--purge
 firefoxos-sms *args:
     bash scripts/system/firefoxos_sms_bridge_linux.sh {{args}}
+
+# Comprobar si corresponde mostrar el aviso de batería crítica
+battery-critical-alert:
+    bash scripts/system/battery_critical_alert_linux.sh

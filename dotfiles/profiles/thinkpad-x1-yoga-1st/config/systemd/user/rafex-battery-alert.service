@@ -1,0 +1,6 @@
+[Unit]
+Description=Aviso visual de batería crítica
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/battery-critical-alert

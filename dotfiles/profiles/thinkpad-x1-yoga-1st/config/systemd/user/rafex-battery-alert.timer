@@ -1,0 +1,10 @@
+[Unit]
+Description=Revisar la batería cada minuto
+
+[Timer]
+OnStartupSec=15s
+OnUnitActiveSec=1min
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target
